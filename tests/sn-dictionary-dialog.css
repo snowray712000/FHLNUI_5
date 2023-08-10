@@ -1,0 +1,12 @@
+.dlg-reuse-body {
+    white-space: pre-wrap;
+}
+.dlg-reuse-body .sn, .dlg-reuse-body .ref{
+    color: blue;
+    cursor: pointer;
+}
+
+.dlg-reuse-body ul {
+    list-style: none;
+    padding-left: 1rem;
+}

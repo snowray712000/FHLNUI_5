@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+    <meta property=og:title content=信望愛聖經工具>
+    <meta property=og:type content=website>
+    <meta property=og:url content=https://bkbible.fhl.net/~sean/bible/index.html>
+    <meta property=og:image content=static/images/FHLLOGO.png>
+    <meta property=og:site_name content=FHL信望愛聖經工具>
+    <meta property=og:description content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <script src="https://code.jquery.com/jquery-3.x-git.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <link rel=stylesheet type=text/css href=https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css>
+    <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+
+    <!-- Bootstrap CSS jQuery first, then Popper.js, then Bootstrap JS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+    <script>
+        window.testThenDo = getTestThenDo()
+        window.getSrd = getGetSrd()
+
+        var jo = {}
+        testThenDo(() => {
+            BibieVersionDialog.s.setCallbackClosed(a1 => { jo = a1 })
+            BibieVersionDialog.s.setCallbackOpened(a1 => { })
+            BibieVersionDialog.s.setVersionsFromApi([
+                { na: 'unv', cna: '首首首' },
+                { na: 'unv1', cna: '新新新' }])
+        }, () => {
+            return /undefined/.test(typeof BibieVersionDialog) == false
+            // return  BibieVersionDialog != undefined
+        }, 200)
+        function show() {
+            BibieVersionDialog.s.open(jo)
+        }
+        /**   
+         * @returns {(cb: ()=>void, test: ()=>boolean, ms?: number)=>void}
+         */
+        function getTestThenDo() {
+            if (window.Ijnjs == undefined || window.Ijnjs.testThenDo == undefined) {
+                return testThenDo
+            }
+            return window.Ijnjs.testThenDo
+            function testThenDo(cbDo, cbTest, ms) {
+                var ms = ms == undefined ? 333 : ms
+                var test = cbTest != undefined ? cbTest : () => true
+                var fnOnce = once;
+                once()
+                return
+                function once() {
+                    console.log(test())
+                    if (test()) {
+                        cbDo()
+                    } else {
+                        console.log('wait')
+                        setTimeout(() => { fnOnce() }, ms)
+                    }
+                }
+            }
+        }
+        /**   
+         * @returns {() => string}
+         */
+        function getGetSrd() {
+
+            if (typeof root != 'undefined' && root == window) { // is test
+                return () => '../ijnjs-fhl/'
+            }
+            if (typeof root != 'undefined' && root == window.FHL) {
+                if (typeof root.getSrdIjnjsFhl == 'function') {
+                    return root.getSrdIjnjsFhl // 正式 index.html
+                }
+            }
+            return () => '../ijnjs-fhl/'
+        }
+    </script>
+    <title>信望愛聖經工具</title>
+</head>
+
+<body>
+
+    <div onclick="show()">顯示
+        <i class="bi-layout-three-columns"></i>
+    </div>
+
+    <!-- app 裡面會被 動態載入到 index.html -->
+    <div id="bible-version-dialog" style="display: none;">
+        <style>
+            #bible-version-dialog .lang {
+                padding-bottom: 0.25rem;
+            }
+
+            #bible-version-dialog .selecteds {
+                border-top-width: 1px;
+                border-top-style: dotted;
+                border-right-width: 1px;
+                border-right-style: dotted;
+                position: relative;
+            }
+
+            #bible-version-dialog .offens {
+                border-top-width: 1px;
+                border-top-style: dotted;
+                border-right-width: 1px;
+                border-right-style: dotted;
+                position: relative;
+            }
+
+            #bible-version-dialog .sets {
+                border-top-width: 1px;
+                border-top-style: dotted;
+                border-right-width: 1px;
+                border-right-style: dotted;
+                position: relative;
+            }
+
+            #bible-version-dialog .group-help {
+                position: absolute;
+                right: -0.75rem;
+                top: -1rem;
+                line-height: 2rem;
+                font-size: 0.75rem;
+                color: gray;
+                cursor: pointer;
+                text-decoration-line: underline;
+                text-decoration-color: blue;
+            }
+        </style>
+        <div class="selecteds" style="min-height: 2.5rem;">
+            <div class="group-help">選取</div>
+        </div>
+        <div class="offens" style="min-height: 2.5rem;">
+            <div class="group-help">常用</div>
+        </div>
+        <div class="sets" style="min-height: 2.5rem;">
+            <div class="group-help">Sets</div>
+        </div>
+
+        <div class="lang">
+            <!-- 範本，到時候裡面會被清掉 -->
+            <span class="lang-item btn btn-outline-dark" data-item='{ "na":"en","cna":"中文"}'> 中文 </span>
+        </div>
+
+        <div class="ch-subs">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                    開啟次分類
+                </label>
+            </div>
+            <div class="ch-sub">
+                <!-- 範本，到時候裡面會被清掉 -->
+                <span class="ch-sub-item btn btn-outline-dark active" data-data='pr'> 基督新教 </span>
+            </div>
+        </div>
+
+        <div class="vers">
+            <!-- 範本，到時候裡面會被清掉 -->
+            <div class="group ch" data-lang='ch'>
+                <span class="book-item btn btn-outline-dark" data-item='{}'>新譯本</span>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="BibleVersionDialog.js"></script>
+
+
+</body>
+
+</html>

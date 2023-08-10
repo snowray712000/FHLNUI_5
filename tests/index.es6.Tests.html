@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Test Suite</title>
+<link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.16.0.css">
+<link rel="icon" href="/fhl_bible.ico" type="image/x-icon">
+<link rel="shortcut icon" href="/fhl_bible.ico" type="image/x-icon">
+
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+
+  <script src="https://code.jquery.com/qunit/qunit-2.16.0.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.x-git.min.js"></script>
+
+  <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+
+  <script>
+/// <reference path="../jsdoc/jquery.js" />
+/// <reference path="../jsdoc/jquery-ui.js" />
+/// <reference path="../jsdoc/linq.d.ts" />
+/// <reference path="../jsdoc/qunit.js" />
+/// <reference path="../jsdoc/lodash.d.js" />    
+    QUnit.module('aaa', function () {
+      /** 首先，非同步 assert 怎麼用 */
+      QUnit.test('async', function (assert) {
+        var fndone = assert.async()
+        setTimeout(() => {
+          assert.equal(1, 1)
+          fndone()
+        }, 100)
+      })
+      QUnit.test('bbb', assert => {
+        assert.equal('', 'asd')
+      });
+    })
+  </script>
+</body>

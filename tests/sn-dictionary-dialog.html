@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://code.jquery.com/jquery-3.x-git.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css">
+    <script src="../static/libs/jquery.ui.touch-punch.min.js"></script>
+    <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+
+    <title>Hello, world!</title>
+    <style>
+        .col {
+            display: inline-block;
+            position: absolute;
+            width: 50%;
+        }
+
+        .ver {
+            border: 1px black solid;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
+        crossorigin="anonymous"></script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-eMNCOe7tC1doHpGoWe/6oMVemdAVTMs2xqW4mwXrXsW0L84Iytr2wi5v2QjrP/xp" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script>
+    -->
+    <!-- <div id="parsingTable">
+        <span k='03231a' n='1' class="parsingTableSn"> parsingTableSn </span>
+        <span k='2147' n='0' class="parsingTableSn"> 2147 </span>
+        <span ref='羅2:1;' book='45' chap='2' class="reference"> reference </span>
+    </div>
+
+    <div onclick="addIt($('#parsingTable'))" style="cursor: pointer;"> 加入事件，使上面能 click </div><br/> -->
+
+
+    <!-- <div id="sn-dict-dialog">
+        template
+        <div class="dtext-container">            
+        </div>
+    </div>
+    <div id="dtext2" class="dtext-container"></div>
+    <div id="dtext1" class="dtext-container"></div>
+    <div id="dtext3" class="dtext-container"></div> -->
+
+    <script src="../libs/ijnjs/ijnjs.js"></script>
+    <script src="../libs/ijnjs-fhl/ijnjs-fhl.js"></script>
+    <script src="../libs/ijnjs-ui/ijnjs-ui.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="./sn-dictionary-dialog.css">
+    <script src="./sn-dictionary-dialog.js"></script>
+    <script src="./sn-dict-ISnDlgAddor.js"></script>
+    <script src="./sn-dict-DlgReuse.js"></script>
+
+    <div onclick="new SnRefDialog().open({dtext:{w:'<G9999>', tp:'G',sn:'9999'}})"> 測試 G9999 </div><br/>
+    
+</body>
+
+</html>

@@ -1,0 +1,10 @@
+#version-infos .na {
+  color: red;
+  font-weight: bolder;  
+}
+#version-infos {
+  text-align: justify;
+}
+#version-infos .odd {
+  background-color: lightgreen;
+}

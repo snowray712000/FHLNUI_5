@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+  <meta property=og:title content=信望愛聖經工具>
+  <meta property=og:type content=website>
+  <meta property=og:url content=https://bkbible.fhl.net/~sean/bible/index.html>
+  <meta property=og:image content=static/images/FHLLOGO.png>
+  <meta property=og:site_name content=FHL信望愛聖經工具>
+  <meta property=og:description content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <script src="https://code.jquery.com/jquery-3.x-git.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+    integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+  <link rel=stylesheet type=text/css href=https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css>
+  <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+
+  <!-- Bootstrap CSS jQuery first, then Popper.js, then Bootstrap JS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+    integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+    crossorigin="anonymous"></script>
+
+    <script src="ijnjs/ijnjs.js"></script>
+  <title>信望愛聖經工具</title>
+</head>
+
+<body>
+  <!-- app 裡面會被 動態載入到 index.html -->
+  <div id='app'>
+    <div class="container" style="padding-bottom: 3rem;">
+      <h4>版本<span style="color: red;">需更新</span></h4>
+      <div>目前版本<span id='ver-old' style="color: blue;"> unknown </span>，最新版本<span id='ver-new'
+          style="color: blue;"></span></div>
+      <br />
+
+      <!-- 嘗試方法 -->
+      <h4>請<span style="color: red;">嘗試</span>下列方法以完成更新</h4>
+      方法1: <a href="javascript:void(0) // reload" onclick="location.reload(true)">點擊此鈕</a> <br />
+      <form action="" method="POST" id="force-reload">
+        方法2: <a href="javascript:void(0) // post" onclick="$('#force-reload').submit()">點擊此鈕</a> <br />
+      </form>
+      方法3:<a class="" data-toggle="collapse" href="#method3" role="button" aria-expanded="false"
+        aria-controls="collapseExample">
+        電腦{非手機}可用
+      </a> <br />
+      <div class="collapse" id="method3">
+        <div class="card card-body">
+          按照下圖操作
+          <div style="max-width: 40rem;background-color: gray;padding: 2rem;">
+            點擊放大
+            <a href="images/howToUpdateStep1.jpeg" target="_blank">
+              <img src="images/howToUpdateStep1.jpeg" class="img-thumbnail" />
+            </a>
+            <a href="images/howToUpdateStep2.jpeg" target="_blank">
+              <img src="images/howToUpdateStep2.jpeg" class="img-thumbnail" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      方法4:<a class="" data-toggle="collapse" href="#method4" role="button" aria-expanded="false"
+        aria-controls="collapseExample">
+        Android手機
+      </a> <br />
+      <div class="collapse" id="method4">
+        <div class="card card-body">
+          <div style="max-width: 40rem;background-color: gray;padding: 2rem;">
+            點擊影片，放大播放 <br />
+            1. 點擊 ...符號 2. 設定 3. 網站設定 4.已儲存資料 5. bible.fhl.net 網址 6. 垃圾桶 7. 清除
+            <a href="images/howToUpdateC.mp4" target="_blank">
+              <video muted autoplay loop controls class="img-thumbnail">
+                <source src="images/howToUpdateC.mp4">
+              </video>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      方法5: Google "強制 重新載入 android" 、 "強制 重新載入 iphone" 、 "強制 重新載入 IE"
+      、總之，使用關鍵字 #強制 #重新載入 #Hard #Reload 再配合你用的裝置
+      <br />
+      <br />
+
+      <!-- 版本資訊 -->
+      <div>
+        <h4><span style="color: red;">查看</span>版本更新資訊</h4>
+        <a class="" data-toggle="collapse" href="#list-versions" role="button" aria-expanded="false"
+          aria-controls="collapseExample" id="version-info-address">
+          查看
+        </a> <br />
+        <div class="collapse" id="list-versions">
+          <div class="card card-body">
+            <style>
+              .na {
+                color: red;
+                font-weight: bolder;
+              }
+
+              #list-versions {
+                text-align: justify;
+              }
+
+              .odd {
+                background-color: lightgreen;
+              }
+            </style>
+            <div id="version-info"></div>
+          </div>
+        </div>
+      </div>
+      <br />
+      <!-- 說明 -->
+      <div>
+        <h4>好奇寶寶<span style="color: red;">看</span>過來 - 技術概要</h4>
+        <div id="accordion" style="text-align:justify;">
+          <div class="card">
+            <div class="card-header" id="headingOne">
+              <h5 class="mb-0">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true"
+                  aria-controls="collapseOne">
+                  詳細說明
+                </button>
+              </h5>
+            </div>
+
+            <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+              <div class="card-body">
+                當FHL程式版本更新後，許多人的畫面是一片灰，而造成原因是瀏覽器的cache功能(當然，有時候是Bug)。
+                cache是為了"節省網路流量"而存在，一些程式碼、圖片沒必要"每次"都抓一次(沒錯，一些資料將存在你的電腦中)。
+                而當FHL一些程式碼更新，然而你的電腦仍用舊的檔案，就會造成這樣現象。
+                <br />
+                '瀏覽器'就是指 chrome 、 firefox 、 edge 、 safari 等等軟體。
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header" id="headingTwo">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo"
+                  aria-expanded="false" aria-controls="collapseTwo">
+                  方法1-原理
+                </button>
+              </h5>
+            </div>
+            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+              <div class="card-body">
+                呼叫 javascript 的 location.reload (true)。
+                它會保證 .html .js .css 任何檔案，都會重新抓取，像新的一樣。
+                用「隱私視窗/無痕視窗/inPrivate視窗/私密視窗」開啟，也是一樣效果。
+                {對工程師}不幸的是，reload (true) 這個函式，在標準協定中已經被拿掉了，也就是說，以後這個方法有可能失效。
+                正因為如此，才建議大家學會第三種方法。
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header" id="headingThree">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree"
+                  aria-expanded="false" aria-controls="collapseThree">
+                  方法2-原理
+                </button>
+              </h5>
+            </div>
+            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+              <div class="card-body">
+                若以 POST 協定{而非GET協定}取得 .html 網頁，一定會回傳最新的 html，而不是用 Cache 檔。
+                然而，與方法1不同的是，其它檔案{例如.js .css}仍然有可能用 Cache 檔。
+                <br />
+                要以 POST 協定載入網頁，就是{在程式碼中}產生一個 form 表單，{呼叫submit函式}提交時，方法指定為 POST 協定{而非GET}。
+              </div>
+            </div>
+          </div>
+          <!-- 方法3, collapse4 -->
+          <div class="card">
+            <div class="card-header" id="headingThree">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse4"
+                  aria-expanded="false" aria-controls="collapseThree">
+                  方法3-原理
+                </button>
+              </h5>
+            </div>
+            <div id="collapse4" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+              <div class="card-body">
+                當按著 shift 時，按下 refresh 鈕，就是，全部檔案都抓最新的，不要用 Cache 檔。
+                就是以程式呼叫 location.reload(true) 是一樣的效果。
+              </div>
+            </div>
+          </div>
+          <!-- 方法4, collapse5 -->
+          <div class="card">
+            <div class="card-header" id="headingThree">
+              <h5 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse5"
+                  aria-expanded="false" aria-controls="collapseThree">
+                  方法4-原理
+                </button>
+              </h5>
+            </div>
+            <div id="collapse5" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+              <div class="card-body">
+                操作目的：手動的清除 Cache 檔 <br />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // 下面就是測試用的 code 了
+    $('#ver-old').text('1.6.5')
+    var joVer = getJoAppVersion()
+    $('#ver-new').text(joVer.nui.last)
+
+    function getJoAppVersion() {
+      var re = {
+        nui: {
+          last: '',
+          historys: [{ na: '', na2: ['', ''], img: [''] }, { na: '', na2: [''] }]
+        },
+        rwd: {
+          last: ''
+        }
+      }
+      $.ajax({ url: 'app_versions.json', dataType: 'text', async: false, cache: false, success: cb })
+      return re
+      function cb(str) {
+        re = JSON.parse(str)
+      }
+    }
+
+    $(document).ready(() => {
+      $('#version-info-address').click(function () {
+        setDomVersionInfo()
+      })
+    })
+    function setDomVersionInfo() {
+      if ($('#version-info').children().length != 0) {
+        return;
+      }
+
+      for (var it of getDataList()) {
+        $('#version-info').append($(gHtml(it)));
+      }
+      $('#version-info').children(":odd").addClass("odd")
+
+      return;
+      function getDataList() {
+        var jo = getJoAppVersion()
+        console.log(jo)
+        return jo.nui.historys
+      }
+      function gHtml(it) {
+        function isNullOrEmpty(str) {
+          return str === undefined || str.length === 0;
+        }
+
+        function gArrayList_UlLi(array) {
+          if (Array.isArray(array)) {
+
+            var r4a = it.na2.map(function (a1) {
+              return '<li>' + a1 + '</li>';
+            }).join('');
+            return re = '<span><ul>' + r4a + '</ul></span>';
+          } else {
+            return undefined;
+          }
+        }
+        // <div>
+        // <span>200529a_點擊節_工具隨著變</span>
+        // youtube、示意圖、
+        // xxxxxxxxxxxxxx<br/>xxxxxxxx
+        // </div>
+        var na = it.na;
+        var r1 = '<span class="na">' + na + '</span><br/>';
+        var r2 = !isNullOrEmpty(it.yt) ? ('<a href="' + it.yt + '" target="_blank">youtube、</a>') : '';
+        // var r3 = !isNullOrEmpty(it.img) ? ('<a href="' + it.img + '" target="_blank">示意圖、</a>') : '';
+        var r3 = doImgs(it.img)
+        var r23 = r2 + r3;
+        if (!isNullOrEmpty(r23)) r23 += '<br/>';
+
+        var r4 = !isNullOrEmpty(it.na2) ? ('<span class="na2">' + it.na2 + '</span>') : '';
+        if (Array.isArray(it.na2))
+          r4 = gArrayList_UlLi(it.na2);
+        // console.log(r4);
+
+        return '<div>' + r1 + r23 + r4 + '</div>';
+
+        /**
+         * 
+         * @param {string|string[]|undefined} imgs 
+         * @returns 
+         */
+        function doImgs(imgs) {
+          if (imgs === undefined) { return '' }
+          // <a href="xxxxx.jpg" target="_blank">示意圖、</a>
+          if (Array.isArray(imgs)) {
+            return imgs.map(doImg).join('')
+          } else if (typeof imgs === 'string') {
+            return doImg(imgs)
+          }
+          return ''
+
+          function doImg(img) {
+            var url = getServerRootDirectory(img) + img
+            return generateLink(url, gPicture(url))
+
+            function getServerRootDirectory(img) {
+              if (/https?:\/\//i.test(img)) {
+                return ''
+              }
+              var r1 = Ijnjs.Path.getDirectoryName(location.pathname)
+              return r1 + '/images/'
+              // return '/NUI/assets/'
+            }
+            function generateLink(url, innerHtml) {
+              return '<a href="' + url + '" target="_blank">' + innerHtml + '</a>'
+            }
+            function gImg(url) {
+              return '<img src="' + url + '" alt="點擊觀看、"  style="height: 8rem;"></img>'
+            }
+            function gPicture(url) {
+              // https://www.infoq.cn/article/animated-gif-without-the-gif
+
+              var r2 = $('<picture></picture>')
+              var ext = Ijnjs.Path.getExtension(url)
+              if (/(gif)|(mov)|(mp4)/i.test(ext)) {
+                var mp4 = Ijnjs.Path.changeExtension(url, '.mp4')
+                var gif = Ijnjs.Path.changeExtension(url, '.gif')
+                $('<source type="video/mov" srcset="' + url + '">').appendTo(r2)
+                $('<source type="video/mp4" srcset="' + mp4 + '">').appendTo(r2)
+                $(gImg(gif)).appendTo(r2)
+              } else {
+                $(gImg(url)).appendTo(r2)
+              }
+              return r2[0].outerHTML
+            }
+
+          }
+        }
+      }
+    }
+
+  </script>
+</body>
+
+</html>

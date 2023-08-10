@@ -1,0 +1,39 @@
+    .yearitem {
+       font: 12pt/30px bold ,Microsoft JhengHei;
+          cursor:pointer;
+
+                border:2px double #ede0e0;
+      border-radius:4px;
+    }
+    .styleitem{
+          font: 12pt/30px bold ,Microsoft JhengHei;
+          cursor:pointer;
+
+                border:2px double #ede0e0;
+      border-radius:4px;
+    }
+    td.list_item_read {
+      cursor:pointer;
+      color:blue;
+    }
+    .yearitem.selected, .styleitem.selected{
+      font: 20px/30px bold ,Microsoft JhengHei;
+      color: #3030FF;
+      cursor:pointer;
+      border:0px double #ede0e0;
+    }
+    .ob_divimg{
+      overflow-x:auto;
+    }
+    .read_span{
+       font: 12pt/30px bold ,Microsoft JhengHei;
+       margin: 4px 7px 4px 0px;
+       text-wrap:none;
+    }
+    .read_button {
+      cursor:pointer;
+      border:2px double #ede0e0;
+      border-radius:4px;
+      font: 12pt/30px bold ,Microsoft JhengHei;
+       margin: 4px 7px 4px 0px;
+    }

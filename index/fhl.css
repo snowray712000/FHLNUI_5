@@ -1,0 +1,1987 @@
+@font-face {
+  font-family: COBSGreekWeb;
+  src:url(../static/font/COBSGreekWeb.ttf);
+}
+
+@font-face {
+  font-family: COBSHebrew;
+  src:url(../static/font/cobsh.ttf);
+}
+.greek {
+  font-family: COBSGreekWeb;
+  font-weight: 700;
+}
+/* add by snow. 2021.07 */
+.hebrew-char-div {
+    /* 包住含有 hebrew-char 的 div */
+    text-align: right;
+    line-height: normal;
+}
+/* add by snow. 2021.07 */
+.hebrew-char {
+    /* 很重要，因為若 span 沒這個，browser 會自動去結合別的 span */
+    display: inline-block;
+    /* font-size: large; */
+    font-family: COBSHebrew;
+    line-height: normal;
+}
+/* add by snow. 2021.07 */
+.greek-char {
+    display: inline-block;
+    /* font-size: large; */
+    font-family: COBSGreekWeb;
+    line-height: normal;
+}
+.hebrew {
+  font-family: COBSHebrew;
+  font-weight: 700;
+  text-align:right;
+}
+
+/* scroll bar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+ 
+/* Track */
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0); 
+}
+
+div.scrolling::-webkit-scrollbar-track{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+div.scrolling::-webkit-scrollbar-thumb{
+    background: rgba(200,200,230,0.8); 
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+
+
+
+body {
+    margin: 0px;
+    overflow: hidden;
+    background-color: #A0A0A0;
+}
+#mainWindow {
+    position: absolute;
+    top: 40px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    background-color: #A0A0A0;
+}
+#fhlTopMenu {
+  position: fixed;
+  top: 0px;
+  left: 0px;  
+  width: 100%;
+  height: 40px;
+  font: 10pt/14pt bold ,Microsoft JhengHei;
+  z-index: 2;/*Layer 1*/
+    
+  /* 2015.10.04 added by sean */
+  /*border-bottom: 1px solid #000000;*/
+  background: linear-gradient(#808080, #A0A0A0);
+}
+
+#fhlTopMenu .menu{
+    /* 上面那條紫色的 */
+    opacity: 0;
+    transition: all 0.2s ease-in-out; 
+    /* add by snow. 2021.07, 當畫面太窄時, 顯示出來的 menu 會防礙功能 */
+    display: inline-flex;
+}
+
+#fhlTopMenu .menu:hover {
+    opacity: 1;
+}
+
+#logoFHL {
+    width: auto;
+    height: 2rem;
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 0.5rem;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+#title {
+    font-size: 1.5rem;
+    position: fixed;
+    left: 3rem;
+    top: 1rem;
+    font-weight: 800;
+    
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+#title span{
+    font-size: 8pt;
+}
+
+nav#fhlTopMenu {
+    height: 40px;
+    z-index: 1;
+}
+
+#fhlTopMenu .menu{
+    position: absolute;
+    top: 0px;
+    right: 70px;
+    /*transform: translate(-50%, 0%);*/
+    width: 4rem;
+    margin: 0px;
+    padding: 0px;
+}
+#fhlTopMenu .menu:hover{
+    width: auto;
+}
+
+#problemsReport{
+    position: absolute;
+    top: 0.25rem;
+    right: 0px;
+    /* width: 60px; */
+    /* height: 50px; */
+    margin: 0px;
+    padding: 0px;
+}
+
+#problemsReport:hover{
+    color: #0050DD;
+    cursor: pointer;
+}
+
+#fhlTopMenu .menu li{
+    list-style: none;
+    float: left;
+    position: relative;
+    min-width: 4rem;
+    font-size: 1rem;
+    /* width: 120px; */
+    height: 40px;
+}
+
+#fhlTopMenu .menu>li{
+    /* 2015.10.04 deleted by sean */
+    /*background-color: #a82222;
+    background-image: -webkit-linear-gradient(#a82222, #670000);
+    background-image: -moz-linear-gradient(#a82222, #670000);
+    background-image: -o-linear-gradient(#a82222, #670000);
+    background-image: linear-gradient(#a82222, #670000);
+    border-left: 1px solid #5f5f5f;
+    border-right: 1px solid #7e0000;*/
+    
+    /* 2015.10.04 added by sean */
+    background: #905090;
+    margin: 8px 15px 10px 15px;
+    height: 30px;
+    border-radius: 5px;
+    border: 1px solid #A0A0FF;
+    box-shadow: 2px 2px 2px 0px rgba(80, 80, 80, 0.9);
+    
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out; 
+}
+
+/*#fhlTopMenu .menu li:first-child{
+    border-radius: 3px 0px 0px 3px;
+    border-left: none;
+}
+
+#fhlTopMenu .menu li:last-child{
+    border-radius: 0px 3px 3px 0px;
+    border-right: none;
+}*/
+
+#fhlTopMenu .menu a{
+    display: block;
+    text-decoration: none;
+    color: white;
+    padding: 0 10px;
+    font-family: 'Verdana', arial;
+    margin: 0;
+    position: relative;
+    font-size: 12pt;
+    text-align: center;
+    
+    /* 2015.10.04 modified by sean */
+    line-height: 30px;
+}
+
+
+/* 2015.10.04 deleted by sean */
+/*#fhlTopMenu .menu a span:after{
+    content: "";
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+    position: absolute;
+    top: 15px;
+    right: 30px;
+
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out; 
+}*/
+
+#fhlTopMenu .menu li:hover{
+    -webkit-box-shadow: inset 0 0 10px #470000;
+    -moz-box-shadow: inset 0 0 10px #470000;
+    box-shadow: inset 0 0 10px #470000;
+    background-color: #a82222;
+    background-image: -webkit-linear-gradient(#911212, #670000);
+    background-image: -moz-linear-gradient(#911212, #670000);
+    background-image: -o-linear-gradient(#911212, #670000);
+    background-image: linear-gradient(#911212, #670000);
+}
+
+/* 2015.10.04 deleted by sean */
+/*#fhlTopMenu .menu li:hover span:after{
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    transform: rotate(180deg);
+}*/
+
+#fhlTopMenu ul.menu-hover{
+    visibility: hidden;
+    position: absolute;
+    top: 120%;
+    left: -60px;
+    opacity: 0;
+    height: 100%;
+    width: 150px;
+
+    /* 下面從原本的 0.5s 變為 30ms, 太長會影響主功能 by snow  */
+    -webkit-transition: all 30ms ease-in-out; 
+    -moz-transition: all 30ms ease-in-out;
+    -o-transition: all 30ms ease-in-out;
+    transition: all 30ms ease-in-out;
+}
+
+#fhlTopMenu .menu li:hover .menu-hover{
+    visibility: visible;
+    height: 100%;
+    opacity: 1;
+}
+
+#fhlTopMenu .menu-hover li{
+    width: 160px;
+    height: 35px;
+    border-bottom: 1px dotted #696969;
+    background: rgba(200, 200, 200, 0.95);
+    border-left: 2px solid #9E593D;
+    border-right: 2px solid #9E593D;
+    box-shadow: 6px 6px 3px 0px rgba(80, 80, 80, 0.9);
+}
+
+#fhlTopMenu .menu-hover li:hover{
+    background-image: -webkit-linear-gradient(#2a2a2a, #434343);
+    background-image: -moz-linear-gradient(#2a2a2a, #434343);
+    background-image: -o-linear-gradient(#2a2a2a, #434343);
+    background-image: linear-gradient(#2a2a2a, #434343);
+    box-shadow: 6px 6px 3px 0px rgba(80, 80, 80, 0.9);
+}
+
+#fhlTopMenu .menu-hover a{
+    line-height: 35px;
+    color: #503030;
+}
+
+#fhlTopMenu .menu-hover li:hover a{
+    color: white;
+}
+
+#fhlTopMenu .menu-hover li:first-child{
+    border-top: 2px solid #9E593D;
+    border-radius: 5px 5px 0px 0px;
+}
+#fhlTopMenu .menu-hover li:last-child{
+    border-bottom: 2px solid #9E593D;
+    border-radius: 0px 0px 5px 5px;
+}
+
+/* 2015.10.04 deleted by sean */
+/*#fhlTopMenu .menu a:after {
+    background: rgba(255,255,255,.07);
+    content: "";
+    height: 20px;
+    left: 0;
+    position: absolute;
+    width: 100%;
+}*/
+
+@media screen and (max-width: 1300px) {
+    #fhlTopMenu .menu>li{
+        width: 3rem;
+        margin: 1px 1px;
+    }
+}
+
+@media screen and (max-width: 1050px) {
+    #fhlTopMenu .menu>li{
+        width: 1.5rem;
+        margin: 1px 1px;
+    }
+}
+@media screen and (max-width: 640px) {
+    #fhlTopMenu .menu>li{
+        width: 1rem;
+        margin: 1px 1px;
+    }
+}
+
+
+
+
+
+#fhlToolBar {
+    position: absolute;
+    top: 10px;
+    display: block;
+    background-color: #404040;
+    height: 50px;
+    left: 214px;
+    right: 12px;
+    border-radius: 5px;
+    border: solid 1px #909090;
+    border-color: #C0C0C0 #909090 #909090 #C0C0C0;
+    border-width: 1px;
+    box-shadow: 1px 1px 3px #505050;
+}
+#fhlToolBar div{
+    float: left;
+}
+#help{
+    position: absolute;
+    top: 0.75rem;
+    left: 0.25rem;
+    font-size: 1rem;
+    color: #C0C0C0;
+    cursor: pointer;
+    /* 改由 after 來寫 ? 所以，padding 可一致 */
+    padding: 0.5rem;
+    /* padding: 1px 4px 0px; */
+    border: solid 2px #D0D0D0;
+    border-radius: 9999px;    
+    z-index: 1;
+}
+#help::after{
+    content: '?';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    line-height: 1rem;
+}
+#help:hover{
+    color: #00A0FF;
+}
+#helpingPopUp{
+    visibility: hidden;
+    opacity: 0;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    background-color: rgba(255, 255, 255, 0.6);
+    z-index: 1;
+    transition: all 0.2s ease-out;
+}
+#helpingPopUpInside{
+    position: absolute;
+    top: 100px;
+    right: 100px;
+    bottom: 100px;
+    left: 100px;
+    border-radius: 5px;
+    background-color: white;
+}
+#helpCloseButton{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+}
+#helpCloseButton:hover{
+    color: #808080;
+}
+
+
+#searchTool{
+    position: absolute;
+    top: 0.125rem;
+    right: 0.125rem;
+    /* right: 12px; */
+    /* transform: translate(0%, -55%); */
+    height: 2rem;
+    line-height: 2rem;
+    font-size:1rem;
+    max-width: 30%;
+    width: 50%;
+}
+/*.searchBox {
+  width:200px;
+  height:20px;
+  margin: 2px;
+  padding: 3px;
+  border: 2px solid;
+  vertical-align: middle;
+}
+.searchBtn {
+  display: inline-block;
+  color: white;
+  background-color: black;  
+  width:80px;
+  height:20px;
+  font: 20px/20px bold ,Microsoft JhengHei;
+  margin: 2px;
+  padding: 5px;
+  border-radius: 5px;      
+  vertical-align: middle;
+}*/
+
+
+.wrapper {
+  text-align: center;
+  margin: 0px;
+  /* height: 30px; */
+  width: 100%;
+}
+.searchBtn {
+  visibility: hidden;
+  opacity: 0;
+  color: #d9d9d9;
+  border: 2px solid #D0D0D0;
+  border-radius: 30px;
+  font-size: 12pt;
+  white-space: nowrap;
+  position: absolute;
+  top: 2px;
+  right: 0px;
+  padding: 5px 10px;
+  transition: all 0.4s ease-out;
+  cursor: pointer;
+}
+.searchBtn:hover{
+    color: #00A0FF;
+}
+.icon-search-container {
+  display: inline-block;
+  border: 0.125rem solid #D0D0D0;
+  border-radius: 0.5rem;
+  height: 2rem;
+  line-height: 2rem;
+  width: 4rem;
+  max-width: 100%;
+  position: absolute;
+  right: 0;  
+  /* transition: all 0.4s ease-out; */
+  /* backface-visibility: hidden; */
+}
+.icon-search-container:hover {
+    /*background: #00505F;*/
+}
+.icon-search-container.active {
+  background: rgba(0, 0, 0, 0);
+  width: 250px;
+  /* 2021-07 mark by snow, 讓輸入的地方, 靠住右邊(因為 seachBtn不顯示了) */
+  /* right: 100px; */
+}
+.icon-search-container.active + .searchBtn {
+    /* 2021-07 mark by snow, 持續讓此 btn 不出現 */
+    /* opacity: 1;
+    visibility: visible; */
+}
+.icon-search-container.active .times-circle {
+  opacity: 1;
+}
+.icon-search-container.active .search-input {
+  width: 180px;
+}
+.icon-search-container .search{
+  position: absolute;
+  top: 3px;
+  left: 1px;
+  color: #D0D0D0;
+  font-size: 16pt;
+}
+.icon-search-container:hover .search{
+  color: #00A0FF;
+}
+.icon-search-container .times-circle {
+  opacity: 0;
+  color: #d9d9d9;
+  font-size: 20px;
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  transition: opacity 0.4s ease-out;
+  cursor: pointer;
+}
+.icon-search-container .times-circle:hover {
+    color: #00A0FF;
+}
+.icon-search-container .search-input {
+  position: absolute;
+  cursor: default;
+  left: 25px;
+  top: 2px;
+  width: 0;
+  padding: 5px;
+  border: none;
+  outline: none;
+  font-size: 12pt;
+  line-height: 12pt;
+  color: white;
+  background-color: rgba(255, 255, 255, 0);
+  transition: width 0.4s ease-out;
+}
+
+
+#bookSelectPopUp {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  /*transform: translate(-50%, 0%);*/
+  width: 100%;
+  height: 100%;
+  font: 8pt/8pt bold ,Microsoft JhengHei;
+  background-color: rgba(100, 100, 100, 0.9);
+  z-index: 1;
+  box-shadow: 3px 3px 3px 3px rgba(0,0,0,0.7);
+}
+#bookSelectName {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 1100px;
+  height: 600px;
+  transform: translate(-50%, -50%);
+  /*float: left;*/
+  overflow: visible;
+  border-radius: 5px;
+  /*border: solid 1px #D0D0D0;*/
+  background-color: rgba(0, 0, 0, 0);
+}
+#bookSelectTitle{
+    position: absolute;
+    top: -45px;
+    left: 46%;
+    line-height: 20pt;
+    font-size: 15pt;
+    padding: 5px 40px;
+    border-radius: 5px;
+    background: #CCCCC5;
+}
+/*#bookSelectName div {
+    text-align: center;
+    cursor: default;
+    float:left;
+}
+#new-testament{
+    border-left: solid;
+    border-width: 1px;
+}*/
+.SwitchToOldTestament{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    line-height: 480px;
+    text-align: center;
+    font-size: 37pt;
+    cursor: pointer;
+}
+.SwitchToNewTestament{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 100%;
+    line-height: 480px;
+    text-align: center;
+    font-size: 37pt;
+    cursor: pointer;
+}
+.SwitchToOldTestament:hover, .SwitchToNewTestament:hover {
+    color: #FF0000;
+}
+
+.testaments{
+    position: absolute;
+    top: 0px;
+    transform: translate(-50%, 0%);
+    width: 1000px;
+	height: 0px;
+    background: transparent;/*#404040;*/
+    padding: 0px;
+    border-radius: 20px;
+}
+#old-testament{
+    left: 50%;
+}
+#new-testament{
+    left: 150%;
+}
+
+#bookSelectName>ul {
+    /*position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;*/
+    cursor: default;
+    list-style: none; 
+    padding: 0px;
+    margin: 0;
+}
+.testaments>ul>li {
+    position: relative;
+    left: 0px;
+    float:left;/*這裏要改掉，讓它變成直條的 摩西五經、歷史書放在一起*/
+    width: 128px;
+    height: 540px;
+    padding: 5px 0px;
+    list-style: none;
+    color: #606060;
+    background: #E0E0E0;
+    border: solid 3px #00A0FF;
+    border-width: 2px 0px;
+    box-shadow: 6px 6px 4px #303030;
+}
+
+.testaments>ul>li:hover {
+    background: #D8D8D8;
+}
+.testaments>ul>li:first-child {
+    width: 80px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border: solid 2px #00A0FF;
+    border-width: 2px 0px 2px 2px;
+}
+.testaments>ul>li:last-child {
+    width: 80px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border: solid 2px #00A0FF;
+    border-width: 2px 2px 2px 0px;
+}
+.testaments ul ul {
+    padding: 0px 0px 0px 8px;
+}
+#bookSelectName li li {
+    display: block;
+    text-align: left;
+    width: 110px;
+    float: none;
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 8px 0px 8px 10px;
+    margin:0px;
+    border-radius: 0px;
+    border: solid 1px #A09090;
+    border-width: 0px 0px 1px 0px;
+}
+#bookSelectName li span.bookClass {
+    top: 0px;
+    /*background-color: #D03030;*/
+    color: #5050A0;
+    font-weight: bolder;
+    padding: 15px 0px 10px 0px;
+    float: none;
+    white-space: nowrap;
+    display: block;
+    text-align: center;
+    font-size: 11pt;
+    border: solid 1px #308080;
+    border-width: 0px 0px 1px 0px;
+}
+#bookSelectName li li:hover{    
+  background-color: #D0D0D0;
+  color: #00A0FF;
+}
+#bookSelectName li li.selected{    
+  background-color: #404040;
+  color:white;
+  box-shadow: inset 3px 3px 4px #303030;
+}
+#bookSelectName li.selected span{
+    position: relative;
+    top: 1px;
+    left: 1px;
+}
+#bookSelectName li i.fa {
+    position: relative;
+    margin-right: 3px;
+    float: right;
+}
+#bookSelectChapter{
+    display: none;
+  position: relative;
+  float:left;
+  background-color: #404040;
+  width: 150px;
+  height: 520px;
+  padding: 0px;
+}
+#bookSelectChapter div{
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow: auto;
+    overflow-x: hidden;
+    margin: 10px 0px;
+    /*-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;*/
+}
+#bookSelectChapter ul {  
+  position: absolute;
+  left: 10px;
+  width: 135px;
+  display: inline-block;
+  list-style: none;  
+  padding: 0px;
+  margin: 1px; 
+}
+#bookSelectChapter li {
+  width: 42px;  
+  height: 20px;
+  line-height: 20px;
+  display: inline-block;
+  text-align: center;   
+  cursor: pointer;  
+  white-space: nowrap;
+  padding: 5px 0px;
+  border: dotted 1px #FFFFFF;
+  border-width: 0px 0px 1px 0px;
+  color: #FFFFFF;
+  margin-bottom:0px;
+}
+#bookSelectChapter li:hover{
+  color: #00A0FF;
+}
+
+.chapNext:hover,.chapBack:hover{
+  color:red;
+}
+
+.secNext:hover,.secBack:hover{
+  color:red;
+}
+/*
+#viewHistoryPopUp {
+  position: fixed;
+  width:120px;
+  font: 18px/18px bold ,Microsoft JhengHei;
+  background-color: #A0A0A0;
+  padding: 2px;
+  text-align: center;
+  z-index: 101;
+}
+
+#viewHistoryPopUp ul { 
+  list-style: none; 
+  padding:2px;
+  margin:0;
+}
+#viewHistoryPopUp li{    
+  cursor: pointer;
+  white-space: nowrap;
+  padding:0;
+  margin:0;
+}
+#viewHistory span:hover{    
+  background-color: white;
+}
+#viewHistoryPopUp li.selected{    
+  background-color: black;
+  color:white;
+}*/
+
+#fhlToolBar #bookSelect{
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2rem;
+    line-height: 2rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+    z-index: 0;
+    text-align: center;
+    background-color: #404040;
+    color: #D0D0D0;
+    /* 暫時 mark 起來 */
+    /* border: solid 1px #606060; */
+    cursor: pointer;
+}
+#fhlToolBar #bookSelect:hover {
+    color: #00A0FF;
+    border: solid 1px #606060;
+    background-color: #393939;
+}
+#fhlToolBar #windowControl{
+    position: absolute;
+    top: 0.25rem;
+    left: 1.75rem;
+    width: 350px;
+    /* transform: translate(0%, -50%); */
+    height: 2rem;
+    line-height: 2rem;
+    text-align: center;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    border: solid 0.125rem #D0D0D0;
+    color: white;
+    z-index: 1;
+    /*padding: 0px;
+    background-color: #404040;
+    border-radius: 5px;
+    border: solid 1px #909090;
+    border-color: #C0C0C0 #909090 #909090 #C0C0C0;
+    border-width: 1px;
+    box-shadow: 1px 1px 3px #505050;*/
+}
+#fhlToolBar #windowControlIcon{
+    position: absolute;
+    left: 20px;
+    top: 0px;
+    line-height: 30px;
+    width: 30px;
+    height: 30px;
+    color: #D0D0D0;
+    font-size: 13pt;
+    cursor: pointer;
+}
+#fhlToolBar #windowControlIcon:hover{
+    color: #00A0FF;
+}
+#fhlToolBar #windowControlIcon.selected{
+    color: #0050FF;
+}
+#fhlToolBar #windowControlIcon.selected:hover{
+    color: #00A0FF;
+}
+#fhlToolBar #windowControlButtons{
+    position: absolute;
+    left: 60px;
+    border: solid 2px #D0D0D0;
+    border-width: 0px 0px 0px 2px;
+}
+#fhlToolBar #windowControl span{
+    position: relative;
+    font-size: 1rem;
+    /* padding: 0px 7px 3px; */
+    cursor: pointer;
+    background-color: transparent;
+    /* margin: 0px 12px; */
+    color: #D0D0D0;
+}
+#fhlToolBar #windowControl span:hover{
+    color: #00A0FF;
+}
+#fhlToolBar #windowControl span.selected{
+    position: relative;
+    font-size: 13pt;
+    padding: 0px 7px 3px;
+    cursor: pointer;
+    margin: 0px 12px;
+    color: #0050FF;
+}
+#fhlToolBar #windowControl span.selected:hover{
+    color: #00A0FF;
+}
+#fhlLeftWindow {
+  position: absolute;
+  display: block;
+  background-color: #E0E0E0;
+  top: 4.75rem;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  /* bottom: 0px; */
+  width: 190px;
+  border-radius: 0.5rem;
+  z-index: 0;/*Layer 1*/  
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+.leftWindow div:not(.ui-resizable-handle){
+  font: 10pt/14pt bold ,Microsoft JhengHei;
+  padding:0px;
+  text-align: left;  
+}
+.leftWindow>.ui-resizable-handle{
+    height: 100%;
+    right: -12px;
+    background-color: #A0A0A0;
+    cursor: col-resize;
+    width: 12px;
+}
+#fhlLeftWindow .ui-resizable-handle span{
+    pointer-events: none;
+    cursor: col-resize;
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    transform: translate(0%, -50%);
+    transform: rotate(90deg);
+}
+.leftWindow .smallText {
+  font: 10px/40px bold ,Microsoft JhengHei;
+}
+#fhlLeftWindow .leftWindowInside{
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow: auto;
+    background-color: #A0A0A0;
+}
+#fhlLeftWindow .leftWindowInside>div {
+    /*border: solid 1px black;
+    border-width: 0px 0px 1px;*/
+    padding: 0px;
+}
+#fhlLeftWindow .leftWindowInside>div>.ui-resizable-handle{
+    background: #A0A0A0;
+    bottom: -12px;
+    cursor: row-resize;
+    height: 12px;
+}
+#fhlLeftWindow .leftWindowInside .ui-resizable-handle span{
+    pointer-events: none;
+    cursor: row-resize;
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translate(-50%, 0%);
+}
+#fhlLeftWindow .leftWindowInside>div ul {
+    position: absolute;
+    width: 100%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    margin: 0px;
+    padding: 0px;
+    overflow: auto;
+}
+#fhlLeftWindow .leftWindowInside>div p {
+    cursor: pointer;
+    margin: 0px;
+    /* 從 10px 改為 0.5 rem */
+    padding: 0.5rem;
+    /*background-color: #E0E0E0;*/
+}
+#fhlLeftWindow .secondLevelInside {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    border-radius: 5px;
+    background-color: #F0F0F0;
+    overflow: hidden;
+}
+.secondLevelInside>div{
+    position: absolute;
+    top: 38px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow: auto;
+}
+.secondLevelInside li{
+    margin: 5px 3px;
+    padding: 0px 0px 5px 15px;
+    border-bottom: dotted 1px black;
+    list-style-type: none;
+    float: none;
+}
+.secondLevelInside li:first-child {
+    margin-top: 0px;
+    padding-top: 5px;
+    border-top: dotted 1px black;
+}
+
+#settings {
+    width: 100%;
+    height: 270px;
+    overflow: visible;
+    background-color: #A0A0A0;
+}
+
+#settings li div{
+    display: inline-block;
+    /*padding: 0px;*/
+}
+#settings li div div{
+    display: inline-block;
+}
+#settings li>div>div:first-child{
+    float: left;
+    margin-right: 20px;
+}
+
+/*float: right; top: 12px;*/
+.onOffSwitch {
+    position: relative; width: 59px; /*float: right;*/ top: 3px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onOffSwitch-checkbox {
+    display: none;
+}
+.onOffSwitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #999999; border-radius: 20px;
+}
+.onOffSwitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    -moz-transition: margin 0.3s ease-in 0s; -webkit-transition: margin 0.3s ease-in 0s;
+    -o-transition: margin 0.3s ease-in 0s; transition: margin 0.3s ease-in 0s;
+}
+.onOffSwitch-inner:before, .onOffSwitch-inner:after {
+    display: block; float: left; width: 50%; height: 12px; padding: 0; line-height: 12px;
+    font-size: 12px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+.onOffSwitch-inner:before {
+    content: "ON";
+    padding-left: 9px;
+    background-color: #C2C2C2; color: #FF0000;
+}
+.onOffSwitch-inner:after {
+    content: "OFF";
+    padding-right: 9px;
+    background-color: #333131; color: #FFFFFF;
+    text-align: right;
+}
+.traditional-simpleSwitch.onOffSwitch-inner:before {
+    content: "簡";
+}
+.traditional-simpleSwitch.onOffSwitch-inner:after {
+    content: "繁";
+}
+.showmodeSwitch.onOffSwitch-inner:before {
+    content: "交錯";
+}
+.showmodeSwitch.onOffSwitch-inner:after {
+    content: "並列";
+}
+.onOffSwitch-switch {
+    display: block; width: 19px; margin: -3.5px;
+    background: #9E593D;
+    border: 2px solid #999999; border-radius: 20px;
+    position: absolute; top: 0; bottom: 0; right: 43px;
+    -moz-transition: all 0.3s ease-in 0s; -webkit-transition: all 0.3s ease-in 0s;
+    -o-transition: all 0.3s ease-in 0s; transition: all 0.3s ease-in 0s; 
+}
+.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner {
+    margin-left: 0;
+}
+.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
+    right: 0px; 
+}
+#fontSizeTool{
+    /*margin: 0px 0px 0px 10px;*/
+}
+.FontSizeButtonLargeSmaller {
+    position: relative;
+    margin: 0px 11px 0px -5px;
+    padding: 1px 0px 0px 4px;
+    width: 20px;
+    line-height: 12pt;
+    font-size: 8pt;
+    text-align: center;
+    box-shadow: 1px 1px 1px #888888;
+    border-radius: 3px;
+    background-color: #E0E0E0;
+    cursor: pointer;
+}
+.FontSizeButtonLargeSmaller :hover{
+    box-shadow: inset 1px 1px 1px #888888;
+    top: 1px;
+    left: 1px;
+}
+.FontSizeButtonLargeSmaller span {
+    position: relative;
+    font-size: 3pt;
+    top: -5px;
+    left: -2px;
+}
+#fhlLectureFontSizeSmaller, #fhlLectureFontSizeLarger{
+    position: relative;
+    margin: 0px 11px 0px -5px;
+    padding: 1px 0px 0px 4px;
+    width: 20px;
+    line-height: 12pt;
+    font-size: 8pt;
+    text-align: center;
+    box-shadow: 1px 1px 1px #888888;
+    border-radius: 3px;
+    background-color: #E0E0E0;
+    cursor: pointer;
+}
+#fhlLectureFontSizeSmaller:hover, #fhlLectureFontSizeLarger:hover{
+    box-shadow: inset 1px 1px 1px #888888;
+    top: 1px;
+    left: 1px;
+}
+#fhlLectureFontSizeSmaller span, #fhlLectureFontSizeLarger span{
+    position: relative;
+    font-size: 3pt;
+    top: -5px;
+    left: -2px;
+}
+#fhlLectureFontSizeSliderBar{
+    cursor: pointer;
+}
+/* 新版的 version select, 用 dialog 方式 */
+#versionSelect2{
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    background-color: #F0F0F0;
+    /* overflow: visible; */
+}
+#versionSelect{
+    position: absolute;
+    top: 282px;
+    width: 100%;
+    background-color: #A0A0A0;
+    overflow: visible;
+}
+.versionSelectInside{
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    border-radius: 5px;
+    background-color: white;
+    overflow: hidden;
+}
+.versionSelectInside>div{
+    position: absolute;
+    top: 44px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow: auto;
+}
+#versionSelect ul{
+    /*margin: 0px;
+    padding: 2px 0px 0px 10px;*/
+    cursor: pointer;
+}
+#versionSelect li:hover {
+    color: #00A0FF;
+}
+#versionSelect li.selected{
+    color: rgba(0, 80, 255, 1);
+}
+
+#viewHistory{
+    position: absolute;
+    height: 2rem;
+    /* height: 38px; */
+    /* 與最底部的距離，由 left window 去處理 */
+    bottom: 0rem;
+    /* bottom: 12px; */
+    width: 100%;
+    background-color: #A0A0A0;
+    overflow: visible;
+}
+#viewHistory p {
+    margin: 0px;
+}
+#viewHistory ul{
+    margin: 0px;
+    padding: 2px 0px 0px 40px;
+}
+#viewHistory li {
+    margin: 3px;
+}
+#viewHistory li:hover {
+    color: #00A0FF;
+}
+#viewHistory .clearHistory{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 8pt;
+    color: #C0C0C0;
+    cursor: pointer;
+}
+#viewHistory .clearHistory:hover{
+    color: #FF0000;
+}
+/*
+#settingPopUp {
+  position: fixed;
+  font: 20px/20px bold ,Microsoft JhengHei;
+  background-color: #A0A0A0;  
+  padding: 5px;
+  z-index: 101;
+}
+
+.menuImage {
+  width: 32px;
+  height: 32px;
+  margin: 0px;
+  padding: 0px;
+  vertical-align: middle;
+}
+.menuImage:hover{
+  background-color: red;  
+}
+
+.menuBtn {
+  display: inline-block;
+  width:40px;
+  height:20px;
+  font: 20px/20px bold ,Microsoft JhengHei;
+  margin: 2px;
+  padding: 5px;
+  border-radius: 5px;    
+}
+.menuBtn:hover{
+  background-color: red;  
+}
+.menuBtn.selected{
+  background-color: black;
+  color: white;
+}
+
+.subMenuBtn {
+  display: inline-block;
+  width:30px;
+  height:15px;
+  font: 14px/15px bold ,Microsoft JhengHei;
+  margin: 2px;
+  padding: 5px;
+  border-radius: 5px;
+  text-align: center;
+}
+.subMenuBtn:hover{
+  background-color: red;  
+}
+.subMenuBtn.selected{
+  background-color: black;
+  color: white;
+}*/
+
+#fhlMidWindow {
+  position: absolute;
+  overflow: hidden;
+  background-color: #A0A0A0;    
+  border-radius: 5px;
+  font: 12pt/16pt bold ,Microsoft JhengHei;
+  top: 75px;
+  bottom: 12px;
+  left: 214px;/*190+12+12*/
+  cursor: default;
+  z-index: 0;/*Layer 1*/  
+}
+#fhlLecture {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  width: 100%;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 0px;
+  background-color: white;
+}
+#fhlLecture span {
+  /*-webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;*/
+}
+#fhlLecture .lec{
+  /*font-size: 12pt;*/
+  /*padding: 0px 40px;
+  margin-left: 10px; ... 原本mode=0版本*/
+  padding: 0px 0px;
+  margin:0px;
+  text-align: justify;
+}
+#fhlLecture .selected{
+  background: linear-gradient(to right, rgba(150, 150, 100, 0.1) 0.2%, rgba(150, 150, 100, 0.4) 4%, rgba(150, 150, 100, 0.7) 10%, rgba(150, 150, 100, 0.7) 90%, rgba(150, 150, 100, 0.4) 96%, rgba(150, 150, 100, 0.1) 99.8%);
+    /*box-shadow: inset 0px 0px 5px 10px rgba(200, 200, 150, 0.3);*/
+  z-index: -1;
+}
+#fhlLecture .lecContent{
+  display: inline-block;
+  vertical-align: top;
+}
+#fhlLecture .lecContent.bhs.hebrew{
+    font-size: 18pt;
+    line-height: 22.5pt;
+}
+#fhlLecture .lecContent.bhs.hebrew div{
+    /*white-space: nowrap;*/
+    overflow: auto;
+    /*direction: rtl;*/ /*2015.09.21*/
+    text-align: right;
+}
+#fhlLecture .lecContent span.sn {
+    position: relative;
+    top: 3px;
+    margin-left: 1px;
+    margin-right: 1px;
+    font-size: 8px;
+}
+#fhlLecture .lecContent span.verseNumber {
+    position: relative;
+    top: -8px;
+    margin-left: 1px;
+    margin-right: 1px;
+    font-size: 6pt;
+}
+#fhlLecture span.verseNumber {
+    position: relative;
+    top: -8px;
+    margin-left: 1px;
+    margin-right: 1px;
+    font-size: 6pt;
+}
+#fhlLecture .versionName{
+    display: inline-block;
+    margin: 5px 0px 0px 10px;
+    /*border: solid 2px black;
+    border-width: 2px;
+    border-bottom: white;*/
+    border-radius: 5px;
+    background-color: #F5F5F5;
+    width: 80%;
+    text-align: center;
+    overflow: hidden;
+    height: 21px;
+    cursor: pointer;
+}
+/* #fhlLecture .versionName:hover:before{
+    content: "×";
+    font-size: 13pt;
+} */
+#fhlLecture .versionName:hover{
+    background-color: #F06060;
+    cursor: pointer;
+}
+#fhlLecture .closeButton{
+    display: none;
+    line-height: 15px;
+    float: right;
+    margin: 1px 10px 0px 0px;
+    padding: 0px 3px 3px 3px;
+    cursor: pointer;
+    border-radius: 50%;
+}
+#fhlLecture .closeButton:hover{
+    color: white;
+    background-color: rgba(255, 100, 100, 1);
+}
+#fhlLecture .chapControl{
+    position: absolute;
+    top: 30px;
+    bottom: 0px;
+    cursor: pointer;
+    z-index: 1;
+    color: #606060;
+    background: rgba(0, 0, 0, 0);
+}
+#fhlLecture .chapControl span{
+    position: absolute;
+    top: 45%;
+    font-size: 3em;
+    width: 50px;
+    text-align: center;
+}
+#fhlLecture .chapBack{
+    width: 50px;
+    left: 0px;
+}
+#fhlLecture .chapNext{
+    width: 40px;
+    right: 10px;
+}
+#fhlLecture .chapBack:hover{
+    color: red;
+    background: -webkit-linear-gradient(left, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* Standard syntax (must be last) */
+}
+#fhlLecture .chapNext:hover{
+    color: red;
+    background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* Standard syntax (must be last) */
+}
+#fhlLecture .chapNext:hover ~ ::-webkit-scrollbar-track{
+    -webkit-box-shadow: none;
+    background: -webkit-linear-gradient(left, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* Standard syntax (must be last) */
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+}
+
+
+#lecMainTitle {
+    background-color: #A0A0A0;
+    height: 30px;
+    padding: 0px 50px;
+    border: solid 1px #E0E0E0;
+    border-width: 1px 1px 0px;
+}
+#lecMain {
+    position: absolute;
+    top: 30px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    /*border-top: solid 2px black;*/
+    padding: 10px 0px;
+    box-shadow: inset 0px -4px 7px #808080, inset 0px 4px 7px #808080;    
+    overflow-y: scroll;
+    padding-left: calc(50px - 0.5em);
+    /* https://stackoverflow.com/questions/39392423/calculating-width-of-scrollbar-and-using-result-in-calc-css */
+    /* 右邊應該有50px,但是實際上,就好像有個浪費掉的空白,原來是浪費掉了 scroll-width. 因此實際不需要 50px */
+    /* 下面算法，改在 body 一個變數，下面算法有時會錯 */
+    /* --scrollbar-width: calc(100vw - 100%); */
+    padding-right: calc(50px - var(--scrollbar-width) - 0.5em);
+}
+
+.sn,.snParse,.searchBibleVerse,.searchSN {
+  font: 9px/14px bold ,Microsoft JhengHei;
+  /*background-color: grey;*/
+  color: rgba(130, 50, 50, 0.5);
+  border-radius: 5px;
+  padding:0px;
+  margin:0px;
+  cursor:pointer;
+}
+
+.sn:hover,.snParse:hover,.searchBibleVerse:hover,.searchSN:hover {
+  color: rgba(250, 50, 50, 1);
+}
+
+#fhlMidBottomWindow {
+    position: absolute;
+    display: none;
+    bottom: 0;
+    /* bottom: -312px; */
+    /* height: 500px; */
+    width: 100%;
+    border-radius: 5px;
+    background-color: #F0F0F0;
+    box-shadow: inset 0px -4px 7px #808080, inset 0px 4px 7px #808080;
+}
+#fhlMidBottomWindowTitle {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  line-height: 2em;
+  height: 2em;
+  font-size: 1em;
+  margin:0;
+  padding:0;
+  /* font: 12pt/15pt bold,Microsoft JhengHei; */
+  /* vertical-align: top; */
+  text-align: left;
+  background-color: #F0F0F0;
+  color: black;
+  border: solid 1px black;
+  border-width: 0px 0px 1px 0px;
+}
+/*#fhlMidBottomWindowTitle:hover {
+  background-color: black;
+  color: white;
+}*/
+#fhlMidBottomWindow .ui-resizable-handle.ui-resizable-n{
+    background-color: #A0A0A0;
+    cursor: row-resize;
+    top: -12px;
+    height: 12px;
+    text-align: center;
+}
+#pre_search2 .ui-resizable-handle.ui-resizable-e {
+    right: -0.5rem;
+    width: 1rem;
+    cursor: col-resize;
+    background-color: #A0A0A0;
+}
+#fhlMidBottomWindow .ui-resizable-handle-n span{
+    pointer-events: none;
+    cursor: row-resize;
+    position: absolute;
+    top: -7px;
+}
+#fhlMidBottomWindowContent {
+  position: absolute;
+    top: 2em;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+  margin:0;
+  padding:0;  
+}
+
+#fhlInfo {
+  position: absolute;
+  top: 75px;
+  bottom: 12px;
+  right: 12px;
+  /*border: solid 5px black;*/
+  width: 500px;/*這裏改了javascript 裡面也要改*/
+  z-index: 0;/*Layer 1*/  
+}
+#fhlInfo .ui-resizable-handle{
+    background-color: #A0A0A0;
+    cursor: col-resize;
+    left: -12px;
+    width: 12px;
+}
+#fhlInfo .ui-resizable-handle span{
+    pointer-events: none;
+    cursor: col-resize;
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    transform: translate(0%, -50%);
+    transform: rotate(90deg);
+}
+#fhlInfoTitle {
+    overflow: hidden;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    text-align: center;
+    background-color: #A0A0A0;
+    height: 30px;
+    border: solid 1px #E0E0E0;
+    border-width: 1px 1px 0px;
+}
+#fhlInfoTitle ul {
+  width:100%;  
+  list-style: none; 
+  margin: 0px 0px 3px;
+  padding: 0px;
+}
+#fhlInfoTitle li {
+  position: relative;
+  display: inline-block;
+  margin: 0px 3px;
+  font: 12pt/30px bold ,Microsoft JhengHei;
+  text-align: center;        
+  cursor: pointer;
+  margin-right:3px;
+  z-index:0;
+}
+#fhlInfoTitle li:hover{
+  /*background-color: #C0C0C0;*/
+}
+#fhlInfoTitle .selected{
+    font: 20px/30px bold ,Microsoft JhengHei;
+    color: #3030FF;
+}
+#fhlInfoContent {
+  position: absolute;
+  /*overflow:auto;*/
+  background-color: #F0F0F0;
+  display: inline-block;
+  width:100%;
+  top: 30px;
+  bottom: 0px;
+  /*font: 18px/24px bold ,Microsoft JhengHei;*/
+  font: 10pt/15pt bold ,Microsoft JhengHei;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  padding-right:0px;/*15px*/
+  box-shadow: inset 0px -4px 7px #808080, inset 0px 4px 7px #808080;
+  z-index:0;
+    word-wrap:break-word;
+}
+
+#fhlInfoContent span.parsing{
+    /* font-size: 16pt;
+    line-height: 32pt; */
+    cursor: pointer;
+}
+
+.commentSecBack{
+    display: block;
+    color: #606060;
+    background: rgba(0, 0, 0, 0);
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    width: 50px;
+    border-bottom-left-radius: 5px;
+    z-index: 1;
+}
+
+.parsingSecBack{
+    display: block;
+    color: #606060;
+    background: rgba(0, 0, 0, 0);
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    height: 200px;
+    left: 0px;
+    width: 50px;
+    border-bottom-left-radius: 5px;
+    z-index: 1;
+}
+
+.commentSecBack span, .parsingSecBack span{
+    position: absolute;
+    top: 45%;
+    left: 0px;
+    width: 100%;
+    text-align: center;
+    font-size: 37pt;
+}
+
+.commentSecBack:hover, .parsingSecBack:hover {
+    color: rgba(255, 0, 0, 1);
+    background: -webkit-linear-gradient(left, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* Standard syntax (must be last) */
+}
+
+.commentSecNext{
+    display: block;
+    color: #606060;
+    background: rgba(0, 0, 0, 0);
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    right: 10px;
+    width: 50px;
+    border-bottom-right-radius: 5px;
+    z-index: 1;
+}
+
+.parsingSecNext {
+    display: block;
+    color: #606060;
+    background: rgba(0, 0, 0, 0);
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    height: 200px;
+    right: 10px; /*這樣當有scroll時，才不會擋到*/
+    width: 50px;
+    border-bottom-right-radius: 5px;
+    z-index: 1;
+}
+
+.commentSecNext span, .parsingSecNext span{
+    position: absolute;
+    top: 45%;
+    right: 0px;
+    width: 100%;
+    text-align: center;
+    font-size: 37pt;
+}
+
+.commentSecNext:hover, .parsingSecNext:hover {
+    color: rgba(255, 0, 0, 1);
+    background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* Standard syntax (must be last) */
+}
+
+#commentTitle {
+    position: absolute; 
+    left: 60%; 
+    top: 17px; 
+    transform: translate(-50%, 0%); 
+    display: block; 
+    width: 280px; 
+    height: 40px; 
+    text-align: center; 
+    font-size: 1.3em; 
+    line-height: 28pt;
+    cursor: default; 
+    margin: 0px; 
+    border: solid 1px #FFFFFF;
+    border-radius: 5px; 
+    background: rgba(200, 200, 200, 1); 
+    box-shadow: 3px 3px 5px #808080;
+    z-index: 1;
+}
+
+#commentTitle::before {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    width: 120px;
+    height: 17px;
+    content: "";
+    border: solid 1px #505050;
+    border-width: 0px 4px;
+    z-index: 1;
+}
+
+.commentBackground {
+    position: absolute;
+    bottom: 25px;
+    right: 50px;
+    padding: 6px 22px;
+    border: solid 2px #FFFFFF;
+    cursor: pointer;
+    font-size: 12pt;
+    color: rgba(150, 100, 100, 1);
+    border-radius: 5px; 
+    background: rgba(180, 180, 180, 1); 
+    box-shadow: 3px 3px 5px #808080;
+    z-index: 1;
+}
+
+.commentBackground:hover {
+    color: rgba(255, 0, 0, 1);
+    background: rgba(210, 210, 210, 1); 
+}
+
+#commentContent {
+    position: absolute; 
+    top: 0px; 
+    left: 0px; 
+    right: 0px; 
+    bottom: 0px; 
+    display: block;
+    overflow: hidden; 
+    word-wrap: break-word; 
+    word-break: normal; 
+}
+
+.parsingTableSn {
+    cursor: pointer;
+    color: rgba(130, 50, 50, 1);
+}
+.parsingTableSn:hover {
+    color: #FF0000;
+}
+
+#parsingPopUp {
+  position: fixed;
+  border-radius: 6px;
+  border: 1px solid black;
+  background-color: rgba(230, 230, 180, 1);
+  color: #303030;
+  padding: 0px 0px;
+  z-index: 1;/*Layer 2*/
+  box-shadow: 4px 4px 3px #505050;
+}
+
+#parsingPopUpInside {
+  white-space:nowrap;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font: 10pt/15pt bold ,Microsoft JhengHei;
+  background-color: rgba(0, 0, 0, 0);
+  border-radius: 0px;
+  margin: 1px;
+  padding: 10px;
+  box-shadow: inset 0px -1px 3px #808080, inset 0px 1px 3px #808080, inset -1px 0px 3px #808080, inset 1px 0px 3px #808080;
+  /*padding: 20px;
+  border: 1px solid black;*/
+  z-index: 1;/*Layer 2*/
+}
+.parsingPopUpUpperTriangle:before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    left: 55px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0px 15px 15px 0px;
+    transform: rotate(135deg);
+    border-color: transparent transparent rgba(230, 230, 180, 1) transparent;
+    box-shadow: -1px 1px 0px #000000;
+}
+.parsingPopUpLowerTriangle:before {
+    content: "";
+    position: absolute;
+    bottom: -7px;
+    left: 55px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 15px 15px 0px 0px;
+    transform: rotate(-135deg);
+    border-color: rgba(230, 230, 180, 1) transparent transparent transparent;
+    box-shadow: -4px -4px 3px #505050;
+}
+
+#parsingPopUpInside .sn, #parsingPopUpInside .snParse, #parsingPopUpInside .searchBibleVerse, #parsingPopUpInside .searchSN {
+  font: 9px/14px bold ,Microsoft JhengHei;
+  /*background-color: grey;*/
+  color: rgba(150, 50, 50, 1);
+  border-radius: 5px;
+  padding:0px;
+  margin:0px;
+  cursor:pointer;
+}
+
+#parsingPopUpInside .sn:hover, #parsingPopUpInside .snParse:hover, #parsingPopUpInside .searchBibleVerse:hover, #parsingPopUpInside .searchSN:hover {
+  color: rgba(250, 50, 50, 1);
+}
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  user-select: none;           /* Non-prefixed version, currently
+                                  not supported by any browser */
+}
+.vercol {
+    border-right-width: 1px;
+    border-right-style: dashed;
+    border-right-color: lightgray;
+    border-left-width: 1px;
+    border-left-style: dashed;
+    border-left-color: lightgray;
+}
+ .lec .ft{
+  cursor:pointer;
+}
+ .lec .ver{
+   color:rgba(0, 80, 255, 1);
+   font-size:0.5em;
+ }
+
+ img.pos {
+     /* css 的 url 是相對於此 css 檔 */
+    background-image: url('../static/images/site.png');
+    min-width: 12px;
+    min-height: 22px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    cursor: pointer;
+  }
+
+  img.pho {
+    background-image: url('../static/images/camera.png');
+    min-width: 29px;
+    min-height: 22px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    cursor: pointer;
+  }
+
+  @font-face {
+    font-family: 'COBSGreekWeb';
+    src: url('static/font/COBSGreekWeb.ttf') format('truetype');
+  }
+
+  #fhlInfoContent {
+    height: 100%;
+  }
+  .parsingTableSn {
+    color: blue;
+    cursor: pointer;
+    }
+
+    .reference {
+        color: blue;
+        cursor: pointer;
+    }
+
+    .one-verse {
+        display: block;
+    }
+
+    .odd {
+        background-color: whitesmoke;
+    }
+
+    .bible-text {}
+
+    .bible-address {
+        color: blue;
+    }
+
+    .bstw {
+        font-family: "bstw";
+      }
+  
+      @font-face {
+        font-family: "bstw";
+        src: url("static/font/open_han.ttf") format("trueType"), url("static/font/open_han.woff2") format("woff2"), url("static/font/open_han.svg") format("svg"), url("static/font/open_han.woff") format("woff");
+      }
+.ref 
+{
+    /* 交互參照，通常是 span.ref */
+    color: blue;
+    cursor: pointer;
+}
+
+span.exp
+{
+    /* twcb 字典，有 span.exp，強調某字? */
+    color: purple;
+}
+span.bibtext
+{
+    /* twcb 字典，有 span.bibtext，是範圍型的 */
+    color: orange;
+}

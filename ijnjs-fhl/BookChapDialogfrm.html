@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+  <meta property=og:title content=信望愛聖經工具>
+  <meta property=og:type content=website>
+  <meta property=og:url content=https://bkbible.fhl.net/~sean/bible/index.html>
+  <meta property=og:image content=static/images/FHLLOGO.png>
+  <meta property=og:site_name content=FHL信望愛聖經工具>
+  <meta property=og:description content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <script src="https://code.jquery.com/jquery-3.x-git.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+    integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+  <link rel=stylesheet type=text/css href=https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css>
+  <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+
+  <!-- Bootstrap CSS jQuery first, then Popper.js, then Bootstrap JS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+    integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+    crossorigin="anonymous"></script>
+
+  <title>信望愛聖經工具</title>
+</head>
+
+<body>
+  <!-- app 裡面會被 動態載入到 index.html -->
+  <div id="book-chap-dialog" style="display: none;">
+    <div class="toolbar">
+      <button type="button" class="btn btn-light" opt="old">舊約</button>
+      <button type="button" class="btn btn-light" opt="new">新約</button>
+      <button type="button" class="btn btn-light" opt="chap">章</button>
+      <button type="button" class="btn btn-light" opt="hebrew">希伯來排序</button>
+      <button type="button" class="btn btn-outline-info" opt="full">完整名稱</button>
+    </div>
+
+    <!-- 下面內容動態產生 -->
+    <div class="contents">
+      <!-- 樣本，(在程式中，會清除，再重繪選項)，54，可以表示 chap 或 book -->
+      <button type="button" class="btn btn-outline-dark" data-val="54">項目</button>
+    </div>
+  </div> 
+</body>
+
+</html>

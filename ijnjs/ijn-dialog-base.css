@@ -1,0 +1,71 @@
+/* 開發 dialog, 最初是給 聖經版本 選擇使用的 */
+
+/* 使後面的不能點擊 */
+.ijn-dialog-gray
+{
+  position:fixed;
+  top:0px;
+  left:0px;
+  bottom: 0px;
+  right: 0px;
+  margin:0;
+  padding:0;
+  background:black;
+}
+.ijn-dialog-white
+{
+  position:absolute;
+  margin:0;
+  padding:0;
+  left: 0.5rem;
+  top:0.5rem;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  background-color:white;
+  border-radius: 0.5rem;
+  border-style: double;
+}
+.ijn-dialog-close
+{
+  position: absolute;
+  left: 0.25rem;
+  top: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0px 0px;
+  margin: 0px 0px;
+  background-color: red;
+  cursor: pointer;
+  
+  border-radius: 999rem;
+  box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.7);
+}
+.ijn-dialog-close:after{
+  content:'X';
+  width: 100%;
+  height: 100%;
+  /* 此值要等於 close 的 height width */
+  font-size: 1.5rem;
+  /* 此值要等於font-size */
+  line-height: 1.5rem;
+  position: absolute;
+  text-align: center;
+}
+.ijn-dialog-help{
+  /* 要看 close */
+  left: 2.5rem;
+  /* 要看 close */
+  top:0.5rem;
+  /* 太大會影響到下面 */
+  font-size: 1rem;
+  color: gray;
+  position: absolute;
+}
+.ijn-customer{
+    position: absolute;
+    top:  2.5rem;
+    left:  1rem;
+    bottom: 1rem;
+    right:  1rem;
+    overflow-y:scroll;
+}
