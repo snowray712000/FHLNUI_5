@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "1.10.3",
+        "last": "1.11.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -9,6 +9,13 @@
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]
+            },
+            {
+                "na": "1.11.1",
+                "na2": [
+                    "優化) 譯本_新增從其它至分類"
+                ],
+                "img": []
             },
             {
                 "na": "1.10.3",
