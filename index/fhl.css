@@ -1,11 +1,11 @@
 @font-face {
   font-family: COBSGreekWeb;
-  src:url(../static/font/COBSGreekWeb.ttf);
+  src:url(./static/font/COBSGreekWeb.ttf);
 }
 
 @font-face {
   font-family: COBSHebrew;
-  src:url(../static/font/cobsh.ttf);
+  src:url(./static/font/cobsh.ttf);
 }
 .greek {
   font-family: COBSGreekWeb;
@@ -17,17 +17,21 @@
     text-align: right;
     line-height: normal;
 }
+/* add by snow. 2024.04 */
+.hebrew-char-inline-block {
+    /* 很重要，因為若 span 沒這個，browser 會自動去結合別的 span，若結合之後，會造成 Parsing 工具的備註那些錯誤，在希伯來文的時候  */
+    display: inline-block;
+}
 /* add by snow. 2021.07 */
 .hebrew-char {
-    /* 很重要，因為若 span 沒這個，browser 會自動去結合別的 span */
-    display: inline-block;
+    /* display: inline-block; */ /* hebrew-char 專注處理字型大小改變， inline-block 另外處理，因為這只有 Parsing 要用，經文內容，有這個反而會錯。*/
     /* font-size: large; */
     font-family: COBSHebrew;
     line-height: normal;
 }
 /* add by snow. 2021.07 */
 .greek-char {
-    display: inline-block;
+    /* display: inline-block; */
     /* font-size: large; */
     font-family: COBSGreekWeb;
     line-height: normal;
@@ -1909,7 +1913,7 @@ nav#fhlTopMenu {
 
  img.pos {
      /* css 的 url 是相對於此 css 檔 */
-    background-image: url('../static/images/site.png');
+    background-image: url('./static/images/site.png');
     min-width: 12px;
     min-height: 22px;
     background-repeat: no-repeat;
@@ -1919,7 +1923,7 @@ nav#fhlTopMenu {
   }
 
   img.pho {
-    background-image: url('../static/images/camera.png');
+    background-image: url('./static/images/camera.png');
     min-width: 29px;
     min-height: 22px;
     background-repeat: no-repeat;
@@ -1930,7 +1934,7 @@ nav#fhlTopMenu {
 
   @font-face {
     font-family: 'COBSGreekWeb';
-    src: url('static/font/COBSGreekWeb.ttf') format('truetype');
+    src: url('./static/font/COBSGreekWeb.ttf') format('truetype');
   }
 
   #fhlInfoContent {
@@ -1966,7 +1970,7 @@ nav#fhlTopMenu {
   
       @font-face {
         font-family: "bstw";
-        src: url("static/font/open_han.ttf") format("trueType"), url("static/font/open_han.woff2") format("woff2"), url("static/font/open_han.svg") format("svg"), url("static/font/open_han.woff") format("woff");
+        src: url("./static/font/open_han.ttf") format("trueType"), url("./static/font/open_han.woff2") format("woff2"), url("./static/font/open_han.svg") format("svg"), url("./static/font/open_han.woff") format("woff");
       }
 .ref 
 {

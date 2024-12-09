@@ -104,15 +104,15 @@
             // 型成 jquery 用字串.
             // #fhlInfoParsing,#fhlInfoComment,#fhlInfoPreach,#fhlInfoTsk,#fhlInfoOb,#fhlInfoAudio,#fhlInfoMap,#fhlSnBranch
             var selectAll = this.title.map(a1 => `#${a1.id}`).join(',')
-            
-            $(selectAll).on('click', function( _ ){
+
+            $(selectAll).on('click', function (_) {
                 var idTitle = $(this).attr('id');
-                if ( idTitle == ps.titleId ){
+                if (idTitle == ps.titleId) {
                     // 目前是注釋，又點了一次注釋 (防呆)
                 } else {
                     $(selectAll).removeClass('selected');
                     $(this).addClass('selected'); // this 是指被 click 那個
-                    
+
                     ps.titleIdold = ps.titleId; // add 2015.12.10(四) 為了有聲聖經,切換問題
                     ps.titleId = idTitle;
                     triggerGoEventWhenPageStateAddressChange(ps);
@@ -123,21 +123,21 @@
             })
 
             // 樹狀圖，只有在羅馬書才會出現title        
-            $(document).on('go', function(event, addr) {
+            $(document).on('go', function (event, addr) {
                 // assert ps.titleIdold != ps.titleId
-                if ( ps.titleId == "fhlSnBranch"){
-                    if ( addr.book != 45 ){ // 若目前是 樹狀圖，但變成不是時，會隱藏，但要自動切換掉
-                        $('#'+ps.titleIdold).trigger('click')
+                if (ps.titleId == "fhlSnBranch") {
+                    if (addr.book != 45) { // 若目前是 樹狀圖，但變成不是時，會隱藏，但要自動切換掉
+                        $('#' + ps.titleIdold).trigger('click')
                     }
-                } else {                    
-                    if (addr.book == 45){
+                } else {
+                    if (addr.book == 45) {
                         $('#fhlSnBranch').css('visibility', '');
-                    } else {                                                
-                        $('#fhlSnBranch').css('visibility', 'hidden');                        
+                    } else {
+                        $('#fhlSnBranch').css('visibility', 'hidden');
                     }
-                }               
-            });                
-            
+                }
+            });
+
         },
         render: function (ps, dom) {
             this.setTitleViaGb(ps);
@@ -256,32 +256,32 @@
                     });
                     break;
                 case "fhlInfoComment":
-                    $('#fhlInfoContent').off('click','.sn').on('click', '.sn', ev =>{
+                    $('#fhlInfoContent').off('click', '.sn').on('click', '.sn', ev => {
                         let that = $(ev.target)
                         let sn = that.attr('sn');
-                        let N =  that.attr('tp') == 'H' ? 1: 0 // 0 是新約 1 是舊約
-                        queryDictionaryAndShowAtDialogAsync({sn,isOld:N==1})
+                        let N = that.attr('tp') == 'H' ? 1 : 0 // 0 是新約 1 是舊約
+                        queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
                     })
-                    $('#fhlInfoContent').off('click','.commentJump').on('click','.commentJump', ev => {
+                    $('#fhlInfoContent').off('click', '.commentJump').on('click', '.commentJump', ev => {
                         /** @type {JQuery<HTMLElement>} */
                         let that = $(ev.target)
                         let engs = that.attr('engs')
                         let book = getBookFunc('indexByEngs', engs) + 1
                         let chap = that.attr("chap")
                         let sec = that.attr("sec")
-                        let addrDefault = {book: book, chap: parseInt(chap), verse: parseInt(sec)}
+                        let addrDefault = { book: book, chap: parseInt(chap), verse: parseInt(sec) }
 
-                        let refs = that[0].innerHTML 
-                        
+                        let refs = that[0].innerHTML
+
                         /** @type {DText[]} */
-                        let dtexts = splitReference(refs,addrDefault)
+                        let dtexts = splitReference(refs, addrDefault)
                         queryReferenceAndShowAtDialogAsync({
-                            addrs:  dtexts[0].refAddresses
+                            addrs: dtexts[0].refAddresses
                         })
                     })
 
                     $('.commentSecBack, .commentSecNext').click(function () {
-                    // $('.commentSecBack, .commentSecNext, .commentJump').click(function () {
+                        // $('.commentSecBack, .commentSecNext, .commentJump').click(function () {
                         var oldEngs = ps.engs;
                         var oldChap = ps.chap;
                         ps.engs = $(this).attr('engs');
@@ -599,41 +599,75 @@
                                     var wform = jsonObj.record[i].wform;
                                     var orig = jsonObj.record[i].orig;
                                     var remark = jsonObj.record[i].remark;
-                                    var pt = remark.indexOf("[#");
-                                    var pt1 = remark.indexOf("#]");
-                                    while (N == 1 && pt >= 0 && pt1 > pt) {
-                                        var nstr = "";
-                                        var pstr = remark.substring(pt + 2, pt1);
-                                        pstr = pstr.replace(/１/g, "1");
-                                        pstr = pstr.replace(/２/g, "2");
-                                        pstr = pstr.replace(/３/g, "3");
-                                        pstr = pstr.replace(/４/g, "4");
-                                        pstr = pstr.replace(/５/g, "5");
-                                        pstr = pstr.replace(/６/g, "6");
-                                        pstr = pstr.replace(/７/g, "7");
-                                        pstr = pstr.replace(/８/g, "8");
-                                        pstr = pstr.replace(/９/g, "9");
-                                        pstr = pstr.replace(/．/g, ".");
-                                        subheb = pstr.split(",");
-                                        nstr = "§";
-                                        for (si = 0; si < subheb.length; si++) {
-                                            subheb[si] = subheb[si].trim();
-                                            if (subheb[si].length == 0) continue;
-                                            spt = subheb[si].split("-");
-                                            nstr = nstr + "<a href=\"/new/pimg/" + spt[0] + ".png\" target=\"grammer\">" + subheb[si] + "</a> ";
+
+                                    function do_remark(remark){
+                                        // 當 input 是 `沿用至今。[#2.19, 2.9, 4.2, 11.9#]` 後面那一段，要轉換為連結
+                                        // <a href="/new/pimg/2.19.png" target="grammer">2.19</a>
+                                        // <a href="/new/pimg/2.9.png" target="grammer">2.9</a>
+                                        // 略..
+                                        var pt = remark.indexOf("[#");
+                                        var pt1 = remark.indexOf("#]");
+                                        while (pt >= 0 && pt1 > pt) {
+                                            var nstr = "";
+                                            var pstr = remark.substring(pt + 2, pt1);
+
+                                            pstr = pstr.replace(/０/g, "0");
+                                            pstr = pstr.replace(/１/g, "1");
+                                            pstr = pstr.replace(/２/g, "2");
+                                            pstr = pstr.replace(/３/g, "3");
+                                            pstr = pstr.replace(/４/g, "4");
+                                            pstr = pstr.replace(/５/g, "5");
+                                            pstr = pstr.replace(/６/g, "6");
+                                            pstr = pstr.replace(/７/g, "7");
+                                            pstr = pstr.replace(/８/g, "8");
+                                            pstr = pstr.replace(/９/g, "9");
+                                            pstr = pstr.replace(/．/g, ".");
+
+                                            subheb = pstr.split(",");
+                                            nstr = "§";
+                                            for (si = 0; si < subheb.length; si++) {
+                                                subheb[si] = subheb[si].trim();
+                                                if (subheb[si].length == 0) continue;
+                                                spt = subheb[si].split("-");
+
+                                                link_url = "/new/pimg/" + spt[0] + ".png";
+                                                // 希望在開發的時候，就是 port 是 5500 時，網址會從 /new/pimg/2.19.png 變成 http://bible.fhl.net:5500/new/pimg/2.19.png
+                                                if (location.port == "5500") {
+                                                    link_url = "http://bible.fhl.net:80" + link_url;
+                                                } 
+                                                nstr = nstr + "<a href=\"" + link_url + "\" target=\"grammer\">" + subheb[si] + "</a> ";
+                                            }
+                                            // `[#` 前面的字串
+                                            let str1 = remark.substring(0, pt);
+                                            // `#]` 後面的字串 
+                                            let str2 = remark.substring(pt1 + 2);
+                                            remark = str1 + nstr + str2
+                                            pt = remark.indexOf("[#");
+                                            pt1 = remark.indexOf("#]");
                                         }
-                                        remark = remark.substring(0, pt) + nstr + remark.substring(pt1 + 2);
-                                        pt = remark.indexOf("[#");
-                                        pt1 = remark.indexOf("#]");
+                                        
+                                        return remark
                                     }
+                                    function charHebrew_Inline_Block(remark){
+                                        // <span class='hebrew-char'>אֶל</span> 用長基本型 <span class='hebrew-char'>אֱלֵי</span>
+
+                                        // 將字串 'hebrew-char' 以 'hebrew-char hebrew-char-inline-block' 取代
+                                        return remark.replace(/'hebrew-char'/g, '\'hebrew-char hebrew-char-inline-block\'')
+                                    }
+                                    remark = charHG (do_remark (remark) )
+                                    remark = charHebrew_Inline_Block(remark) // 3 單陽詞尾 הוּ + ֵי 合起來 ... 像這個 + 就可能因為沒有 inline-block 而錯誤
 
                                     body_str = body_str + "<tr bgcolor=\"" + clrstr + "\"><td class=\"" + orig_font + "\">" + charHG(word) + "</td><td class=\"g0\"><span class=\"parsingTableSn\" N=" + N + " k=" + sn + ">" + sn + "</span></td><td class=\"g0\">";
 
-                                    if (N == 0) // 只有新約有 pro
+                                    if (N == 0) {
+                                        // 只有新約有 pro
                                         body_str = body_str + charHG(pro) + "</td><td class=\"g0\">";
+                                    }
 
-                                    body_str = body_str + charHG(wform) + "</td><td class=\"" + orig_font + "\">" + charHG(orig) + "</td><td class=\"g0\">" + charHG(exp) + "</td><td class=\"g0\">" +
-                                        charHG(remark) + "</td></tr>";
+                                    wform = charHebrew_Inline_Block( charHG(wform) )
+                                    
+                                    body_str = body_str + wform + "</td><td class=\"" + orig_font + "\">" + charHG(orig) + "</td><td class=\"g0\">" + charHG(exp) + "</td><td class=\"g0\">" +
+                                    remark + "</td></tr>";
 
                                 } //else wid != 0 (也就是這括號是處理下半部)
                             } //for I , api 回來的 record 中的每1個
@@ -658,7 +692,7 @@
 
                             html = "<div style='position: absolute; top: 200px; left: 0px; right: 0px; height: 12px; background: #A0A0A0;'></div>" + html + "";
 
-                            
+
                             dom.html(html);
 
                             // add by snow. 2021.07 原文解析，字型大小
@@ -669,8 +703,8 @@
 
                             testThenDoAsync(() => window.DialogTemplate != undefined)
                                 .then(() => {
-                                
-                                    $('#parsingTable').off('click','.parsingTableSn').on({
+
+                                    $('#parsingTable').off('click', '.parsingTableSn').on({
                                         "click": function () {
                                             var r2 = $(this)
                                             var jo = {

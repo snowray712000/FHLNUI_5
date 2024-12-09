@@ -20,5 +20,5 @@ function DPageState() {
   this.ispho = false;
   this.ispos = false;
   // book 別以為是 bookIndex, 因為 book 先被注釋用掉了 sc.php 參數
-  this.book = 3, this.N = 0, this.k = "", this.cname = ["和合本"], this.realTimePopUp = 0, this.titleId = "fhlInfoComment", this.history = [{ chineses: "創", chap: 1 }], this.commentBackgroundChap = 1, this.commentBackgroundSec = 1, this.leftBtmWinShow = true, this.searchTitleMsg = "", this.audio = 0;
+  this.book = 3, this.N = 0, this.k = "", this.cname = ["FHL和合本"], this.realTimePopUp = 0, this.titleId = "fhlInfoComment", this.history = [{ chineses: "創", chap: 1 }], this.commentBackgroundChap = 1, this.commentBackgroundSec = 1, this.leftBtmWinShow = true, this.searchTitleMsg = "", this.audio = 0;
 }

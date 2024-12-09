@@ -455,7 +455,7 @@ function FhlLectureEs6Js(){
                                     var rec = getRecord(rspArr[j].record, null, chap, sec);
                                     //var r=rspArr[j].record[i];
                                     if (rec != null) {
-                                        var bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                        var bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                         if (bibleText == "a")
                                             bibleText = "【併入上節】";
                                     } else {
@@ -506,7 +506,7 @@ function FhlLectureEs6Js(){
     
                                     var bibleText = "";
                                     if (rec != null)
-                                        bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                        bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                     else
                                         bibleText = "";
                                     if (bibleText == "a") {
@@ -678,7 +678,7 @@ function FhlLectureEs6Js(){
                                         var rec = rspArr[j].record[i]; //原 var rec = getRecord(rspArr[j].record, null, chap, sec);
                                         var bibleText = "";
                                         if (rec != null)
-                                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                         else
                                             bibleText = "";
                                         if (bibleText == "a") {
@@ -874,7 +874,8 @@ function FhlLectureEs6Js(){
                         break;
                     case 1:
                         //console.log(text);
-                        if (-1 != ["和合本", "KJV", "和合本2010"].indexOf(bibleVersion)) {
+                        if ( -1 != ["unv","kjv", "rcuv"].indexOf(bibleVersion) ) {
+                            // 和合本 KJV 和合本2010
                             function snReplace(s) {
                                 //console.log(s);
                                 if (s.substr(0, 4) === '{<WT') {
@@ -916,7 +917,8 @@ function FhlLectureEs6Js(){
                         ret = text;
                         break;
                 }
-                if (bibleVersion == "舊約馬索拉原文" || bibleVersion == "新約WH原文") {
+                if ( bibleVersion == "bhs" || bibleVersion == "fhlwh") {
+                    // 舊約馬索拉原文, 新約WH原文
                     ret = ret.replace(/</g, "&lt");
                     ret = ret.replace(/>/g, "&gt");
                     ret = ret.replace(/\r\n/g, "<br>");
@@ -984,7 +986,7 @@ function FhlLectureEs6Js(){
                     vna: abvphp.get_cname_from_book(ps.version[i], ps.gb == 1),
                     url: getAjaxUrl("qb", ps, i)
                 })).toArray()
-    
+
                 Enumerable.from(r1).forEach(a1 => {
                     $.ajax({
                         url: a1.url

@@ -6,7 +6,8 @@
 function charHG(str) {
     if (str === undefined) { return str }
 
-    var r1 = new Ijnjs.SplitStringByRegex().main(str, /([\u0590-\u05fe\- ]+)|([\u0370-\u03ff\u1f00-\u1fff]+)/ig)
+    // var r1 = new Ijnjs.SplitStringByRegex().main(str, /([\u0590-\u05fe\- ]+)|([\u0370-\u03ff\u1f00-\u1fff]+)/ig)
+    var r1 = new Ijnjs.SplitStringByRegex().main(str, /([\u0590-\u05fe]+)|([\u0370-\u03ff\u1f00-\u1fff]+)/ig)
     if (r1.length == 0) { return str }
 
     /** @type {string[]} 表示是 html結果*/

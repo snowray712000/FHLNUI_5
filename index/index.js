@@ -2928,10 +2928,15 @@ function FhlLectureEs6Js(){
             var col = ps.version.length;
             var rspArr = new Array();
             var idx = 0;
+
+            // 第3個參數，是多個譯本，多執行緒，其中一個執行緒完成時呼叫
+            // 第4個參數，是所有譯本都完成時呼叫，它會用 while loop 等待次執行緒，所以回到主執緒。
             getBibleText(col, ps, function (o) {
+                // o 就是 qb.php 的回傳 json                
                 rspArr.push(o);
+                // console.log("cbk " , o)
             }, function () {
-    
+                // console.log (" defCbk () callback ")
                 var isOld = checkOldNew(ps);
                 // 恢復本 2018.03 snow add
                 for (j = 0; j < rspArr.length; j++) {
@@ -3004,13 +3009,12 @@ function FhlLectureEs6Js(){
                                     var rec = getRecord(rspArr[j].record, null, chap, sec);
                                     //var r=rspArr[j].record[i];
                                     if (rec != null) {
-                                        var bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                        var bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                         if (bibleText == "a")
                                             bibleText = "【併入上節】";
                                     } else {
                                         bibleText = "";
                                     }
-    
                                     if (rspArr[j].version == "bhs") {
                                         var bibleText = bibleText.split(/\n/g).reverse().join("<br>");
                                     }
@@ -3055,7 +3059,7 @@ function FhlLectureEs6Js(){
     
                                     var bibleText = "";
                                     if (rec != null)
-                                        bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                        bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                     else
                                         bibleText = "";
                                     if (bibleText == "a") {
@@ -3063,9 +3067,9 @@ function FhlLectureEs6Js(){
                                     }
     
     
-                                    if (rspArr[j].version == "bhs") {
+                                    if (rspArr[j].version == "bhs") 
+                                    {
                                         bibleText = bibleText.split(/\n/g).reverse().join("<br>");
-                                        //console.log(bibleText);
                                     }
                                     else if (rspArr[j].version == "cbol") {
                                         bibleText = bibleText.split(/\n/g).join("<br>");
@@ -3096,7 +3100,7 @@ function FhlLectureEs6Js(){
     
                                     // add by snow. 2021.07 原文字型大小獨立出來
                                     var bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
-    
+
                                     $htmlContent.children().eq(j).append(
                                         $("<div ver='" + rspArr[j].version + "' chap=" + chap + " sec=" + sec + " class='lec'>\
                               <div class='" + classDiv + "' style='margin: 0px 0.25rem 0px 0.25rem; padding: 7px 0px; height: 100%;'>\
@@ -3200,15 +3204,21 @@ function FhlLectureEs6Js(){
                                 var maxR = rspArr[maxRecordIdx].record[i]; //原 var maxR = rspArr[maxRecordIdx].record[i];
                                 var chap = maxR.chap, sec = maxR.sec;
     
-                                for (var j = 0; j < rspArr.length; j++) {
+                                for (var j = 0; j < rspArr.length; j++) 
+                                {
                                     var r1 = rspArr[j];
-                                    if (rspArr.length > 1) {
+
+                                    if (rspArr.length > 1) 
+                                    {
                                         var vname = "<br/><span class='ver'> (" + r1.v_name + ")</span> "; //新譯本 合和本 etc
                                     }
                                     else
+                                    {
                                         var vname = ""; //只有一種版本就不要加了
-    
-                                    if (i >= r1.record_count) {
+                                    }
+
+                                    if (i >= r1.record_count) 
+                                    {
                                         //此版本 本章節比較少,
                                         var className = 'verseContent ';
                                         if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh') // 2018.01 客語特殊字型(太1)
@@ -3217,17 +3227,18 @@ function FhlLectureEs6Js(){
     
                                         onever.append(
                                             $("<div ver='" + rspArr[j].version + "' chap=" + chap + " sec=" + sec + " class='lec'>\
-                                <div style='margin: 0px 0px 0px 0px; padding: 7px 0px; height: 100%;'>\
-                                  <span class='verseNumber'>" + sec + "</span>\
-                                  <span class='" + className + "'>" + vname + "</span>\
-                                </div></div>"));
+                                            <div style='margin: 0px 0px 0px 0px; padding: 7px 0px; height: 100%;'>\
+                                            <span class='verseNumber'>" + sec + "</span>\
+                                            <span class='" + className + "'>" + vname + "</span>\
+                                            </div></div>"));
                                     }
-                                    else {
+                                    else 
+                                    {
     
                                         var rec = rspArr[j].record[i]; //原 var rec = getRecord(rspArr[j].record, null, chap, sec);
                                         var bibleText = "";
                                         if (rec != null)
-                                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                         else
                                             bibleText = "";
                                         if (bibleText == "a") {
@@ -3264,20 +3275,18 @@ function FhlLectureEs6Js(){
                                             brForHebrew += '<br/>'
                                         }
     
-                                        // add by snow. 2021.07 原文字型大小獨立出來
-                                        var bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
-    
+                                        // add by snow. 2021.07 原文字型大小獨立出來                
+                                        bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
+                                        
                                         onever.append(
                                             $("<div ver='" + rspArr[j].version + "' chap=" + chap + " sec=" + sec + " class='lec'>\
-                                  <div class='" + classDiv + "' style='margin: 0px 0px 0px 0px; padding: 7px 0px; height: 100%;'>\
-                                    <span class='verseNumber'>" + sec + "</span>"
-                                                + brForHebrew +
-                                                "<span class='" + className + "'>" + bibleText2 + vname + "</span>\
-                                  </div>\
-                                </div>"));
-    
+                                                <div class='" + classDiv + "' style='margin: 0px 0px 0px 0px; padding: 7px 0px; height: 100%;'>\
+                                                    <span class='verseNumber'>" + sec + "</span>"
+                                                                + brForHebrew +
+                                                                "<span class='" + className + "'>" + bibleText2 + vname + "</span>\
+                                                </div>\
+                                                </div>"));
                                     }
-    
                                 }
                             }
     
@@ -3423,7 +3432,8 @@ function FhlLectureEs6Js(){
                         break;
                     case 1:
                         //console.log(text);
-                        if (-1 != ["和合本", "KJV", "和合本2010"].indexOf(bibleVersion)) {
+                        if ( -1 != ["unv","kjv", "rcuv"].indexOf(bibleVersion) ) {
+                            // 和合本 KJV 和合本2010
                             function snReplace(s) {
                                 //console.log(s);
                                 if (s.substr(0, 4) === '{<WT') {
@@ -3465,7 +3475,8 @@ function FhlLectureEs6Js(){
                         ret = text;
                         break;
                 }
-                if (bibleVersion == "舊約馬索拉原文" || bibleVersion == "新約WH原文") {
+                if ( bibleVersion == "bhs" || bibleVersion == "fhlwh") {
+                    // 舊約馬索拉原文, 新約WH原文
                     ret = ret.replace(/</g, "&lt");
                     ret = ret.replace(/>/g, "&gt");
                     ret = ret.replace(/\r\n/g, "<br>");
@@ -3523,26 +3534,37 @@ function FhlLectureEs6Js(){
             function isHebrewOrGeekVersion(ver) {
                 return ['fhlwh', 'lxx', 'bhs'].indexOf(ver) != -1
             }
+            /** 
+            * bhs 馬索拉原文 (希伯來文)
+            * @param {string} ver - fhlwh lxx bhs
+            */            
+            function isHebrewVersion(ver){
+                return ['bhs'].indexOf(ver) != -1
+            }
+            /** 
+            * fhlwh 新約原文 lxx 七十士譯本(舊約用希臘文)
+            * @param {string} ver - fhlwh lxx bhs
+            */            
+            function isGreekVersion(ver){
+                return ['fhlwh','lxx'].indexOf(ver) != -1
+            }
             function getBibleText(col, ps, cbk, defCbk) {
                 var sem = col; // 版本數量
-    
-                console.log(ps);
 
                 var r1 = Enumerable.range(0, col).select(i => ({
                     ver: ps.version[i],
                     vna: abvphp.get_cname_from_book(ps.version[i], ps.gb == 1),
                     url: getAjaxUrl("qb", ps, i)
                 })).toArray()
-    
+
                 Enumerable.from(r1).forEach(a1 => {
                     $.ajax({
                         url: a1.url
                     }).done(function (d, s, j) {
                         if (j) {
                             var jsonObj = JSON.parse(j.responseText);
-                            
-                            // jsonObj.v_name = a1.vna // qb.php 有但 qsb.php 沒有
                             // jsonObj.version = a1.ver  // qb.php 有但 qsb.php 沒有
+
                             cbk(jsonObj);
                             sem--;
                         }

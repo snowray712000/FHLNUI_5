@@ -2819,33 +2819,61 @@ function gfhlInfoContent() {
                                     var wform = jsonObj.record[i].wform;
                                     var orig = jsonObj.record[i].orig;
                                     var remark = jsonObj.record[i].remark;
-                                    var pt = remark.indexOf("[#");
-                                    var pt1 = remark.indexOf("#]");
-                                    while (N == 1 && pt >= 0 && pt1 > pt) {
-                                        var nstr = "";
-                                        var pstr = remark.substring(pt + 2, pt1);
-                                        pstr = pstr.replace(/１/g, "1");
-                                        pstr = pstr.replace(/２/g, "2");
-                                        pstr = pstr.replace(/３/g, "3");
-                                        pstr = pstr.replace(/４/g, "4");
-                                        pstr = pstr.replace(/５/g, "5");
-                                        pstr = pstr.replace(/６/g, "6");
-                                        pstr = pstr.replace(/７/g, "7");
-                                        pstr = pstr.replace(/８/g, "8");
-                                        pstr = pstr.replace(/９/g, "9");
-                                        pstr = pstr.replace(/．/g, ".");
-                                        subheb = pstr.split(",");
-                                        nstr = "§";
-                                        for (si = 0; si < subheb.length; si++) {
-                                            subheb[si] = subheb[si].trim();
-                                            if (subheb[si].length == 0) continue;
-                                            spt = subheb[si].split("-");
-                                            nstr = nstr + "<a href=\"/new/pimg/" + spt[0] + ".png\" target=\"grammer\">" + subheb[si] + "</a> ";
+                                    function do_remark(remark)
+                                    {
+                                        // 當 input 是 `沿用至今。[#2.19, 2.9, 4.2, 11.9#]` 後面那一段，要轉換為連結
+                                        // <a href="/new/pimg/2.19.png" target="grammer">2.19</a>
+                                        // <a href="/new/pimg/2.9.png" target="grammer">2.9</a>
+                                        // 略..
+                                        var pt = remark.indexOf("[#");
+                                        var pt1 = remark.indexOf("#]");
+                                        while (pt >= 0 && pt1 > pt) {
+                                            var nstr = "";
+                                            var pstr = remark.substring(pt + 2, pt1);
+
+                                            pstr = pstr.replace(/０/g, "0");
+                                            pstr = pstr.replace(/１/g, "1");
+                                            pstr = pstr.replace(/２/g, "2");
+                                            pstr = pstr.replace(/３/g, "3");
+                                            pstr = pstr.replace(/４/g, "4");
+                                            pstr = pstr.replace(/５/g, "5");
+                                            pstr = pstr.replace(/６/g, "6");
+                                            pstr = pstr.replace(/７/g, "7");
+                                            pstr = pstr.replace(/８/g, "8");
+                                            pstr = pstr.replace(/９/g, "9");
+                                            pstr = pstr.replace(/．/g, ".");
+
+                                            subheb = pstr.split(",");
+                                            nstr = "§";
+                                            for (si = 0; si < subheb.length; si++) {
+                                                subheb[si] = subheb[si].trim();
+                                                if (subheb[si].length == 0) continue;
+                                                spt = subheb[si].split("-");
+
+                                                link_url = "/new/pimg/" + spt[0] + ".png";
+                                                // 希望在開發的時候，就是 port 是 5500 時，網址會從 /new/pimg/2.19.png 變成 http://bible.fhl.net:5500/new/pimg/2.19.png
+                                                if (location.port == "5500") {
+                                                    link_url = "http://bible.fhl.net:80" + link_url;
+                                                } else {
+                                                    link_url = "http://bible.fhl.net:80" + link_url;
+                                                }
+
+                                                nstr = nstr + "<a href=\"" + link_url + "\" target=\"grammer\">" + subheb[si] + "</a> ";
+                                                console.log(nstr);
+                                                
+                                            }
+                                            // `[#` 前面的字串
+                                            let str1 = remark.substring(0, pt);
+                                            // `#]` 後面的字串 
+                                            let str2 = remark.substring(pt1 + 2);
+                                            remark = str1 + nstr + str2
+                                            pt = remark.indexOf("[#");
+                                            pt1 = remark.indexOf("#]");
                                         }
-                                        remark = remark.substring(0, pt) + nstr + remark.substring(pt1 + 2);
-                                        pt = remark.indexOf("[#");
-                                        pt1 = remark.indexOf("#]");
+
+                                        return remark
                                     }
+                                    remark = do_remark( charHG(remark) )
 
                                     body_str = body_str + "<tr bgcolor=\"" + clrstr + "\"><td class=\"" + orig_font + "\">" + charHG(word) + "</td><td class=\"g0\"><span class=\"parsingTableSn\" N=" + N + " k=" + sn + ">" + sn + "</span></td><td class=\"g0\">";
 
@@ -2853,7 +2881,7 @@ function gfhlInfoContent() {
                                         body_str = body_str + charHG(pro) + "</td><td class=\"g0\">";
 
                                     body_str = body_str + charHG(wform) + "</td><td class=\"" + orig_font + "\">" + charHG(orig) + "</td><td class=\"g0\">" + charHG(exp) + "</td><td class=\"g0\">" +
-                                        charHG(remark) + "</td></tr>";
+                                        remark + "</td></tr>";
 
                                 } //else wid != 0 (也就是這括號是處理下半部)
                             } //for I , api 回來的 record 中的每1個
@@ -3774,7 +3802,7 @@ function gfhlLecture() {
                                     var rec = getRecord(rspArr[j].record, null, chap, sec);
                                     //var r=rspArr[j].record[i];
                                     if (rec != null) {
-                                        var bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                        var bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                         if (bibleText == "a")
                                             bibleText = "【併入上節】";
                                     } else {
@@ -3825,7 +3853,7 @@ function gfhlLecture() {
 
                                     var bibleText = "";
                                     if (rec != null)
-                                        bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                        bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                     else
                                         bibleText = "";
                                     if (bibleText == "a") {
@@ -3997,7 +4025,7 @@ function gfhlLecture() {
                                         var rec = rspArr[j].record[i]; //原 var rec = getRecord(rspArr[j].record, null, chap, sec);
                                         var bibleText = "";
                                         if (rec != null)
-                                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].v_name);
+                                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
                                         else
                                             bibleText = "";
                                         if (bibleText == "a") {
@@ -4193,7 +4221,8 @@ function gfhlLecture() {
                         break;
                     case 1:
                         //console.log(text);
-                        if (-1 != ["和合本", "KJV", "和合本2010"].indexOf(bibleVersion)) {
+                        if ( -1 != ["unv","kjv", "rcuv"].indexOf(bibleVersion) ) {
+                            // 和合本 KJV 和合本2010
                             function snReplace(s) {
                                 //console.log(s);
                                 if (s.substr(0, 4) === '{<WT') {
@@ -4235,7 +4264,8 @@ function gfhlLecture() {
                         ret = text;
                         break;
                 }
-                if (bibleVersion == "舊約馬索拉原文" || bibleVersion == "新約WH原文") {
+                if ( bibleVersion == "bhs" || bibleVersion == "fhlwh") {
+                    // 舊約馬索拉原文, 新約WH原文
                     ret = ret.replace(/</g, "&lt");
                     ret = ret.replace(/>/g, "&gt");
                     ret = ret.replace(/\r\n/g, "<br>");
@@ -4893,7 +4923,7 @@ function do_preach(ps, dom) {
         rRender_Preach.setProps({ "engs": engs, "chap": chap, "sec": sec });
     }
 }
-// gb:1 or 0 2020/11 繁簡合併
+// gb: 1 or 0 2020/11 繁簡合併
 function gbText(str, gb) {
     if (gb == undefined) {
         gb = pageState.gb;
@@ -6529,7 +6559,7 @@ function initPageStateFlow(currentSWVer) {
             // 0
             strong: 0,
             // 0
-            gb: 0, // 0: 繁體預設值
+            gb: 01, // 0: 繁體預設值
             isVisibleInfoWindow: 1,  // add by snow. 2021.07
             isVisibleLeftWindow: 1, // add by snow. 2021.07
             cxInfoWindow: 500, // add by snow. 2021.07
@@ -6538,7 +6568,7 @@ function initPageStateFlow(currentSWVer) {
             fontSizeGreek: 26, // add by snow. 2021.07
             fontSizeStrongNumber: 14, // add by snow. 2021.07
             // book 別以為是 bookIndex, 因為 book 先被注釋用掉了 sc.php 參數
-            book: 3, N: 0, k: "", cname: ["和合本"], realTimePopUp: 0, titleId: "fhlInfoComment",
+            book: 3, N: 0, k: "", cname: ["FHL和合本"], realTimePopUp: 0, titleId: "fhlInfoComment",
             history: [{ chineses: "創", chap: 1 }], fontSize: 12, commentBackgroundChap: 1, commentBackgroundSec: 1,
             leftBtmWinShow: true, searchTitleMsg: "", audio: 0, swVer: "0.0.0",
             ispho: false, ispos: false

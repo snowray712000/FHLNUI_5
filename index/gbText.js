@@ -1,7 +1,7 @@
 (function (root) {
     root.gbText = gbText
 })(this)
-// gb:1 or 0 2020/11 繁簡合併
+// gb: 1 or 0 2020/11 繁簡合併
 function gbText(str, gb) {
     if (gb == undefined) {
         gb = pageState.gb;

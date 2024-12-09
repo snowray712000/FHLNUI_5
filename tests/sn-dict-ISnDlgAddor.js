@@ -295,7 +295,7 @@ function qTest1() {
 
             /** @type {OneVersion} */
             let re = {
-                ver: "和合本",
+                ver: "FHL和合本",
                 verses: [v1, v2]
             }
             // {addr:"羅1:3",children:[{children:[{w:'123'},{w:'456'}]}]}
