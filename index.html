@@ -52,7 +52,7 @@
     };
     AppVersion.s = new AppVersion();
 
-    var currentSWVer = "1.12.5"
+    var currentSWVer = "1.13.1"
     $.ajax({ url: 'index/AppVersion.js', async: false, dataType: 'script' })
     if (AppVersion.s.getCntThisVersion() == 1) {
       location.reload(true)

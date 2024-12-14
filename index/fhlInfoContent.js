@@ -884,7 +884,46 @@
 
                                 var html = jsonObj.record[0].com_text; //注釋內文
 
+                                function do_com_text(text){
+                                    let reg_tp1 = /[零壹貳參肆伍陸柒捌玖拾]+、/g // 壹、
+                                    let reg_tp2 = /[零一二三四五六七八九十百]+、/g // 一、
+                                    let reg_tp3 = /（[零一二三四五六七八九十百]+）/g // （一）
+                                    let reg_tp4 = /\d+\./g // 1.
+                                    let reg_tp5 = /\(\d+\)/g // (1)
+                                    let reg_tp6 = /[a-zA-Z]+\./g // a.
+                                    let reg_tp7 = /[●◎⓪☆○※]/g
+                                    let reg_tp8 = /\r?\n/g
+                                    let reg_tp9 = /SNG|SNH/g // 創1:1
+                                    
+
+                                    // 組成字串, 以 | 分隔，為了製作組合的正規表達式
+                                    let reg_tps = [reg_tp1, reg_tp2, reg_tp3, reg_tp4, reg_tp5, reg_tp6, reg_tp7, reg_tp8, reg_tp9]
+                                    
+                                    
+                                    // 簡單實例 /\r?\n\s*(●|◎|a.|b.|c.|[零壹]、|\S)
+                                    // 就是將上面的 用 `|` 組起來，最後加上 \S，前面加上 \r\n\s*
+                                    let reg_pre = /\r?\n\s*/g
+                                    let reg_tp_str = reg_tps.map(reg => reg.source).join("|")
+                                    let reg_combile_str = "(" + reg_pre.source + ")" + "(" + reg_tp_str + "|\\S)"
+                                    let reg_combile = new RegExp(reg_combile_str, "g")
+
+                                    // 結果字串
+                                    text_result = text.replace(reg_combile, (match, p1, p2) => {
+                                        reg_tps.forEach(reg => reg.lastIndex = 0 ) // reset 正規化表達式，不然第2次會失效。
+                                        if (reg_tps.some(reg => reg.test(p2))) {
+                                            return p1 + p2
+                                        } else {
+                                            return p2
+                                        }
+                                    })
+
+                                    return text_result + "\r\n\r\n\r\n" // 為了不要被遮到最下面
+                                }
+                                // 2024.12 移除注釋原本的換行與空白，但卻不要移除●◎(1)等。
+                                html = do_com_text(html)
+
                                 html = parseComment(html);
+
                                 var strFontSizeStyle = "font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
                                 html = "<div style='position: static; padding: 0px; top: 0px; bottom: 0px; overflow: auto;'>" + head_str + '<div id="commentContent">' + control_str + "<div id='commentScrollDiv' style='" + strFontSizeStyle + ";position: absolute; top: 0px; left: 0px; right: 0px; bottom: 60px; padding: 60px 50px 0px; overflow: auto;'>" + html + "</div></div></div>";
                                 dom.html(html);
