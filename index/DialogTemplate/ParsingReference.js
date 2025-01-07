@@ -235,10 +235,16 @@ FHL.ParsingReferenceToAddresses = function (ref, book = 40, chap = 1) {
     re1 = splitByBook(ref);
     var re2 = [];
     for (var it1 of re1) {
-        var re3 = parsingOneBook(it1, book, chap);
-        for (const it2 of re3) {
+
+        try {
+            var re3 = parsingOneBook(it1, book, chap);
+            for (const it2 of re3) {
             re2.push(it2);
+            }
+        } catch (error) {
+            console.error('Error parsing reference:', it1, error);
         }
+
     }
     return re2;
 

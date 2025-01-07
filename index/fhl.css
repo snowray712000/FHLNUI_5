@@ -7,6 +7,35 @@
   font-family: COBSHebrew;
   src:url(./static/font/cobsh.ttf);
 }
+.twcbhdic{
+    white-space: normal;
+}
+div.idt {
+    font-size: 1em;
+}
+span.exp
+{
+    /* twcb 字典，有 span.exp，強調某字? */
+    color: purple;
+    font-weight: 700;
+}
+span.bibtext
+{
+    /* twcb 字典，有 span.bibtext，是範圍型的 */
+    color: violet;
+    font-weight: 700;
+}
+
+.reference {
+    color: blue;
+    cursor: pointer;
+}
+.ref 
+{
+    /* 交互參照，通常是 span.ref */
+    color: blue;
+    cursor: pointer;
+}
 .greek {
   font-family: COBSGreekWeb;
   font-weight: 700;
@@ -28,6 +57,12 @@
     /* font-size: large; */
     font-family: COBSHebrew;
     line-height: normal;
+    color: mediumpurple;
+    font-size: 1.5em;    
+}
+/* 前後加一空白 */
+.hebrew-char::before, .hebrew-char::after {
+    content: " ";
 }
 /* add by snow. 2021.07 */
 .greek-char {
@@ -35,6 +70,12 @@
     /* font-size: large; */
     font-family: COBSGreekWeb;
     line-height: normal;
+    color: mediumpurple;
+    font-size: 1.25em; 
+}
+/* 前後加一空白 */
+.greek-char::before, .greek-char::after {
+    content: " ";
 }
 .hebrew {
   font-family: COBSHebrew;
@@ -1972,20 +2013,3 @@ nav#fhlTopMenu {
         font-family: "bstw";
         src: url("./static/font/open_han.ttf") format("trueType"), url("./static/font/open_han.woff2") format("woff2"), url("./static/font/open_han.svg") format("svg"), url("./static/font/open_han.woff") format("woff");
       }
-.ref 
-{
-    /* 交互參照，通常是 span.ref */
-    color: blue;
-    cursor: pointer;
-}
-
-span.exp
-{
-    /* twcb 字典，有 span.exp，強調某字? */
-    color: purple;
-}
-span.bibtext
-{
-    /* twcb 字典，有 span.bibtext，是範圍型的 */
-    color: orange;
-}

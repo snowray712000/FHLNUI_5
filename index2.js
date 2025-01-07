@@ -6327,7 +6327,9 @@ function getAjaxUrl(func, ps, idx) {
         sc: [0, 2, 3, 6, 7],
         qb: [1, 2, 4, 5, 6],
         qp: [0, 2, 3, 6],
-        sd: [6, 8, 9]
+        sd: [6, 8, 9],
+        sbdag: [6, 8, 9],
+        stwcbhdic: [6, 8, 9],
     };
 
     if (func == 'qb') {
@@ -6358,7 +6360,7 @@ function getAjaxUrl(func, ps, idx) {
         };
 
         ret = ret.substring(0, ret.length - 1);
-        //console.log(ret); //https://bkbible.fhl.net/json/qp.php?engs=Rom&chap=16&sec=27&gb=0
+        console.log(ret); //https://bkbible.fhl.net/json/qp.php?engs=Rom&chap=16&sec=27&gb=0
         return ret;
     };
 
@@ -6559,7 +6561,7 @@ function initPageStateFlow(currentSWVer) {
             // 0
             strong: 0,
             // 0
-            gb: 01, // 0: 繁體預設值
+            gb: 0, // 0: 繁體預設值
             isVisibleInfoWindow: 1,  // add by snow. 2021.07
             isVisibleLeftWindow: 1, // add by snow. 2021.07
             cxInfoWindow: 500, // add by snow. 2021.07
