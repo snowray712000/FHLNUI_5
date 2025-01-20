@@ -58,7 +58,7 @@
 
 
     this.setUpdateDialogVersion = function () {
-      $(document).ready(() => {
+      $(() => {
         // document ready 才能用下面才引用的 Ijnjs
         testThenDoAsync({
           cbTest: $('#ver-old').length != 0,
@@ -72,7 +72,7 @@
     }
 
     this.addClickListVerionsInfosEvent = function () {
-      $(document).ready(() => {
+      $(() => {
         testThenDoAsync({
           cbTest: () => $('#version-info-address').length != 0
         }).then(()=>{

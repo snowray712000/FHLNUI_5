@@ -25,7 +25,8 @@ function initPageStateFlow(currentSWVer) {
   }
 
   makeSureValueExistForNewVersions()
-  $(document).ready(function () {
+    
+  $(function () {
     triggerGoEventWhenPageStateAddressChange(pageState);
   })
 

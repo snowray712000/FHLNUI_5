@@ -5183,7 +5183,7 @@ function doAddUrlChangedEventsAddViewHistoryEventsRemoveHelpTextAddVersionInfosD
         });
     }
     function addViewHistoryEvents() {
-        $(document).ready(function () {
+        $(function () {
             (function () {
                 var _datas = [];
                 var _idx = -1;
@@ -6523,7 +6523,7 @@ function initPageStateFlow(currentSWVer) {
     }
 
     makeSureValueExistForNewVersions()
-    $(document).ready(function () {
+    $(function () {
         triggerGoEventWhenPageStateAddressChange(pageState);
     })
 
@@ -6982,7 +6982,7 @@ function doReadyStep1() {
      * 用在 #lecMain fhl.css 樣式中的 padding-right
      */
     function calcScrollWidthAndSetToCssBodyVariable() {
-        $(document).ready(() => {
+        $(() => {
             $(document.body).css('overflow', 'scroll')
             // console.log(window.innerWidth)
             // console.log(document.body.clientWidth)

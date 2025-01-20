@@ -1,13 +1,23 @@
 {
     "nui": {
-        "last": "1.14.1",
+        "last": "1.15.1",
         "historys": [
             {
                 "na": "TODOs",
                 "na2": [
                     "優化) 原文Parsing工具，下面的 table，當某一欄有一個原文太長，整個表格就會很醜。(在窄的時候)",
+                    "Bug) 註釋內容若有交互參照，要能夠點擊並顯示",
+                    "Bug) 原文字典交互參照，要能夠點擊並顯示",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]                
+            },{
+                "na": "1.15.1",
+                "na2": [
+                    "優化) 原文Parsing工具。左右鍵，更準確的寬度",
+                    "優化) 註釋工具。左右鍵，更準確的寬度",
+                    "優化) 經文顯示。左右鍵，更準確的寬度，這使得複製經文選擇時，不再被影響",
+                    "RD) jquery.ready 已不再使用"
                 ]
             },{
                 "na": "1.14.1",

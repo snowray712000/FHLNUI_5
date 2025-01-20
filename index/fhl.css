@@ -1480,18 +1480,22 @@ nav#fhlTopMenu {
 }
 #fhlLecture .chapControl span{
     position: absolute;
+    /* top: calc( 50% - 0.5em ); */
     top: 45%;
     font-size: 3em;
-    width: 50px;
+    width: calc( 50px - var(--scrollbar-width) );
     text-align: center;
 }
 #fhlLecture .chapBack{
-    width: 50px;
+    /* width: 50px; */
     left: 0px;
+    width: calc( 50px - var(--scrollbar-width) ); /* 讓左右一樣寬 */
 }
 #fhlLecture .chapNext{
-    width: 40px;
-    right: 10px;
+    /* width: 40px; */
+    /* right: 10px; */
+    width: calc( 50px - var(--scrollbar-width) );
+    right: calc( var(--scrollbar-width) );
 }
 #fhlLecture .chapBack:hover{
     color: red;
@@ -1532,15 +1536,16 @@ nav#fhlTopMenu {
     right: 0px;
     bottom: 0px;
     /*border-top: solid 2px black;*/
-    padding: 10px 0px;
     box-shadow: inset 0px -4px 7px #808080, inset 0px 4px 7px #808080;    
     overflow-y: scroll;
-    padding-left: calc(50px - 0.5em);
     /* https://stackoverflow.com/questions/39392423/calculating-width-of-scrollbar-and-using-result-in-calc-css */
     /* 右邊應該有50px,但是實際上,就好像有個浪費掉的空白,原來是浪費掉了 scroll-width. 因此實際不需要 50px */
     /* 下面算法，改在 body 一個變數，下面算法有時會錯 */
     /* --scrollbar-width: calc(100vw - 100%); */
-    padding-right: calc(50px - var(--scrollbar-width) - 0.5em);
+    padding: 10px 0px;
+    /* padding-left: calc(50px - 0.5em); */
+    padding-left: calc(50px - var(--scrollbar-width) );
+    padding-right: calc(50px - var(--scrollbar-width) );
 }
 
 .sn,.snParse,.searchBibleVerse,.searchSN {
@@ -1707,7 +1712,8 @@ nav#fhlTopMenu {
     top: 0px;
     bottom: 0px;
     left: 0px;
-    width: 50px;
+    /* width: 50px; */
+    width: calc( 50px - var(--scrollbar-width) );
     border-bottom-left-radius: 5px;
     z-index: 1;
 }
@@ -1721,14 +1727,31 @@ nav#fhlTopMenu {
     top: 0px;
     height: 200px;
     left: 0px;
-    width: 50px;
+    width: calc( 50px - var(--scrollbar-width) );
     border-bottom-left-radius: 5px;
     z-index: 1;
 }
+#commentScrollDiv {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    text-align: justify;
+    bottom: 60px;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    position: absolute;
+    margin-top: 0px;
+    line-height: 15pt;
+    font-size: 12pt;
+    padding: 60px 50px 0px;
+    padding-left: calc(50px - var(--scrollbar-width) );
+    padding-right: calc(50px - var(--scrollbar-width) );
 
+}
 .commentSecBack span, .parsingSecBack span{
     position: absolute;
     top: 45%;
+    /* top: calc( 50% - 0.5em ); */
     left: 0px;
     width: 100%;
     text-align: center;
@@ -1751,8 +1774,10 @@ nav#fhlTopMenu {
     position: absolute;
     top: 0px;
     bottom: 0px;
-    right: 10px;
-    width: 50px;
+    /* right: 10px; */
+    right: calc( var(--scrollbar-width) );
+    /* width: 50px; */
+    width: calc( 50px - var(--scrollbar-width) );
     border-bottom-right-radius: 5px;
     z-index: 1;
 }
@@ -1765,8 +1790,8 @@ nav#fhlTopMenu {
     position: absolute;
     top: 0px;
     height: 200px;
-    right: 10px; /*這樣當有scroll時，才不會擋到*/
-    width: 50px;
+    width: calc( 50px - var(--scrollbar-width) );
+    right: calc(var(--scrollbar-width));
     border-bottom-right-radius: 5px;
     z-index: 1;
 }
@@ -1774,6 +1799,7 @@ nav#fhlTopMenu {
 .commentSecNext span, .parsingSecNext span{
     position: absolute;
     top: 45%;
+    /* top: calc( 50% - 0.5em ); */
     right: 0px;
     width: 100%;
     text-align: center;
@@ -1852,7 +1878,13 @@ nav#fhlTopMenu {
     word-wrap: break-word; 
     word-break: normal; 
 }
-
+.parsingTop {
+    padding: 30px 50px 10px;
+    overflow-y: scroll;
+    padding-left: calc( 50px - var(--scrollbar-width) );
+    padding-right: calc( 50px - var(--scrollbar-width) );
+    /* overflow-x: hidden; */
+}
 .parsingTableSn {
     cursor: pointer;
     color: rgba(130, 50, 50, 1);

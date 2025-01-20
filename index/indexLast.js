@@ -134,7 +134,7 @@ function doLast1() {
     });
   }
   function addViewHistoryEvents() {
-    $(document).ready(function () {
+    $(function () {
       (function () {
         var _datas = [];
         var _idx = -1;

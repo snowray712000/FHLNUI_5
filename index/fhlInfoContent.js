@@ -675,8 +675,8 @@
                             if (N == 0)
                                 ptg = "<td class=\"g0\">詞性</td>";
                             var strFontSizeStyle = "font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
-                            var headDivStyle = "<div class='parsingTop' style=\"position: absolute; left: 0px; right: 0px; top: 0px; height: 200px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; overflow:auto; padding: 30px 50px 10px; box-shadow: inset 0px -4px 7px #808080;" + strFontSizeStyle + ";" + ((N == 1) ? "text-align:right;" : "") +
-                                "\">";
+                            var headDivStyle = "<div class='parsingTop' style=\"position: absolute; left: 0px; right: 0px; top: 0px; height: 200px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; box-shadow: inset 0px -4px 7px #808080;" + strFontSizeStyle + ";" + ((N == 1) ? "text-align:right;" : "") +
+                            "\">";                                
 
                             var html = chap_ctrl_str + headDivStyle + head_str + "</div><div id='parsingTable' style=\"" + strFontSizeStyle + ";position: absolute; top: 212px; left: 0px; right: 0px; bottom: 20px; padding: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; overflow:auto;box-shadow: inset 0px 4px 7px #808080;\"><table border=\"1\" id='sn-table' class='table-striped'>" + getTitleHtml() + body_str + "</table></div>";
 
@@ -925,7 +925,8 @@
                                 html = parseComment(html);
 
                                 var strFontSizeStyle = "font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
-                                html = "<div style='position: static; padding: 0px; top: 0px; bottom: 0px; overflow: auto;'>" + head_str + '<div id="commentContent">' + control_str + "<div id='commentScrollDiv' style='" + strFontSizeStyle + ";position: absolute; top: 0px; left: 0px; right: 0px; bottom: 60px; padding: 60px 50px 0px; overflow: auto;'>" + html + "</div></div></div>";
+                                
+                                html = "<div style='position: static; padding: 0px; top: 0px; bottom: 0px; overflow: auto;'>" + head_str + '<div id="commentContent">' + control_str + "<div id='commentScrollDiv' style='" + strFontSizeStyle + ";'>" + html + "</div></div></div>";
                                 dom.html(html);
                             } else {
                                 dom.html("<div style='position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); '>施工中...</div>");

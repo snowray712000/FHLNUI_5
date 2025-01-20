@@ -279,7 +279,7 @@ function doReadyStep1() {
      * 用在 #lecMain fhl.css 樣式中的 padding-right
      */
     function calcScrollWidthAndSetToCssBodyVariable() {
-        $(document).ready(() => {
+        $(()=>{
             $(document.body).css('overflow', 'scroll')
             // console.log(window.innerWidth)
             // console.log(document.body.clientWidth)
@@ -287,7 +287,7 @@ function doReadyStep1() {
                 "--scrollbar-width",
                 `${window.innerWidth - document.body.clientWidth}px`)
             $(document.body).css('overflow', '')
-
+            // console.log(document.body.style.getPropertyValue("--scrollbar-width"));
         })
     }
 }
