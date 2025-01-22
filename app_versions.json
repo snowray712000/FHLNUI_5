@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "1.16.1",
+        "last": "1.16.3",
         "historys": [
             {
                 "na": "TODOs",
@@ -12,9 +12,10 @@
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]                
             },{
-                "na": "1.16.1",
+                "na": "1.16.3",
                 "na2": [
-                    "Bug) 原文Parse工具。點擊 SN 時，沒有反應，現已修正"
+                    "Bug) 原文Parse工具。點擊 SN 時，沒有反應，現已修正",
+                    "優化) 注釋工具。交互參照顏色變明顯"
                 ]
             },{
                 "na": "1.15.1",

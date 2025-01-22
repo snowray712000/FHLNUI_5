@@ -2537,21 +2537,6 @@ function gfhlInfoContent() {
                         }
                     });
 
-                    $('.commentJump').css({
-                        "display": "inline-block",
-                        "cursor": "pointer",
-                        "color": "rgba(50, 50, 100, 1)"
-                    }).hover(function () {
-                        $(this).css({
-                            "color": "rgba(200, 0, 0, 1)",
-                            "text-decoration": "underline"
-                        });
-                    }, function () {
-                        $(this).css({
-                            "color": "rgba(50, 50, 100, 1)",
-                            "text-decoration": "none"
-                        });
-                    });
                     $('#commentScrollDiv').scroll(function () {
                         $(this).addClass('scrolling');
                         clearTimeout($.data(this, "scrollCheck"));

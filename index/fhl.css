@@ -1866,7 +1866,15 @@ nav#fhlTopMenu {
     color: rgba(255, 0, 0, 1);
     background: rgba(210, 210, 210, 1); 
 }
-
+.commentJump {
+    color: blue;
+    cursor: pointer;
+    display: inline-block;
+}
+.commentJump:hover {
+    color: red;
+    text-decoration: underline;
+}
 #commentContent {
     position: absolute; 
     top: 0px; 
