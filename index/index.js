@@ -2563,6 +2563,10 @@ function FhlLectureEs6Js(){
     const isRDLocation = isRDLocationEs6Js()
     const qsbAsync = qsbAsyncEs6Js()
 
+    const queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsyncEs6Js()
+    const queryReferenceAndShowAtDialogAsync = queryReferenceAndShowAtDialogAsyncEs6Js()
+    const splitReference = splitReferenceEs6Js()
+
     /** @type {JQuery<HTMLElement>} */
     let $lecture
 
@@ -2709,14 +2713,19 @@ function FhlLectureEs6Js(){
                     if (ps.realTimePopUp != 1) {
                         var offset = $(this).offset();
                         offset.top += $(this).height();
-                        ps.N = $(this).attr('N');
+                        ps.N = $(this).attr('N'); // n=1 新約
                         ps.k = $(this).attr('sn');
-                        // // console.log($(this).html()) // &lt;09002&gt; 就是 <09002>
-                        // var k = $(this).html().replace(/&lt;/g, "").replace(/&gt;/g, "");
-                        // k = k.replace(/\(/g, "").replace(/\)/g, ""); // 可能是 (09002)
-                        // k = k.replace(/\{/g, "").replace(/\}/g, "");// 可能是 {09002}
-                        // ps.k = k; // 9002
-                        parsingPopUp.render(ps, parsingPopUp.dom, offset);
+
+                        let sn = $(this).attr('sn');
+                        let N = $(this).attr('N') == 1 ? 1 : 0 // 0 是新約 1 是舊約
+                        queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
+                        
+                        //// // console.log($(this).html()) // &lt;09002&gt; 就是 <09002>
+                        //// var k = $(this).html().replace(/&lt;/g, "").replace(/&gt;/g, "");
+                        //// k = k.replace(/\(/g, "").replace(/\)/g, ""); // 可能是 (09002)
+                        //// k = k.replace(/\{/g, "").replace(/\}/g, "");// 可能是 {09002}
+                        //// ps.k = k; // 9002
+                        // parsingPopUp.render(ps, parsingPopUp.dom, offset);
                     }
                 },
                 mouseenter: function () {

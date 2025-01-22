@@ -154,6 +154,7 @@ var fhlLecture = (function () {
                     offset.top += $(this).height();
                     ps.N = $(this).attr('N');
                     ps.k = $(this).attr('sn');
+
                     // // console.log($(this).html()) // &lt;09002&gt; 就是 <09002>
                     // var k = $(this).html().replace(/&lt;/g, "").replace(/&gt;/g, "");
                     // k = k.replace(/\(/g, "").replace(/\)/g, ""); // 可能是 (09002)
