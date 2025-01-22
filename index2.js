@@ -2991,7 +2991,7 @@ function gfhlInfoContent() {
                                                         let htmlTwcb = cvtToHtmlFromDTextArray(dtextss[0])
                                                         let htmlCbol = cvtToHtmlFromDTextArray(dtextss[1])
 
-                                                        let declare1 = '<span>以上資料由<a href="http://twcb.fhl.net/" target="_blank">浸宣出版社</a>受權</span>'
+                                                        let declare1 = '<span>以上資料由<a href="http://twcb.fhl.net/" target="_blank">浸宣出版社</a>受權</span> <br/><hr/>'
                                                         res(htmlTwcb + "<br/>" + declare1 + '<br/>' + htmlCbol)
                                                     }).catch(ex => {
                                                         // console.error(ex);

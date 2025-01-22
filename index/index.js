@@ -415,7 +415,7 @@ function queryDictionaryAndShowAtDialogAsyncEs6Js() {
                     let htmlTwcb = cvtToHtmlFromDTextArray(dtextss[0])
                     let htmlCbol = cvtToHtmlFromDTextArray(dtextss[1])
 
-                    let declare1 = '<span class="bibtext">以上資料由<a href="http://twcb.fhl.net/" target="_blank">浸宣出版社</a>授權</span>'
+                    let declare1 = '<span class="bibtext">以上資料由<a href="http://twcb.fhl.net/" target="_blank">浸宣出版社</a>授權</span> <br/><hr/>'
 
                     let declare2 = '<span class="bibtext">以上資料由<a href="https://bible.fhl.net/part1/cobs1.html" target="_blank"> CBOL計畫</a>整理</span>'
 
@@ -737,7 +737,7 @@ function SnDictOfCbolEs6Js() {
                             rej(er)
                         },
                         success: reStr => {
-                            res(JSON.parse(reStr))
+                            res(reStr) // sd.php 回傳本來就是一個 json 物件，所以不要再用 JSON.parse
                         },
                     })
                 })
@@ -2084,7 +2084,7 @@ function queryDictionaryAndShowAtDialogAsyncEs6Js() {
                     let htmlTwcb = cvtToHtmlFromDTextArray(dtextss[0])
                     let htmlCbol = cvtToHtmlFromDTextArray(dtextss[1])
 
-                    let declare1 = '<span class="bibtext">以上資料由<a href="http://twcb.fhl.net/" target="_blank">浸宣出版社</a>授權</span>'
+                    let declare1 = '<span class="bibtext">以上資料由<a href="http://twcb.fhl.net/" target="_blank">浸宣出版社</a>授權</span> <br/><hr/>'
 
                     let declare2 = '<span class="bibtext">以上資料由<a href="https://bible.fhl.net/part1/cobs1.html" target="_blank"> CBOL計畫</a>整理</span>'
 
@@ -2280,7 +2280,7 @@ function qsbAsyncEs6Js() {
             $.ajax({
                 url: cvtArgsToUrl(),
                 success: a1 => {
-                    res(JSON.parse(a1));
+                    res(a1);
                 },
                 error: er => {
                     console.error(er);
