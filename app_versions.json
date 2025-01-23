@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "2.1.3",
+        "last": "2.1.5",
         "historys": [
             {
                 "na": "TODOs",
@@ -10,10 +10,14 @@
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]                
             },{
-                "na": "2.1.3",
+                "na": "2.1.5",
                 "na2": [
                     "優化) 閱讀的SN點擊，字典變得漂亮",
-                    "Bug) SN遇到 WAH09002 之類的是錯誤的(無法點擊)，現已修正"
+                    "Bug) SN遇到 WAH09002 之類的是錯誤的(無法點擊)，現已修正",
+                    "優化) SN都變成藍的，不再用土色，較一致",
+                    "優化) 滑鼠移到 SN 中，同樣的 SN 會變紅色",
+                    "RD) 暫時拿掉即時顯示功能切換與功能",
+                    "優化) 點擊 SN 時，不會再切換 Active 節"
                 ]
             },{
                 "na": "1.16.3",

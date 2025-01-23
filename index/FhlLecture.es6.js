@@ -356,7 +356,6 @@ function FhlLectureEs6Js(){
          */
         this.render = function (ps, dom) {
             //console.log('start of fhlLecture render');
-            console.log(343);
             function reverse(s) {
                 var o = '';
                 for (var i = s.length - 1; i >= 0; i--)

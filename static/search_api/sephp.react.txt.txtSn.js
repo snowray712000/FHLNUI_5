@@ -11,6 +11,7 @@ sephp.R = sephp.R || {
 	txtSn: React.createClass({
 		handle_onclick: function () {
 			var pfn = this.props.pfn_search_sn;
+			
 			if (pfn == null)
 				return;
 			pfn(this.props.sn);

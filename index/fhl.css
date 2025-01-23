@@ -1549,17 +1549,20 @@ nav#fhlTopMenu {
 }
 
 .sn,.snParse,.searchBibleVerse,.searchSN {
-  font: 9px/14px bold ,Microsoft JhengHei;
-  /*background-color: grey;*/
-  color: rgba(130, 50, 50, 0.5);
-  border-radius: 5px;
-  padding:0px;
-  margin:0px;
-  cursor:pointer;
+    color: blue;
+    cursor:pointer;
+    font: 9px/14px bold ,Microsoft JhengHei;
+    /*background-color: grey;*/
+    border-radius: 5px;
+    padding:0px;
+    margin:0px;
 }
 
 .sn:hover,.snParse:hover,.searchBibleVerse:hover,.searchSN:hover {
-  color: rgba(250, 50, 50, 1);
+  color: red;
+}
+.snAct {
+    color: red;
 }
 
 #fhlMidBottomWindow {
@@ -1957,7 +1960,7 @@ nav#fhlTopMenu {
 #parsingPopUpInside .sn, #parsingPopUpInside .snParse, #parsingPopUpInside .searchBibleVerse, #parsingPopUpInside .searchSN {
   font: 9px/14px bold ,Microsoft JhengHei;
   /*background-color: grey;*/
-  color: rgba(150, 50, 50, 1);
+  color: blue;
   border-radius: 5px;
   padding:0px;
   margin:0px;
@@ -1965,7 +1968,7 @@ nav#fhlTopMenu {
 }
 
 #parsingPopUpInside .sn:hover, #parsingPopUpInside .snParse:hover, #parsingPopUpInside .searchBibleVerse:hover, #parsingPopUpInside .searchSN:hover {
-  color: rgba(250, 50, 50, 1);
+  color: red;
 }
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */

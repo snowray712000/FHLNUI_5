@@ -2620,8 +2620,7 @@ function FhlLectureEs6Js(){
                     ps.chap++;
                 }
                 ps.bookIndex = idx + 1; // 此idx回傳是 0-based
-    
-                console.log(63);
+
                 ps.sec = 1;
                 triggerGoEventWhenPageStateAddressChange(ps); // 這個事件，有人在用唷，就是 viewHistory 會用
                 viewHistory.render(ps, viewHistory.dom); // 這應該是舊的 viewHistory, 被 mark 起來也不會有變化
@@ -2707,52 +2706,67 @@ function FhlLectureEs6Js(){
                         $(that).trigger('secchanged')
                 }
             }, '.lec');
+
             // sn 的部分        
             $lecMain.on({
-                click: function () {
-                    if (ps.realTimePopUp != 1) {
-                        var offset = $(this).offset();
-                        offset.top += $(this).height();
-                        ps.N = $(this).attr('N'); // n=1 新約
-                        ps.k = $(this).attr('sn');
+                click: function (e) {
+                    ps.N = $(this).attr('N'); 
+                    ps.k = $(this).attr('sn');
 
-                        let sn = $(this).attr('sn');
-                        let N = $(this).attr('N') == 1 ? 1 : 0 // 0 是新約 1 是舊約
-                        queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
-                        
-                        //// // console.log($(this).html()) // &lt;09002&gt; 就是 <09002>
-                        //// var k = $(this).html().replace(/&lt;/g, "").replace(/&gt;/g, "");
-                        //// k = k.replace(/\(/g, "").replace(/\)/g, ""); // 可能是 (09002)
-                        //// k = k.replace(/\{/g, "").replace(/\}/g, "");// 可能是 {09002}
-                        //// ps.k = k; // 9002
-                        // parsingPopUp.render(ps, parsingPopUp.dom, offset);
-                    }
+                    let sn = $(this).attr('sn');
+                    let N = $(this).attr('N') == 1 ? 1 : 0 
+                    queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
+                    
+                    // 點擊 sn 時，不要切換 active 節
+                    e.stopPropagation()
+
+                    // 關閉即時顯示功能，所以把 if 拿掉
+                    // if (ps.realTimePopUp != 1) {
+                    //}
                 },
                 mouseenter: function () {
-                    if (ps.realTimePopUp == 1) {
-                        var offset = $(this).offset();
-                        //console.log(offset.top);
-                        offset.top += $(this).height();
-                        //console.log(offset.top);
-                        //console.log('');
-                        ps.N = $(this).attr('N');
-                        var k = $(this).html().replace(/&lt;/g, "").replace(/&gt;/g, "");
-                        k = k.replace(/\(/g, "").replace(/\)/g, "");
-                        k = k.replace(/\{/g, "").replace(/\}/g, "");
-                        ps.k = k;
-                        setTimeout(function () { parsingPopUp.render(ps, parsingPopUp.dom, offset) }, 100);
-                    }
+                    // Activate sn，標記為紅色
+                    let N = $(this).attr('N') // 1: 舊約 0: 新約
+                    let sn = $(this).attr('sn')                    
+                    ps.snAct = sn
+                    ps.snActN = N
+                    // #lecMain 下面，所有的 sn，若 sn 值等於 snAct，就加上 class="snAct"
+                    $('#lecMain').find('.sn').removeClass('snAct')
+                    // sn = sn 且 N=N 的設為 snAct
+                    $('#lecMain').find('.sn[sn="' + sn + '"][N="' + N + '"]').addClass('snAct')
+
+                    // 關閉即時顯示功能
+                    // if (ps.realTimePopUp == 1) {
+                    //     var offset = $(this).offset();
+                    //     //console.log(offset.top);
+                    //     offset.top += $(this).height();
+                    //     //console.log(offset.top);
+                    //     //console.log('');
+                    //     ps.N = $(this).attr('N');
+                    //     var k = $(this).html().replace(/&lt;/g, "").replace(/&gt;/g, "");
+                    //     k = k.replace(/\(/g, "").replace(/\)/g, "");
+                    //     k = k.replace(/\{/g, "").replace(/\}/g, "");
+                    //     ps.k = k;
+                    //     setTimeout(function () { parsingPopUp.render(ps, parsingPopUp.dom, offset) }, 100);
+                    // }
                 },
                 mouseleave: function () {
-                    if (ps.realTimePopUp == 1) {
-                        $.data($('#parsingPopUp')[0], "parsingPopUpAutoCloseTimeout", setTimeout(function () {
-                            if ($('#parsingPopUp').css('display') == 'block') {
-                                $('#parsingPopUp').hide();
-                            }
-                        }, 100));
-                    }
+                    // Activate sn，標記為紅色
+                    ps.snAct = ""
+                    ps.snActN = -1
+                    $('#lecMain').find('.sn').removeClass('snAct')
+
+                    // 關閉即時顯示功能
+                    // if (ps.realTimePopUp == 1) {
+                    //     $.data($('#parsingPopUp')[0], "parsingPopUpAutoCloseTimeout", setTimeout(function () {
+                    //         if ($('#parsingPopUp').css('display') == 'block') {
+                    //             $('#parsingPopUp').hide();
+                    //         }
+                    //     }, 100));
+                    // }
                 }
             }, '.sn');
+
             // 向後巡覽 / 向前巡覽
             var $vhb = $('#viewHistoryButton');
             $vhb.on({
@@ -2914,7 +2928,6 @@ function FhlLectureEs6Js(){
          */
         this.render = function (ps, dom) {
             //console.log('start of fhlLecture render');
-            console.log(343);
             function reverse(s) {
                 var o = '';
                 for (var i = s.length - 1; i >= 0; i--)
@@ -3435,7 +3448,7 @@ function FhlLectureEs6Js(){
             function parseBibleText(text, ps, isOld, bibleVersion) {
                 var ret;
                 checkOldNew(ps);
-                
+
                 switch (ps.strong) {
                     case 0:
                         ret = text;
@@ -3445,8 +3458,8 @@ function FhlLectureEs6Js(){
                         if ( -1 != ["unv","kjv", "rcuv"].indexOf(bibleVersion) ) {
                             // 和合本 KJV 和合本2010
                             function snReplace(s, s1, s2, s3, s4, s5, s6, s7, s8) {
-                                console.log(s);
-                                console.log(s1, s2, s3, s4, s5, s6, s7, s8);
+                                //console.log(s, s1, s2, s3, s4, s5, s6, s7, s8);
+                                
                                 // 當有 { } 時, 是用 s1 s2 s3 s4
                                 // s1, s5: A or T or ""
                                 // s2, s6: H or G
