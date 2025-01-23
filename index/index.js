@@ -3435,47 +3435,59 @@ function FhlLectureEs6Js(){
             function parseBibleText(text, ps, isOld, bibleVersion) {
                 var ret;
                 checkOldNew(ps);
+                
                 switch (ps.strong) {
                     case 0:
                         ret = text;
                         break;
                     case 1:
-                        //console.log(text);
+                        // console.log(text);
                         if ( -1 != ["unv","kjv", "rcuv"].indexOf(bibleVersion) ) {
                             // 和合本 KJV 和合本2010
-                            function snReplace(s) {
-                                //console.log(s);
-                                if (s.substr(0, 4) === '{<WT') {
-                                    // case {<WTG5719>} become <span class='sn' sn='5719' n='0'>{(5719)}</span>
-                                    // 其中 n=0, 表示舊約.
-                                    var sn = s.substr(5, s.length - 5 - 2);
-                                    s = "<span class='sn' sn='" + sn + "' N='" + isOld + "'>{(" + sn + ")}</span>";
+                            function snReplace(s, s1, s2, s3, s4, s5, s6, s7, s8) {
+                                console.log(s);
+                                console.log(s1, s2, s3, s4, s5, s6, s7, s8);
+                                // 當有 { } 時, 是用 s1 s2 s3 s4
+                                // s1, s5: A or T or ""
+                                // s2, s6: H or G
+                                // s3, s7: 09002 之類的, 若有 a 不會包含， a 會在 s4
+                                // s4, s8: a or ""
+
+                                // 判斷 A or T s1 或 s5
+                                let sAT = s1 || s5;
+                                let sHG = s2 || s6;
+                                let sSN = s3 || s7;
+                                let sA = s4 || s8;
+                                
+                                // 判斷有無 { }
+                                isExistBrace = s1 != undefined
+                                // 判斷是要用 < > chevrons 還是 ( ) parentheses  
+                                isUseParentheses = sAT == 'T' 
+                                // sn 去掉多餘的0 (轉成數字，再轉回文字) + a (若有)
+                                let sn = parseInt(sSN).toString() + (sA == 'a' ? sA : '')
+                                // N=1 舊約, N=0 新約
+                                let N = sHG == 'H' ? 1 : 0 
+
+                                // 新增一個 span tag, 使用 jquery
+                                let span = $("<span></span>")
+                                // 加上 class, sn, N
+                                span.addClass('sn').attr('sn', sn).attr('N', N)
+                                // 顯示內容
+                                var text = isUseParentheses ? `(${sn})` : `<${sn}>`
+                                // 如果有 { } 就加上
+                                if (isExistBrace) {
+                                    text = `{${text}}`
                                 }
-                                else if (s.substr(0, 3) === '{<W') {
-                                    // case {<WG2532>} become <span class='sn' sn='4394' n='0'>{<4394>}</span>
-                                    var sn = s.substr(4, s.length - 4 - 2);
-                                    s = "<span class='sn' sn='" + sn + "' N='" + isOld + "'>{&lt" + sn + "&gt}</span>";
-                                }
-                                else if (s.substr(0, 3) === '<WT') {
-                                    // case <WTG5719> become <span class='sn' sn='5719' n='0'>(5719)</span>
-                                    var sn = s.substr(4, s.length - 4 - 1);
-                                    s = "<span class='sn' sn='" + sn + "' N='" + isOld + "'>(" + sn + ")</span>";
-                                }
-                                else if (s.substr(0, 2) === '<W') {
-                                    // case <WG4394> become <span class='sn' sn='4394' n='0'><4394></span>
-                                    var sn = s.substr(3, s.length - 3 - 1);
-                                    s = "<span class='sn' sn='" + sn + "' N='" + isOld + "'>&lt" + sn + "&gt</span>";
-                                }
-                                else
-                                    console.debug('sn parsing error!');
-                                return s;
+                                // 加上文字
+                                span.html(text)
+
+                                return span[0].outerHTML
                             }
-                            text = text.replace(/[{]*<W[A,T,G,H]+[0-9]+a?>[}]*/g, snReplace);
-    
-                            //text=text.replace(/[{}]/g,"");
-                            //text=text.replace(/>/g,"&gt;</span>");
-                            //text=text.replace(/<W[a-zA-Z]*/g,"<span class='sn' N="+isOld+">&lt;");
-    
+                            
+                            reg1 = /<W([AT]?)([HG])([0-9]+)(a?)>/gi // T是顯示是用小括號，但原始是<>，那是後處理
+                            // 有可能有 { } ， 也可能沒有
+                            reg2 = new RegExp("{"+reg1.source+"}" + "|" + reg1.source, "gi")
+                            text = text.replace(reg2, snReplace);    
                         }
                         //console.log(text);
                         ret = text;
@@ -3484,6 +3496,7 @@ function FhlLectureEs6Js(){
                         ret = text;
                         break;
                 }
+
                 if ( bibleVersion == "bhs" || bibleVersion == "fhlwh") {
                     // 舊約馬索拉原文, 新約WH原文
                     ret = ret.replace(/</g, "&lt");
