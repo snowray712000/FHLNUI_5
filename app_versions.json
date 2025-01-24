@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "2.1.5",
+        "last": "2.2.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -10,6 +10,13 @@
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]                
             },{
+                "na": "2.2.1",
+                "na2":[
+                    "Bug) 字型大小。調整 Hebrew，結果 Greek 卻一起變。",
+                    "RD) 字型大小。一致使用 css variable 來控制，不再設定每個元素的 font-size。"
+                ]
+            }
+            ,{
                 "na": "2.1.5",
                 "na2": [
                     "優化) 閱讀的SN點擊，字典變得漂亮",

@@ -64,10 +64,14 @@ function FontSizeToolBase(name) {
         return
 
         function updateFontSize() {
-          updateFontSizeWithClassName(that.getClassNameForJQueryToSetFontSize())
-          function updateFontSizeWithClassName(className) {
-            if (className === undefined) { return }
-            $(className).css('font-size', sz + 'pt')
+          // 更新 body --fontsize
+          // 字型大小，統一改用 --fontsize css 變數, line-height: 1.1em 
+          if (that.isGreek()){
+            document.body.style.setProperty("--fontsize-greek", sz + "pt")
+          } else if (that.isHebrew()){
+            document.body.style.setProperty("--fontsize-hebrew", sz + "pt")
+          } else if (that.isStrongNumber()){
+            document.body.style.setProperty("--fontsize-sn", sz + "pt")
           }
         }
         function updatePageStateFontSize(sz) {

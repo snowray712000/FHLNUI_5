@@ -82,10 +82,13 @@
                     }).then(a1 => {
                         delete Ijnjs.cachesIndex
                     })
-
+                    
                     doNoReadyStep1()
-                    doNoReadyStep2() //廢棄
+                    doNoReadyStep2() //廢棄                    
                     doNoReadyStep3()
+
+                    // doNoReadyStep1 會載入這個全域變數
+                    init_fontsize_css_variable_from_pagestate(window.pageState)
 
                     doReadyStep1()
                     doReadyStep2()
@@ -159,6 +162,12 @@
 
 })(this)
 
+function init_fontsize_css_variable_from_pagestate(ps){
+    document.body.style.setProperty("--fontsize", ps.fontSize + "pt")
+    document.body.style.setProperty("--fontsize-greek", ps.fontSizeGreek + "pt")
+    document.body.style.setProperty("--fontsize-hebrew", ps.fontSizeHebrew + "pt")
+    document.body.style.setProperty("--fontsize-sn", ps.fontSizeStrongNumber + "pt")
+}
 function doNoReadyStep1() {
     /** @type {Ijnjs.FileCache} */
     var caches = Ijnjs.cachesIndex
@@ -3068,7 +3077,7 @@ function FhlLectureEs6Js(){
                             var cx1 = 100 / rspArr.length;
                             for (j = 0; j < rspArr.length; j++) {
                                 // 分3欄
-                                var onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top;font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
+                                var onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
                                 $htmlContent.append(onever);
                             }
     
@@ -3218,7 +3227,8 @@ function FhlLectureEs6Js(){
                             // 不要再從這裡改 <div style=padding:10px 50px></div>, 不會有效果的.
                             var $htmlContent = $("<div id='lecMain'></div>");
     
-                            var onever = $("<div class='vercol' style='vertical-align:top;font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
+                            var onever = $("<div class='vercol' style='vertical-align:top; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
+
                             $htmlContent.append(onever);
     
                             // 每一節內容
@@ -3389,9 +3399,7 @@ function FhlLectureEs6Js(){
                     .attr('mode', mode);
                 $('#lecMain').css({ 'padding': '' })
     
-                // 設定定型大小, 在 reshape 上面 add by snow. 2021.07
-                // 另外, 若是 含有 hebrew-char 的 verseContent , 它的 text-align 要是 right
-                setFontSizeHebrewGreekStrongNumber()
+
     
     
                 fhlLecture.reshape(ps);

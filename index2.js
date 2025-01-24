@@ -2893,8 +2893,6 @@ function gfhlInfoContent() {
 
                             dom.html(html);
 
-                            // add by snow. 2021.07 原文解析，字型大小
-                            setFontSizeHebrewGreekStrongNumber()
 
                             that.registerEvents(ps);
 
@@ -4143,7 +4141,7 @@ function gfhlLecture() {
 
                 // 設定定型大小, 在 reshape 上面 add by snow. 2021.07
                 // 另外, 若是 含有 hebrew-char 的 verseContent , 它的 text-align 要是 right
-                setFontSizeHebrewGreekStrongNumber()
+                // setFontSizeHebrewGreekStrongNumber()
 
 
                 fhlLecture.reshape(ps);

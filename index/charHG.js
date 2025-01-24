@@ -24,21 +24,8 @@ function charHG(str) {
 
     return re.join('')
 }
-/** 
-* $(".hebrew-char") $(".greek-char") $(".sn") 的 font-size
-* 讀取 pageState 資料以設定
-* 它在 經文顯示時，最後一步驟會作
-* 它在 Parsing工具，也會作
-* add by snow. 2021.07
-*/
-function setFontSizeHebrewGreekStrongNumber() {
-    $(".hebrew-char").css("font-size", pageState.fontSizeHebrew + "pt")
-    $(".greek-char").css("font-size", pageState.fontSizeGreek + "pt")
-    $(".sn").css("font-size", pageState.fontSizeStrongNumber + "pt")
-}
 
 
-(function(root){
-    root.setFontSizeHebrewGreekStrongNumber = setFontSizeHebrewGreekStrongNumber
+(function(root){ 
     root.charHG = charHG
 })(this)

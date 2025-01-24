@@ -40,31 +40,30 @@ var fontSizeTool = {
             $('#fhlLectureFontSizeSliderBar').val(sz);
 
             $('#fhlLecture .lec').css({
-                'font-size': sz + 'pt',
-                'line-height': sz * 1.25 + 'pt',
                 'margin': sz * 1.25 - 15 + 'px 0px'
             });
             $('#commentScrollDiv').css({
-                'font-size': $('#fhlLectureFontSize').val() + 'pt',
-                'line-height': sz * 1.25 + 'pt',
                 'margin': sz * 1.25 - 15 + 'px 0px'
             });
             $('#fhlInfoContent .parsingTop').css({
-                'font-size': $('#fhlLectureFontSize').val() + 'pt',
-                'line-height': sz * 1.25 + 'pt',
                 'margin': sz * 1.25 - 15 + 'px 0px'
             });
             $('#parsingTable').css({
-                'font-size': $('#fhlLectureFontSize').val() + 'pt',
-                'line-height': sz * 1.25 + 'pt',
                 'margin': sz * 1.25 - 15 + 'px 0px'
             });
+            
+            // 這是哪裡的字體大小？
             $('#fhlLecture .lecContent.bhs.hebrew').css({
-                'font-size': (sz + 6) + 'pt',
-                'line-height': (sz + 6) * 1.25 + 'pt',
                 'margin': sz * 1.25 - 15 + 'px 0px'
             });
+            
             ps.fontSize = sz;
+            updateLocalStorage()
+            
+            // 更新 body --fontsize
+            // 字型大小，統一改用 --fontsize css 變數, line-height: 1.1em 
+            document.body.style.setProperty("--fontsize", ps.fontSize + "pt")
+            
             renderTsk(ps);
             return
 

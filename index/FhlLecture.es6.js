@@ -808,9 +808,7 @@ function FhlLectureEs6Js(){
                     .attr('mode', mode);
                 $('#lecMain').css({ 'padding': '' })
     
-                // 設定定型大小, 在 reshape 上面 add by snow. 2021.07
-                // 另外, 若是 含有 hebrew-char 的 verseContent , 它的 text-align 要是 right
-                setFontSizeHebrewGreekStrongNumber()
+
     
     
                 fhlLecture.reshape(ps);

@@ -642,7 +642,14 @@
                                     remark = charHG (do_remark (remark) )
                                     remark = charHebrew_Inline_Block(remark) // 3 單陽詞尾 הוּ + ֵי 合起來 ... 像這個 + 就可能因為沒有 inline-block 而錯誤
 
-                                    body_str = body_str + "<tr bgcolor=\"" + clrstr + "\"><td class=\"" + orig_font + "\">" + charHG(word) + "</td><td class=\"g0\"><span class=\"parsingTableSn\" N=" + N + " k=" + sn + ">" + sn + "</span></td><td class=\"g0\">";
+                                    function get_sn_shorter(sn){
+                                        // sn 有可能是 09003 就變 9003
+                                        // sn 也有可能有 09003a 就變 9003a
+                                        return sn.replace(/^0+/, '')
+                                    }
+                                    sn2 = get_sn_shorter(sn)
+
+                                    body_str = body_str + "<tr bgcolor=\"" + clrstr + "\"><td class=\"" + orig_font + "\">" + charHG(word) + "</td><td class=\"g0\"><span class=\"parsingTableSn sn\" N=" + N + " k=" + sn2 + ">" + sn2 + "</span></td><td class=\"g0\">";
 
                                     if (N == 0) {
                                         // 只有新約有 pro
@@ -659,7 +666,7 @@
                             var ptg = "";
                             if (N == 0)
                                 ptg = "<td class=\"g0\">詞性</td>";
-                            var strFontSizeStyle = "font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
+                            var strFontSizeStyle = "margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
                             var headDivStyle = "<div class='parsingTop' style=\"position: absolute; left: 0px; right: 0px; top: 0px; height: 200px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; box-shadow: inset 0px -4px 7px #808080;" + strFontSizeStyle + ";" + ((N == 1) ? "text-align:right;" : "") +
                             "\">";                                
 
@@ -681,7 +688,7 @@
                             dom.html(html);
 
                             // add by snow. 2021.07 原文解析，字型大小
-                            setFontSizeHebrewGreekStrongNumber()
+                            // setFontSizeHebrewGreekStrongNumber()
 
                             that.registerEvents(ps);
 
@@ -909,7 +916,7 @@
 
                                 html = parseComment(html);
 
-                                var strFontSizeStyle = "font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
+                                var strFontSizeStyle = "margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
                                 
                                 html = "<div style='position: static; padding: 0px; top: 0px; bottom: 0px; overflow: auto;'>" + head_str + '<div id="commentContent">' + control_str + "<div id='commentScrollDiv' style='" + strFontSizeStyle + ";'>" + html + "</div></div></div>";
                                 dom.html(html);

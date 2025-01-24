@@ -58,7 +58,7 @@ span.bibtext
     font-family: COBSHebrew;
     line-height: normal;
     color: mediumpurple;
-    font-size: 1.5em;    
+    font-size: var( --fontsize-hebrew );
 }
 /* 前後加一空白 */
 .hebrew-char::before, .hebrew-char::after {
@@ -67,11 +67,10 @@ span.bibtext
 /* add by snow. 2021.07 */
 .greek-char {
     /* display: inline-block; */
-    /* font-size: large; */
     font-family: COBSGreekWeb;
     line-height: normal;
     color: mediumpurple;
-    font-size: 1.25em; 
+    font-size: var( --fontsize-greek );
 }
 /* 前後加一空白 */
 .greek-char::before, .greek-char::after {
@@ -1551,11 +1550,14 @@ nav#fhlTopMenu {
 .sn,.snParse,.searchBibleVerse,.searchSN {
     color: blue;
     cursor:pointer;
-    font: 9px/14px bold ,Microsoft JhengHei;
+    /* font: 9px/14px bold ,Microsoft JhengHei; */
     /*background-color: grey;*/
     border-radius: 5px;
     padding:0px;
     margin:0px;
+    font-size: var(--fontsize-sn);
+    font-weight: bold;
+    font-family: Microsoft JhengHei;
 }
 
 .sn:hover,.snParse:hover,.searchBibleVerse:hover,.searchSN:hover {
@@ -1744,8 +1746,8 @@ nav#fhlTopMenu {
     right: 0px;
     position: absolute;
     margin-top: 0px;
-    line-height: 15pt;
-    font-size: 12pt;
+    line-height: 1.1em;
+    font-size: var(--fontsize);
     padding: 60px 50px 0px;
     padding-left: calc(50px - var(--scrollbar-width) );
     padding-right: calc(50px - var(--scrollbar-width) );
@@ -1895,6 +1897,12 @@ nav#fhlTopMenu {
     padding-left: calc( 50px - var(--scrollbar-width) );
     padding-right: calc( 50px - var(--scrollbar-width) );
     /* overflow-x: hidden; */
+    font-size: var( --fontsize );
+    line-height: 1.1em;
+}
+#parsingTable{
+    font-size: var(--fontsize);
+    line-height: 1.1em;
 }
 .parsingTableSn {
     cursor: pointer;
@@ -1986,6 +1994,9 @@ nav#fhlTopMenu {
     border-left-width: 1px;
     border-left-style: dashed;
     border-left-color: lightgray;
+
+    font-size: var(--fontsize);
+    line-height: 1.1em;
 }
  .lec .ft{
   cursor:pointer;
