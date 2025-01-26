@@ -2576,6 +2576,11 @@ function FhlLectureEs6Js(){
     const queryReferenceAndShowAtDialogAsync = queryReferenceAndShowAtDialogAsyncEs6Js()
     const splitReference = splitReferenceEs6Js()
 
+    // 讓別處也能用 dict
+    if (window.queryDictionaryAndShowAtDialogAsync == undefined ){
+        window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
+    }
+
     /** @type {JQuery<HTMLElement>} */
     let $lecture
 
@@ -2744,6 +2749,9 @@ function FhlLectureEs6Js(){
                     // sn = sn 且 N=N 的設為 snAct
                     $('#lecMain').find('.sn[sn="' + sn + '"][N="' + N + '"]').addClass('snAct')
 
+                    $('#search_result').find('.sn').removeClass('snAct')
+                    $('#search_result').find('.sn[sn="' + sn + '"][N="' + N + '"]').addClass('snAct')
+
                     // 關閉即時顯示功能
                     // if (ps.realTimePopUp == 1) {
                     //     var offset = $(this).offset();
@@ -2764,6 +2772,7 @@ function FhlLectureEs6Js(){
                     ps.snAct = ""
                     ps.snActN = -1
                     $('#lecMain').find('.sn').removeClass('snAct')
+                    $('#search_result').find('.sn').removeClass('snAct')
 
                     // 關閉即時顯示功能
                     // if (ps.realTimePopUp == 1) {

@@ -8,22 +8,37 @@ var sephp = sephp || {};
 sephp.node_sephp_copy = document.createElement("textarea");//copy經文用 .id= 'sephp_copy_id' 2015.08.19(三)
 sephp.sn_click = function sn_click(pdata) {
   /// <summary> 查詢後結果,SN按下的時候 </summary>
+  // console.log(pdata);
 
-  var keyword = pdata.data.keyword;
-  var ver = pdata.data.ver;
-  var engs = pdata.data.engs;
-  sephp.isAll = false;
-  sephp.ibook_cur = fhl.engs_2_iBook(engs);
+  let elem = pdata.target
+  // 使用 jquery
+  let span = $(elem)
+  // 取得 attr sn N
+  let sn = span.attr('sn')
+  let N = span.attr('N')
+  console.log(sn, N);
 
-  var jret = sephp.pre_search_sn(keyword);
-  var jrets = []; jrets.push(jret);
+  queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
+  
+  // 點擊 sn 時，不要切換 active 節
+  pdata.stopPropagation()
+  
+  // 不再查詢SN，而是改為字典
+  // var keyword = pdata.data.keyword;
+  // var ver = pdata.data.ver;
+  // var engs = pdata.data.engs;
+  // sephp.isAll = false;
+  // sephp.ibook_cur = fhl.engs_2_iBook(engs);
 
-  sephp.keyword = keyword;
-  sephp.node_pre_search.innerHTML = "";
-  sephp.node_search_result.innerHTML = "";
-  sephp.create_dialog_presearch(jrets);
+  // var jret = sephp.pre_search_sn(keyword);
+  // var jrets = []; jrets.push(jret);
 
-  sephp.act_sn_button_click(pdata);
+  // sephp.keyword = keyword;
+  // sephp.node_pre_search.innerHTML = "";
+  // sephp.node_search_result.innerHTML = "";
+  // sephp.create_dialog_presearch(jrets);
+
+  // sephp.act_sn_button_click(pdata);
 };
 sephp.open_ref_click = function open_ref_click(pdata) {
   /// <summary> 列出經文的白圓圈被點擊的時候 </summary>

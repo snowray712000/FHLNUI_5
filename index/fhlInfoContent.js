@@ -784,21 +784,17 @@
                                     t = t.substring(0, pt) + span_str + t.substring(pt1 + 1);
                                 }
 
-                                // 2017.12
-                                var tmp = t
-                                FHL.STR.eachFitDo(/SNH([0-9]+)/, tmp, function (m1) {
-                                    var sn = m1[1];
-                                    // var newTag = '<span class="sn" sn="09001">H09001</span>'
-                                    var newTag = '<span class="sn" sn="' + sn + '" tp="H"> H' + sn + '</span>';
-                                    t = t.replace(m1[0], newTag);
-                                });
-                                tmp = t
-                                FHL.STR.eachFitDo(/SNG([0-9]+)/, tmp, function (m1) {
-                                    var sn = m1[1];
-                                    // var newTag = '<span class="sn" sn="09001">G09001</span>'
-                                    var newTag = '<span class="sn" sn="' + sn + '" tp="G"> G' + sn + '</span>';
-                                    t = t.replace(m1[0], newTag);
-                                });
+                                function sn_replace(...s){
+                                    let tp = s[1]
+                                    //  parseInt 把前面的 0 去掉，||"" 若沒有 a, 才不會出現 
+                                    let sn = `${parseInt(s[2])}${s[3]||""}`;
+
+                                    let span = $('<span></span>')
+                                    span.addClass('sn').attr('sn', sn).attr('tp', tp)
+                                    span.text(`${tp.toUpperCase()}${sn}`)
+                                    return span[0].outerHTML
+                                }
+                                t = t.replace(/SN([HG])([0-9]+)(a?)/gi, sn_replace)
 
                                 return t;
                             }
@@ -915,10 +911,8 @@
                                 html = do_com_text(html)
 
                                 html = parseComment(html);
-
-                                var strFontSizeStyle = "margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
                                 
-                                html = "<div style='position: static; padding: 0px; top: 0px; bottom: 0px; overflow: auto;'>" + head_str + '<div id="commentContent">' + control_str + "<div id='commentScrollDiv' style='" + strFontSizeStyle + ";'>" + html + "</div></div></div>";
+                                html = "<div style='position: static; padding: 0px; top: 0px; bottom: 0px; overflow: auto;'>" + head_str + '<div id="commentContent">' + control_str + "<div id='commentScrollDiv'>" + html + "</div></div></div>";
                                 dom.html(html);
                             } else {
                                 dom.html("<div style='position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); '>施工中...</div>");

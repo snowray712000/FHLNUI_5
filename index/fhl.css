@@ -1736,12 +1736,16 @@ nav#fhlTopMenu {
     border-bottom-left-radius: 5px;
     z-index: 1;
 }
+#search_result{
+    font-size: var(--fontsize);
+    line-height: 1.1em;
+}
 #commentScrollDiv {
     overflow-y: scroll;
     overflow-x: hidden;
     text-align: justify;
     bottom: 60px;
-    top: 0px;
+    top: 6pt; /* 才不會字很小時，被上面那塊遮住 */
     left: 0px;
     right: 0px;
     position: absolute;

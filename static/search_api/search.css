@@ -30,7 +30,7 @@
     color: darkturquoise;
 }
 .seKey{
-    color:blue;
+    color:red !important;
     font-weight:700;
 }
 .presearch_div_button{

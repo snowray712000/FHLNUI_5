@@ -18,108 +18,77 @@ qsbphp.create_color_span_from_bible_text = function create_color_span_from_bible
     cseKey = "seKey"; //關鍵字(上藍色)
   if (cseSn == undefined)
     cseSn = "seSN"; //關鍵字
+  
+  function do_sn(bible_text, keySn){
+    var reg1 = /<WA?(T?)([HG])([0-9]+)(a?)>/gi
+    var reg2 = new RegExp(`{${reg1.source}}|${reg1.source}`, 'gi');
+    function replace_sn(s0,s1,s2,s3,s4,s5,s6,s7,s8){
+      sT = s1 || s5
+      sHG = s2 || s6
+      sNum = s3 || s7
+      sA = s4 || s8 || ""
 
-  var act_all_sn1_wt = function () {
-    var bug_protect = 0;
-    while (true)//no keyword step2
-    {
-      var reg_WTHG = new RegExp('<WT[G,H]\\d+\\w*>', "g");
-      var reg_re = reg_WTHG.exec(bible_text);
-      if (reg_re == null)
-        break;
-      var str1 = reg_re[0]; // <WTH7423> or <WTG7421> or <WTH7423a>
+      // 大括號
+      isBrace = s2 != undefined
+      // sn
+      sn = `${parseInt(sNum)}${sA}`
 
-      if (bug_protect++ > 100) {
-        console.debug("SN上色可能有bug，發生於" + str1)
-        break;
+      // 使用 jquery 並重構
+      let span  = $('<span>').addClass('seSN').addClass('sebutton').addClass('sn') /// @type {JQuery<HTMLElement>?}
+      let str1 = sT == 'T' ? `(${sn})` : `<${sn}>`
+      let str2 = isBrace ? `{${str1}}` : str1
+      span.text(str2)
+      span.attr('sn', sn)
+      span.attr('N', sHG == 'H' ? 1 : 0)
+
+      // 關鍵字嗎
+      if (keySn == sn){
+        span.addClass(cseKey)
       }
 
-      var reg_sn_no_tag = new RegExp('\\d+\\w*', 'g');
-      str2 = reg_sn_no_tag.exec(str1)[0]; // 7423 or 7421 or 7423a
-      //console.debug(str2);
-
-      var reg_replace = new RegExp(str1, 'g');//要把 <WTH7423> 取代成 <span xxx>(7423)</span>
-      //var click_sn_dic = "onclick=sdic(1,\"" + str2 + "\")";//這三行是要新增字典
-      //if (this.mp_chineses.indexOf(info['chineses']) > 38)
-      //click_sn_dic = "onclick=sdic(0,\"" + str2 + "\")";
-      bible_text = bible_text.replace(reg_replace, "<span class='" + cseSn + " " + cButton + "'>(" + str2 + ")</span>");
+      return span[0].outerHTML
     }
-  };
-  var act_all_sn2_w = function () {
-    bug_protect = 0;
-    while (true)//step4 nokeyword
-    {
-      var reg_WAHG = new RegExp('<W[A,G,H]+\\d+\\w*>', "g");
-      var reg_re = reg_WAHG.exec(bible_text);
-      if (reg_re == null)
-        break;
-      var str1 = reg_re[0]; // <WH777> or <WAH777> or <WG777> or <WAG777> or <WH777a>
-
-      if (bug_protect++ > 100) {
-        console.debug("SN上色可能有bug，發生於" + str1)
-        break;
-      }
-
-      var reg_sn_no_tag = new RegExp('\\d+\\w*', 'g');
-      str2 = reg_sn_no_tag.exec(str1)[0]; // 777 or 777a
-
-      var reg_replace = new RegExp(str1, 'g');//要把 <WH777> 取代成 <span xxx><777></span>
-      //re1 = re1.replace(reg_replace, "<span class='seSN'>&lt;" + str2 + "&gt;</span>");
-      bible_text = bible_text.replace(reg_replace, "<span class='" + cseSn + " " + cButton + "'>&lt;" + str2 + "&gt;</span>");
-    }
-  };
+    return bible_text.replace(reg2, replace_sn);
+  }
 
   var span_text = document.createElement("span");
 
   // 取代所有sn
-  act_all_sn1_wt();
-  act_all_sn2_w();
-
+  // act_all_sn1_wt();
+  // act_all_sn2_w();
+  
   // 所有 keywords 上色
-  Enumerable.from(keywords.split(' ')).forEach(function (a_key) {
-    a_key = "" + a_key.trim().toLowerCase();
-    if (a_key.length == 0)
-      return;
-    if (a_key == "and" || a_key == "not" || a_key == "or")
-      return;
+  // 1. 目前不支援 SN 與 關鍵字 同時搜尋，例如 `摩西 h2316`，結果會是 2316 搜尋 
+  // 2. 目前不支援 多個 SN 搜尋，例如 `h2316 h2317`，結果會是 2316 搜尋
+  
+  function get_keyword_if_sn(keywords){
+    let reg1 = /([0-9]+)(a?)/gi
+    let result = reg1.exec(keywords)
+    if (result){
+      return `${parseInt(result[1])}${result[2] || ""}`
+    }
+    return undefined // 表示，不是 SN Keyword
+  }
+  keySn = get_keyword_if_sn(keywords)
+  bible_text = do_sn(bible_text, keySn);
 
-    // 必須分開 SN 與 一般關鍵字處理, 因為 SN 若用 6, 直接replace 會使 2316 的6也被取代顏色
-    if (isNaN(parseInt(a_key))) //非SN
+  if ( keySn == undefined ){
+    // 原流程，多個文字關鍵字
+    Enumerable.from(keywords.split(' ')).forEach(function (a_key) 
     {
+      a_key = "" + a_key.trim().toLowerCase();
+      if (a_key.length == 0)
+        return;
+      if (a_key == "and" || a_key == "not" || a_key == "or")
+        return;
+  
       var a_span_key = "<span class='" + cseKey + "'>" + a_key + "</span>";
       bible_text = bible_text.replace(a_key, a_span_key);
-    }
-    else {
-      {
-        var a_span_key = "<span class='" + cseKey + "'>(" + a_key + ")</span>";
-        bible_text = bible_text.replace("(" + a_key + ")", a_span_key);
-
-        a_span_key = "<span class='" + cseKey + "'>(" + '0' + a_key + ")</span>";//摸魚的作法
-        bible_text = bible_text.replace("(" + '0' + a_key + ")", a_span_key);//摸魚的作法
-        a_span_key = "<span class='" + cseKey + "'>(" + '00' + a_key + ")</span>";//摸魚的作法
-        bible_text = bible_text.replace("(" + '00' + a_key + ")", a_span_key);//摸魚的作法
-        a_span_key = "<span class='" + cseKey + "'>(" + '000' + a_key + ")</span>";//摸魚的作法
-        bible_text = bible_text.replace("(" + '000' + a_key + ")", a_span_key);//摸魚的作法
-        a_span_key = "<span class='" + cseKey + "'>(" + '0000' + a_key + ")</span>";//摸魚的作法
-        bible_text = bible_text.replace("(" + '0000' + a_key + ")", a_span_key);//摸魚的作法
-      }
-      {
-        var a_span_key = "<span class='" + cseKey + "'>&lt;" + a_key + "&gt;</span>";
-        bible_text = bible_text.replace("&lt;" + a_key + "&gt;", a_span_key);
-
-        a_span_key = "<span class='" + cseKey + "'>&lt;" + '0'+ a_key + "&gt;</span>";
-        bible_text = bible_text.replace("&lt;" + '0' + a_key + "&gt;", a_span_key);
-        a_span_key = "<span class='" + cseKey + "'>&lt;" + '00' + a_key + "&gt;</span>";
-        bible_text = bible_text.replace("&lt;" + '00' + a_key + "&gt;", a_span_key);
-        a_span_key = "<span class='" + cseKey + "'>&lt;" + '000' + a_key + "&gt;</span>";
-        bible_text = bible_text.replace("&lt;" + '000' + a_key + "&gt;", a_span_key);
-        a_span_key = "<span class='" + cseKey + "'>&lt;" + '0000' + a_key + "&gt;</span>";
-        bible_text = bible_text.replace("&lt;" + '0000' + a_key + "&gt;", a_span_key);
-      }
-    }
-  });
+    }) 
+  }
 
   span_text.innerHTML = bible_text;
 
   return span_text;
 };
+

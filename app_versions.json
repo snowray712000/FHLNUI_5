@@ -1,22 +1,32 @@
 {
     "nui": {
-        "last": "2.2.1",
+        "last": "2.3.1",
         "historys": [
             {
                 "na": "TODOs",
                 "na2": [
                     "優化) 原文Parsing工具，下面的 table，當某一欄有一個原文太長，整個表格就會很醜。(在窄的時候)",
+                    "優化) 搜尋結果，滑鼠移過去，也要能夠顯示active",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
-                ]                
+                ]
+            },{
+                    "na": "2.3.1",
+                    "na2":[
+                        "優化) 搜尋按下Enter也可以",
+                        "優化) 搜尋後，不要自動清空內容，有時候還要再加關鍵字，或修與關鍵字",
+                        "優化) 搜尋結果，字型也要隨設定變更",
+                        "優化) 搜尋結果，SN顏色也改成藍色，關鍵字不再使用藍色，而是紅色",
+                        "優化) 搜尋結果，點擊SN，顯示字典，不要顯示彙編",
+                        "RD) 搜尋，移除會縮起來的程式碼"
+                ]
             },{
                 "na": "2.2.1",
                 "na2":[
                     "Bug) 字型大小。調整 Hebrew，結果 Greek 卻一起變。",
                     "RD) 字型大小。一致使用 css variable 來控制，不再設定每個元素的 font-size。"
                 ]
-            }
-            ,{
+            },{
                 "na": "2.1.5",
                 "na2": [
                     "優化) 閱讀的SN點擊，字典變得漂亮",

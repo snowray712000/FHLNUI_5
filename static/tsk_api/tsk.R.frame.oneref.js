@@ -81,7 +81,7 @@ tsk.R = tsk.R || {
       }
 
       var r1 = React.createElement("div", {
-        className: "seKey sebutton",
+        className: "commentJump sebutton",
         onClick: this.handleClick
       }, keyword2);
       return React.createElement("div", {}, r1, this.state.rDetail);
