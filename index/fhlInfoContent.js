@@ -567,120 +567,18 @@
                                             head_str += "<div>" + nexp[ii] + "</div>";
                                         }
                                     }
-                                } // 以上是 wid = 0 的條件, 也就是處理上半部
-                                else {
-                                    if (N == 0 && word == "+") { // N=0 新約
-                                        /*
-                                          clrcnt=(clrcnt+1)%3;
-                                          if (clrcnt==0) clrstr="";
-                                          else if (clrcnt==1) clrstr="#ffff99";
-                                          else if (clrcnt==2) clrstr="#ffcccc";
-                                          msg=skip1tag(msg,"record");
-                                          */
-                                        continue;
-                                    }
-                                    var sn = jsonObj.record[i].sn;
-                                    var pro = jsonObj.record[i].pro;
-                                    var wform = jsonObj.record[i].wform;
-                                    var orig = jsonObj.record[i].orig;
-                                    var remark = jsonObj.record[i].remark;
-
-                                    function do_remark(remark){
-                                        // 當 input 是 `沿用至今。[#2.19, 2.9, 4.2, 11.9#]` 後面那一段，要轉換為連結
-                                        // <a href="/new/pimg/2.19.png" target="grammer">2.19</a>
-                                        // <a href="/new/pimg/2.9.png" target="grammer">2.9</a>
-                                        // 略..
-                                        var pt = remark.indexOf("[#");
-                                        var pt1 = remark.indexOf("#]");
-                                        while (pt >= 0 && pt1 > pt) {
-                                            var nstr = "";
-                                            var pstr = remark.substring(pt + 2, pt1);
-
-                                            pstr = pstr.replace(/０/g, "0");
-                                            pstr = pstr.replace(/１/g, "1");
-                                            pstr = pstr.replace(/２/g, "2");
-                                            pstr = pstr.replace(/３/g, "3");
-                                            pstr = pstr.replace(/４/g, "4");
-                                            pstr = pstr.replace(/５/g, "5");
-                                            pstr = pstr.replace(/６/g, "6");
-                                            pstr = pstr.replace(/７/g, "7");
-                                            pstr = pstr.replace(/８/g, "8");
-                                            pstr = pstr.replace(/９/g, "9");
-                                            pstr = pstr.replace(/．/g, ".");
-
-                                            subheb = pstr.split(",");
-                                            nstr = "§";
-                                            for (si = 0; si < subheb.length; si++) {
-                                                subheb[si] = subheb[si].trim();
-                                                if (subheb[si].length == 0) continue;
-                                                spt = subheb[si].split("-");
-
-                                                link_url = "/new/pimg/" + spt[0] + ".png";
-                                                // 希望在開發的時候，就是 port 是 5500 時，網址會從 /new/pimg/2.19.png 變成 http://bible.fhl.net:5500/new/pimg/2.19.png
-                                                if (location.port == "5500") {
-                                                    link_url = "http://bible.fhl.net:80" + link_url;
-                                                } 
-                                                nstr = nstr + "<a href=\"" + link_url + "\" target=\"grammer\">" + subheb[si] + "</a> ";
-                                            }
-                                            // `[#` 前面的字串
-                                            let str1 = remark.substring(0, pt);
-                                            // `#]` 後面的字串 
-                                            let str2 = remark.substring(pt1 + 2);
-                                            remark = str1 + nstr + str2
-                                            pt = remark.indexOf("[#");
-                                            pt1 = remark.indexOf("#]");
-                                        }
-                                        
-                                        return remark
-                                    }
-                                    function charHebrew_Inline_Block(remark){
-                                        // <span class='hebrew-char'>אֶל</span> 用長基本型 <span class='hebrew-char'>אֱלֵי</span>
-
-                                        // 將字串 'hebrew-char' 以 'hebrew-char hebrew-char-inline-block' 取代
-                                        return remark.replace(/'hebrew-char'/g, '\'hebrew-char hebrew-char-inline-block\'')
-                                    }
-                                    remark = charHG (do_remark (remark) )
-                                    remark = charHebrew_Inline_Block(remark) // 3 單陽詞尾 הוּ + ֵי 合起來 ... 像這個 + 就可能因為沒有 inline-block 而錯誤
-
-                                    function get_sn_shorter(sn){
-                                        // sn 有可能是 09003 就變 9003
-                                        // sn 也有可能有 09003a 就變 9003a
-                                        return sn.replace(/^0+/, '')
-                                    }
-                                    sn2 = get_sn_shorter(sn)
-
-                                    body_str = body_str + "<tr bgcolor=\"" + clrstr + "\"><td class=\"" + orig_font + "\">" + charHG(word) + "</td><td class=\"g0\"><span class=\"parsingTableSn sn\" N=" + N + " k=" + sn2 + ">" + sn2 + "</span></td><td class=\"g0\">";
-
-                                    if (N == 0) {
-                                        // 只有新約有 pro
-                                        body_str = body_str + charHG(pro) + "</td><td class=\"g0\">";
-                                    }
-
-                                    wform = charHebrew_Inline_Block( charHG(wform) )
-                                    
-                                    body_str = body_str + wform + "</td><td class=\"" + orig_font + "\">" + charHG(orig) + "</td><td class=\"g0\">" + charHG(exp) + "</td><td class=\"g0\">" +
-                                    remark + "</td></tr>";
-
-                                } //else wid != 0 (也就是這括號是處理下半部)
+                                }
                             } //for I , api 回來的 record 中的每1個
                             var ptg = "";
-                            if (N == 0)
-                                ptg = "<td class=\"g0\">詞性</td>";
+                            
+
                             var strFontSizeStyle = "margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
                             var headDivStyle = "<div class='parsingTop' style=\"position: absolute; left: 0px; right: 0px; top: 0px; height: 200px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; box-shadow: inset 0px -4px 7px #808080;" + strFontSizeStyle + ";" + ((N == 1) ? "text-align:right;" : "") +
                             "\">";                                
 
-                            var html = chap_ctrl_str + headDivStyle + head_str + "</div><div id='parsingTable' style=\"" + strFontSizeStyle + ";position: absolute; top: 212px; left: 0px; right: 0px; bottom: 20px; padding: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; overflow:auto;box-shadow: inset 0px 4px 7px #808080;\"><table border=\"1\" id='sn-table' class='table-striped'>" + getTitleHtml() + body_str + "</table></div>";
+                            var html = chap_ctrl_str + headDivStyle + head_str + "</div>"
 
-
-                            function getTitleHtml() {
-                                var strs = ps.gb != 1 ? ['原文字', 'SN', '字彙分析', '原型', '原型簡義', '備註'] : ['原文字', 'SN', '字汇分析', '原型', '原型简义', '备注']
-
-                                var r1 = Enumerable.from(strs)
-                                    .select(a1 => '<th class="g0" scope="col">' + a1 + '</th>')
-                                    .toArray().join('')
-                                return '<thead><tr>' + r1 + '</tr></thead>'
-                            }
+                            html += generate_sn_table(jsonObj, N == 1 ? 'H' : 'G')
 
                             html = "<div style='position: absolute; top: 200px; left: 0px; right: 0px; height: 12px; background: #A0A0A0;'></div>" + html + "";
 

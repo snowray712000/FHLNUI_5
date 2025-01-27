@@ -1907,6 +1907,23 @@ nav#fhlTopMenu {
 #parsingTable{
     font-size: var(--fontsize);
     line-height: 1.1em;
+
+    top: 212px;
+    bottom: var(--scrollbar-width);
+    left: 0px;
+    right: 0px;
+    position: absolute;
+
+    padding: 0pt; /* 非必要，但較好看 */
+
+    overflow: scroll;
+
+    text-align: justify;
+}
+#parsingTable div{
+    padding: 6pt;
+
+    box-shadow: inset 1pt 1pt 3pt 0pt gray;    
 }
 .parsingTableSn {
     cursor: pointer;
@@ -1925,6 +1942,9 @@ nav#fhlTopMenu {
   padding: 0px 0px;
   z-index: 1;/*Layer 2*/
   box-shadow: 4px 4px 3px #505050;
+}
+.item-title {
+    color: green;
 }
 
 #parsingPopUpInside {

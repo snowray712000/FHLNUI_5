@@ -49,13 +49,14 @@
                     'renderTsk',
                     'SnBranchRender',
                     'fontSizeTool',
-
+                    
                     'versionSelect',
                     'docEvent',
                     'viewHistory',
                     'fhlMidWindow',
                     //'fhlLecture', //es6 模式成功，讓這個被拿掉
                     'fhlMidBottomWindow',
+                    'generate_sn_table',
                     'fhlInfoContent',
                     'parsingPopUp',
                     'searchTool',
