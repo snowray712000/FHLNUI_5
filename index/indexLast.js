@@ -63,7 +63,8 @@ function doLast3() {
     'mapTool',
     'imageTool',
     'renderTsk',
-    'generate_sn_table',
+    'parsing_render_top',
+    'parsing_render_bottom_table',
     'SnBranchRender',
     'fontSizeTool',
   ]).forEach(a1 => {

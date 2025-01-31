@@ -1895,16 +1895,41 @@ nav#fhlTopMenu {
     word-wrap: break-word; 
     word-break: normal; 
 }
-.parsingTop {
-    padding: 30px 50px 10px;
+#parsingTop {
     overflow-y: scroll;
     padding-left: calc( 50px - var(--scrollbar-width) );
     padding-right: calc( 50px - var(--scrollbar-width) );
+    padding-top: 1.25em;
+    padding-bottom: 0em ;
     /* overflow-x: hidden; */
     font-size: var( --fontsize );
     line-height: 1.1em;
+    height: 200px; /* 配合框線位置，一定是要這個值 */
+    text-align: justify;
+}
+#parsingTop div.hebrew-char {
+    text-align: right;
+}
+#parsingTop div.greek-char {
+    text-align: left;
+}
+
+.sn-btn {
+    cursor: pointer;
+}
+.ui-dialog-content{
+    font-size: var( --fontsize );
+}
+#parsing-where-title{
+    position: absolute;
+    top: 0.25em;
+    left: 0.25em;
+    font-size: 0.5em;
+    color: darkgray; 
 }
 #parsingTable{
+    margin-top: 0em;
+
     font-size: var(--fontsize);
     line-height: 1.1em;
 
@@ -2058,6 +2083,8 @@ nav#fhlTopMenu {
 
   #fhlInfoContent {
     height: 100%;
+    font-size: var(--fontsize);
+    line-height: 1.1em;
   }
   .parsingTableSn {
     color: blue;

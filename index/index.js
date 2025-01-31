@@ -56,7 +56,8 @@
                     'fhlMidWindow',
                     //'fhlLecture', //es6 模式成功，讓這個被拿掉
                     'fhlMidBottomWindow',
-                    'generate_sn_table',
+                    'parsing_render_top',
+                    'parsing_render_bottom_table',
                     'fhlInfoContent',
                     'parsingPopUp',
                     'searchTool',
@@ -1687,6 +1688,9 @@ function BibleConstantHelperEs6Js() {
 
     /** @type {Object.<string, number>} */
     BibleConstantHelper._mapName2Id
+    /**
+     * @returns {Object.<string, number>}
+     */
     BibleConstantHelper.getMapName2Id = () => {
         if (BibleConstantHelper._mapName2Id == undefined) {
             BibleConstantHelper._mapName2Id = generate()
@@ -1816,6 +1820,29 @@ function BibleConstantHelperEs6Js() {
         else if (tp == 'rom') { return BibleConstant.ENGLISH_BOOK_ABBREVIATIONS }
         else if (tp == 'ro') { return BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS }
         return BibleConstant.CHINESE_BOOK_ABBREVIATIONS
+    }
+    /**
+     * 確定要有短名字時，但若沒這個，就會有一小段的 where 處理
+     * @param {boolean} isGb 
+     * @returns {string[]}
+     */
+    BibleConstantHelper.getBookNameArrayChineseShort = (isGb) => {
+        return isGb ? BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB : BibleConstant.CHINESE_BOOK_ABBREVIATIONS
+    }
+    /**
+     * 相對於 getBookNameArrayChineseShort，這個是完整名字
+     * @param {boolean} isGb 
+     * @returns {string[]}
+     */
+    BibleConstantHelper.getBookNameArrayChineseFull = (isGb) => {
+        return isGb ? BibleConstant.CHINESE_BOOK_NAMES_GB : BibleConstant.CHINESE_BOOK_NAMES
+    }
+    /**
+     * api 常用的 engs 就是 'rom' 這種 type，而不是 ro 也不是 romans
+     * @returns {string[]}
+     */
+    BibleConstantHelper.getBookNameArrayEnglishNormal = () => {
+        return BibleConstant.ENGLISH_BOOK_ABBREVIATIONS
     }
 
     /**

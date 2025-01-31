@@ -3,12 +3,14 @@
 /// <reference path="../libs/jsdoc/jquery-ui.js" />
 /// <reference path="../libs/ijnjs/ijnjs.d.ts" />
 /// <reference path="./DataOfDictOfFhl.d.ts" />
+/// <reference path="./fhlParsing.d.js" />
 
 (function (root) {
     let queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsyncEs6Js()
     const queryReferenceAndShowAtDialogAsync = queryReferenceAndShowAtDialogAsyncEs6Js()
     const splitReference = splitReferenceEs6Js()
-
+    const BibleConstantHelper = BibleConstantHelperEs6Js()
+    
     var fhlInfo = {
         init: function (ps) {
             bibleAudio.init(ps, $('#bibleAudio'));
@@ -198,6 +200,7 @@
                             var par = decodeURIComponent($(this).attr('par'));
                             parsingPopUp.render(ps, parsingPopUp.dom, offset, par);
                         });
+
                         /*$('.parsing').mouseleave(function(){
                           parsingPopUp.dom.hide();
                         });*/
@@ -212,32 +215,38 @@
                           parsingPopUp.dom.hide();
                         });*/
                     } else {
-                        $('.parsing').click(function () {
-                            var offset = $(this).offset();
-                            offset.top += $(this).height() + 10;
-                            ps.N = $(this).attr('N');
-                            ps.k = $(this).attr('k');
-                            var par = decodeURIComponent($(this).attr('par'));
-                            parsingPopUp.render(ps, parsingPopUp.dom, offset, par);
-                        });
-                        // $('.parsingTableSn').click(function () {
-                        //   var offset = $(this).offset();
-                        //   offset.top += $(this).height() + 10;
-                        //   ps.N = $(this).attr('N');
-                        //   ps.k = $(this).attr('k');
-                        //   parsingPopUp.render(ps, parsingPopUp.dom, offset);
-                        // });
+                        $('.sn-btn').on('click', function (ev) {
+                            let that = this
+                            let wid = $(that).attr('wid')
+
+                            // 找出 #parsingTable 中，wid 為 wid 的 div
+                            let div = $('#parsingTable').find(`[wid=${wid}]`)
+
+                            // dialog
+                            const DialogHtml = DialogHtmlEs6Js()
+                            let dlg = new DialogHtml()
+                            dlg.showDialog({
+                                html: div.clone(),
+                                getTitle: () => "Parsing",
+                                registerEventWhenShowed: dlg => {
+                                    dlg.off('click','.sn').on({
+                                        "click": function(){
+                                            let r2 = $(this)
+                                            let jo = {
+                                                sn: r2.attr('k'),
+                                                isOld: r2.attr('tp') == 'H'
+                                            }
+
+                                            queryDictionaryAndShowAtDialogAsync(jo)
+                                        }
+                                    }, ".sn")
+                                }
+                            })
+                            
+                            ev.stopPropagation()
+                        })
                     }
 
-                    // $('.parsingTableSn').mouseleave(function () {
-                    //   if (ps.realTimePopUp == 1) {
-                    //     $.data($('#parsingPopUp')[0], "parsingPopUpAutoCloseTimeout", setTimeout(function () {
-                    //       if ($('#parsingPopUp').css('display') == 'block') {
-                    //         $('#parsingPopUp').hide();
-                    //       }
-                    //     }, 100));
-                    //   }
-                    // });
                     $('.parsingSecBack, .parsingSecNext').click(function () {
                         var oldEngs = ps.engs;
                         var oldChap = ps.chap;
@@ -333,7 +342,6 @@
             var that = this;
             switch (ps.titleId) {
                 case "fhlInfoParsing":
-                    var html = "";
                     var ajaxUrl = getAjaxUrl("qp", ps);
                     $.ajax({
                         url: ajaxUrl
@@ -341,286 +349,43 @@
                         //console.log(d);// d 是回傳 純文字版, 但直接 JSON.parse 就要要用到的資料 (羅16:24有問題)
                         //console.log(s);// s 是回傳 success 字串
                         //console.log(j);// j 是回傳 ??物件, 總之 j.responseText 即是 d
-                        if (j) {
-                            var jsonObj = JSON.parse(j.responseText);
-                            var v_name = jsonObj.v_name;
-                            var version = jsonObj.version;
-                            var prev_chineses = jsonObj.prev.chineses;
-                            var prev_engs = jsonObj.prev.engs;
-                            var prev_chap = jsonObj.prev.chap;
-                            var prev_sec = jsonObj.prev.sec;
-                            var next_chineses = jsonObj.next.chineses;
-                            var next_engs = jsonObj.next.engs;
-                            var next_chap = jsonObj.next.chap;
-                            var next_sec = jsonObj.next.sec;
-                            var proc = jsonObj.proc;
-                            var div_name = ps.titleId;
-                            if (version == "cbol") proc = 10; //原文直譯
-                            var orig_font;
-                            var head_str = "";
-                            var chap_ctrl_str = "";
-                            var body_str = "";
-                            var clrstr = "";
-                            var clrcnt = 0;
-                            /** 
-                             * @description - N:0 新約 , N:1 舊約
-                             * @type {number}
-                             */
-                            var N = jsonObj.N;
-                            if (N == 0) orig_font = "g1";
-                            else orig_font = "g2";
-                            var html = jsonObj.N + "</br>";
-                            for (var i = 0; i < jsonObj.record.length; i++) {
-                                var wid = jsonObj.record[i].wid;
-                                /** @type {string} - 原文字 */
-                                var word = jsonObj.record[i].word;
-                                //console.log("word= " + word);
-                                var exp = jsonObj.record[i].exp;
-                                var id = jsonObj.record[i].id;
-                                var parallel = "";
-                                var align_str = "";
-                                if (wid == 0) {
-                                    // 處理上面半部, 原文與中文部分 wid = 0 ( 下面 wid != 就是畫成 table 部分 )
-                                    if (N == 0) //NT (新約)
-                                    {
-                                        var wstr = "";
-                                        var wd = word.split("+");
-                                        //console.log("wd= " + wd);
-                                        if (wd.length > 0) {
-                                            for (var ii = 0; ii < wd.length; ii++) {
-                                                if (ii % 3 == 0)
-                                                    wstr = wstr + wd[ii];
-                                                else if (ii % 3 == 1)
-                                                    wstr = wstr + "(韋：" + wd[ii] + ")";
-                                                else if (ii % 3 == 2)
-                                                    wstr = wstr + "(聯：" + wd[ii] + ")";
-                                            }
-                                            word = wstr;
-                                            //console.log(word);
+                        if ( !j ){
+                            return
+                        }
+
+                        /** @type {IDParsingResult} */
+                        var jsonObj = JSON.parse(j.responseText);
+                        
+                        let html = parsing_render_top(jsonObj, ps)
+                        html += parsing_render_bottom_table(jsonObj, jsonObj.N == 1 ? 'H' : 'G')
+
+                        // 中間那個灰框，這也是為何 top 會是 212 px 的原因
+                        html = "<div style='position: absolute; top: 200px; left: 0px; right: 0px; height: 12px; background: #A0A0A0;'></div>" + html + "";
+
+
+                        dom.html(html);
+
+                        that.registerEvents(ps);
+
+
+                        testThenDoAsync(() => window.DialogTemplate != undefined)
+                            .then(() => {
+
+                                $('#parsingTable').off('click', '.sn').on({
+                                    "click": function () {
+                                        var r2 = $(this)
+                                        var jo = {
+                                            sn: r2.attr('k'),
+                                            isOld: parseInt(r2.attr('n')),
                                         }
-                                    } else if (N == 1) //OT (舊約)
-                                    {
-                                        var remark = jsonObj.record[i].remark;
-                                        var engs = jsonObj.record[i].engs;
-                                        if (remark.length > 0) {
-                                            parallel = "平行經文：" + remark;
-                                        }
-                                        align_str = "align=\"right\" style=\"padding:0px 10px 0px 0px;\"";
+
+                                        // BUG:
+                                        queryDictionaryAndShowAtDialogAsync(jo)
                                     }
+                                }, ".sn")
 
-                                    var bookName = getBookFunc("bookFullName", ps.chineses);
-
-                                    // record[0]中的 word,
-                                    if (bookName != "failed") {
-                                        if (ps.chineses == book[0] && ps.chap == 1 && ps.sec == 1) {
-                                            chap_ctrl_str += "";
-                                        } else {
-                                            chap_ctrl_str += "<div class='parsingSecBack' ";
-                                            var engsSafe = "'" + prev_engs + "'" // add by snow. 2021.07 存在空白會錯誤
-                                            chap_ctrl_str += "engs=" + engsSafe + " chap=" + prev_chap + " sec=" + prev_sec;
-                                            chap_ctrl_str += "><span>&#x276e;</span></div>";
-                                        }
-                                        if (ps.chineses == book[65] && ps.chap == 22 && ps.sec == 21) {
-                                            chap_ctrl_str += "";
-                                        } else {
-                                            chap_ctrl_str += "<div class='parsingSecNext' ";
-                                            var engsSafe = "'" + next_engs + "'" // add by snow. 2021.07 存在空白會錯誤
-                                            chap_ctrl_str += "engs=" + engsSafe + " chap=" + next_chap + " sec=" + next_sec;
-                                            chap_ctrl_str += "><span>&#x276f;</span></div>";
-                                        }
-                                        chap_ctrl_str += "<div style='position: absolute; top: 10px; left: 15px; /*transform: translate(-50%, 0%);*/ font-size: 12pt; color: rgba(100, 100, 100, 0.5);'>" + bookName;
-                                        chap_ctrl_str += "&nbsp&nbsp" + ps.chap + ":" + ps.sec + "</div>";
-                                    }
-
-                                    var nword = word.split("\n"); // [0].word變 nword(舊約split後會反序,不知為何)
-                                    var nexp = exp.split("\n");
-                                    if (N == 1) { //OT
-                                        var wid = 1;
-                                        //console.log("nword length=" + nword.length);
-                                        for (var ii = 0; ii < nword.length; ii++) {
-                                            var t = nword[nword.length - ii - 1].split(" +"); // " +"是必須同時存在,不是其中1個符號存在即可.
-                                            if (t.length !== 1)
-                                                console.dir("t.length=" + t.length);
-
-                                            // add by snow. 2021.07
-                                            // charHG(t[iii]) 在原文上半部不需加這個, 下半部表格中才需要
-                                            // 但在包含它們的div要設 hebrew-char 字型大小才會跟著被影響
-                                            head_str += "<div class='hebrew-char hebrew-char-div'>";
-                                            for (var iii = 0; iii < t.length; iii++) {
-                                                if (t[iii].indexOf(" ") == -1 && t[iii].indexOf("-") == -1) {
-                                                    // 大部分都不成立, 都是另1個.
-                                                    var sn = jsonObj.record[wid].sn;
-                                                    var wform = jsonObj.record[wid].wform;
-                                                    var orig = jsonObj.record[wid].orig;
-                                                    var remark = jsonObj.record[wid].remark;
-                                                    var exp1 = jsonObj.record[wid].exp;
-                                                    var par = encodeURIComponent(wform + '|' + orig + '|' + exp1 + '|' + remark + '|');
-                                                    head_str += "<span class=parsing N=1 k=" + sn + " par=" + par + ">";
-                                                    head_str += t[iii] + "&nbsp</span>";
-                                                    wid++;
-                                                } else {
-                                                    var no_padding_str = t[iii];
-                                                    for (var index = t[iii].length - 1; ; index--) {
-                                                        if (t[iii].charAt(index) != " " && t[iii].charAt(index) != "\n") {
-                                                            // console.log(t[iii] + " index:"+index +" t[iii].length:"  +  t[iii].length);
-                                                            no_padding_str = t[iii].substr(0, index + 1);
-                                                            break; // 大部分是 t[iii].length-1, 第1個, 就是成立的(不是空白也不是\n)
-                                                        }
-                                                    }
-                                                    var start_pos = no_padding_str.search(/[^\u000A-\u0020]/); // 開始的符號(其中包含0x20空白, 回車0x10, 換行0x13
-                                                    // console.log("start_pos="+start_pos);
-                                                    do {
-                                                        try {
-                                                            var sn = jsonObj.record[wid].sn;
-                                                            var wform = jsonObj.record[wid].wform;
-                                                            var orig = jsonObj.record[wid].orig;
-                                                            var remark = jsonObj.record[wid].remark;
-                                                            var exp1 = jsonObj.record[wid].exp;
-                                                            var par = encodeURIComponent(wform + '|' + orig + '|' + exp1 + '|' + remark + '|');
-                                                        } catch (e) {
-                                                            console.log("e" + e)
-                                                        }
-                                                        head_str += "<span class=parsing N=1 k=" + sn + " par=" + par + ">";
-                                                        wid++;
-
-                                                        var next_s = no_padding_str.indexOf(" ", start_pos); // s: space
-                                                        var next_m = no_padding_str.indexOf("-", start_pos); // m:
-                                                        var str;
-                                                        if (next_m != -1 &&
-                                                            (next_s == -1 || next_m < next_s)) {
-                                                            // aaa-bbb ddd 這種 case. 或 aaa-bbb 這種case 先是'-'遇到.
-                                                            str = no_padding_str.substr(start_pos, next_m - start_pos);
-                                                            //console.log(str + ".length=" + str.length);
-                                                            //if (str.length == 1)
-                                                            //  console.log(str.charCodeAt(0));
-                                                            start_pos = next_m + 1;
-                                                            head_str += str + "-</span>";
-                                                        } else if (next_s != -1 &&
-                                                            (next_m == -1 || next_s < next_m)) {
-                                                            // aaa bbb-ddd 這種 case. 或 aaa bbb 這種case 先是' '遇到.
-                                                            str = no_padding_str.substr(start_pos, next_s - start_pos);
-                                                            //console.log(str + ".length=" + str.length);
-                                                            //if (str.length == 1)
-                                                            //  console.log(str.charCodeAt(0));
-
-                                                            start_pos = next_s + 1;
-                                                            head_str += str + "&nbsp</span>"; //空白
-                                                        } else {
-                                                            //console.log("m:" + next_m + " s:" + next_s);
-                                                            //end
-                                                            // aaa 這種case. 就是最後1個字了.
-                                                            str = no_padding_str.substr(start_pos, no_padding_str.length - start_pos);
-                                                            head_str += str + "</span>";
-                                                            break;
-                                                        }
-                                                        //console.log("next_s=" + next_s + " next_m=" + next_m + " str=" + str + " str.length=" + str.length);
-                                                    } while (next_m != -1 || next_s != -1);
-
-                                                    /*var s=t[iii].split(/[ -]/);
-                                                      console.log("s="+s);
-                                                    for(iiii=0;iiii<s.length;iiii++){
-                                                      var sn=jsonObj.record[wid].sn;
-                                                      var wform=jsonObj.record[wid].wform;
-                                                      var orig=jsonObj.record[wid].orig;
-                                                      var remark=jsonObj.record[wid].remark;
-                                                      var exp1=jsonObj.record[wid].exp;
-                                                      var par=encodeURIComponent(wform+'|'+orig+'|'+exp1+'|'+remark+'|');
-                                                      head_str+="<span class=parsing N=1 k="+sn+" par="+par+">";
-                                                      if(iiii==0)
-                                                        head_str+=s[iiii]+iiii+"&nbsp</span>";
-                                                      else
-                                                        head_str+=s[iiii]+iiii+"&nbsp</span>";
-                                                      wid++;
-                                                    }*/
-                                                }
-                                            }
-                                            head_str += "</div>";
-                                            head_str += "<div>" + nexp[ii] + "</div>";
-                                        }
-                                    } else if (N == 0) { // 新約
-                                        var wid = 1;
-                                        for (var ii = 0; ii < nword.length; ii++) {
-                                            nword[ii] = nword[ii].trim();
-                                            var t = nword[ii].split(" ");
-                                            // add by snow. 2021.07
-                                            // charHG(t[iii]) 在原文上半部不需加這個, 
-                                            // 但在包含它們的div要設 hebrew-char 字型大小才會跟著被影響
-
-                                            head_str += "<div class='greek-char'>";
-                                            for (var iii = 0; iii < t.length; iii++, wid++) {
-                                                var r1 = jsonObj.record[wid]; // 2017.12 馬可福音 1:34 原文
-                                                if (r1 == null)
-                                                    continue;
-
-                                                var sn = jsonObj.record[wid].sn;
-                                                var pro = jsonObj.record[wid].pro;
-                                                var wform = jsonObj.record[wid].wform;
-                                                var orig = jsonObj.record[wid].orig;
-                                                var remark = jsonObj.record[wid].remark;
-                                                var exp1 = jsonObj.record[wid].exp;
-                                                var par = encodeURIComponent(pro + '|' + wform + '|' + orig + '|' + exp1 + '|' + remark + '|');
-                                                head_str += "<span class=parsing N=0 k=" + sn + " par=" + par + ">";
-                                                head_str += t[iii] + "&nbsp</span>";
-
-                                            }
-                                            head_str += "</div>";
-                                            head_str += "<div>" + nexp[ii] + "</div>";
-                                        }
-                                    }
-                                }
-                            } //for I , api 回來的 record 中的每1個
-                            var ptg = "";
-                            
-
-                            var strFontSizeStyle = "margin-top: " + (ps.fontSize * 1.25 - 15) + "px";
-                            var headDivStyle = "<div class='parsingTop' style=\"position: absolute; left: 0px; right: 0px; top: 0px; height: 200px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; box-shadow: inset 0px -4px 7px #808080;" + strFontSizeStyle + ";" + ((N == 1) ? "text-align:right;" : "") +
-                            "\">";                                
-
-                            var html = chap_ctrl_str + headDivStyle + head_str + "</div>"
-
-                            html += generate_sn_table(jsonObj, N == 1 ? 'H' : 'G')
-
-                            html = "<div style='position: absolute; top: 200px; left: 0px; right: 0px; height: 12px; background: #A0A0A0;'></div>" + html + "";
-
-
-                            dom.html(html);
-
-                            // add by snow. 2021.07 原文解析，字型大小
-                            // setFontSizeHebrewGreekStrongNumber()
-
-                            that.registerEvents(ps);
-
-
-                            testThenDoAsync(() => window.DialogTemplate != undefined)
-                                .then(() => {
-
-                                    $('#parsingTable').off('click', '.parsingTableSn').on({
-                                        "click": function () {
-                                            var r2 = $(this)
-                                            var jo = {
-                                                sn: r2.attr('k'),
-                                                isOld: parseInt(r2.attr('n')),
-                                            }
-
-                                            // BUG:
-                                            queryDictionaryAndShowAtDialogAsync(jo)
-                                        }
-                                    }, ".parsingTableSn").on({
-                                        "click": function () {
-                                            var r2 = $(this)
-                                            var jo = {
-                                                ref: r2.attr('ref'),
-                                                book: parseInt(r2.attr('book')),
-                                                chap: parseInt(r2.attr('chap')),
-                                            }
-                                        }
-                                    }, ".reference")
-                                    findPrsingTableSnClassAndLetItCanClick(0, $('#sn-table'));
-                                })
-
-
-                        } //if j , api succeess 時
-                    }); // api async callback
+                            })
+                        }); // api async callback
                     //tjm
                     break;
                 case "fhlInfoComment":

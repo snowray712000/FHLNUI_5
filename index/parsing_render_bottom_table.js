@@ -1,16 +1,18 @@
+/// <reference path="./fhlParsing.d.js" />
+
 /**
  * render parsing 工具，下半部的 table
  * 從 fhlInfoContent 中被提取的程式碼
- * @param {Object} jsonObj 
+ * @param {IDParsingResult} jsonObj 
  * @param {'H'|'G'} tp
  * @returns {string} 
  */
-function generate_sn_table(jsonObj, tp) 
+function parsing_render_bottom_table(jsonObj, tp) 
 {
     N = tp == 'H' ? 1 : 0
 
     // 先預備 wid 是特別的
-    let [greek_Westcott_Hort, greek_USB4, plus_symbol] = get_special_wid(tp)
+    let [greek_Westcott_Hort, greek_USB4, plus_symbol] = get_special_wid(jsonObj, tp)
 
     // 太1:9 是特例
     // 瑪拉基書 4:5 是特例
@@ -105,7 +107,7 @@ function generate_sn_table(jsonObj, tp)
     return div_parsingTable[0].outerHTML
 }
 (root => {
-    root.generate_sn_table = generate_sn_table
+    root.parsing_render_bottom_table = parsing_render_bottom_table
 })(this)
 
 function get_sn_shorter(sn){
@@ -173,7 +175,7 @@ function do_remark(remark){
 /**
  * 處理新約 + xxx韋 + xxx聯 + (太1:9)
  * 準備給下面產生 wid table 用的，若要特例可使用 太 1:9
- * @param {Object} jsonObj
+ * @param {IDParsingResult} jsonObj
  * @param {'H'|'G'} tp
  * @returns {[number[], number[], number[]]}
  */

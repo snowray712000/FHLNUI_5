@@ -45,12 +45,6 @@ var fontSizeTool = {
             $('#commentScrollDiv').css({
                 'margin': sz * 1.25 - 15 + 'px 0px'
             });
-            $('#fhlInfoContent .parsingTop').css({
-                'margin': sz * 1.25 - 15 + 'px 0px'
-            });
-            $('#parsingTable').css({
-                'margin': sz * 1.25 - 15 + 'px 0px'
-            });
             
             // 這是哪裡的字體大小？
             $('#fhlLecture .lecContent.bhs.hebrew').css({

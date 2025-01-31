@@ -146,6 +146,29 @@ function BibleConstantHelperEs6Js() {
         else if (tp == 'ro') { return BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS }
         return BibleConstant.CHINESE_BOOK_ABBREVIATIONS
     }
+    /**
+     * 確定要有短名字時，但若沒這個，就會有一小段的 where 處理
+     * @param {boolean} isGb 
+     * @returns {string[]}
+     */
+    BibleConstantHelper.getBookNameArrayChineseShort = (isGb) => {
+        return isGb ? BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB : BibleConstant.CHINESE_BOOK_ABBREVIATIONS
+    }
+    /**
+     * 相對於 getBookNameArrayChineseShort，這個是完整名字
+     * @param {boolean} isGb 
+     * @returns {string[]}
+     */
+    BibleConstantHelper.getBookNameArrayChineseFull = (isGb) => {
+        return isGb ? BibleConstant.CHINESE_BOOK_NAMES_GB : BibleConstant.CHINESE_BOOK_NAMES
+    }
+    /**
+     * api 常用的 engs 就是 'rom' 這種 type，而不是 ro 也不是 romans
+     * @returns {string[]}
+     */
+    BibleConstantHelper.getBookNameArrayEnglishNormal = () => {
+        return BibleConstant.ENGLISH_BOOK_ABBREVIATIONS
+    }    
 
     /**
      * 取得 verses, 裡面沒有作任何保護, 因為覺得這是外面介面要作的.
