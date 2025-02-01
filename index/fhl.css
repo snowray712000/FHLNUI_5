@@ -1917,6 +1917,9 @@ nav#fhlTopMenu {
 .sn-btn {
     cursor: pointer;
 }
+.sn-btn:hover {
+    color: red;
+}
 .ui-dialog-content{
     font-size: var( --fontsize );
 }

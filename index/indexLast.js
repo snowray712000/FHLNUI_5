@@ -9,15 +9,7 @@
   doLast4()
   doLast3()
   doLast2()
-  doLast1()
-
-  // 暫時 關閉即時顯示功能 ，因為點擊 SN 的界面已經換新了
-  // 取得包含 #realTimePopUpSelect 的 li 元素，使用 jquery，然後將它隱藏
-  var r1 = $('#realTimePopUpSelect').parent()
-  r1.hide()
-  if (window.pageState.realTimePopUp == 1)
-    window.pageState.realTimePopUp = 0
-  
+  doLast1()  
 })(this)
 
 function doLast5() {

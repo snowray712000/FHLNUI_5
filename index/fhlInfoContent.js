@@ -191,33 +191,13 @@
             var that = this;
             switch (ps.titleId) {
                 case "fhlInfoParsing":
-                    if (ps.realTimePopUp == 1) {
-                        $('.parsing').mouseenter(function () {
-                            var offset = $(this).offset();
-                            offset.top += $(this).height() + 10;
-                            ps.N = $(this).attr('N');
-                            ps.k = $(this).attr('k');
-                            var par = decodeURIComponent($(this).attr('par'));
-                            parsingPopUp.render(ps, parsingPopUp.dom, offset, par);
-                        });
-
-                        /*$('.parsing').mouseleave(function(){
-                          parsingPopUp.dom.hide();
-                        });*/
-                        // $('.parsingTableSn').mouseenter(function () {
-                        //   var offset = $(this).offset();
-                        //   offset.top += $(this).height() + 10;
-                        //   ps.N = $(this).attr('N');
-                        //   ps.k = $(this).attr('k');
-                        //   parsingPopUp.render(ps, parsingPopUp.dom, offset);
-                        // });
-                        /*$('.parsingTable').mouseleave(function(){
-                          parsingPopUp.dom.hide();
-                        });*/
-                    } else {
-                        $('.sn-btn').on('click', function (ev) {
-                            let that = this
-                            let wid = $(that).attr('wid')
+                    {
+                        // parsing event 事件
+                        /**
+                         * @param {HTMLElement} dom 
+                         */
+                        function show_snbtn_result_dialog(dom){                            
+                            let wid = $(dom).attr('wid')
 
                             // 找出 #parsingTable 中，wid 為 wid 的 div
                             let div = $('#parsingTable').find(`[wid=${wid}]`)
@@ -233,7 +213,19 @@
                             dlg.showDialog({
                                 html: div.clone(),
                                 getTitle: () => "Parsing",
+                                /**
+                                 * @param {JQuery<HTMLElement>} dlg 
+                                 */
                                 registerEventWhenShowed: dlg => {
+                                    // console.log(dlg);
+                                    let button = $("#parsingTable")
+                                    dlg.dialog( "option", "position", { my: "right top", at: "right top", of: button } );
+
+                                    // 寬度, 取得 button 寬度，單位 px
+                                    // let w = button.width()
+                                    // dlg.dialog( "option", "width", w )
+
+                                    
                                     dlg.off('click','.sn').on({
                                         "click": function(){
                                             let r2 = $(this)
@@ -246,8 +238,34 @@
                                         }
                                     }, ".sn")
                                 }
-                            })
+                            })   
+                        }
+
+                        // `暫時` 的英文是 ... `temporary`
+                        let is_pause_realtime_temporary = false
+                        function pause_temporary(){
+                            if (ps.realTimePopUp == 1){
+                                is_pause_realtime_temporary = true
+                                setTimeout(() => {
+                                    is_pause_realtime_temporary = false
+                                }, 2000)
+                            }
+                        }
+
+                        $('.sn-btn').on('mouseenter', function (ev) {
+                            if (ps.realTimePopUp == 1 && !is_pause_realtime_temporary) {
+                                show_snbtn_result_dialog(this)                                   
+                                ev.stopPropagation()                          
+                            }                        
+                        })
+                        
+                        
+                        $('.sn-btn').on('click', function (ev) {
                             
+                            // 如果有開啟 即時顯示，就暫停 2 秒
+                            pause_temporary()
+
+                            show_snbtn_result_dialog(this)
                             ev.stopPropagation()
                         })
                     }

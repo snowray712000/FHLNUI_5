@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "2.5.3",
+        "last": "2.5.5",
         "historys": [
             {
                 "na": "TODOs",
@@ -15,8 +15,12 @@
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]
                 },{
-                    "na": "2.5.3",
+                    "na": "2.5.5",
                     "na2": [
+                        "優化) Parsing工具。即時顯示功能。",
+                        "優化) Parsing工具。dialog 顯示位置，低於 top，不要遮到上面。",
+                        "優化) Parsing工具。即時顯示時，若點擊，則暫停2秒後，才自動啟用即時顯示。這樣設計是因為要去按某個 sn 字典的時候，可能會經過其它字又跳掉。",
+                        "概念) Parsing工具。dialog 顯示寬度，之所以不與 table 一樣窄，是因為若備註多的時候，寬的看起來就較好閱讀",
                         "優化) Parsing工具。上面點擊 自動關閉 已經開啟的 dialog。",
                         "優化) 原文Parsing工具。上面 點擊 各個原文，顯示的結果，換成漂亮的 對話方塊 顯示",
                         "Bug) 原文Parsing工具。上面顯示 原本會斷到字元，但應該要斷到一個字為單位。",
