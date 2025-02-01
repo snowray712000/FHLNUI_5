@@ -222,6 +222,11 @@
                             // 找出 #parsingTable 中，wid 為 wid 的 div
                             let div = $('#parsingTable').find(`[wid=${wid}]`)
 
+                            // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
+                            let rr1 = $('.ui-dialog-title').filter((i, e) => e.innerText == "Parsing")
+                            let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
+                            rr2.trigger('click')
+                            
                             // dialog
                             const DialogHtml = DialogHtmlEs6Js()
                             let dlg = new DialogHtml()
