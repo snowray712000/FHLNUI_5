@@ -9,10 +9,10 @@ function getAjaxUrl(func, ps, idx) {
     var paramArr = ["engs", "chineses", "chap", "sec", "version",
         "strong", "gb", "book", "N", "k"];
     var urlParams = {
-        sc: [0, 2, 3, 6, 7],
-        qb: [1, 2, 4, 5, 6],
-        qp: [0, 2, 3, 6],
-        sd: [6, 8, 9], // cbol 字典
+        sc: [0, 2, 3, 6, 7], // sc
+        qb: [1, 2, 4, 5, 6], // qb: query bible
+        qp: [0, 2, 3, 6], // qp: query parsing
+        sd: [6, 8, 9], // cbol 字典 
         sbdag: [6, 8, 9], // 字典，浸宣，新約
         stwcbhdic: [6, 8, 9], // 字典，浸宣，舊約
     };
@@ -50,7 +50,13 @@ function getAjaxUrl(func, ps, idx) {
         };
 
         ret = ret.substring(0, ret.length - 1);
-        //console.log(ret); //https://bkbible.fhl.net/json/qp.php?engs=Rom&chap=16&sec=27&gb=0
+
+        if (func == 'qb') {
+            // 一定加上 strong=1 2025/2/11
+            ret = ret.replace('strong=0', 'strong=1');
+        }
+
+        console.log(ret); //https://bkbible.fhl.net/json/qp.php?engs=Rom&chap=16&sec=27&gb=0
         return ret;
     };
 

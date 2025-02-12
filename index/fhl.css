@@ -1559,6 +1559,9 @@ nav#fhlTopMenu {
     font-weight: bold;
     font-family: Microsoft JhengHei;
 }
+.sn-text {
+    cursor: pointer;
+}
 
 .sn:hover,.snParse:hover,.searchBibleVerse:hover,.searchSN:hover {
   color: red;
@@ -1913,7 +1916,9 @@ nav#fhlTopMenu {
 #parsingTop div.greek-char {
     text-align: left;
 }
-
+.sn-hidden {
+    display: none;
+}
 .sn-btn {
     cursor: pointer;
 }
