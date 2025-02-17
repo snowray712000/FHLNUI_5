@@ -4,6 +4,7 @@
 /// <reference path="../libs/ijnjs/ijnjs.d.ts" />
 /// <reference path="./DataOfDictOfFhl.d.ts" />
 /// <reference path="./fhlParsing.d.js" />
+/// <reference path="./Sn_Act_Color.js" />
 
 (function (root) {
     let queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsyncEs6Js()
@@ -230,7 +231,7 @@
                                         "click": function(){
                                             let r2 = $(this)
                                             let jo = {
-                                                sn: r2.attr('k'),
+                                                sn: r2.attr('sn'),
                                                 isOld: r2.attr('tp') == 'H'
                                             }
 
@@ -294,6 +295,22 @@
                         let N = that.attr('tp') == 'H' ? 1 : 0 // 0 是新約 1 是舊約
                         queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
                     })
+
+                    // sn mouseenter mouseleave 事件
+                    $('#fhlInfoContent').off('mouseenter', '.sn').on('mouseenter', '.sn', function () {
+                        var r2 = $(this)
+                        var sn = r2.attr('sn')
+                        var N = r2.attr('tp') == 'H' ? 1 : 0
+                        ps.snAct = sn
+                        ps.snActN = N
+                        SN_Act_Color.act_add(sn, N)
+                    })
+                    $('#fhlInfoContent').off('mouseleave', '.sn').on('mouseleave', '.sn', function () {
+                        ps.snAct = ""
+                        ps.snActN = -1
+                        SN_Act_Color.act_remove()
+                    })
+                    
                     $('#fhlInfoContent').off('click', '.commentJump').on('click', '.commentJump', ev => {
                         /** @type {JQuery<HTMLElement>} */
                         let that = $(ev.target)
@@ -398,7 +415,7 @@
                                     "click": function () {
                                         var r2 = $(this)
                                         var jo = {
-                                            sn: r2.attr('k'),
+                                            sn: r2.attr('sn'),
                                             isOld: parseInt(r2.attr('n')),
                                         }
 
@@ -476,7 +493,7 @@
                                     let sn = `${parseInt(s[2])}${s[3]||""}`;
 
                                     let span = $('<span></span>')
-                                    span.addClass('sn').attr('sn', sn).attr('tp', tp)
+                                    span.addClass('sn').attr('sn', sn).attr('tp', tp).attr('N', tp == 'H' ? 1 : 0)
                                     span.text(`${tp.toUpperCase()}${sn}`)
                                     return span[0].outerHTML
                                 }

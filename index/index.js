@@ -1,6 +1,7 @@
 /// <reference path='../libs/jsdoc/jquery.js' />
 /// <reference path='../libs/jsdoc/linq.d.ts' />
 /// <reference path='../libs/ijnjs/ijnjs.d.js' />
+/// <reference path='./SN_Act_Color.js' />
 
 (function (root) {
     const FhlLecture = FhlLectureEs6Js()
@@ -56,6 +57,7 @@
                     'fhlMidWindow',
                     //'fhlLecture', //es6 模式成功，讓這個被拿掉
                     'fhlMidBottomWindow',
+                    'SN_Act_Color',
                     'parsing_render_top',
                     'parsing_render_bottom_table',
                     'fhlInfoContent',
@@ -594,11 +596,11 @@ function SnDictOfTwcbEs6Js() {
          */
         this.queryAsync = function (param) {
             const isRD = isRDLocation()
+            let url = param.isOld ? "/json/stwcbhdic.php" : "/json/sbdag.php"
+            let val = "?k=" + param.sn
+            val += "&gb=0"
+            url += val
             if (isRD == false) { // 真實上線 (才不會有 cross-domain 問題)
-                let url = param.isOld ? "/json/stwcbhdic.php" : "/json/sbdag.php"
-                let val = "?k=" + param.sn
-                val += "&gb=0"
-                url += val
                 return new Promise((res, rej) => {
                     $.ajax({
                         url: url,
@@ -612,15 +614,34 @@ function SnDictOfTwcbEs6Js() {
                     })
                 })
 
-            } else { // 虛擬資料(開發用)
-                /** @type {DataOfDictOfFhl} */
-                let re = {}
-                if (param.isOld) {
-                    re = virtualOld()
-                } else {
-                    re = virtualNew()
-                }
-                return new Promise((res, rej) => res(re))
+            } else { // 先嘗試 127.0.0.1:5600 proxy，失敗再用 虛擬資料(開發用)
+                return new Promise((res, rej) => {
+                    $.ajax({
+                        url: `http://127.0.0.1:5600${url}`,
+                        error: er => {
+                            console.warn("可以開啟 python flask 作的 proxy.");
+                            try {
+                                // 嘗試使用 virtual data
+                                let re = param.isOld ? virtualOld() : virtualNew();
+                                res(re);
+                            } catch (error) {
+                                rej(er);
+                            }
+                        },
+                        success: reStr => {
+                            res(JSON.parse(reStr));
+                        },
+                    });
+                })
+                
+                // /** @type {DataOfDictOfFhl} */
+                // let re = {}
+                // if (param.isOld) {
+                //     re = virtualOld()
+                // } else {
+                //     re = virtualNew()
+                // }
+                // return new Promise((res, rej) => res(re))
 
                 function virtualNew(sn) {
                     return JSON.parse('{"status":"success","record_count":1,"record":[{"sn":"00011","dic_text":"Ἀβραάμ, ὁ 人名　無變格\\r\\n（אַבְרָהָם H85「<span class=\\"exp\\">多人之父</span>」）「<span class=\\"exp\\">亞伯拉罕</span>」。出現於耶穌的家譜中，#太1:1,2,17;路3:34|。是以色列民族的父，亦為基督徒這真以色列人的父，#太3:9;路1:73;3:8;約8:39,53,56;徒7:2;羅4:1;雅2:21|。因此，以色列百姓稱為亞伯拉罕的後裔，#約8:33,37;羅9:7;11:1;林後11:22;加3:29;來2:16|。是得蒙應許者，#徒3:25;7:17;羅4:13;加3:8,14,16,18;來6:13|。滿有信心，#羅4:3|（#創15:6|）#羅4:9,12,16;加3:6|（#創15:6|）,#加3:9;雅2:23|。此處並稱之為神的朋友（參#賽41:8;代下20:7;但3:35|;參#出33:11|）;在來世具有顯赫地位，#路16:22|以下（見 κόλπος G2859一），以撒、雅各和眾先知亦同，#路13:28|。神被描述為亞伯拉罕、以撒、雅各的神（#出3:6|）#太22:32;可12:26;路20:37;徒3:13;7:32|。他與以撒、雅各一同在神國中坐席，#太8:11|。"}]}')
@@ -733,13 +754,12 @@ function SnDictOfCbolEs6Js() {
          */
         this.queryAsync = function (param) {
             const isRD = isRDLocation()
+            // /json/sd.php?N=1&k=0128&gb=1
+            let val = "?N=" + (param.isOld ? "1" : "0")
+            val += "&k=" + param.sn
+            val += "&gb=0"
+            let url = "/json/sd.php" + val
             if (isRD == false) {
-                // /json/sd.php?N=1&k=0128&gb=1
-                let val = "?N=" + (param.isOld ? "1" : "0")
-                val += "&k=" + param.sn
-                val += "&gb=0"
-                let url = "/json/sd.php" + val
-
                 return new Promise((res, rej) => {
                     $.ajax({
                         url: url,
@@ -748,12 +768,33 @@ function SnDictOfCbolEs6Js() {
                             rej(er)
                         },
                         success: reStr => {
+                            
                             res(reStr) // sd.php 回傳本來就是一個 json 物件，所以不要再用 JSON.parse
                         },
                     })
                 })
             } else {
-                return gVirtualData()
+                // 如果 127.0.0.1:5600 有開著，就使用這個作為 proxy
+                return new Promise((res, rej) =>{
+                    $.ajax({
+                        url: `http://127.0.0.1:5600/json/sd.php${val}`,
+                        timeout: 500,
+                        error: er => {
+                            console.warn("可以開啟 python flask 作的 proxy.");
+                            try {
+                                // 嘗試使用 virtual data
+                                gVirtualData().then(re => res(re))                               
+                            } catch (error) {
+                                rej(er);
+                                
+                            }
+                        },
+                        success: reStr => {
+                            res(reStr);
+                        },
+                    });
+                })
+
             }
 
             /**
@@ -774,10 +815,14 @@ function SnDictOfCbolEs6Js() {
 
             function virtualNew(sn) {
                 return JSON.parse(`{
-                            "status":"success",
-                            "record_count":1,
-                            "record":[{"sn":"00128","dic_text":"128 Aithiops {ahee-thee'-ops}\\r\\n\\r\\n\\u6e90\\u65bc aitho (\\u67af\\u840e) \\u548c ops (\\u9762\\u90e8, \\u6e90\\u65bc SNG03700); \\u967d\\u6027\\u540d\\u8a5e\\r\\n\\r\\nAV - Ethiopian 2; 2\\r\\n\\r\\n\\u57c3\\u63d0\\u963f\\u4f2f = \\"\\u9ed1\\"\\r\\n1)(\\u4eca\\u7a31)\\u8863\\u7d22\\u5339\\u4e9e\\u4eba(#\\u5f92 8:27|)","edic_text":"128 Aithiops {ahee-thee'-ops}\\n\\nfrom aitho (to scorch) and ops (the face, from 3700);; n m\\n\\nAV - Ethiopian 2; 2\\n\\nEthiopian = \\"black\\"\\n1) an Ethiopian","dic_type":0,"orig":"\\u0391\\u1f30\\u03b8\\u1f77\\u03bf\\u03c8"}]}
-                            `)
+"status":"success",
+"record_count":1,
+"record":[{"sn":"05207","dic_text":"5207 huios {hwee-os'}\\r\\n\\r\\n\\u986f\\u7136\\u662f\\u57fa\\u672c\\u5b57\\u578b; TDNT - 8:334,1206; \\u967d\\u6027\\u540d\\u8a5e\\r\\n\\r\\n\\u6b3d\\u5b9a\\u672c - son(s) 85, Son of Man + SNG444\\u300087 {TDNT 8:400, 1210},\\r\\n         Son of God + SNG2316\\u300049, child(ren) 49, Son 42, his Son + SNG848\\u300021,\\r\\n         Son of David + SNG1138\\u300015 {TDNT 8:478, 1210},\\r\\n         my beloved Son + SNG00027\\u3000+ SNG3350\\u30007, thy Son + SNG4575\\u30005,\\r\\n         only begotten Son + SNG3339\\u30003, his (David's) son + SNG846\\u30003,\\r\\n         firstborn son + SNG4316\\u30002, misc 14; 382\\r\\n\\r\\n1) \\u5152\\u5b50, \\u5f8c\\u4ee3, \\u5f8c\\u88d4\\r\\n2) \\u50cf\\u5152\\u5b50\\u4e00\\u6a23\\u89aa\\u5bc6\\u7684\\u95dc\\u4fc2\\r\\n 2a) \\u5f1f\\u5b50,\\u8ffd\\u96a8\\u8005, \\u5c6c\\u9748\\u7684\\u5152\\u5b50\\r\\n 2b) \\u6709\\u5fd7\\u4e00\\u540c\\u7684\\u7fa4\\u9ad4\\u4e2d\\u7684\\u6210\\u54e1\\r\\n 2c) (\\u6309\\u7167\\u8207\\u4eba\\u6216\\u7269\\u7684\\u95dc\\u4fc2\\u6240\\u754c\\u5b9a\\u7684\\u8eab\\u4efd) ....\\u4e4b\\u5b50\\r\\n 2d) \\u8207\\u5176\\u4ed6\\u5b57\\u5408\\u7528,\\u6307\\u7a31\\u8036\\u7a4c\\u8207\\u5f4c\\u8cfd\\u4e9e\\r\\n  2d1) \\u5927\\u885b\\u7684\\u5152\\u5b50\\r\\n  2d2) \\u795e\\u7684\\u5152\\u5b50\\r\\n  2d3) \\u4eba\\u5b50  \\r\\n\\r\\n\\u540c\\u7fa9\\u5b57\\u8acb\\u898b 5868","edic_text":"5207 huios {hwee-os'}\\n\\napparently a primary word; TDNT - 8:334,1206; n m\\n\\nAV - son(s) 85, Son of Man + 444 87 {TDNT 8:400, 1210},\\n     Son of God + 2316 49, child(ren) 49, Son 42, his Son + 848 21,\\n     Son of David + 1138 15 {TDNT 8:478, 1210},\\n     my beloved Son + 27 + 3350 7, thy Son + 4575 5,\\n     only begotten Son + 3339 3, his (David's) son + 846 3,\\n     firstborn son + 4316 2, misc 14; 382\\n\\n1) a son\\n   1a) rarely used for the young of animals\\n   1b) generally used of the offspring of men\\n   1c) in a restricted sense, the male offspring (one born by a father\\n        and of a mother)\\n   1d) in a wider sense, a descendant, one of the posterity of any one,\\n       1d1) the children of Israel\\n       1d2) sons of Abraham\\n   1e)) used to describe one who depends on another or is his follower\\n        1e1) a pupil\\n2) son of man\\n   2a) term describing man, carrying the connotation of weakness and\\n       mortality\\n   2b) son of man, symbolically denotes the fifth kingdom in Daniel 7:13\\n       and by this term its humanity is indicated in contrast with the\\n       barbarity and ferocity of the four preceding kingdoms (the\\n       Babylonian, the Median and the Persian, the Macedonian, and the\\n       Roman) typified by the four beasts. In the book of Enoch (2nd\\n       Century) it is used of Christ.\\n   2c) used by Christ himself, doubtless in order that he might\\n       intimate his Messiahship and also that he might designate\\n       himself as the head of the human family, the man, the one who\\n       both furnished the pattern of the perfect man and acted on\\n       behalf of all mankind. Christ seems to have preferred this to\\n       the other Messianic titles, because by its lowliness it was\\n       least suited to foster the expectation of an earthly Messiah\\n       in royal splendour.\\n3) son of God\\n   3a) used to describe Adam (Lk. 3:38)\\n   3b) used to describe those who are born again (Lk. 20:36) and of\\n       angels and of Jesus Christ\\n   3c) of those whom God esteems as sons, whom he loves, protects and\\n       benefits above others\\n       3c1) in the OT used of the Jews\\n       3c2) in the NT of Christians\\n       3c3) those whose character God, as a loving father, shapes by\\n            chastisements (Heb. 12:5-8)\\n   3d) those who revere God as their father, the pious worshippers of\\n       God, those who in character and life resemble God, those who\\n       are governed by the Spirit of God, repose the same calm and\\n       joyful trust in God which children do in their parents (Rom.\\n       8:14, Gal. 3:26 ), and hereafter in the blessedness and glory\\n       of the life eternal will openly wear this dignity of the sons\\n       of God. Term used preeminently of Jesus Christ, as enjoying\\n       the supreme love of God, united to him in affectionate\\n       intimacy, privy to his saving councils, obedient to the\\n       Father's will in all his acts\\n\\nFor Synonyms see entry 5868","dic_type":0,"orig":"\\u03c5\\u1f31\\u1f79\\u03c2","same":[{"word":"\\u03c5\\u1f31\\u03bf\\u03b8\\u03b5\\u03c3\\u1f77\\u03b1, \\u03b1\\u03c2, \\u1f21","csn":"05206","ccnt":"5","cexp":"\\u6536\\u990a\\u6210\\u70ba\\u5152\\u5b50\\uff0c\\u5152\\u5b50\\u7684\\u540d\\u4efd"},{"word":"\\u03c5\\u1f31\\u1f79\\u03c2, \\u03bf\\u1fe6, \\u1f41","csn":"05207","ccnt":"377","cexp":"\\u5152\\u5b50\\uff1b\\u5b50\\u6c11\\uff1b\\u5b50\\u5b6b\\uff1b\\u9580\\u5f92\\uff0c\\u8ddf\\u96a8\\u8005"}]}]}`)
+                // return JSON.parse(`{
+                //             "status":"success",
+                //             "record_count":1,
+                //             "record":[{"sn":"00128","dic_text":"128 Aithiops {ahee-thee'-ops}\\r\\n\\r\\n\\u6e90\\u65bc aitho (\\u67af\\u840e) \\u548c ops (\\u9762\\u90e8, \\u6e90\\u65bc SNG03700); \\u967d\\u6027\\u540d\\u8a5e\\r\\n\\r\\nAV - Ethiopian 2; 2\\r\\n\\r\\n\\u57c3\\u63d0\\u963f\\u4f2f = \\"\\u9ed1\\"\\r\\n1)(\\u4eca\\u7a31)\\u8863\\u7d22\\u5339\\u4e9e\\u4eba(#\\u5f92 8:27|)","edic_text":"128 Aithiops {ahee-thee'-ops}\\n\\nfrom aitho (to scorch) and ops (the face, from 3700);; n m\\n\\nAV - Ethiopian 2; 2\\n\\nEthiopian = \\"black\\"\\n1) an Ethiopian","dic_type":0,"orig":"\\u0391\\u1f30\\u03b8\\u1f77\\u03bf\\u03c8"}]}
+                //             `)
             }
             function virtualOld(sn) {
 
@@ -2598,6 +2643,8 @@ function cvtAddrsToRefEs6Js() {
         }
     }
 }
+
+
 function FhlLectureEs6Js(){
     const isRDLocation = isRDLocationEs6Js()
     const qsbAsync = qsbAsyncEs6Js()
@@ -2611,10 +2658,13 @@ function FhlLectureEs6Js(){
         window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
     }
 
+    
+
     /** @type {JQuery<HTMLElement>} */
     let $lecture
 
     return FhlLecture
+
     function FhlLecture(){
         this.init = function (ps, dom) {
             this.dom = dom;
@@ -2769,21 +2819,25 @@ function FhlLectureEs6Js(){
                     //}
                 },
                 mouseenter: function () {
-                    // Activate sn，標記為紅色
                     let N = $(this).attr('N') // 1: 舊約 0: 新約
                     let sn = $(this).attr('sn')                    
                     ps.snAct = sn
                     ps.snActN = N
-                    // #lecMain 下面，所有的 sn，若 sn 值等於 snAct，就加上 class="snAct"
-                    // $('#lecMain').find('.sn').removeClass('snAct')
-                    // sn = sn 且 N=N 的設為 snAct
-                    // $('#lecMain').find('.sn[sn="' + sn + '"][N="' + N + '"]').addClass('snAct')
-                    $('#lecMain').find('.sn, .sn-text').removeClass('snAct')
-                    let cod1 = `[sn=${sn}][N=${N}]` // 原本是 find('.sn[sn=sn][N=N]')，但現在多了 .sn-text 也要一樣的條件
-                    $('#lecMain').find(`.sn${cod1}, .sn-text${cod1}`).addClass('snAct')
+                    
+                    // Activate sn，標記為紅色
+                    SN_Act_Color.act_add(sn, N)
+ 
 
-                    $('#search_result').find('.sn, .sn-text').removeClass('snAct')
-                    $('#search_result').find(`.sn${cod1}, .sn-text${cod1}`).addClass('snAct')
+                    // 出現次數，還沒用到，但快用到
+                    // if ( window.sd_cnt != undefined ){
+                    //     let hg = N == 0 ? "greek" : "hebrew"
+                    //     let cnt = window.sd_cnt[hg][sn]
+                    //     if ( cnt != undefined ){
+                    //         console.log(cnt);
+                            
+                    //     }
+                    // }
+
 
                     // 關閉即時顯示功能
                     // if (ps.realTimePopUp == 1) {
@@ -2801,11 +2855,10 @@ function FhlLectureEs6Js(){
                     // }
                 },
                 mouseleave: function () {
-                    // Activate sn，標記為紅色
                     ps.snAct = ""
                     ps.snActN = -1
-                    $('#lecMain').find('.sn, .sn-text').removeClass('snAct')
-                    $('#search_result').find('.sn, .sn-text').removeClass('snAct')
+
+                    SN_Act_Color.act_remove()
 
                     // 關閉即時顯示功能
                     // if (ps.realTimePopUp == 1) {

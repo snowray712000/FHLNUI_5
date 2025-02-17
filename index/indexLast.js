@@ -9,8 +9,30 @@
   doLast4()
   doLast3()
   doLast2()
-  doLast1()  
+  doLast1() 
+  
+  load_sd_cnt_to_global_variable_async()
+  load_sd_same_to_global_variable_async()
+
+  // 搜尋 #fhlMidBottomWindow .sn mouseenter mouseleave 事件使用，改變 sn 顏色
+  let_sn_color_change_in_search_result()
+  
 })(this)
+
+function let_sn_color_change_in_search_result(){
+  $('#fhlMidBottomWindow').on('mouseenter', '.sn', function () {
+    var sn = $(this).attr('sn')
+    var N = $(this).attr('N')
+    pageState.snAct = sn
+    pageState.snActN = N    
+    
+    SN_Act_Color.act_add(sn, N)
+  }).on('mouseleave', '.sn', function () {
+    SN_Act_Color.act_remove()
+    pageState.snAct = ''
+    pageState.snActN = -1
+  })
+}
 
 function doLast5() {
   var caches = Ijnjs.cachesIndex
@@ -55,6 +77,7 @@ function doLast3() {
     'mapTool',
     'imageTool',
     'renderTsk',
+    'SN_Act_Color',
     'parsing_render_top',
     'parsing_render_bottom_table',
     'SnBranchRender',
@@ -440,5 +463,38 @@ function doLast1() {
         }
       })
 
+  }
+}
+
+
+function load_sd_same_to_global_variable_async(){                        
+  // 判斷，如果 window.sd_same 不存在，就取 json
+  if ( window.sd_same == undefined ){
+      // 取得 ./index/sd_same.json 的資料，並且取得 ["greek"] 這個 內容，是一個 Dict[str, List[str]]
+      $.getJSON("./index/sd_same.json", function(data) {
+          // 此為一個 Dict[str, List[str]]
+          // 轉換為 dict，可以查詢
+          window.sd_same = data
+
+          // 依據需求進一步處理 sameContent
+      }).fail(function(jqxhr, textStatus, error) {
+          console.error("取得 sd_same.json 發生錯誤: " + textStatus + ", " + error);
+      });                    
+  }
+}
+
+function load_sd_cnt_to_global_variable_async(){
+  // 判斷，如果 window.sd_cnt 不存在，就取 json
+  if ( window.sd_cnt == undefined ){
+      // 取得 ./index/sd_cnt.json 的資料，並且取得 ["greek"] 這個 內容，是一個 Dict[str, int]
+      $.getJSON("./index/sd_cnt.json", function(data) {
+          // 此為一個 Dict[str, int]
+          // 轉換為 dict，可以查詢
+          window.sd_cnt = data
+
+          // 依據需求進一步處理 cntContent
+      }).fail(function(jqxhr, textStatus, error) {
+          console.error("取得 sd_cnt.json 發生錯誤: " + textStatus + ", " + error);
+      });
   }
 }

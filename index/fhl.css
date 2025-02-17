@@ -1569,6 +1569,9 @@ nav#fhlTopMenu {
 .snAct {
     color: red;
 }
+.snAct2 {
+    color: darkred; 
+}
 
 #fhlMidBottomWindow {
     position: absolute;
@@ -1958,13 +1961,6 @@ nav#fhlTopMenu {
 
     box-shadow: inset 1pt 1pt 3pt 0pt gray;    
 }
-.parsingTableSn {
-    cursor: pointer;
-    color: rgba(130, 50, 50, 1);
-}
-.parsingTableSn:hover {
-    color: #FF0000;
-}
 
 #parsingPopUp {
   position: fixed;
@@ -2095,7 +2091,7 @@ nav#fhlTopMenu {
     line-height: 1.1em;
   }
   .parsingTableSn {
-    color: blue;
+    /* color: blue; */
     cursor: pointer;
     }
 

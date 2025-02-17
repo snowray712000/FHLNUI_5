@@ -16,6 +16,14 @@
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]
+            },{
+                "na": "2.6.3",
+                "na2":[
+                    "優化) 注釋、搜尋結果的 SN 都會變色(當滑鼠移進去的時候)",
+                    "RD) 重構了 Sn_Act_Color，因為多個地方 mouseenter 都要用到",
+                    "RD) 同源字，已新增 sd_same.json，未來可能會有 .json，但目前沒有，大小 500 kb，這是用 python 作出來的，也就是 api 若更新，要手動更新",
+                    "RD) 開發已經能取得 CROS 限制的 api (處理 原文字典時)，是透過 Python Flask 實作一個，請看 VirtualApi 資料夾"
+                ]
             },
             {
                 "na": "2.6.1",

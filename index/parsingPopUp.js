@@ -43,7 +43,8 @@
                 if (!$('#fhlMidBottomWindowControl').hasClass('selected')) {
                     $('#fhlMidBottomWindowControl').trigger("click");
                 }
-                var keywords = $(this).attr('k'); // sn
+                // var keywords = $(this).attr('k'); // sn
+                var keywords = $(this).attr('sn'); // sn
                 //keywords = '3478'; //example;
 
                 //replace 2015.08.01(六)
