@@ -2,6 +2,8 @@
 /// <reference path='../libs/jsdoc/linq.d.ts' />
 /// <reference path='../libs/ijnjs/ijnjs.d.js' />
 /// <reference path='./SN_Act_Color.js' />
+/// <reference path='./DataOfDictOfFhl.d.ts' />
+/// <reference path='./fhlParsing.d.ts' />
 
 (function (root) {
     const FhlLecture = FhlLectureEs6Js()
@@ -392,7 +394,7 @@ function queryDictionaryAndShowAtDialogAsyncEs6Js() {
             dlg.showDialog({
                 html: html,
                 getTitle: () => "原文字典" + jo.sn,
-                registerEventWhenShowed: dlg => {
+                registerEventWhenShowed: dlg => {     
                     dlg.on('click', '.ref', a1 => {
                         queryDictionaryAndShowAtDialogAsync({ sn: $(a1.target).attr('data-addrs'), isOld: false })
                         //let addrs = JSON.parse($(a1.target).attr('data-addrs'))
@@ -541,9 +543,29 @@ function DialogHtmlEs6Js() {
             });
             dlg.html(jo.html)
 
-            dlg.dialog("option", "maxWidth", window.innerWidth * 0.80)
-            dlg.dialog("option", "maxHeight", window.innerHeight * 0.80) // 若沒設，會自動很 高，就也不會出現卷軸
-            dlg.dialog("option", "width", window.innerWidth * 0.80)
+            // maxWidth。如果 jo 有，就用 jo 的
+            if (jo.maxWidth) 
+                dlg.dialog("option", "maxWidth", jo.maxWidth)
+            else
+                dlg.dialog("option", "maxWidth", window.innerWidth * 0.80)
+
+            // maxHeight。如果 jo 有，就用 jo 的
+            if (jo.maxHeight)
+                dlg.dialog("option", "maxHeight", jo.maxHeight)
+            else
+                dlg.dialog("option", "maxHeight", window.innerHeight * 0.80) // 若沒設，會自動很 高，就也不會出現卷軸
+            
+            // width。如果 jo 有，就用 jo 的
+            if (jo.width)
+                dlg.dialog("option", "width", jo.width)
+            else
+                dlg.dialog("option", "width", window.innerWidth * 0.80)
+
+            // position。如果 jo 有，就設
+            if (jo.position){
+                dlg.dialog("option", "position", jo.position)
+            }
+            
             // dlg.dialog("option", "height", window.innerHeight * 0.80) // 若沒設，會自動很 高，就也不會出現卷軸
             // dlg.dialog("option", "title", "原文字典" + jo.sn)
 
@@ -2324,7 +2346,7 @@ function isRDLocationEs6Js() {
      * @returns {boolean}
      */
     function isRDLocation() {
-        return location.origin === 'file://' || location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+        return location.origin === 'file://' || location.hostname === '127.0.0.1' || location.hostname === 'localhost' ;
     }
 }
 function qsbAsyncEs6Js() {
@@ -2633,13 +2655,128 @@ function FhlLectureEs6Js(){
     const queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsyncEs6Js()
     const queryReferenceAndShowAtDialogAsync = queryReferenceAndShowAtDialogAsyncEs6Js()
     const splitReference = splitReferenceEs6Js()
+    
 
     // 讓別處也能用 dict
     if (window.queryDictionaryAndShowAtDialogAsync == undefined ){
         window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
     }
-
+    /**
+     * sn mouseenter realtime 要用的
+     */
     
+    class ParsingCache {
+        /**
+         * @param {DAddress_Realtime} address 
+         * @returns {IDParsingResult|undefined}
+         */
+        static try_get(address) {
+            let { book, chap, sec } = address
+            
+            let book1 = ParsingCache._data[book]
+            if ( book1 == undefined ) return undefined
+            
+            let chap1 = book1[chap]
+            if ( chap1 == undefined ) return undefined
+
+            return chap1[sec]
+        }
+        /**
+         * 若取得後，會作修改，就要用這個
+         * 例如會加上 .one = xxxx 
+         * @param {DAddress_Realtime} address 
+         * @returns {IDParsingResult|undefined}
+         */        
+        static try_get_clone(address){
+            let r1 = this.try_get(address)
+            if (r1 == undefined) return undefined
+            return this._json_clone(r1)
+        }
+        /**
+         * @param {DAddress_Realtime} address 
+         * @param {IDParsingResult} value 
+         */
+        static add(address, value) {
+            let { book, chap, sec } = address
+            if (this._data[book] === undefined) {
+                this._data[book] = {};
+            }
+            if (this._data[book][chap] === undefined) {
+                this._data[book][chap] = {};
+            }
+
+            // 這裡要 clone, 不然我們 add 後，以為順序對了，就是存了原始的
+            // 但 add 後，若被更改，例如 jo.one = xxx ， 因為是指向同個記憶體，仍然會被改變
+            // 所以保險的方法，是這裡要 clone 
+            this._data[book][chap][sec] = this._json_clone( value );
+            
+        }
+        /**
+         * 因為 es6 沒有支援 tuple 作為 key
+         * @type {Object<number,Object<number,Object<number,IDParsingResult>>}
+         */
+        static _data = {}
+        static _json_clone(jo){return JSON.parse(JSON.stringify(jo))}
+    }
+    /**
+     * sn mouseenter realtime 要用的
+     */
+    class SnDictCache {
+        /**
+         * @param {{N: 0|1, sn: string}} sn_N 
+         * @returns {DataOfDictOfFhl|undefined}
+         */
+        static try_get(sn_N) {
+            let { sn , N } = sn_N
+
+            let r1 = this._data[N]
+            if (r1 == undefined) return undefined
+
+            return r1[sn]
+        }
+        /**
+         * @param {{N: 0|1, sn: string}} sn_N 
+         * @returns {DataOfDictOfFhl|undefined}
+         */        
+        static try_get_clone(sn_N){
+            let r1 = this.try_get(sn_N)
+            if (r1 == undefined) return undefined
+            return this._json_clone(r1)
+        }
+        /**
+         * @param {{N: 0|1, sn: string}} sn_N 
+         * @param {DataOfDictOfFhl} value 
+         */
+        static add(sn_N, value) {
+            let { sn , N } = sn_N
+            if (this._data[N] === undefined) {
+                this._data[N] = {};
+            }
+            this._data[N][sn] = this._json_clone(value);
+        }
+        /**
+         * @type {Object<number,Object<string,DataOfDictOfFhl>>}
+         */
+        static _data = {}
+        static _json_clone(jo){return JSON.parse(JSON.stringify(jo))}
+    }
+    
+    /**
+     * 
+     * @param {string} sn 
+     * @param {0|1} N 
+     * @returns {number} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt 
+     */
+    function get_sn_count(sn, N){
+        if (window.sd_cnt == undefined) return -2
+        
+        let hg = N == 0 ? "greek" : "hebrew"
+        let cnt = window.sd_cnt[hg][sn]
+        if ( cnt != undefined ){
+            return cnt
+        }
+        return -1
+    }
 
     /** @type {JQuery<HTMLElement>} */
     let $lecture
@@ -2647,6 +2784,10 @@ function FhlLectureEs6Js(){
     return FhlLecture
 
     function FhlLecture(){
+        /**
+         * @param {TPPageState} ps 
+         * @param {HTMLElement} dom 
+         */
         this.init = function (ps, dom) {
             this.dom = dom;
             this.render(ps, dom);
@@ -2779,76 +2920,532 @@ function FhlLectureEs6Js(){
                     // 2017.08
                     if (oldsec != ps.sec || oldchap != ps.chap)
                         $(that).trigger('secchanged')
+                },
+                mouseenter: function (e) {
+                    // 取得這個 dom ， 它會有 attr sec ( 在 .sn mouseenter 要用到 )
+                    let sec = $(this).attr('sec');
+                    ps.sec_hover = sec
+                    let chap = $(this).attr('chap');
+                    ps.chap_hover = chap
+                    let book = $(this).attr('book');
+                    ps.book_hover = book
+                    
                 }
             }, '.lec');
 
+            /**
+             * 
+             * @param {HTMLElement} dom mouseenter 中的 this
+             * @param {*} e 
+             */
+            function mouseenter_sn_set_snAct_and_Color_act(dom, e){
+                let N = $(dom).attr('N') // 1: 舊約 0: 新約
+                let sn = $(dom).attr('sn')                    
+                ps.snAct = sn
+                ps.snActN = N
+                
+                // Activate sn，標記為紅色
+                SN_Act_Color.act_add(sn, N)
+            }
+            /**
+             * 
+             * @param {HTMLElement} dom 這個是在事件中的 this
+             * @param {*} e 
+             */
+            function mouseenter_sn_dialog(dom,e){
+                let N = $(dom).attr('N') // 1: 舊約 0: 新約
+                let sn = $(dom).attr('sn')                    
+                ps.snAct = sn
+                ps.snActN = N
+                
+                // Activate sn，標記為紅色
+                // SN_Act_Color.act_add(sn, N)
+
+                // 取得資料 async 
+                // 若取得資料完成時，滑鼠還在同一個 sn 上，就繼續顯示，若非，就不顯示
+                // 可以有 cache 資料
+                // 若還沒取得，就變成下一個 sn 時，這個應該就不要再取了 (能中斷嗎？若不能，就是取完，但是存成 cache，但不顯示)
+                
+                // 準備資料 - sn,N,book,chap,sec
+                let book = ps.book_hover
+                let chap = ps.chap_hover
+                let sec = ps.sec_hover                    
+                let one = { sn, N, book, chap, sec }
+
+                ps.xy_hover = {x: e.clientX, y: e.clientY }
+
+                class DOne {
+                    constructor(sn, N, book, chap, sec) {
+                        this.sn = sn
+                        this.N = N
+                        this.book = book
+                        this.chap = chap
+                        this.sec = sec
+                    }
+                }
+
+
+                /**
+                 * 
+                 * @param {DOne} one 
+                 * @returns 
+                 */
+                function get_parsing_async(one){
+                    let result_from_cache = ParsingCache.try_get_clone(one)
+                    if (result_from_cache != undefined ) {
+                        let re = result_from_cache
+                        re.one = one
+                        return Promise.resolve(result_from_cache)
+                    }
+                    
+                    return new Promise((res, rej) => {
+                            let engs = new BibleConstant().ENGLISH_BOOK_ABBREVIATIONS[one.book-1]
+                            let chap = one.chap
+                            let sec = one.sec
+    
+                            let endpoint = `/json/qp.php?engs=${engs}&chap=${chap}&sec=${sec}&gb=0`
+                            let host = isRDLocation() ? 'https://bible.fhl.net' : ''
+                            let url = host + endpoint
+                        
+                            $.ajax({
+                                url,
+                                contentType: "application/json",
+                                /**
+                                 * @param {IDParsingResult} a1 
+                                 */
+                                success: a1 => {
+                                    if (a1.status == "success" && a1.record.length > 0) {
+                                        ParsingCache.add(one, a1)
+
+                                        /** @type {IDParsingResult_Realtime} */
+                                        let json = a1
+                                        json.one = one
+                                        res(json)
+                                    } else {
+                                        res("找不到資料")
+                                    }
+                                },
+                                error: er => {
+                                    res("找不到資料")
+                                }
+                            });
+                            
+                                         
+                    })
+                }
+                function get_dict_async(one){
+                    let result_from_cache = SnDictCache.try_get_clone(one)
+                    if (result_from_cache != undefined ) {
+                        let re = result_from_cache
+                        re.one = one
+                        return Promise.resolve(result_from_cache)
+                    }
+                    // GET	http://127.0.0.1:5600/json/sd.php?N=0&k=2424&gb=0
+                    let sn = one.sn
+                    let N = one.N
+                    let endpoint = `/json/sd.php?k=${sn}&N=${N}&gb=0`
+                    let host = isRDLocation() ? 'http://127.0.0.1:5600' : ''
+                    let url = host + endpoint
+
+                    return new Promise((res, rej) => {                            
+                        $.ajax({
+                            url,
+                            contentType: "application/json",
+                            success: a1 => {
+                                if (a1.status == "success" && a1.record.length > 0) {
+                                /** @type {DataOfDictOfFhl_Realtime} */
+                                SnDictCache.add(one, a1)
+
+                                let json = a1
+                                json["one"] = one // 在 .then 才知道，當時是哪一組資料
+                                json.src = "cbol"
+                                json.isOld = N == 1 ? 1 : 0
+                                    res(json)
+                                } else {
+                                    res("找不到資料")
+                                }
+                            },
+                            error: er => {
+                                res("找不到資料")
+                            }
+                        });
+                    })
+                }
+
+                function get_parsing_and_dict_async(one){
+                    return Promise.all([get_parsing_async(one), get_dict_async(one)])
+                }
+                /**
+                 * 
+                 * @param {IDParsingResult_Realtime} re_parsing 
+                 * @param {DataOfDictOfFhl_Realtime} re_dict 
+                 */
+                function show_dialog(re_parsing, re_dict){
+                    // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
+                    let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
+                    let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
+                    rr2.trigger('click')
+
+                    // console.log(re_parsing);
+                    // console.log(re_dict);
+                    const DialogHtml = DialogHtmlEs6Js()
+                    let dlg = new DialogHtml()
+
+                    // G3762
+                    let N = re_dict.one.N
+                    let sn = re_dict.one.sn
+                    let sn_hg = (N==0?'G':'H') + sn // 2 處用到
+                    let span_sn = $('<span>').text(`${sn_hg} `).addClass('sn').attr('sn',sn).attr('N',N)
+
+                    // 原文 簡義
+                    // 從 same 中找到自己那個
+                    let span_orig = $('<span>').addClass('orig')
+                    let span_mean = $('<span>').addClass('mean')
+                    function get_this_from_same(sn){
+                        let same = re_dict.record[0].same
+                        for (let i = 0; i < same.length; i++) {
+                            const element = same[i];
+                            if (element.csn == sn){
+                                return element
+                            }
+                        }
+                        return undefined
+                    }
+                    let data_from_same = get_this_from_same(sn)
+                    if (data_from_same != undefined){
+                        // console.log(data_from_same);
+                        span_orig.append($('<span>').text(data_from_same.word))
+                        span_mean.append($('<span>').text(data_from_same.cexp))
+                    }
+
+                    // 本章 n 次，聖經 n 次。
+                    // 出現次數，還沒用到，但快用到
+                    let cnt_in_bible = get_sn_count(sn, N)
+                    // let span_count = $('<span>').append($('<span>').text(`本章 ${re_dict.one.count ?? "?"} 次，聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
+                    let span_count = $('<span>').append($('<span>').text(`聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
+                    
+                    // 詞性分析 
+                    // 詞性: 形容詞 分析: 主格 單數 中性 (新約)
+                    // 分析: 介系詞 בְּ + 名詞，陰性單數 (舊約)
+                    // 詞性分析，從 parsing 找 SN，可能會有多個 SN 都符合，就2 個都要顯示，但若 2 個完全一樣，就只顯示一個。
+                    let span_parsing = $('<span>').addClass('parsing')
+                    function find_sn_parsing(sn){
+                        // 從 i=1 開始判斷，因為 parsing.record 的 [0] 不是每個 sn 分析
+                        let the_same_sn_parsing = []
+                        for (let i = 1; i < re_parsing.record.length; i++) {
+                            const element = re_parsing.record[i];
+                            if (element.sn == sn){
+                                the_same_sn_parsing.push(element)
+                            }
+                        }
+
+                        // 判斷有相同的，則拿掉。從最後一個往前判斷到 1 判斷完，0不用
+                        for (let i = the_same_sn_parsing.length - 1; i > 0; i--) {
+                            const element = the_same_sn_parsing[i];
+                            if (element.wform == the_same_sn_parsing[0].wform){
+                                the_same_sn_parsing.splice(i, 1)
+                                console.log("拿掉了 相同的");
+                            }
+                        }
+
+                        if ( the_same_sn_parsing.length == 0){
+                            // 正常，像 <9002> 或是 (8804) 這一類，本來就沒有
+                            // console.error("分析錯誤。", re_parsing.record );
+                        }
+
+                        return the_same_sn_parsing
+                    }                        
+                    let the_same_sn_parsing = find_sn_parsing(sn)
+                    if ( the_same_sn_parsing.length == 0){
+                        // 不太可能，顯示出錯誤
+                        // span_parsing.append('<span class="error">分析錯誤。</span>')
+                    } else {
+                        for (let i = 0; i < the_same_sn_parsing.length; i++) {
+                            const element = the_same_sn_parsing[i];
+                            // 若 詞性，分析，都是空字串，就跳過
+                            if (element.pro == "" && element.wform == "") continue
+                            
+                            let span_one_parsing = $('<span>').addClass('one-parsing')
+
+                            // 詞性
+                            if ( element.pro != "" ){
+                                span_one_parsing.append($('<span>').addClass('item-title').text('詞性:')).append($('<span>').text(element.pro))
+                            }
+
+                            // 分析
+                            if ( element.wform != "" ){
+                                span_one_parsing.append($('<span>').addClass('item-title').text('分析:')).append($('<span>').text(element.wform))
+                            }
+
+                            span_parsing.append(span_one_parsing)
+                        }
+                    }
+                    // cbol字典字義
+                    // cbol字典，中文部分。並且前半部要略過，\n\n第3次出現才開始取得
+                    /**
+                     * @param {string} data 
+                     * @returns 
+                     */
+                    function get_cbol_dict_part_data(data){
+                        function get_ignore_data(){
+                            let re = data.split(/\r?\n\r?\n/)
+                            if ( re.length < 4){
+                                return re.join('<br/>').replace(/\r?\n/g,'<br/>')
+                            } else {
+                                // 將[4]之後，以 <br/> 合併起來
+                                let re2 = re.slice(3).join('<br/>')
+                                return re2.replace(/\r?\n/g,'<br/>')
+                            }
+                        }
+                        let re1 = get_ignore_data()
+
+                        // 嘗試發現 #提後 2:1| 之類的字
+                        function get_reference_data(text){
+                            const dtexts_ar = splitReference(re1)
+                            
+                            if (dtexts_ar==null || dtexts_ar.length == 1){
+                                return re1
+                            } else {
+                                let re2 = ""
+                                for (const a2 of dtexts_ar) {
+                                    if ( a2.refAddresses == undefined ){
+                                        re2 += a2.w
+                                    } else {
+                                        re2 += `<span class='ref' data-addrs='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
+                                    }
+                                }
+                                return re2
+                            }
+                        }
+                        return get_reference_data(re1)
+                    }
+                    let span_cbol_part = $('<span>').addClass('cbol')
+                    let cbol_part = get_cbol_dict_part_data(re_dict.record[0].dic_text)
+                    
+                    
+                    span_cbol_part.append($('<span>').html(cbol_part))
+
+
+
+                    // 同源字
+                    let span_same = $('<span>')
+                    if (N==1) {
+                        span_same.append('<span class="item-title">同源字：</span><span>舊約無資料。</span>')
+                    } else {
+                        span_same.append('<span class="item-title">同源字：</span>')
+
+                        let same = re_dict.record[0].same
+
+                        // 是否只有一個值
+                        if ( same.length < 2){
+                            span_same.append('<span>無</span>')
+                        } else {
+                            // 首先，same 裡面應該會有一個自己，其次，我們按出現次數排序
+                            // 呈現格式為 同源：G1234(142)意義；G1235(123)
+
+                            // 排序，按次數
+                            same.sort((a,b) => b.ccnt - a.ccnt)
+
+                            // filter .csn != sn 
+                            let same2 = same.filter(a1 => a1.csn != sn)
+                            
+                            // 產生許多 <span class='one-same'>...</span>
+                            for (let i1 = 0; i1 < same2.length; i1++) {
+                                const onesame3 = same2[i1]
+                                let sn3 = (N==0?'G':'H') + onesame3.csn  // 2 處用到
+
+                                // 處理之前， cexp 可能會有 交互參照
+                                function get_cexp_with_ref(cexp){
+                                    let re1 = splitReference(cexp)
+                                    if (re1 == null || re1.length == 1){
+                                        return cexp
+                                    } else {
+                                        let re2 = ""
+                                        for (const a2 of re1) {
+                                            if ( a2.refAddresses == undefined ){
+                                                re2 += a2.w
+                                            } else {
+                                                re2 += `<span class='ref' data-addrs='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
+                                            }
+                                        }
+                                        return re2
+                                    }
+                                }
+                                const cexp_ref = get_cexp_with_ref(onesame3.cexp)
+
+                                let span_one_same = $('<span>').addClass('one-same')
+                                .append($('<span>').text(sn3).addClass('sn').attr('sn',onesame3.csn).attr('N',N))
+                                .append($('<span>').text(`(${onesame3.ccnt})`))
+                                .append($('<span>').html(cexp_ref))
+                                .appendTo(span_same)
+                            }
+                        }                         
+                    }
+                    
+                    // 分兩欄
+                    let div_content = $("<div>").addClass('column-parent')
+                    let div_right_column = $("<div>").addClass('right-column').addClass('column')
+                    let div_left_column = $("<div>").addClass('left-column').addClass('column')
+                    div_content.append(div_left_column).append(div_right_column)
+                    // 左欄(次數、同源)
+                    div_left_column.append(span_count).append("<br/>").append(span_cbol_part)
+                    // 右欄_意義
+                    div_right_column.append(span_same)
+                    let html = div_content[0].outerHTML
+                    
+                    // 設定 dlg 位置，是在上面，還是下面
+                    // 如果目前 cursor 在上半部 50 % 就下顯示
+                    const isCursorTop = window.pageState.xy_hover.y < window.innerHeight / 2
+                    // const pos_ref = $("#mainWindow") # 不知道為何 mainWindow 會失效，曾經成功
+                    const pos_ref2 = $("#fhlTopMenu")
+                    const pos_ref3 = pageState.isVisibleLeftWindow ? $("#fhlLeftWindow") : $("#fhlMidWindow")
+                    const width_dlg = isCursorTop ? $("#fhlToolBar").width() : pos_ref2.width()
+                    const position_dlg = isCursorTop ? ({
+                        my: "left bottom", at: "left bottom", of: pos_ref3
+                    }) : ({
+                        my: "left top", at: "left top", of: pos_ref2
+                    })
+                    dlg.showDialog({
+                        html: html,
+                        getTitle: () => `即時SN`,
+                        position: position_dlg,
+                        maxHeight: window.innerHeight / 2 - 20,
+                        width: width_dlg,
+
+                        /**
+                         * 
+                         * @param {JQuery<HTMLElement>} dlg 
+                         */
+                        registerEventWhenShowed: dlg => {
+                            // 改 title，因為 getTitle 的方式只能純文字，不能有 html tag ... dlg parent 才會包到 title
+                            dlg.parent().find('.ui-dialog-title').addClass('realtime-sn').html(
+                                $('<span>')
+                                .append(span_sn)
+                                .append(span_orig)
+                                .append(span_mean)
+                                .append(span_parsing)
+                                [0].outerHTML
+                            )
+                            
+                            dlg.on('click', '.ref', a1 => {
+                                let addrs = JSON.parse($(a1.target).attr('data-addrs'))
+                                queryReferenceAndShowAtDialogAsync({addrs:addrs})
+                            })
+
+                            dlg.parent().off('click', '.sn').on({
+                                "click": function () {
+                                    var r2 = $(this)
+                                    var jo = {
+                                        sn: r2.attr('sn'),
+                                        isOld: parseInt(r2.attr('n')),
+                                    }
+
+                                    // BUG:
+                                    queryDictionaryAndShowAtDialogAsync(jo)
+                                }
+                            }, ".sn")
+                        }
+                    })
+                }
+
+                function when_data_ready([re_parsing, re_dict]){
+                    // console.log(one);
+                    /** @type {TPPageState} */
+                    let ps = window.pageState
+                    let sn = ps.snAct
+                    let N = ps.N
+                    let sec = ps.sec_hover
+                    // 檢查 re_parsing.one == re_dict.one
+                    let re_parsing_one = re_parsing.one
+                    let re_dict_one = re_dict.one
+                    if (sn != re_dict_one.sn || sec != re_parsing_one.sec){
+                        // console.log(" 不一樣 ", sn, re_dict_one.sn);
+                    } else {
+                        // 將 result 中的 sn 消一下 0，不然判斷會錯
+                        for (let i = 1; i < re_parsing.record.length; i++) {
+                            let element = re_parsing.record[i];
+                            re_parsing.record[i].sn = element.sn.replace(/^0*/, '') || "0" // "00000" 遇到，就會變成 "0"
+                        }
+                        // same 裡的 csn 也要消 0 ，因為接下來也會用到
+                        let same = re_dict.record[0].same
+                        for (let i1 = 0; i1 < same.length; i1++) {
+                            let element = same[i1];
+                            same[i1].csn = element.csn.replace(/^0*/, '') || "0" // "00000" 遇到，就會變成 "0"
+                        }
+
+                        show_dialog(re_parsing, re_dict)
+                        
+                    }
+                }
+
+                get_parsing_and_dict_async(one).then(when_data_ready)                
+            }
+
+            // `暫時` 的英文是 ... `temporary` ... click 會使其它為 true, 2 秒後變回 false, 在 mouseenter 會被 read 使用
+            let is_pause_realtime_temporary_sn = false
             // sn 的部分        
             $lecMain.on({
                 click: function (e) {
-                    ps.N = $(this).attr('N'); 
-                    ps.k = $(this).attr('sn');
+                    const N = $(this).attr('N');
+                    const k = $(this).attr('sn');
 
-                    let sn = $(this).attr('sn');
-                    let N = $(this).attr('N') == 1 ? 1 : 0 
-                    queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
-                    
-                    // 點擊 sn 時，不要切換 active 節
+                    /** @type {TPPageState} */
+                    let ps = window.pageState
+                    if ( ps.realTimePopUp ){
+                        if (is_pause_realtime_temporary_sn && (ps.snAct != k || ps.snActN != N)) {
+                            // 在 pause 時 ， 又點擊某個，此時不該等 2 秒
+                            mouseenter_sn_set_snAct_and_Color_act(this, e)
+                            mouseenter_sn_dialog(this,e)
+                        }
+
+                        is_pause_realtime_temporary_sn = true 
+    
+                        setTimeout(() => {
+                            is_pause_realtime_temporary_sn = false
+                        }, 2000);
+
+                    } else {
+                        // 非即時模式，直接顯示即可
+                        ps.snAct = ""
+                        ps.snActN = -1
+                        SN_Act_Color.act_remove()
+                        mouseenter_sn_set_snAct_and_Color_act(this, e)  
+                        mouseenter_sn_dialog(this,e)
+                        is_pause_realtime_temporary_sn = true 
+                        setTimeout(() => {
+                            is_pause_realtime_temporary_sn = false
+                        }, 2000);
+                    }
+
                     e.stopPropagation()
-
-                    // 關閉即時顯示功能，所以把 if 拿掉
-                    // if (ps.realTimePopUp != 1) {
-                    //}
                 },
-                mouseenter: function () {
-                    let N = $(this).attr('N') // 1: 舊約 0: 新約
-                    let sn = $(this).attr('sn')                    
-                    ps.snAct = sn
-                    ps.snActN = N
-                    
-                    // Activate sn，標記為紅色
-                    SN_Act_Color.act_add(sn, N)
- 
+                mouseenter: function (e) {
 
-                    // 出現次數，還沒用到，但快用到
-                    // if ( window.sd_cnt != undefined ){
-                    //     let hg = N == 0 ? "greek" : "hebrew"
-                    //     let cnt = window.sd_cnt[hg][sn]
-                    //     if ( cnt != undefined ){
-                    //         console.log(cnt);
-                            
-                    //     }
-                    // }
+                    /** @type {TPPageState} */
+                    let ps = window.pageState
 
+                    if ( is_pause_realtime_temporary_sn == false ){
+                        mouseenter_sn_set_snAct_and_Color_act(this, e)
+                    }
 
-                    // 關閉即時顯示功能
-                    // if (ps.realTimePopUp == 1) {
-                    //     var offset = $(this).offset();
-                    //     //console.log(offset.top);
-                    //     offset.top += $(this).height();
-                    //     //console.log(offset.top);
-                    //     //console.log('');
-                    //     ps.N = $(this).attr('N');
-                    //     var k = $(this).html().replace(/&lt;/g, "").replace(/&gt;/g, "");
-                    //     k = k.replace(/\(/g, "").replace(/\)/g, "");
-                    //     k = k.replace(/\{/g, "").replace(/\}/g, "");
-                    //     ps.k = k;
-                    //     setTimeout(function () { parsingPopUp.render(ps, parsingPopUp.dom, offset) }, 100);
-                    // }
+                    if ( ps.realTimePopUp ){
+                        if (is_pause_realtime_temporary_sn) return
+    
+                        mouseenter_sn_dialog(this,e)
+                    }
                 },
                 mouseleave: function () {
-                    ps.snAct = ""
-                    ps.snActN = -1
+                    if ( is_pause_realtime_temporary_sn == false ){
+                        ps.snAct = ""
+                        ps.snActN = -1
 
-                    SN_Act_Color.act_remove()
-
-                    // 關閉即時顯示功能
-                    // if (ps.realTimePopUp == 1) {
-                    //     $.data($('#parsingPopUp')[0], "parsingPopUpAutoCloseTimeout", setTimeout(function () {
-                    //         if ($('#parsingPopUp').css('display') == 'block') {
-                    //             $('#parsingPopUp').hide();
-                    //         }
-                    //     }, 100));
-                    // }
+                        SN_Act_Color.act_remove()
+                        
+                        // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
+                        let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
+                        let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
+                        rr2.trigger('click')
+                    }
                 }
             }, '.sn, .sn-text');
 
@@ -3008,11 +3605,11 @@ function FhlLectureEs6Js(){
         };
         /**
          * 
-         * @param {{engs:sting;chap:number;sec:number}} ps 
+         * @param {TPPageState} ps 
          * @param {HTMLElement} dom 
          * @returns 
          */
-        this.render = function (ps, dom) {
+        this.render = function (ps, dom) {            
             //console.log('start of fhlLecture render');
             function reverse(s) {
                 var o = '';
@@ -3209,15 +3806,11 @@ function FhlLectureEs6Js(){
                                     // add by snow. 2021.07 原文字型大小獨立出來
                                     var bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
 
-                                    $htmlContent.children().eq(j).append(
-                                        $("<div ver='" + rspArr[j].version + "' chap=" + chap + " sec=" + sec + " class='lec'>\
-                              <div class='" + classDiv + "' style='margin: 0px 0.25rem 0px 0.25rem; padding: 7px 0px; height: 100%;'>\
-                                <span class='verseNumber'>" + sec + "</span>"
-                                            + brForHebrew +
-                                            "<span class='" + className + "'>" + bibleText2 + "</span>\
-                                </div>\
-                              </div>"));
-    
+                                    let book = ps.bookIndex 
+                                    
+                                    let div_lec = $("<div>").addClass('lec').attr('ver', rspArr[j].version).attr('chap', chap).attr('sec', sec).attr('book', book).append($("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append($("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2)))
+                                        
+                                    $htmlContent.children().eq(j).append(div_lec)
                                 }//for each verse
                             }//for each version
     
@@ -3332,14 +3925,15 @@ function FhlLectureEs6Js(){
                                         var className = 'verseContent ';
                                         if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh') // 2018.01 客語特殊字型(太1)
                                             className += ' bstw'
+
+                                        let book = ps.bookIndex
+                                        let div_lec = $("<div>").addClass("lec").attr('book',book).attr('chap',chap).attr('sec',sec).attr('ver',rspArr[j].version).append(
+                                            $("<div>").css('margin', '0px 0px 0px 0px').css('padding', '7px 0px').css('height', '100%').append(
+                                                $("<span>").addClass('verseNumber').text(sec)).append($("<span>").addClass(className).html(vname))
+                                        )
     
-    
-                                        onever.append(
-                                            $("<div ver='" + rspArr[j].version + "' chap=" + chap + " sec=" + sec + " class='lec'>\
-                                            <div style='margin: 0px 0px 0px 0px; padding: 7px 0px; height: 100%;'>\
-                                            <span class='verseNumber'>" + sec + "</span>\
-                                            <span class='" + className + "'>" + vname + "</span>\
-                                            </div></div>"));
+                                        onever.append(div_lec)
+
                                     }
                                     else 
                                     {
@@ -3387,14 +3981,12 @@ function FhlLectureEs6Js(){
                                         // add by snow. 2021.07 原文字型大小獨立出來                
                                         bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
                                         
-                                        onever.append(
-                                            $("<div ver='" + rspArr[j].version + "' chap=" + chap + " sec=" + sec + " class='lec'>\
-                                                <div class='" + classDiv + "' style='margin: 0px 0px 0px 0px; padding: 7px 0px; height: 100%;'>\
-                                                    <span class='verseNumber'>" + sec + "</span>"
-                                                                + brForHebrew +
-                                                                "<span class='" + className + "'>" + bibleText2 + vname + "</span>\
-                                                </div>\
-                                                </div>"));
+                                        let book = ps.bookIndex
+                                        let div_lec = $("<div>").addClass("lec").attr('book',book).attr('chap',chap).attr('sec',sec).attr('ver',rspArr[j].version).append(
+                                            $("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append(
+                                                $("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2 + vname))
+                                        )
+                                        onever.append(div_lec)
                                     }
                                 }
                             }

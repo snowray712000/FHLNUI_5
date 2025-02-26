@@ -25,6 +25,21 @@ span.bibtext
     color: violet;
     font-weight: 700;
 }
+.realtime-sn{
+    white-space: normal !important;
+}
+.column-parent{
+    display: flex;
+    gap: 20px;
+    /* padding: 10px; */
+}
+.column {
+    flex: 1; /* 1:1 */
+    min-width: 0; /* 防止文字溢出 */
+    text-align: justify;
+}
+/* .left-column, .right-column { } */
+
 
 .reference {
     color: blue;
