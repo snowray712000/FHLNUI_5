@@ -7,18 +7,18 @@ var bookSelect = {}
 bookSelect.dom = $('#bookSelect')
 /**
  * 
- * @param {DPageState} ps 
+ * @param {TPPageState} ps 
  * @param {JQuery<HTMLElement>} dom $('#bookSelect')
  */
 bookSelect.init = function (ps, dom) {}
 /**
  * 
- * @param {DPageState} ps 
+ * @param {TPPageState} ps 
  */
 bookSelect.registerEvents = function (ps) {}
 /**
  * 
- * @param {DPageState} ps 
+ * @param {TPPageState} ps 
  * @param {JQuery<HTMLElement>} dom 
  */
 bookSelect.render = function (ps, dom) {}

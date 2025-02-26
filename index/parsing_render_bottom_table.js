@@ -1,4 +1,4 @@
-/// <reference path="./fhlParsing.d.js" />
+/// <reference path="./fhlParsing.d.ts" />
 
 /**
  * render parsing 工具，下半部的 table

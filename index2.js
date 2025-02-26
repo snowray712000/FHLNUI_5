@@ -3321,7 +3321,7 @@ function gfhlMidBottomWindow() {
 
         },
         /**
-         * @param {DPageState} ps 
+         * @param {TPPageState} ps 
          * @param {JQuery<HTMLElement>} dom$ $('#fhlMidBottomWindow') 
          */
         render: function (ps, dom$) {
@@ -5856,7 +5856,7 @@ function gBookSelect() {
 
         /**
          * 
-         * @param {DPageState} ps 
+         * @param {TPPageState} ps 
          */
         registerEvents: function (ps) {
             var that = this;

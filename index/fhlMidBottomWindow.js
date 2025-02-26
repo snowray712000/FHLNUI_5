@@ -52,7 +52,7 @@ var fhlMidBottomWindow = {
 
     },
     /**
-     * @param {DPageState} ps 
+     * @param {TPPageState} ps 
      * @param {JQuery<HTMLElement>} dom$ $('#fhlMidBottomWindow') 
      */
     render: function (ps, dom$) {

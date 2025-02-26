@@ -40,13 +40,17 @@ function initPageStateFlow(currentSWVer) {
    * 另外，這樣也才不會，因為更新版本，過去的設定都清空歸 0 了
    */
   function makeSureValueExistForNewVersions() {
-    var ps = genereateDefaultPageState()
+    var ps = genereateDefaultPageState()    
     for (var k in ps) {
       if (pageState[k] == undefined) {
         pageState[k] = ps[k]
       }
     }
   }
+  /**
+   * 
+   * @returns {TPPageState}
+   */
   function genereateDefaultPageState() {
     return {
       // 'Gen'
@@ -57,6 +61,10 @@ function initPageStateFlow(currentSWVer) {
       chap: 1,
       // 1
       sec: 1,
+      // 滑鼠移過去的，而上面的 chap sec 是，滑鼠按下去 activate 的節 
+      book_hover: -1,
+      chap_hover: -1,
+      sec_hover: -1,
       // bookIndex, book 這個先被用掉了.
       bookIndex: 1,
       // ['unv', 'svc']

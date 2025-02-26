@@ -4,7 +4,8 @@
 /// <reference path="../libs/ijnjs/ijnjs.d.ts" />
 /// <reference path="./DataOfDictOfFhl.d.ts" />
 /// <reference path="./fhlParsing.d.js" />
-/// <reference path="./Sn_Act_Color.js" />
+/// <reference path="./SN_Act_Color.js" />
+/// <reference path="./DPageState.d.js" />
 
 (function (root) {
     let queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsyncEs6Js()
@@ -188,6 +189,10 @@
             this.dom = dom;
             this.render(ps, this.dom);
         },
+        /**
+         * 
+         * @param {TPPageState} ps 
+         */
         registerEvents: function (ps) {
             var that = this;
             switch (ps.titleId) {
