@@ -81,5 +81,8 @@ class TPPageState {
     this.swVer = "0.0.0"
     /** @type {0|1|2} 0是早期顯示版本，1是併排，2是交錯 */
     this.show_mode = 1
+
+    /** @type {Object.<string, number>} str 為 key ， 次數為 value。此變數不會真的需要存在 localstorage */
+    this.sn_stastic = {}
   }
 }

@@ -24,6 +24,14 @@
                           <li>Alt + Shift + C: 輔助視窗開關</li>\
                           <li>Alt + Shift + /: 幫助，跳出</li>\
                           </ul></div>';
+            
+            // 即時顯示功能
+            const div_img = $('<div>').append(
+                $("<a>").attr('href', './images/help_realtime_disappear.png').attr('target', '_blank').append(
+                $('<img>').attr('src', './images/help_realtime_disappear.png').css('height', '480px')
+            ));
+            html += div_img.html();
+            
             $('#helpingPopUpInside').html(html);
             this.registerEvents(ps);
         }

@@ -198,6 +198,11 @@
             switch (ps.titleId) {
                 case "fhlInfoParsing":
                     {
+                        function close_snbtn_result_dialog(){
+                            let rr1 = $('.ui-dialog-title').filter((i, e) => e.innerText == "Parsing")
+                            let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
+                            rr2.trigger('click')
+                        }
                         // parsing event 事件
                         /**
                          * @param {HTMLElement} dom 
@@ -209,29 +214,23 @@
                             let div = $('#parsingTable').find(`[wid=${wid}]`)
 
                             // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
-                            let rr1 = $('.ui-dialog-title').filter((i, e) => e.innerText == "Parsing")
-                            let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
-                            rr2.trigger('click')
+                            close_snbtn_result_dialog()
                             
                             // dialog
                             const DialogHtml = DialogHtmlEs6Js()
                             let dlg = new DialogHtml()
+                            let button = $("#fhlMidWindow")
+                            const width = button.width()
+                            const pos = { my: "middle bottom", at: "middle bottom", of: button }
                             dlg.showDialog({
                                 html: div.clone(),
+                                width: width,
+                                position: pos,
                                 getTitle: () => "Parsing",
                                 /**
                                  * @param {JQuery<HTMLElement>} dlg 
                                  */
                                 registerEventWhenShowed: dlg => {
-                                    // console.log(dlg);
-                                    let button = $("#parsingTable")
-                                    dlg.dialog( "option", "position", { my: "right top", at: "right top", of: button } );
-
-                                    // 寬度, 取得 button 寬度，單位 px
-                                    // let w = button.width()
-                                    // dlg.dialog( "option", "width", w )
-
-                                    
                                     dlg.off('click','.sn').on({
                                         "click": function(){
                                             let r2 = $(this)
@@ -259,10 +258,29 @@
                         }
 
                         $('.sn-btn').on('mouseenter', function (ev) {
+                            // 同 sn 變色
+                            const dom = this
+                            let wid = $(dom).attr('wid')
+                            // 找出那一個
+                            const div = $('#parsingTable').find(`[wid=${wid}]`)
+                            // 取出 sn
+                            const sn = div.find('.sn').attr('sn')
+                            const N = div.find('.sn').attr('tp') == 'H' ? 1 : 0
+                            SN_Act_Color.act_add(sn, N)
+
+                            // 跳出對應的那格 wid
                             if (ps.realTimePopUp == 1 && !is_pause_realtime_temporary) {
                                 show_snbtn_result_dialog(this)                                   
                                 ev.stopPropagation()                          
                             }                        
+                        }).on('mouseleave', function (ev) {
+                            // 把 sn 去掉
+                            SN_Act_Color.act_remove()
+
+                            if (ps.realTimePopUp == 1 && !is_pause_realtime_temporary) {
+                                close_snbtn_result_dialog()
+                                ev.stopPropagation()
+                            }
                         })
                         
                         
@@ -273,6 +291,26 @@
 
                             show_snbtn_result_dialog(this)
                             ev.stopPropagation()
+                        })
+
+                        $('#parsingTable').on('click', '.sn', function () {
+                            var r2 = $(this)
+                            var jo = {
+                                sn: r2.attr('sn'),
+                                isOld: r2.attr('tp') == 'H'
+                            }
+
+                            queryDictionaryAndShowAtDialogAsync(jo)
+                        }).on('mouseenter', '.sn', function (ev) {
+                            // 把 sn 加上，顏色
+                            const dom = this
+                            var r2 = $(dom)
+                            var sn = r2.attr('sn')
+                            var N = r2.attr('tp') == 'H' ? 1 : 0
+                            SN_Act_Color.act_add(sn, N)
+                        }).on('mouseleave', '.sn', function (ev) {
+                            // 把 sn 去掉
+                            SN_Act_Color.act_remove()
                         })
                     }
 
@@ -412,24 +450,6 @@
 
                         that.registerEvents(ps);
 
-
-                        testThenDoAsync(() => window.DialogTemplate != undefined)
-                            .then(() => {
-
-                                $('#parsingTable').off('click', '.sn').on({
-                                    "click": function () {
-                                        var r2 = $(this)
-                                        var jo = {
-                                            sn: r2.attr('sn'),
-                                            isOld: parseInt(r2.attr('n')),
-                                        }
-
-                                        // BUG:
-                                        queryDictionaryAndShowAtDialogAsync(jo)
-                                    }
-                                }, ".sn")
-
-                            })
                         }); // api async callback
                     //tjm
                     break;

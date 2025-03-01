@@ -4,6 +4,7 @@
 /// <reference path='./SN_Act_Color.js' />
 /// <reference path='./DataOfDictOfFhl.d.ts' />
 /// <reference path='./fhlParsing.d.ts' />
+/// <reference path='./DPageState.d.js' />
 
 (function (root) {
     const FhlLecture = FhlLectureEs6Js()
@@ -3119,10 +3120,18 @@ function FhlLectureEs6Js(){
                     }
 
                     // 本章 n 次，聖經 n 次。
-                    // 出現次數，還沒用到，但快用到
+                    // 聖經出現次數，還沒用到，但快用到                    
                     let cnt_in_bible = get_sn_count(sn, N)
-                    // let span_count = $('<span>').append($('<span>').text(`本章 ${re_dict.one.count ?? "?"} 次，聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
-                    let span_count = $('<span>').append($('<span>').text(`聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
+                    // let cnt_in_this_chap = -1
+                    // if (ps.sn_stastic != undefined){
+                    //     cnt_in_this_chap = ps.sn_stastic[sn] || -1
+                    // }
+                    // 本章出現次數
+                    // 嘗試取得 sn 出數 (同一章，N一定是相同)
+                    let cnt_in_this_chap = ps.sn_stastic?.[sn] ?? -1;
+
+                    let span_count = $('<span>').append($('<span>').text(`本章 ${cnt_in_this_chap > -1 ?cnt_in_this_chap:'?'} 次，聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
+                    // let span_count = $('<span>').append($('<span>').text(`聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
                     
                     // 詞性分析 
                     // 詞性: 形容詞 分析: 主格 單數 中性 (新約)
@@ -3288,7 +3297,7 @@ function FhlLectureEs6Js(){
                     let div_left_column = $("<div>").addClass('left-column').addClass('column')
                     div_content.append(div_left_column).append(div_right_column)
                     // 左欄(次數、同源)
-                    div_left_column.append(span_count).append("<br/>").append(span_cbol_part)
+                    div_left_column.append(span_count).append("<hr/>").append(span_cbol_part)
                     // 右欄_意義
                     div_right_column.append(span_same)
                     let html = div_content[0].outerHTML
@@ -3622,6 +3631,9 @@ function FhlLectureEs6Js(){
             var that = this;
             var htmlTitle = "";
             var htmlContent = "";
+
+            // 2025.02 add sn 本章次數統計
+            ps.sn_stastic = {}
     
             if (isRDLocation()) {
                 // location 不可以用新譯本
@@ -3749,14 +3761,14 @@ function FhlLectureEs6Js(){
                             var $htmlContent = $("<div id='lecMain'></div>");
     
                             var cx1 = 100 / rspArr.length;
-                            for (j = 0; j < rspArr.length; j++) {
+                            for (let j = 0; j < rspArr.length; j++) {
                                 // 分3欄
                                 var onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
                                 $htmlContent.append(onever);
                             }
     
                             // 每1欄內容
-                            for (j = 0; j < rspArr.length; j++) { //each version
+                            for (let j = 0; j < rspArr.length; j++) { //each version
                                 for (var i = 0; i < rspArr[j].record_count; i++) {//each sec
                                     var maxR = rspArr[j].record[i]; //原 var maxR = rspArr[maxRecordIdx].record[i];
                                     var chap = maxR.chap, sec = maxR.sec;
@@ -3806,14 +3818,87 @@ function FhlLectureEs6Js(){
                                     // add by snow. 2021.07 原文字型大小獨立出來
                                     var bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
 
+                                    
                                     let book = ps.bookIndex 
                                     
                                     let div_lec = $("<div>").addClass('lec').attr('ver', rspArr[j].version).attr('chap', chap).attr('sec', sec).attr('book', book).append($("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append($("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2)))
-                                        
+                                    
                                     $htmlContent.children().eq(j).append(div_lec)
                                 }//for each verse
                             }//for each version
-    
+
+
+                            function get_sn_stastic(rspArr){
+                                /**
+                                 * 如果是具有 sn 的譯本 "unv", "kjv", "rcuv"，統計數量 (挑一個譯本來統計)
+                                 * @param {{version: str}[]} rspArr 
+                                 * @returns 
+                                 */
+                                function get_preferredVersion_for_sn_stastic(rspArr){
+                                    let j = -1;
+                                    const preferredVersions = ["unv", "kjv", "rcuv"];
+                                    
+                                    for (const version of preferredVersions) {
+                                        const foundIndex = rspArr.findIndex(element => element.version === version);
+                                        if (foundIndex !== -1) {
+                                            j = foundIndex;
+                                            return version
+                                            break;
+                                        }
+                                    }
+                                    return undefined
+                                }
+                                let version_sn = get_preferredVersion_for_sn_stastic(rspArr)
+                                if ( version_sn == undefined ){
+                                    return {}
+                                }
+                                // 開始統計
+                                // 並排模式下 .lecMain div 下，會有 .vercol 三個 (若3譯本)，再次那個 .vercol 下找 .sn
+                                // 交錯模式下 .lecMain 下，只會有一個 .vercol，每個 .lec 就是每一節經文，它會有 attr ver 取得是不是 kjv
+                                // 就算 sn 沒顯示，在 dom 中也有它們，只是使用了 sn-hidden class
+
+                                // 使用 jQuery 得到 .lecMain
+                                const div_lecMain = $htmlContent[0]
+                                // 取得所有 div.lec ， 並且它的 attr 的 ver 是 version_sn
+                                const div_lec = $(div_lecMain).find(`div.lec[ver=${version_sn}]`)
+                                // 取得所有 div.lec 下的 .sn
+                                const div_sn = div_lec.find('.sn')
+                                
+                                // 分析 div_sn 的 attr sn 與 attr n ，型成 sn = [] n = [] 陣列
+                                let sn = []
+                                let n = []
+                                div_sn.each((i, e) => {
+                                    sn.push($(e).attr('sn'))
+                                    n.push($(e).attr('n'))
+                                })
+                                // 檢查: 理論上，所有 n 都是同個值
+                                const isTheSame_n = true
+                                for (let i = 1; i < n.length; i++) {
+                                    if (n[i] !== n[0]){
+                                        isTheSame_n = false
+                                        break
+                                    }
+                                }
+                                if (isTheSame_n == false){
+                                    console.error('n 不一致，請回報此書卷')
+                                    return {}
+                                } 
+                                // 統計每個sn，出現次數，最後要能夠查表
+                                let sn_count = {}
+                                for (let i = 0; i < sn.length; i++) {
+                                    if (sn_count[sn[i]] == undefined){
+                                        sn_count[sn[i]] = 1
+                                    } else {
+                                        sn_count[sn[i]] += 1
+                                    }
+                                }
+                                // 以 value 來排序，從大到小 (目前還沒用到，不久會用到)
+                                // let sn_count_sorted = Object.entries(sn_count).sort((a, b) => b[1] - a[1])
+                                // 顯示前 10 個
+                                // console.log(sn_count_sorted.slice(0, 10));
+                                return sn_count
+                            }
+                            ps.sn_stastic = get_sn_stastic(rspArr)
     
                             // add 2016.10 地圖與照片
                             if (ps.ispos || ps.ispho) {
