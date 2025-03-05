@@ -2768,7 +2768,7 @@ function FhlLectureEs6Js(){
      * @param {0|1} N 
      * @returns {number} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt 
      */
-    function get_sn_count(sn, N){
+    function get_sn_count_in_bible(sn, N){
         if (window.sd_cnt == undefined) return -2
         
         let hg = N == 0 ? "greek" : "hebrew"
@@ -2778,6 +2778,35 @@ function FhlLectureEs6Js(){
         }
         return -1
     }
+    function get_sn_count_in_book(sn, book){
+        if (window.sn_cnt_book_unv == undefined) return -2
+        
+        let hg = book >= 40 ? "G" : "H"
+        let cnt = window.sn_cnt_book_unv[hg][sn][book]
+        if ( cnt != undefined ){
+            return cnt
+        }
+        return -1
+    }
+    /**
+     * 
+     * @param {string} sn 168a
+     * @param {number} book 1based book id 1-66
+     * @returns {Object<number,number>} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt
+     */
+    function get_sn_count_in_chap(sn, book){
+        if (window.sn_cnt_chap_unv == undefined) return -2
+        
+        let hg = book >= 40 ? "G" : "H"
+        
+        let dict_chap_cnt = window.sn_cnt_chap_unv[hg][sn][book]        
+        if ( dict_chap_cnt != undefined ){
+            // return clone result, not the original, to prevent change the original
+            return JSON.parse(JSON.stringify(dict_chap_cnt))
+        }
+        return -1
+    }
+    
 
     /** @type {JQuery<HTMLElement>} */
     let $lecture
@@ -3119,19 +3148,69 @@ function FhlLectureEs6Js(){
                         span_mean.append($('<span>').text(data_from_same.cexp))
                     }
 
-                    // 本章 n 次，聖經 n 次。
-                    // 聖經出現次數，還沒用到，但快用到                    
-                    let cnt_in_bible = get_sn_count(sn, N)
-                    // let cnt_in_this_chap = -1
-                    // if (ps.sn_stastic != undefined){
-                    //     cnt_in_this_chap = ps.sn_stastic[sn] || -1
-                    // }
+                    // 本章 n 次，本書 n 次，聖經 n 次。
+                    // 聖經出現次數
+                    let cnt_in_bible = get_sn_count_in_bible(sn, N)
+                    let description_in_bible = `聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次`
+                    // 此書卷出現次數
+                    let cnt_in_book = get_sn_count_in_book(sn, re_dict.one.book)
+                    let description_in_this_book = `本書 ${cnt_in_book > -1 ?cnt_in_book:'?'} 次`
                     // 本章出現次數
                     // 嘗試取得 sn 出數 (同一章，N一定是相同)
                     let cnt_in_this_chap = ps.sn_stastic?.[sn] ?? -1;
+                    let description_in_this_chap = `本章 ${cnt_in_this_chap > -1 ?cnt_in_this_chap:'?'} 次`
 
-                    let span_count = $('<span>').append($('<span>').text(`本章 ${cnt_in_this_chap > -1 ?cnt_in_this_chap:'?'} 次，聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
-                    // let span_count = $('<span>').append($('<span>').text(`聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
+                    // 主要分佈於 7,5,1,2 章。為別次數為 5,4,3,2。 (排序後，前5個，如果第6、第7也與第5一樣，也列出來)
+                    let cnt_chap_in_book = get_sn_count_in_chap(sn, re_dict.one.book)
+                    let description_in_this_book_chap = undefined
+                    if (cnt_chap_in_book != -1 && cnt_chap_in_book != -2){
+                        let ar = []
+                        for (const key in cnt_chap_in_book) {
+                            if (cnt_chap_in_book.hasOwnProperty(key)) {
+                                const element = cnt_chap_in_book[key];
+                                ar.push({chap:key, cnt:element})
+                            }
+                        }
+                        ar.sort((a,b)=>b.cnt-a.cnt)
+                        // 判斷有沒有超過5個
+                        const cnt_limit = 3
+                        if (ar.length > cnt_limit){
+                            // 看第6個，第7個，有沒有與第5個一樣的大小
+                            let cnt5 = ar[cnt_limit-1].cnt
+                            let idxslice = cnt_limit
+                            for (let i = cnt_limit; i < ar.length; i++) {
+                                const element = ar[i];
+                                if (element.cnt == cnt5){
+                                    idxslice++
+                                } else {
+                                    break
+                                }
+                            }
+                            ar = ar.slice(0,idxslice)
+
+                            des_where = ar.map(a1=>`${a1.chap}`).join(',')
+                            count_each = ar.map(a1=>`${a1.cnt}`).join(',')
+
+                            description_in_this_book_chap = `主要於 ${des_where} 章。次數為 ${count_each}。`
+                        } else {
+                            description_in_this_book_chap = `主要於 ${ar.map(a1=>`${a1.chap}`).join(',')} 章。次數為 ${ar.map(a1=>`${a1.cnt}`).join(',')}。`
+                        }
+
+                        
+                    } else {
+                        // console.log("沒有資料");
+                    }
+
+                    
+
+                    
+
+                    // let span_count = $('<span>').append($('<span>').text(`本章 ${cnt_in_this_chap > -1 ?cnt_in_this_chap:'?'} 次，聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
+                    
+                    let span_count = $('<span>').append($('<span>').text(`${description_in_this_chap}，${description_in_this_book}，${description_in_bible}。`))
+                    if (description_in_this_book_chap != undefined){
+                        span_count.append($('<br>'),$('<span>').text(description_in_this_book_chap))
+                    }
                     
                     // 詞性分析 
                     // 詞性: 形容詞 分析: 主格 單數 中性 (新約)

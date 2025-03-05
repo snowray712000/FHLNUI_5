@@ -11,8 +11,15 @@
   doLast2()
   doLast1() 
   
-  load_sd_cnt_to_global_variable_async()
+  // 這 sn，有哪些同源字
   load_sd_same_to_global_variable_async()
+  
+  // 這 sn，在聖經出現幾次
+  load_sd_cnt_to_global_variable_async()
+  // 這卷書，某 sn 出現幾次 (較小，先載)
+  load_sn_book_cnt_to_global_variable_async()
+  // 這 sn，在這卷書出現的分佈
+  load_sn_chap_cnt_to_global_variable_async()
 
   // 搜尋 #fhlMidBottomWindow .sn mouseenter mouseleave 事件使用，改變 sn 顏色
   let_sn_color_change_in_search_result()
@@ -495,6 +502,34 @@ function load_sd_cnt_to_global_variable_async(){
           // 依據需求進一步處理 cntContent
       }).fail(function(jqxhr, textStatus, error) {
           console.error("取得 sd_cnt.json 發生錯誤: " + textStatus + ", " + error);
+      });
+  }
+}
+function load_sn_book_cnt_to_global_variable_async(){
+  // sn: strong number 
+  // cnt: count
+  // book: in bible book, 1based
+  // unv: 從和合本分析的
+  if ( window.sn_cnt_book_unv == undefined ){
+      $.getJSON("./index/sn_cnt_book_unv_min.json", function(data) {
+          window.sn_cnt_book_unv = data
+
+      }).fail(function(jqxhr, textStatus, error) {
+          console.error("取得 sn_cnt_book_unv_min.json 發生錯誤: " + textStatus + ", " + error);
+      });
+  }
+}
+function load_sn_chap_cnt_to_global_variable_async(){
+  // sn: strong number
+  // cnt: count
+  // chap: in bible chapter, 1based
+  // unv: 從和合本分析的
+  if ( window.sn_cnt_chap_unv == undefined ){
+      $.getJSON("./index/sn_cnt_chap_unv_min.json", function(data) {
+          window.sn_cnt_chap_unv = data
+
+      }).fail(function(jqxhr, textStatus, error) {
+          console.error("取得 sn_cnt_chap_unv_min.json 發生錯誤: " + textStatus + ", " + error);
       });
   }
 }
