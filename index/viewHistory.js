@@ -26,13 +26,16 @@ var viewHistory = (function () {
 
 
         var $vh = $('#viewHistory');
+        /**
+         * @param {{chineses: string,book: number, chap: number}[]} datas 
+         */
         function renderList(datas) {
             /// <summary> 用於畫 li 清單, ul先被清空, 再一一加入 </summary>
             /// <param type="[{.chineses, .chap},{},{}]" name="datas" parameterArray="true">清單</param>
             var ul = $vh.find('ul').first();
             ul.empty();
             Enumerable.from(datas).forEach(function (a1) {
-                ul.append($("<li chineses=" + a1.chineses + " chap=" + a1.chap + ">" + a1.chineses + ":" + a1.chap + "</li>"));
+                $("<li>").attr('chineses', a1.chineses).attr('book', a1.book).attr('chap', a1.chap).text(a1.chineses + ':' + a1.chap).appendTo(ul);
             })
         }
         $(document).on({
@@ -58,6 +61,7 @@ var viewHistory = (function () {
                 $(this).trigger('liclick', {
                     idx: i,
                     chineses: $(this).attr('chineses'),
+                    book: parseInt($(this).attr('book')),
                     chap: parseInt($(this).attr('chap'))
                 });
 

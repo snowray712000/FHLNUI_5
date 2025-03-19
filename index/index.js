@@ -3039,7 +3039,6 @@ function FhlLectureEs6Js(){
                         
                             $.ajax({
                                 url,
-                                contentType: "application/json",
                                 /**
                                  * @param {IDParsingResult} a1 
                                  */
@@ -3052,11 +3051,11 @@ function FhlLectureEs6Js(){
                                         json.one = one
                                         res(json)
                                     } else {
-                                        res("找不到資料")
+                                        res("找不到資料 get_parsing_async a")
                                     }
                                 },
                                 error: er => {
-                                    res("找不到資料")
+                                    res("找不到資料 get_parsing_async b")
                                 }
                             });
                             
@@ -3080,23 +3079,22 @@ function FhlLectureEs6Js(){
                     return new Promise((res, rej) => {                            
                         $.ajax({
                             url,
-                            contentType: "application/json",
                             success: a1 => {
                                 if (a1.status == "success" && a1.record.length > 0) {
-                                /** @type {DataOfDictOfFhl_Realtime} */
-                                SnDictCache.add(one, a1)
-
-                                let json = a1
-                                json["one"] = one // 在 .then 才知道，當時是哪一組資料
-                                json.src = "cbol"
-                                json.isOld = N == 1 ? 1 : 0
+                                    /** @type {DataOfDictOfFhl_Realtime} */
+                                    SnDictCache.add(one, a1)
+                                    
+                                    let json = a1
+                                    json["one"] = one // 在 .then 才知道，當時是哪一組資料
+                                    json.src = "cbol"
+                                    json.isOld = N == 1 ? 1 : 0
                                     res(json)
                                 } else {
-                                    res("找不到資料")
+                                    res("找不到資料 get_dict_async a")
                                 }
                             },
                             error: er => {
-                                res("找不到資料")
+                                res("找不到資料 get_dict_async b")
                             }
                         });
                     })

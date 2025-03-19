@@ -13,7 +13,9 @@
         } else {
             idx = null;
         }
+
         if (idx != null) {
+            ps.bookIndex = idx+1 // 從 0-based 變成 1-based
             ps.chineses = book[idx];
             ps.engs = bookEng[idx];
         } else {
