@@ -27,7 +27,12 @@ class SN_Act_Color {
     static act_add(sn, N){
         // Activate sn，標記為紅色
         let cod1 = `[sn=${sn}][N=${N}]` // 原本是 find('.sn[sn=sn][N=N]')，但現在多了 .sn-text 也要一樣的條件
-        $(this.ids()).find(`.sn${cod1}, .sn-text${cod1}`).addClass('snAct')
+        let needAddClassSnAct = $(this.ids()).find(`.sn${cod1}, .sn-text${cod1}`)
+        needAddClassSnAct.addClass('snAct')
+        // 希臘文比較麻煩，因為 <span class="sn sn-text"><span class="greek-char">...</span></span>，所以外面加上 snAct，仍然不會影響到 color，因為 greek-char 是內部的 span。
+        // 若有內部的 .greek-char，也一併加上 snAct
+        needAddClassSnAct.find('.greek-char').addClass('snAct');
+    
         
         // 同源字，標記為暗紅色
         if ( window.sd_same != undefined ){
@@ -43,7 +48,9 @@ class SN_Act_Color {
                 let same2 = same.filter(a1 => a1 != sn) // 太1，波阿斯 可驗證
                 if (same2.length > 0){
                     let cod2 = same2.map(a1 => `[sn=${a1}][N=${N}]`).join(", ")
-                    $(this.ids()).find(`.sn${cod2}, .sn-text${cod2}`).addClass('snAct2')
+                    let needAddClassSnAct2 = $(this.ids()).find(`.sn${cod2}, .sn-text${cod2}`)
+                    needAddClassSnAct2.addClass('snAct2')
+                    needAddClassSnAct2.find('.greek-char').addClass('snAct2');
                 }
             }   
         }                

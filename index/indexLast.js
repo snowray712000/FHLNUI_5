@@ -10,6 +10,17 @@
   doLast3()
   doLast2()
   doLast1() 
+
+  // 好用，大家用
+  window.ajaxLoadAndDecompressJsonGz = ajaxLoadAndDecompressJsonGz
+
+  // 載入 bible_fhlwh.json.gz
+  if ( window.fhlwh_sn == undefined ){
+    path = "./index/bible_fhlwh.json.gz"
+    ajaxLoadAndDecompressJsonGz(path, function (joData){
+      window.fhlwh_sn = joData["data"] // 這是一個 [book,chap,sec,bible_text]
+    })
+  }
   
   // 這 sn，有哪些同源字
   load_sd_same_to_global_variable_async()
@@ -25,6 +36,30 @@
   let_sn_color_change_in_search_result()
   
 })(this)
+
+/**
+ * 載入 gzipped JSON .json.gz 檔案並解壓縮
+ * @param {string} url 檔案路徑
+ * @param {function} successCallback 成功回呼函式，接收解壓縮後的 JSON 物件。若失敗，這內部會有 error log
+ */
+function ajaxLoadAndDecompressJsonGz(url, successCallback) {
+  $.ajax({
+    url: url,
+    method: 'GET',
+    processData: false,
+    xhrFields: {
+      responseType: 'arraybuffer'
+    },
+    success: function (data) {
+      const decompressed = pako.ungzip(new Uint8Array(data), { to: 'string' });
+      const jsonData = JSON.parse(decompressed);
+      successCallback(jsonData);
+    },
+    error: function (jqxhr, textStatus, error) {
+      console.error("取得 " + url + " 發生錯誤: " + textStatus + ", " + error);
+    }
+  });
+}
 
 function let_sn_color_change_in_search_result(){
   $('#fhlMidBottomWindow').on('mouseenter', '.sn', function () {
@@ -475,34 +510,25 @@ function doLast1() {
 
 
 function load_sd_same_to_global_variable_async(){                        
-  // 判斷，如果 window.sd_same 不存在，就取 json
+  // sd_same.json 是 同源字 用途
   if ( window.sd_same == undefined ){
-      // 取得 ./index/sd_same.json 的資料，並且取得 ["greek"] 這個 內容，是一個 Dict[str, List[str]]
-      $.getJSON("./index/sd_same.json", function(data) {
-          // 此為一個 Dict[str, List[str]]
-          // 轉換為 dict，可以查詢
-          window.sd_same = data
-
-          // 依據需求進一步處理 sameContent
-      }).fail(function(jqxhr, textStatus, error) {
-          console.error("取得 sd_same.json 發生錯誤: " + textStatus + ", " + error);
-      });                    
+    const path = "./index/sd_same.json.gz"
+    ajaxLoadAndDecompressJsonGz(path, function (joData){
+      window.sd_same = joData // {hebrew, greek}
+      // 而每個都是 {sn: [sn]}
+    })
   }
 }
 
-function load_sd_cnt_to_global_variable_async(){
-  // 判斷，如果 window.sd_cnt 不存在，就取 json
+function load_sd_cnt_to_global_variable_async()
+{
+  // sd_cnt.json 是 聖經出現次數 用途
   if ( window.sd_cnt == undefined ){
-      // 取得 ./index/sd_cnt.json 的資料，並且取得 ["greek"] 這個 內容，是一個 Dict[str, int]
-      $.getJSON("./index/sd_cnt.json", function(data) {
-          // 此為一個 Dict[str, int]
-          // 轉換為 dict，可以查詢
-          window.sd_cnt = data
-
-          // 依據需求進一步處理 cntContent
-      }).fail(function(jqxhr, textStatus, error) {
-          console.error("取得 sd_cnt.json 發生錯誤: " + textStatus + ", " + error);
-      });
+    const path = "./index/sd_cnt.json.gz"
+    ajaxLoadAndDecompressJsonGz(path, function (joData){
+      window.sd_cnt = joData // {hebrew, greek}
+      // 而每個都是 {sn: int}
+    })
   }
 }
 function load_sn_book_cnt_to_global_variable_async(){
@@ -510,13 +536,13 @@ function load_sn_book_cnt_to_global_variable_async(){
   // cnt: count
   // book: in bible book, 1based
   // unv: 從和合本分析的
-  if ( window.sn_cnt_book_unv == undefined ){
-      $.getJSON("./index/sn_cnt_book_unv_min.json", function(data) {
-          window.sn_cnt_book_unv = data
-
-      }).fail(function(jqxhr, textStatus, error) {
-          console.error("取得 sn_cnt_book_unv_min.json 發生錯誤: " + textStatus + ", " + error);
-      });
+  if ( window.sn_cnt_book_unv == undefined )
+  {
+    // sn_cnt_book_unv_min.json 是 在此卷書 出現次數功能
+    const path = "./index/sn_cnt_book_unv_min.json.gz"
+    ajaxLoadAndDecompressJsonGz(path, function (joData){
+        window.sn_cnt_book_unv = joData
+    })
   }
 }
 function load_sn_chap_cnt_to_global_variable_async(){
@@ -525,11 +551,10 @@ function load_sn_chap_cnt_to_global_variable_async(){
   // chap: in bible chapter, 1based
   // unv: 從和合本分析的
   if ( window.sn_cnt_chap_unv == undefined ){
-      $.getJSON("./index/sn_cnt_chap_unv_min.json", function(data) {
-          window.sn_cnt_chap_unv = data
-
-      }).fail(function(jqxhr, textStatus, error) {
-          console.error("取得 sn_cnt_chap_unv_min.json 發生錯誤: " + textStatus + ", " + error);
-      });
+    // sn_cnt_chap_unv_min.json 是 每章的分佈次數 
+    const path = "./index/sn_cnt_chap_unv_min.json.gz"
+    ajaxLoadAndDecompressJsonGz(path, function (joData){
+        window.sn_cnt_chap_unv = joData
+    })
   }
 }

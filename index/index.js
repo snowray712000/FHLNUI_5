@@ -3764,7 +3764,7 @@ function FhlLectureEs6Js(){
                     }
                 }
     
-                // get maxRecordCnt maxRecordIdx
+                // get maxRecordCnt maxRecordIdx 
                 var maxRecordCnt = 0;
                 var maxRecordIdx = 0;
                 for (var i = 0; i < rspArr.length; i++) {
@@ -4294,8 +4294,9 @@ function FhlLectureEs6Js(){
                 }
                 
 
+
                 
-                if ( -1 != ["unv","kjv", "rcuv"].indexOf(bibleVersion) ) {
+                if ( -1 != ["unv","kjv", "rcuv","fhlwh"].indexOf(bibleVersion) ) {
                     // 和合本 KJV 和合本2010
                     text = do_sn(text)
                        
@@ -4310,14 +4311,15 @@ function FhlLectureEs6Js(){
 
                     text = text_jq.html()
                 } // if 具有 sn 的譯本
-
+                
                 
                 ret = text;
 
                 if ( bibleVersion == "bhs" || bibleVersion == "fhlwh") {
                     // 舊約馬索拉原文, 新約WH原文
-                    ret = ret.replace(/</g, "&lt");
-                    ret = ret.replace(/>/g, "&gt");
+                    // 新約原文，加上 SN 了，再加這兩行會錯誤 (但我不確定這會不會用到，所以還保留著)
+                    // ret = ret.replace(/</g, "&lt");
+                    // ret = ret.replace(/>/g, "&gt");
                     ret = ret.replace(/\r\n/g, "<br>");
                 }
                 // console.log(ret);
@@ -4564,17 +4566,55 @@ function FhlLectureEs6Js(){
                 })).toArray()
 
                 Enumerable.from(r1).forEach(a1 => {
-                    $.ajax({
-                        url: a1.url
-                    }).done(function (d, s, j) {
-                        if (j) {
-                            var jsonObj = JSON.parse(j.responseText);
-                            // jsonObj.version = a1.ver  // qb.php 有但 qsb.php 沒有
+                    // console.error(a1);
+                    // console.error(ps);
+                    
+                    if ( a1.ver == "fhlwh"){
+                        // 新約原文，若要有 SN，要用這個資料，而不是從 api 取得。
+                        testThenDoAsync(() => window.fhlwh_sn != undefined).then(() => {
+                            // bookIndex 45 chap 1
+                            /** @type {{number,number,number,string}[]} */
+                            const fhlwh_sn = window.fhlwh_sn
+    
+                            const bk = ps.bookIndex
+                            const ch = ps.chap
+                            // where [0]=bk and [1]=ch
+                            const jaBible = fhlwh_sn.filter(ja => ja[0] == bk && ja[1] == ch)
+                            // console.log(jaBible);
+    
+                            // chap, sec, bible_text
+                            const jaBible2 = jaBible.map(ja => ({
+                                chap: ja[1],
+                                sec: ja[2],
+                                bible_text: ja[3],
+                                book: ja[0]
+                            }))
+                            const joResult = {
+                                "status": "success",
+                                "version": a1.ver,
+                                "record": jaBible2,
+                                "record_count": jaBible2.length,
+                                "v_name": "新約原文"
+                            }
+    
+                            cbk(  joResult )
+    
+                            sem--       
+                        })
+                    } else {
+                        $.ajax({
+                            url: a1.url
+                        }).done(function (d, s, j) {
+                            if (j) {
+                                var jsonObj = JSON.parse(j.responseText);
+                                // jsonObj.version = a1.ver  // qb.php 有但 qsb.php 沒有
+    
+                                cbk(jsonObj);
+                                sem--;
+                            }
+                        });
+                    }                 
 
-                            cbk(jsonObj);
-                            sem--;
-                        }
-                    });
                 })
     
                 testThenDoAsync(() => sem == 0)
