@@ -1587,6 +1587,13 @@ nav#fhlTopMenu {
 .snAct2 {
     color: darkred; 
 }
+.fn-search-sn {
+    color: blue;
+    cursor:pointer;
+}
+.fn-search-sn:hover {
+    color: lightblue;
+}
 
 #fhlMidBottomWindow {
     position: absolute;

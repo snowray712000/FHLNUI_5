@@ -395,7 +395,7 @@ function queryDictionaryAndShowAtDialogAsyncEs6Js() {
             dlg.showDialog({
                 html: html,
                 getTitle: () => "原文字典" + jo.sn,
-                registerEventWhenShowed: dlg => {     
+                registerEventWhenShowed: dlg => {
                     dlg.on('click', '.ref', a1 => {
                         queryDictionaryAndShowAtDialogAsync({ sn: $(a1.target).attr('data-addrs'), isOld: false })
                         //let addrs = JSON.parse($(a1.target).attr('data-addrs'))
@@ -2135,7 +2135,49 @@ function queryDictionaryAndShowAtDialogAsyncEs6Js() {
                 html: html,
                 getTitle: () => "原文字典" + jo.sn,
                 registerEventWhenShowed: dlg => {
+                    const sn = jo.sn // str
+                    const isOld = jo.isOld // 0, 1
+                    console.log(jo);
+                    
+
+                    // 改 title，因為 getTitle 的方式只能純文字，不能有 html tag ... dlg parent 才會包到 title
+                    // <span> 原文字典 3303 <span fn-search-sn> 出現經文 </span></span>
+                    const domAutoSearch = $('<span>').text("出現經文").addClass('fn-search-sn').attr('sn',sn).attr('isOld',isOld)
+
+                    const domtitle = dlg.parent().find('.ui-dialog-title').addClass('realtime-sn').html(
+                        $('<span>')
+                        .append('<span>原文字典</span>')
+                        .append(`<span> ${sn} </span>`)
+                        .append(domAutoSearch)
+                        [0].outerHTML
+                    )
+
+                    // 加入 .fnAutoSearch click callback // 
+                    domtitle.find('.fn-search-sn')
+                    .on('click', a1 => {
+                        const pthis = $(a1.target)
+                        // console.log(pthis.attr('sn'));
+                        // console.log(pthis.attr('isOld'));
+                        const sn = pthis.attr('sn')
+                        let isOld = pthis.attr('isOld')
+                        isOld = isOld == "true" || isOld == "1" ? 1 : 0 // 0, 1
+
+                        const hgSn = `${ isOld ? 'H':'G'}${sn}` // H3303 G4314
+
+                        // 將 #searchTool 下的 <input> 它的 class 是 .search-input 的內容改設定為 G4314
+                        $('#searchTool').find('.search-input').val(hgSn)
+                        // 觸發 .searchBtn 的 click 事件, 開始搜尋
+                        $('.searchBtn').trigger('click');
+
+                        // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
+                        // let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
+                        const rr1 = $('.ui-dialog-title')
+                        let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
+                        rr2.trigger('click')
+                    })
+
                     dlg.on('click', '.ref', a1 => {
+                        
                         // queryDictionaryAndShowAtDialogAsync({ sn: $(a1.target).attr('data-addrs'), isOld: false })
                         let addrs = JSON.parse($(a1.target).attr('data-addrs'))
                         queryReferenceAndShowAtDialogAsync({ addrs: addrs })
@@ -3125,6 +3167,9 @@ function FhlLectureEs6Js(){
                     let sn_hg = (N==0?'G':'H') + sn // 2 處用到
                     let span_sn = $('<span>').text(`${sn_hg} `).addClass('sn').attr('sn',sn).attr('N',N)
 
+                    // <span.fn-search-sn sn,isOld> 出現經文 </span>
+                    const span_fn_sn_search = $('<span>').text(`出現經文`).addClass('fn-search-sn').attr('sn',sn).attr('tp',(N==0?'G':'H'))
+
                     // 原文 簡義
                     // 從 same 中找到自己那個
                     let span_orig = $('<span>').addClass('orig')
@@ -3189,9 +3234,9 @@ function FhlLectureEs6Js(){
                             des_where = ar.map(a1=>`${a1.chap}`).join(',')
                             count_each = ar.map(a1=>`${a1.cnt}`).join(',')
 
-                            description_in_this_book_chap = `主要於 ${des_where} 章。次數為 ${count_each}。`
+                            description_in_this_book_chap = `本書主要於 ${des_where} 章。次數為 ${count_each}。`
                         } else {
-                            description_in_this_book_chap = `主要於 ${ar.map(a1=>`${a1.chap}`).join(',')} 章。次數為 ${ar.map(a1=>`${a1.cnt}`).join(',')}。`
+                            description_in_this_book_chap = `本書主要於 ${ar.map(a1=>`${a1.chap}`).join(',')} 章。次數為 ${ar.map(a1=>`${a1.cnt}`).join(',')}。`
                         }
 
                         
@@ -3402,17 +3447,38 @@ function FhlLectureEs6Js(){
                          * 
                          * @param {JQuery<HTMLElement>} dlg 
                          */
-                        registerEventWhenShowed: dlg => {
-                            // 改 title，因為 getTitle 的方式只能純文字，不能有 html tag ... dlg parent 才會包到 title
+                        registerEventWhenShowed: dlg => {                            
+                            // 改 title，因為 getTitle 的方式只能純文字，不能有 html tag ... dlg parent 才會包到 title 
                             dlg.parent().find('.ui-dialog-title').addClass('realtime-sn').html(
                                 $('<span>')
                                 .append(span_sn)
+                                .append(span_fn_sn_search) // <span.fn-search-sn sn,isOld> 出現經文 </span>
                                 .append(span_orig)
                                 .append(span_mean)
                                 .append(span_parsing)
                                 [0].outerHTML
                             )
                             
+
+                            
+                            // 出現經文 搜尋 SN 出現經文
+                            dlg.parent().on('click', '.fn-search-sn', a1 => {
+                                let sn = $(a1.target).attr('sn')
+                                let tp = $(a1.target).attr('tp')
+                                const hgSn = `${tp}${sn}` // H3303 G4314
+                                
+                                // 將 #searchTool 下的 <input> 它的 class 是 .search-input 的內容改設定為 G4314
+                                $('#searchTool').find('.search-input').val(hgSn)
+                                // 觸發 .searchBtn 的 click 事件, 開始搜尋
+                                $('.searchBtn').trigger('click');
+                                
+                                // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
+                                // let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
+                                const rr1 = $('.ui-dialog-title')
+                                let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
+                                rr2.trigger('click')
+                            })
+
                             dlg.on('click', '.ref', a1 => {
                                 let addrs = JSON.parse($(a1.target).attr('data-addrs'))
                                 queryReferenceAndShowAtDialogAsync({addrs:addrs})
@@ -4016,6 +4082,7 @@ function FhlLectureEs6Js(){
     
                                         // 每1節都要測所有的 regex, 並取代
                                         $.each(id2reg, function (b1, b2) {
+                                            // b1 是 sobj id ... id2obj 是 sobj 物件
                                             var b3 = id2obj[b1];
                                             var issite = b3.objpath == null || b3.objpath.trim().length == 0 ? false : true;
                                             var isphoto = true; //目前無法判定是不是相片,全都當是 TODO
@@ -4026,14 +4093,21 @@ function FhlLectureEs6Js(){
                                             else if (ps.ispho && ps.ispos == false && isphoto == false)
                                                 return;//next reg
     
-                                            if (b2.test(str)) {
+                                            if (b2.test(str)) 
+                                            {
                                                 ischanged = true;
-                                                //var strpho = (ps.ispho == false || isphoto == false) ? "" : "<img class='pho'></img>";
-                                                var strpho = (ps.ispho == false || isphoto == false) ? "" : "<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=" + ps.gb + "&LIMIT=" + b1 + "'><img class='pho'></img></a>";
-                                                var strsite = (ps.ispos == false || issite == false) ? "" : "<img class='pos'></img>";
-    
-                                                str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strsite + strpho + "</span>");
-    
+                                                // const isExistPhoto = ps.ispho && isphoto // 目前一定是 true
+                                                const strpho = `<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=${ps.gb}&LIMIT=${b1}'><img class='pho'></img></a>`
+                                                
+                                                const isExistPos = ps.ispos && issite
+                                                if ( isExistPos ){
+                                                    // $1 就是「本都」這字眼
+                                                    // 要產生 聖光地理 搜尋的網址 
+                                                    // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
+                                                    str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
+                                                } else {
+                                                    str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strpho + "</span>");
+                                                }
                                             }
                                         });
     
@@ -4189,7 +4263,8 @@ function FhlLectureEs6Js(){
                                         var ischanged = false;
     
                                         // 每1節都要測所有的 regex, 並取代
-                                        $.each(id2reg, function (b1, b2) {
+                                        $.each(id2reg, function (b1, b2) 
+                                        {
                                             var b3 = id2obj[b1];
                                             var issite = b3.objpath == null || b3.objpath.trim().length == 0 ? false : true;
                                             var isphoto = true; //目前無法判定是不是相片,全都當是 TODO
@@ -4199,15 +4274,22 @@ function FhlLectureEs6Js(){
                                                 return;//next reg
                                             else if (ps.ispho && ps.ispos == false && isphoto == false)
                                                 return;//next reg
-    
-                                            if (b2.test(str)) {
+                                            if (b2.test(str)) 
+                                            {
                                                 ischanged = true;
-                                                //var strpho = (ps.ispho == false || isphoto == false) ? "" : "<img class='pho'></img>";
-                                                var strpho = (ps.ispho == false || isphoto == false) ? "" : "<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=0&LIMIT=" + b1 + "'><img class='pho'></img></a>";
-                                                var strsite = (ps.ispos == false || issite == false) ? "" : "<img class='pos'></img>";
-    
-                                                str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$2</span>" + strsite + strpho + "</span>");
-                                            }
+                                                // const isExistPhoto = ps.ispho && isphoto // 目前一定是 true
+                                                const strpho = `<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=${ps.gb}&LIMIT=${b1}'><img class='pho'></img></a>`
+                                                
+                                                const isExistPos = ps.ispos && issite
+                                                if ( isExistPos ){
+                                                    // $1 就是「本都」這字眼
+                                                    // 要產生 聖光地理 搜尋的網址 
+                                                    // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
+                                                    str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
+                                                } else {
+                                                    str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strpho + "</span>");
+                                                }
+                                            }    
                                         });
     
                                         if (ischanged) {
@@ -4268,6 +4350,8 @@ function FhlLectureEs6Js(){
                         //  		}
                     });
                 }
+
+                
     
     
     
