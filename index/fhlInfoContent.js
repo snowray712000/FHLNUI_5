@@ -624,7 +624,7 @@
                                     let reg_combile = new RegExp(reg_combile_str, "g")
 
                                     // 結果字串
-                                    text_result = text.replace(reg_combile, (match, p1, p2) => {
+                                    let text_result = text.replace(reg_combile, (match, p1, p2) => {
                                         reg_tps.forEach(reg => reg.lastIndex = 0 ) // reset 正規化表達式，不然第2次會失效。
                                         if (reg_tps.some(reg => reg.test(p2))) {
                                             return p1 + p2

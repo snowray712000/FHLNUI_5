@@ -875,9 +875,9 @@ var fhlLecture = (function () {
                             let sA = s4 || s8;
                             
                             // 判斷有無 { }
-                            isExistBrace = s1 != undefined
+                            const isExistBrace = s1 != undefined
                             // 判斷是要用 < > chevrons 還是 ( ) parentheses  
-                            isUseParentheses = sAT == 'T' 
+                            const isUseParentheses = sAT == 'T' 
                             // sn 去掉多餘的0 (轉成數字，再轉回文字) + a (若有)
                             let sn = parseInt(sSN).toString() + (sA == 'a' ? sA : '')
                             // N=1 舊約, N=0 新約

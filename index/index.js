@@ -6,7 +6,42 @@
 /// <reference path='./fhlParsing.d.ts' />
 /// <reference path='./DPageState.d.js' />
 
+// import { matchGlobalWithCapture } from './matchGlobalWithCapture.es2023.js'
+// import { splitStringByRegex } from './splitStringByRegex.es2023.js'
+// import { isRDLocation } from './isRDLocation.es2023.js'
+// import { DialogHtml } from './DialogHtml.es2023.js'
+// import { splitBtw } from './splitBtw.es2023.js'
+// import { BibleConstant } from './BibleConstant.es2023.js'
+// import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
+// import { splitReference } from './splitReference.es2023.js'
+// import { SnDictOfTwcb } from './SnDictOfTwcb.es2023.js'
+// import { splitBrOne } from './splitBrOne.es2023.js'
+// import { twcbflow } from './twcbflow.es2023.js'
+// import { cbolflow } from './cbolflow.es2023.js'
+// import { ISnDictionary } from './ISnDictionary.es2023.js'
+// import { SnDictOfCbol } from './SnDictOfCbol.es2023.js'
+// import { qsbAsync } from './qsbAsync.es2023.js'
+// import { cvtDTextsToHtml } from './cvtDTextsToHtml.es2023.js'
+// import { cvtAddrsToRef } from './cvtAddrsToRef.es2023.js'
+// import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
+// import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
+
+
 (function (root) {
+    // // 相容其它 .js 還沒有重構成 import export 格式
+    // window.BibleConstantEs6Js = () => BibleConstant
+    // window.BibleConstantHelperEs6Js = () => BibleConstantHelper
+    // window.queryDictionaryAndShowAtDialogAsyncEs6Js = () => queryDictionaryAndShowAtDialogAsync
+    // window.queryReferenceAndShowAtDialogAsyncEs6Js = () => queryReferenceAndShowAtDialogAsync
+    // window.splitReferenceEs6Js = () => splitReference
+
+    // 串珠也會用到，但串珠沒有這幾個函式定義
+    window.BibleConstantEs6Js = BibleConstantEs6Js 
+    window.BibleConstantHelperEs6Js = BibleConstantHelperEs6Js
+    window.splitReferenceEs6Js = splitReferenceEs6Js 
+    window.queryReferenceAndShowAtDialogAsyncEs6Js = queryReferenceAndShowAtDialogAsyncEs6Js
+    window.cvtAddrsToRefEs6Js = cvtAddrsToRefEs6Js 
+
     const FhlLecture = FhlLectureEs6Js()
     
     root.fhlLecture = new FhlLecture()
@@ -167,7 +202,7 @@
     // doReadyStep2()
     return
 
-})(this)
+})(this ?? window)
 
 function init_fontsize_css_variable_from_pagestate(ps){
     document.body.style.setProperty("--fontsize", ps.fontSize + "pt")
@@ -376,139 +411,6 @@ function doReadyStep2() {
 //   './FHL.tools.js',
 //   './FHL.BibleConstant.js',
 // ].forEach(Ijnjs.loadJsOrCssSync)
-
-// 下面是 Es6Js code copy
-function queryDictionaryAndShowAtDialogAsyncEs6Js() {
-    let SnDictOfCbol = SnDictOfCbolEs6Js()
-    let SnDictOfTwcb = SnDictOfTwcbEs6Js()
-    let DialogHtml = DialogHtmlEs6Js()
-
-    return queryDictionaryAndShowAtDialogAsync
-    /**
-     * 開發給 原字Parsing時，點擊原文字，要跳出字典內容
-     * @param {{sn:string;isOld:boolean}} jo 
-     * @returns {Promise<void>}
-     */
-    function queryDictionaryAndShowAtDialogAsync(jo) {
-        qDataAsync(jo).then(html => {
-            let dlg = new DialogHtml()
-            dlg.showDialog({
-                html: html,
-                getTitle: () => "原文字典" + jo.sn,
-                registerEventWhenShowed: dlg => {
-                    dlg.on('click', '.ref', a1 => {
-                        queryDictionaryAndShowAtDialogAsync({ sn: $(a1.target).attr('data-addrs'), isOld: false })
-                        //let addrs = JSON.parse($(a1.target).attr('data-addrs'))
-                        //console.log(addrs);
-                        //window.location.hash = "#/bible/Ge/3/28"
-                    })
-                }
-            })
-        });
-        return
-        /**
-         * 
-         * @param {{sn:string,isOld:1|0}} param
-         * @returns {Promise<string>} 
-         */
-        function qDataAsync(param) {
-            return new Promise((res, rej) => {
-                // res("<div>data getter</div>")
-
-                /** 第1個是 twcb 第2個是 cbol */
-                let datas = qDataOfDictOfFhlAsync(param)
-
-                /** @type {Promise<DText[]>[]} */
-                let dtexts = datas.map(a1 => a1.then(aa1 => new Promise((res2, rej2) => {
-                    try {
-                        res2(cvtToDTextArrayFromDictOfFhl(aa1))
-                    } catch (error) {
-                        rej2(error)
-                    }
-                })))
-
-                Promise.all(dtexts).then(dtextss => {
-                    let htmlTwcb = cvtToHtmlFromDTextArray(dtextss[0])
-                    let htmlCbol = cvtToHtmlFromDTextArray(dtextss[1])
-
-                    let declare1 = '<span class="bibtext">以上資料由<a href="http://twcb.fhl.net/" target="_blank">浸宣出版社</a>授權</span> <br/><hr/>'
-
-                    let declare2 = '<span class="bibtext">以上資料由<a href="https://bible.fhl.net/part1/cobs1.html" target="_blank"> CBOL計畫</a>整理</span>'
-
-
-                    res(htmlTwcb + "<br/>" + declare1 + '<br/>' + htmlCbol + "<br/>" + declare2)
-                }).catch(ex => {
-                    // console.error(ex);
-                    res("<div>error " + ex.message + "</div>")
-                })
-            });
-
-            /**
-             * @param {{sn:string,isOld:1|0}} param 
-             * @returns {Promise<DataOfDictOfFhl>[]}
-             */
-            function qDataOfDictOfFhlAsync(param) {
-                /** @type {ISnDictionary[]} */
-                let iQueryor = [new SnDictOfTwcb(), new SnDictOfCbol()]
-                let r1 = iQueryor.map(a1 => a1.queryAsync(param))
-
-                return r1.map((a1, i1) => addSrcAndIsOldToDataResult(a1, i1, param.isOld))
-
-                /**
-                 * @param {Promise<DataOfDictOfFhl>} promise 
-                 * @param {number} index 
-                 * @returns {Promise<DataOfDictOfFhl>}
-                 */
-                function addSrcAndIsOldToDataResult(promise, index, isOld) {
-
-                    return new Promise((res, rej) => {
-                        promise.then(data => {
-                            data.src = index == 0 ? "twcb" : "cbol"
-                            data.isOld = isOld
-
-                            res(data)
-                        })
-                    })
-                }
-            }
-            /**
-             * @param {DataOfDictOfFhl} dataOfDictOfFhl 
-             * @returns {DText[]}
-             */
-            function cvtToDTextArrayFromDictOfFhl(dataOfDictOfFhl) {
-                if (dataOfDictOfFhl.src == "twcb") {
-                    return new SnDictOfTwcb().cvtToDTexts(dataOfDictOfFhl)
-                } else if (dataOfDictOfFhl.src == "cbol") {
-                    return new SnDictOfCbol().cvtToDTexts(dataOfDictOfFhl)
-                }
-                throw Error("data of dictionary of fhl assert data.src is twcb or cbol.")
-            }
-            /**
-             * @param {DText[]} dtexts 
-             * @returns {string}
-             */
-            function cvtToHtmlFromDTextArray(dtexts) {
-                let icvt = new ConvertDTextsToHtml()
-                return icvt.main(dtexts)
-            }
-
-        }
-        /**
-         * @class
-        */
-        function ConvertDTextsToHtml() {
-            /**
-             * 開發時，是為了寫 SN Dictionary Bug 用
-             * @param {DText[]} dtexts 
-             * @returns {string}
-             */
-            this.main = function (dtexts) {
-                let cvtDTextsToHtml = cvtDTextsToHtmlEs6Js()
-                return "<div>" + cvtDTextsToHtml(dtexts) + "</div>"
-            }
-        }
-    }
-}
 
 function DialogHtmlEs6Js() {
     return DialogHtml
@@ -1226,8 +1128,8 @@ function splitStringByRegexEs6Js() {
 // 以下 bundle
 function splitReferenceEs6Js() {
     let splitStringByRegex = splitStringByRegexEs6Js()
-    let BibleConstantHelper = BibleConstantHelperEs6Js()
     let BibleConstant = BibleConstantEs6Js()
+    let BibleConstantHelper = BibleConstantHelperEs6Js()
 
     return splitReference
     /**
@@ -2698,6 +2600,7 @@ function FhlLectureEs6Js(){
     const queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsyncEs6Js()
     const queryReferenceAndShowAtDialogAsync = queryReferenceAndShowAtDialogAsyncEs6Js()
     const splitReference = splitReferenceEs6Js()
+    const BibleConstant = BibleConstantEs6Js()
     
 
     // 讓別處也能用 dict
@@ -3071,7 +2974,8 @@ function FhlLectureEs6Js(){
                     }
                     
                     return new Promise((res, rej) => {
-                            let engs = new BibleConstant().ENGLISH_BOOK_ABBREVIATIONS[one.book-1]
+
+                            let engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[one.book-1]
                             let chap = one.chap
                             let sec = one.sec
     
@@ -3231,8 +3135,8 @@ function FhlLectureEs6Js(){
                             }
                             ar = ar.slice(0,idxslice)
 
-                            des_where = ar.map(a1=>`${a1.chap}`).join(',')
-                            count_each = ar.map(a1=>`${a1.cnt}`).join(',')
+                            const des_where = ar.map(a1=>`${a1.chap}`).join(',')
+                            const count_each = ar.map(a1=>`${a1.cnt}`).join(',')
 
                             description_in_this_book_chap = `本書主要於 ${des_where} 章。次數為 ${count_each}。`
                         } else {
@@ -4319,10 +4223,10 @@ function FhlLectureEs6Js(){
     
                 // 2016.01.21(四) 版權宣告 snow
                 {
-                    var div_copyrigh = $('<div id="div_copyright" class="lec copyright"></div>');
+                    let div_copyrigh = $('<div id="div_copyright" class="lec copyright"></div>');
                     $('#lecMain').append(div_copyrigh); // 放在 lecMain 才會在最下面. 因為 parent 有設 position 屬性
-                    rr = React.createElement(copyright_api.R.frame, { ver: ps.version });
-                    ss = React.render(rr, document.getElementById("div_copyright"));  // snow add 2016.01.21(四),
+                    let rr = React.createElement(copyright_api.R.frame, { ver: ps.version });
+                    const ss = React.render(rr, document.getElementById("div_copyright"));  // snow add 2016.01.21(四),
                     // bug 小心: 版權宣告 render 必須在 dom.html 之後唷, 這樣才找到的 divCopyright 實體
                 }
     
@@ -4543,9 +4447,9 @@ function FhlLectureEs6Js(){
                         let sA = s4 || s8;
                         
                         // 判斷有無 { }
-                        isExistBrace = s1 != undefined
+                        const isExistBrace = s1 != undefined
                         // 判斷是要用 < > chevrons 還是 ( ) parentheses  
-                        isUseParentheses = sAT == 'T' 
+                        const isUseParentheses = sAT == 'T' 
                         // sn 去掉多餘的0 (轉成數字，再轉回文字) + a (若有)
                         let sn = parseInt(sSN).toString() + (sA == 'a' ? sA : '')
                         // N=1 舊約, N=0 新約
@@ -4567,9 +4471,9 @@ function FhlLectureEs6Js(){
                         return span[0].outerHTML
                     }
                     
-                    reg1 = /<W([AT]?)([HG])([0-9]+)(a?)>/gi // T是顯示是用小括號，但原始是<>，那是後處理
+                    let reg1 = /<W([AT]?)([HG])([0-9]+)(a?)>/gi // T是顯示是用小括號，但原始是<>，那是後處理
                     // 有可能有 { } ， 也可能沒有
-                    reg2 = new RegExp("{"+reg1.source+"}" + "|" + reg1.source, "gi")
+                    let reg2 = new RegExp("{"+reg1.source+"}" + "|" + reg1.source, "gi")
                     text = text.replace(reg2, snReplace);
                     
                     return text

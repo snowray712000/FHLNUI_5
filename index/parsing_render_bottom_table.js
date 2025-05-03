@@ -9,7 +9,7 @@
  */
 function parsing_render_bottom_table(jsonObj, tp) 
 {
-    N = tp == 'H' ? 1 : 0
+    const N = tp == 'H' ? 1 : 0
 
     // 先預備 wid 是特別的
     let [greek_Westcott_Hort, greek_USB4, plus_symbol] = get_special_wid(jsonObj, tp)
@@ -41,7 +41,7 @@ function parsing_render_bottom_table(jsonObj, tp)
         }
 
         // 空白字元
-        white_char = "&nbsp;&nbsp;"
+        const white_char = "&nbsp;&nbsp;"
 
         // sn span
         let sn = get_sn_shorter(r.sn)                                
@@ -55,7 +55,7 @@ function parsing_render_bottom_table(jsonObj, tp)
         divOne.append(snSpan)
 
         // orig_class '.hebrew-char' or '.greek-char'
-        orig_class = tp == 'H' ? 'hebrew-char' : 'greek-char'
+        const orig_class = tp == 'H' ? 'hebrew-char' : 'greek-char'
 
         // word
         divOne.append($("<span></span><br/>").addClass(orig_class).text(r.word))

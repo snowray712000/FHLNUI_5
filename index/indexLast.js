@@ -16,7 +16,7 @@
 
   // 載入 bible_fhlwh.json.gz
   if ( window.fhlwh_sn == undefined ){
-    path = "./index/bible_fhlwh.json.gz"
+    const path = "./index/bible_fhlwh.json.gz"
     ajaxLoadAndDecompressJsonGz(path, function (joData){
       window.fhlwh_sn = joData["data"] // 這是一個 [book,chap,sec,bible_text]
     })

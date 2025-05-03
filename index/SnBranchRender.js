@@ -8,7 +8,7 @@
         this.chap = 0
         this.isTitleChangeBack = false
     
-        that = this
+        let that = this
         $(document).on('InfoTitleChanged', function (event, data){
             if ( data.titleId == "fhlSnBranch"){
                 that.isTitleChangeBack = true
@@ -22,7 +22,7 @@
             dom2.innerHTML = "<p>尚未取得版權</p>"
             return 
         } 
-        if ( this.chap == ps.chap && this.book == ps.bookIndex && that.isTitleChangeBack == false ){
+        if ( this.chap == ps.chap && this.book == ps.bookIndex && this.isTitleChangeBack == false ){
             // 目前還沒有直接切換到對應頁面，所以沒有切換
             // 但這個保護，會在從別的功能切回來的時候，讓 render 不會生效
             return 
@@ -31,11 +31,11 @@
         if ( dom2 != null ){
             this.book = ps.bookIndex
             this.chap = ps.chap
-            that.isTitleChangeBack = false
+            this.isTitleChangeBack = false
     
             function generateUrlSnTree(chap){
                 // 目前只購買了羅馬書，45，其它都沒有
-                chapstr = chap.toString().padStart(3, '0'); // 016
+                const chapstr = chap.toString().padStart(3, '0'); // 016
                 
                 var r1 = (isRDLocation() ? 'https://bible.fhl.net' : '')
 
@@ -49,7 +49,7 @@
             </object>`
             }
             
-            urls = generateUrlSnTree(this.chap)
+            const urls = generateUrlSnTree(this.chap)
             dom2.innerHTML = generatePdfHtml(urls[0]) + generatePdfHtml(urls[1])
         }
     }
