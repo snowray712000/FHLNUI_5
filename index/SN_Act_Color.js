@@ -35,14 +35,15 @@ class SN_Act_Color {
     
         
         // 同源字，標記為暗紅色
-        if ( window.sd_same != undefined ){
+        const Sd_same_json = window.Sd_same_json
+        if ( Sd_same_json.s.filecontent != null) {
             // 下次觸發就有可能是存在了，一次沒觸發還好
 
             // n=0 新約，取 greek。n=1 舊約，取 hebrew
             let hg = N == 0 ? "greek" : "hebrew"
 
             /** @type {str[]} */
-            let same = window.sd_same[hg][sn]
+            let same = Sd_same_json.s.filecontent[hg][sn]
             if (same != undefined){
                 // 移除 same2 中 所有 與 sn 一樣的值
                 let same2 = same.filter(a1 => a1 != sn) // 太1，波阿斯 可驗證

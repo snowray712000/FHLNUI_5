@@ -28,6 +28,10 @@ import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtD
 // import { FhlLecture } from './FhlLecture.es2023.js'
 
 import { load_json_gz_Async } from './load_json_gz_Async.es2023.js'
+import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js"
+import { Sn_cnt_book_unv_json } from "./Sn_cnt_book_unv_json.es2023.js"
+import { Sd_cnt_json } from "./Sd_cnt_json.es2023.js"
+import { Bible_fhlwh_json } from './Bible_fhlwh_json.es2023.js'
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -554,20 +558,20 @@ function FhlLectureEs6Js(){
      * @returns {number} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt 
      */
     function get_sn_count_in_bible(sn, N){
-        if (window.sd_cnt == undefined) return -2
+        if (Sd_cnt_json.s.filecontent == null) return -2
         
         let hg = N == 0 ? "greek" : "hebrew"
-        let cnt = window.sd_cnt[hg][sn]
+        let cnt = Sd_cnt_json.s.filecontent[hg][sn]
         if ( cnt != undefined ){
             return cnt
         }
         return -1
     }
     function get_sn_count_in_book(sn, book){
-        if (window.sn_cnt_book_unv == undefined) return -2
+        if (Sn_cnt_book_unv_json.s.filecontent == null) return -2
         
         let hg = book >= 40 ? "G" : "H"
-        let cnt = window.sn_cnt_book_unv[hg][sn][book]
+        let cnt = Sn_cnt_book_unv_json.s.filecontent[hg][sn][book]
         if ( cnt != undefined ){
             return cnt
         }
@@ -580,11 +584,12 @@ function FhlLectureEs6Js(){
      * @returns {Object<number,number>} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt
      */
     function get_sn_count_in_chap(sn, book){
-        if (window.sn_cnt_chap_unv == undefined) return -2
-        
+        if ( Sn_cnt_chap_unv_json.s.filecontent == null) return -2
+
         let hg = book >= 40 ? "G" : "H"
         
-        let dict_chap_cnt = window.sn_cnt_chap_unv[hg][sn][book]        
+        let dict_chap_cnt = Sn_cnt_chap_unv_json.s.filecontent[hg][sn][book]    
+            
         if ( dict_chap_cnt != undefined ){
             // return clone result, not the original, to prevent change the original
             return JSON.parse(JSON.stringify(dict_chap_cnt))
@@ -608,9 +613,16 @@ function FhlLectureEs6Js(){
             this.render(ps, dom);
             $lecture = $(this.dom);
             var $lecMain = $('#lecMain');
-            var that = this
+            var that = this            
             // chapnext prev 變成1次事件就夠了
             $('.chapBack').click(function (e) {
+                // console.error(window.viewHistory, window.fhlLecture, window.fhlInfo, window.bookSelect);
+                const isTheSame = JSON.stringify(ps) == JSON.stringify(window.pageState)
+                if ( isTheSame == false ){
+                    console.error("ps != pageState", ps, window.pageState)
+                }
+                
+                
                 var idx = getBookFunc("index", ps.chineses); // 0-based
                 if (ps.chap == 1) {
                     idx--;
@@ -2399,15 +2411,13 @@ function FhlLectureEs6Js(){
                     
                     if ( a1.ver == "fhlwh"){
                         // 新約原文，若要有 SN，要用這個資料，而不是從 api 取得。
-                        testThenDoAsync(() => window.fhlwh_sn != undefined).then(() => {
+                        testThenDoAsync(() => Bible_fhlwh_json.s.filecontent != null).then(() => {
                             // bookIndex 45 chap 1
                             /** @type {{number,number,number,string}[]} */
-                            const fhlwh_sn = window.fhlwh_sn
-    
                             const bk = ps.bookIndex
                             const ch = ps.chap
                             // where [0]=bk and [1]=ch
-                            const jaBible = fhlwh_sn.filter(ja => ja[0] == bk && ja[1] == ch)
+                            const jaBible = Bible_fhlwh_json.s.filecontent["data"].filter(ja => ja[0] == bk && ja[1] == ch)
                             // console.log(jaBible);
     
                             // chap, sec, bible_text
