@@ -9,65 +9,21 @@
   doLast4()
   doLast3()
   doLast2()
-  doLast1() 
-
-  // 好用，大家用
-  window.ajaxLoadAndDecompressJsonGz = ajaxLoadAndDecompressJsonGz
-
-  // 載入 bible_fhlwh.json.gz
-  if ( window.fhlwh_sn == undefined ){
-    const path = "./index/bible_fhlwh.json.gz"
-    ajaxLoadAndDecompressJsonGz(path, function (joData){
-      window.fhlwh_sn = joData["data"] // 這是一個 [book,chap,sec,bible_text]
-    })
-  }
-  
-  // 這 sn，有哪些同源字
-  load_sd_same_to_global_variable_async()
-  
-  // 這 sn，在聖經出現幾次
-  load_sd_cnt_to_global_variable_async()
-  // 這卷書，某 sn 出現幾次 (較小，先載)
-  load_sn_book_cnt_to_global_variable_async()
-  // 這 sn，在這卷書出現的分佈
-  load_sn_chap_cnt_to_global_variable_async()
+  doLast1()
 
   // 搜尋 #fhlMidBottomWindow .sn mouseenter mouseleave 事件使用，改變 sn 顏色
   let_sn_color_change_in_search_result()
-  
+
 })(this)
 
-/**
- * 載入 gzipped JSON .json.gz 檔案並解壓縮
- * @param {string} url 檔案路徑
- * @param {function} successCallback 成功回呼函式，接收解壓縮後的 JSON 物件。若失敗，這內部會有 error log
- */
-function ajaxLoadAndDecompressJsonGz(url, successCallback) {
-  $.ajax({
-    url: url,
-    method: 'GET',
-    processData: false,
-    xhrFields: {
-      responseType: 'arraybuffer'
-    },
-    success: function (data) {
-      const decompressed = pako.ungzip(new Uint8Array(data), { to: 'string' });
-      const jsonData = JSON.parse(decompressed);
-      successCallback(jsonData);
-    },
-    error: function (jqxhr, textStatus, error) {
-      console.error("取得 " + url + " 發生錯誤: " + textStatus + ", " + error);
-    }
-  });
-}
 
-function let_sn_color_change_in_search_result(){
+function let_sn_color_change_in_search_result() {
   $('#fhlMidBottomWindow').on('mouseenter', '.sn', function () {
     var sn = $(this).attr('sn')
     var N = $(this).attr('N')
     pageState.snAct = sn
-    pageState.snActN = N    
-    
+    pageState.snActN = N
+
     SN_Act_Color.act_add(sn, N)
   }).on('mouseleave', '.sn', function () {
     SN_Act_Color.act_remove()
@@ -292,7 +248,7 @@ function doLast1() {
             if (pageState == null || pageState.history == null || pageState.history.length == 0)
               setTimeout(tryit, 777);//try it again
             else
-              triggerGoEventWhenPageStateAddressChange(pageState)              
+              triggerGoEventWhenPageStateAddressChange(pageState)
           }
           setTimeout(tryit, 777);
         })();
@@ -508,53 +464,3 @@ function doLast1() {
   }
 }
 
-
-function load_sd_same_to_global_variable_async(){                        
-  // sd_same.json 是 同源字 用途
-  if ( window.sd_same == undefined ){
-    const path = "./index/sd_same.json.gz"
-    ajaxLoadAndDecompressJsonGz(path, function (joData){
-      window.sd_same = joData // {hebrew, greek}
-      // 而每個都是 {sn: [sn]}
-    })
-  }
-}
-
-function load_sd_cnt_to_global_variable_async()
-{
-  // sd_cnt.json 是 聖經出現次數 用途
-  if ( window.sd_cnt == undefined ){
-    const path = "./index/sd_cnt.json.gz"
-    ajaxLoadAndDecompressJsonGz(path, function (joData){
-      window.sd_cnt = joData // {hebrew, greek}
-      // 而每個都是 {sn: int}
-    })
-  }
-}
-function load_sn_book_cnt_to_global_variable_async(){
-  // sn: strong number 
-  // cnt: count
-  // book: in bible book, 1based
-  // unv: 從和合本分析的
-  if ( window.sn_cnt_book_unv == undefined )
-  {
-    // sn_cnt_book_unv_min.json 是 在此卷書 出現次數功能
-    const path = "./index/sn_cnt_book_unv_min.json.gz"
-    ajaxLoadAndDecompressJsonGz(path, function (joData){
-        window.sn_cnt_book_unv = joData
-    })
-  }
-}
-function load_sn_chap_cnt_to_global_variable_async(){
-  // sn: strong number
-  // cnt: count
-  // chap: in bible chapter, 1based
-  // unv: 從和合本分析的
-  if ( window.sn_cnt_chap_unv == undefined ){
-    // sn_cnt_chap_unv_min.json 是 每章的分佈次數 
-    const path = "./index/sn_cnt_chap_unv_min.json.gz"
-    ajaxLoadAndDecompressJsonGz(path, function (joData){
-        window.sn_cnt_chap_unv = joData
-    })
-  }
-}

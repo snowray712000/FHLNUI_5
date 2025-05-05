@@ -27,6 +27,8 @@ import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDia
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 // import { FhlLecture } from './FhlLecture.es2023.js'
 
+import { load_json_gz_Async } from './load_json_gz_Async.es2023.js'
+
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
     window.BibleConstantEs6Js = () => BibleConstant
@@ -48,6 +50,7 @@ import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtD
     window.SnDictOfCbolEs6Js = () => SnDictOfCbol
     window.queryReferenceAndShowAtDialogAsyncEs6Js = () => queryReferenceAndShowAtDialogAsync
     window.queryDictionaryAndShowAtDialogAsyncEs6Js = () => queryDictionaryAndShowAtDialogAsync
+    window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
     // window.FhlLectureEs6Js = () => FhlLecture
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
@@ -56,6 +59,8 @@ import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtD
     // window.splitReferenceEs6Js = splitReferenceEs6Js 
     // window.cvtAddrsToRefEs6Js = cvtAddrsToRefEs6Js 
     // window.queryReferenceAndShowAtDialogAsyncEs6Js = queryReferenceAndShowAtDialogAsyncEs6Js
+
+    load_json_gz_Async()
 
     const FhlLecture = FhlLectureEs6Js()
     
@@ -426,6 +431,7 @@ function doReadyStep2() {
 //   './FHL.tools.js',
 //   './FHL.BibleConstant.js',
 // ].forEach(Ijnjs.loadJsOrCssSync)
+
 
 function FhlLectureEs6Js(){
     // const isRDLocation = isRDLocationEs6Js()
