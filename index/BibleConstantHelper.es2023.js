@@ -134,6 +134,14 @@ export class BibleConstantHelper {
      * @returns {number}
      */
     static getCountVerseOfChap(book, chap) {
+        if ( book < 1 || book > 66 ){
+            console.error(`Invalid book number: ${book}. It should be between 1 and 66.`);
+            return 0
+        }
+        if ( chap < 1 || chap > BibleConstant.COUNT_OF_VERSE[book - 1].length ){
+            console.error(`Invalid chapter number: ${chap}. It should be between 1 and ${BibleConstant.COUNT_OF_VERSE[book - 1].length}.`);
+            return 0
+        }
         return BibleConstant.COUNT_OF_VERSE[book - 1][chap - 1];
     }
 

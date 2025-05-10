@@ -33,7 +33,9 @@ import { do_preach } from './do_preach.es2023.js' // 講道
 import { renderTsk } from './renderTsk.es2023.js' // 串珠
 import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬書才有)
 
-
+import { FhlInfo } from './FhlInfo.es2023.js' // fhlInfoContent 用
+import { FhlInfoTitle } from './FhlInfoTitle.es2023.js' // fhlInfoContent 用
+import { FhlInfoContent } from './fhlInfoContent.es2023.js'
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
     window.BibleConstantEs6Js = () => BibleConstant
@@ -55,13 +57,17 @@ import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬�
     window.SnDictOfCbolEs6Js = () => SnDictOfCbol
     window.queryReferenceAndShowAtDialogAsyncEs6Js = () => queryReferenceAndShowAtDialogAsync
     window.queryDictionaryAndShowAtDialogAsyncEs6Js = () => queryDictionaryAndShowAtDialogAsync
+    window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
     // window.FhlLectureEs6Js = () => FhlLecture // 不需要，別人只用到實體 window.fhlLecture
 
     window.renderTsk = renderTsk // 因為 fhlInfoContent 還沒成 es2023
     window.SnBranchRender = SnBranchRender // 樹狀圖(羅馬書才有)
     window.do_preach = do_preach // 講道
+    window.fhlInfo = FhlInfo.s // fhlInfoContent 用
+    window.fhlInfoTitle = FhlInfoTitle.s // fhlInfoContent 用
+    window.fhlInfoContent = FhlInfoContent.s // fhlInfoContent 用
 
-    window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
+
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
     // window.BibleConstantEs6Js = BibleConstantEs6Js 
@@ -127,7 +133,7 @@ import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬�
                     'SN_Act_Color',
                     'parsing_render_top',
                     'parsing_render_bottom_table',
-                    'fhlInfoContent',
+                    // 'fhlInfoContent',
                     'parsingPopUp',
                     'searchTool',
                     'coreInfoWindowShowHide',
