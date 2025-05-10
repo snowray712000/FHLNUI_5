@@ -89,7 +89,7 @@ function doLast3() {
 function doLast2() {
   var caches = Ijnjs.cachesIndex
   Enumerable.from([
-    'versionSelect',
+    // 'versionSelect',
     'docEvent',
     // 'viewHistory',
     'fhlMidWindow',
