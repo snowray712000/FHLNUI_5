@@ -1,4 +1,4 @@
-function renderTsk(ps) {
+export function renderTsk(ps) {
     if (ps.titleId == "fhlInfoTsk") {
         var dom2 = document.getElementById("fhlInfoContent");
         if (dom2 != null) {
@@ -24,6 +24,3 @@ function renderTsk(ps) {
         }
     }
 }
-(root => {
-    root.renderTsk = renderTsk
-})(this)

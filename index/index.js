@@ -27,8 +27,12 @@ import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDia
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 
 import { FhlLecture } from './FhlLecture.es2023.js'
-
 import { load_json_gz_Async } from './load_json_gz_Async.es2023.js'
+
+import { do_preach } from './do_preach.es2023.js' // 講道
+import { renderTsk } from './renderTsk.es2023.js' // 串珠
+import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬書才有)
+
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -51,7 +55,11 @@ import { load_json_gz_Async } from './load_json_gz_Async.es2023.js'
     window.SnDictOfCbolEs6Js = () => SnDictOfCbol
     window.queryReferenceAndShowAtDialogAsyncEs6Js = () => queryReferenceAndShowAtDialogAsync
     window.queryDictionaryAndShowAtDialogAsyncEs6Js = () => queryDictionaryAndShowAtDialogAsync
-    // window.FhlLectureEs6Js = () => FhlLecture
+    // window.FhlLectureEs6Js = () => FhlLecture // 不需要，別人只用到實體 window.fhlLecture
+
+    window.renderTsk = renderTsk // 因為 fhlInfoContent 還沒成 es2023
+    window.SnBranchRender = SnBranchRender // 樹狀圖(羅馬書才有)
+    window.do_preach = do_preach // 講道
 
     window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
 
@@ -106,15 +114,15 @@ import { load_json_gz_Async } from './load_json_gz_Async.es2023.js'
                     'realTimePopUpSelect',
                     'mapTool',
                     'imageTool',
-                    'renderTsk',
-                    'SnBranchRender',
+                    // 'renderTsk', //es 模式成功，讓這個被拿掉
+                    // 'SnBranchRender', //es 模式成功，讓這個被拿掉
                     'fontSizeTool',
                     
                     'versionSelect',
                     'docEvent',
                     'viewHistory',
                     'fhlMidWindow',
-                    //'fhlLecture', //es6 模式成功，讓這個被拿掉
+                    //'fhlLecture', //es 模式成功，讓這個被拿掉
                     'fhlMidBottomWindow',
                     'SN_Act_Color',
                     'parsing_render_top',
@@ -126,7 +134,7 @@ import { load_json_gz_Async } from './load_json_gz_Async.es2023.js'
                     'FontSizeToolBase',
                     'charHG',
                     'doSearch',
-                    'do_preach',
+                    // 'do_preach',
                     'gbText',
                     'updateLocalStorage',
                     'triggerGoEventWhenPageStateAddressChange',

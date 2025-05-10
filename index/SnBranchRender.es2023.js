@@ -1,11 +1,15 @@
-
-const isRDLocation = () => {
-    return location.origin === 'file://' ||
-        location.hostname === '127.0.0.1' ||
-        location.hostname === 'localhost';
-};
+import { isRDLocation } from './isRDLocation.es2023.js'
 
 export class SnBranchRender {
+    static #s = null
+    /** @returns {SnBranchRender} */
+    static get s() {
+        if (this.#s === null) {
+            this.#s = new SnBranchRender();
+        }
+        return this.#s;
+    }
+
     constructor() {
         this.book = 45; // 目前不會被變動
         this.chap = 0;
@@ -58,6 +62,3 @@ export class SnBranchRender {
         }
     }
 }
-
-// singleton
-SnBranchRender.s = new SnBranchRender();

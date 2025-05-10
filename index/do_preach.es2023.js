@@ -1,7 +1,5 @@
-( root => {
-    root.do_preach = do_preach
-})(this)
-function do_preach(ps, dom) {
+
+export function do_preach(ps, dom) {
     var rRender_Preach;
     var r_Preach;
 
