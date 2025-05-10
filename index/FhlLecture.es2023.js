@@ -10,6 +10,8 @@ import { Sn_cnt_book_unv_json } from "./Sn_cnt_book_unv_json.es2023.js"
 import { Sd_cnt_json } from "./Sd_cnt_json.es2023.js"
 import { Bible_fhlwh_json } from './Bible_fhlwh_json.es2023.js'
 
+import { getBookFunc } from './getBookFunc.es2023.js'
+
 /* 
 若有 2 個譯本，並且是併排方式
 <div#fhlLecture>
@@ -40,6 +42,9 @@ import { Bible_fhlwh_json } from './Bible_fhlwh_json.es2023.js'
 // }
 
 export class FhlLecture {
+    static #s = null
+    /** @returns {FhlLecture} */
+    static get s() { if (this.#s == null) this.#s = new FhlLecture(); return this.#s; }
     
     /** @type {HTMLElement} */
     dom = null

@@ -36,7 +36,7 @@ function doLast5() {
   var caches = Ijnjs.cachesIndex
   Enumerable.from([
     'getAjaxUrl',
-    'getBookFunc',
+    // 'getBookFunc',
     'requestFullscreen',
     'registerEvents',
   ]).forEach(a1 => {

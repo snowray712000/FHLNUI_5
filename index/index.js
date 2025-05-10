@@ -36,8 +36,17 @@ import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬�
 import { FhlInfo } from './FhlInfo.es2023.js' // fhlInfoContent 用
 import { FhlInfoTitle } from './FhlInfoTitle.es2023.js' // fhlInfoContent 用
 import { FhlInfoContent } from './fhlInfoContent.es2023.js'
+
+import { getBookFunc } from './getBookFunc.es2023.js'
+import { BookSelect } from './BookSelect.es2023.js'
+// import { BookSelectPopUp } from './BookSelectPopUp.es2023.js'
+// import { BookSelectName } from './BookSelectName.es2023.js'
+// import { BookSelectChapter } from './BookSelectChapter.es2023.js'
+
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
+    window.getBookFunc = getBookFunc
+
     window.BibleConstantEs6Js = () => BibleConstant
     window.BibleConstantHelperEs6Js = () => BibleConstantHelper
     window.splitStringByRegexEs6Js = () => splitStringByRegex
@@ -67,6 +76,10 @@ import { FhlInfoContent } from './fhlInfoContent.es2023.js'
     window.fhlInfoTitle = FhlInfoTitle.s // fhlInfoContent 用
     window.fhlInfoContent = FhlInfoContent.s // fhlInfoContent 用
 
+    window.bookSelect = BookSelect.s // bookSelect 用
+    // window.bookSelectPopUp = BookSelectPopUp.s // bookSelect 用
+    // window.bookSelectName = BookSelectName.s // bookSelect 用
+    // window.bookSelectChapter = BookSelectChapter.s // bookSelect 用
 
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
@@ -77,9 +90,8 @@ import { FhlInfoContent } from './fhlInfoContent.es2023.js'
     // window.queryReferenceAndShowAtDialogAsyncEs6Js = queryReferenceAndShowAtDialogAsyncEs6Js
 
     load_json_gz_Async()
-
     
-    window.fhlLecture = new FhlLecture()
+    window.fhlLecture = FhlLecture.s
 
     if (AppVersion.s.testIsLastVersion() == true || false) {
         testThenDoAsync(() => window.Ijnjs != undefined)
@@ -99,7 +111,7 @@ import { FhlInfoContent } from './fhlInfoContent.es2023.js'
                     'indexLast',
 
                     'getAjaxUrl',
-                    'getBookFunc',
+                    // 'getBookFunc',
                     'requestFullscreen',
                     'registerEvents',
 
@@ -107,10 +119,10 @@ import { FhlInfoContent } from './fhlInfoContent.es2023.js'
                     'help',
                     'helpingPopUp',
                     'windowControl',
-                    'bookSelect',
-                    'bookSelectPopUp',
-                    'bookSelectName',
-                    'bookSelectChapter',
+                    // 'bookSelect',
+                    // 'bookSelectPopUp',
+                    // 'bookSelectName',
+                    // 'bookSelectChapter',
 
                     'fhlLeftWindow',
                     'settings',
