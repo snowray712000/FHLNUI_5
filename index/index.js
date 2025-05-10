@@ -455,10 +455,6 @@ function FhlLectureEs6Js(){
      * sn mouseenter realtime 要用的
      */
     
-
-    
-  
-
     /** @type {JQuery<HTMLElement>} */
     let $lecture
 
@@ -599,7 +595,7 @@ function FhlLectureEs6Js(){
         };
     
         this.registerEvents = function (ps) {
-            var that = this.dom;
+            // 雖然 registerEvents 裡面目前空空的，但保持原本的架構，所以留著
     
             // snow add
             var $lecMain = $('#lecMain');
@@ -628,46 +624,95 @@ function FhlLectureEs6Js(){
          * @returns 
          */
         this.render = function (ps, dom) {            
-            //console.log('start of fhlLecture render');
-            function reverse(s) {
-                var o = '';
-                for (var i = s.length - 1; i >= 0; i--)
-                    o += s[i];
-                return o;
-            }
             /** @type {JQuery<HTMLElement>} */
             var $lec = $(this.dom);
             var that = this;
-            var htmlTitle = "";
             var htmlContent = "";
 
             // 2025.02 add sn 本章次數統計
             ps.sn_stastic = {}
     
-            if (isRDLocation()) {
+            if (isRDLocation() && 'ncv' in ps.version) {
                 // location 不可以用新譯本
                 console.warn('離線開發,不可用新譯本,上線才能用,略過');
                 ps.version = ps.version.filter(function (a1) { return a1 !== 'ncv'; });
             }
     
-            // console.log(ps.version)
-            var col = ps.version.length;
-            var rspArr = new Array();
-            var idx = 0;
+            getBibleTextAsync().then( rspArr => when_query_bibletext_complete(that, rspArr))
+            
+            return
+            async function getBibleTextAsync(){
+                /** @type {TPPageState} */
+                const ps = window.pageState
 
-            // 第3個參數，是多個譯本，多執行緒，其中一個執行緒完成時呼叫
-            // 第4個參數，是所有譯本都完成時呼叫，它會用 while loop 等待次執行緒，所以回到主執緒。
-            getBibleText(col, ps, function (o) {
-                // o 就是 qb.php 的回傳 json                
-                rspArr.push(o);
-                // console.log("cbk " , o)
-            }, function () {
-                // console.log (" defCbk () callback ")
+                const col = ps.version.length
+                
+                return new Promise((resolve, reject) => {
+                    let rspArr = new Array()
+                    // 第3個參數，是多個譯本，多執行緒，其中一個執行緒完成時呼叫
+                    // 第4個參數，是所有譯本都完成時呼叫，它會用 while loop 等待次執行緒，所以回到主執緒。
+                    getBibleText(col, ps, o => rspArr.push(o), () => resolve(rspArr))
+                })
+            }
+
+            function when_query_bibletext_complete(that, rspArr) {
+                /** @type {TPPageState} */
+                let ps = window.pageState
+                
                 var isOld = checkOldNew(ps);
+                
                 // 恢復本 2018.03 snow add
-                for (j = 0; j < rspArr.length; j++) {
+                rspArr_fixed_for_recover_version(rspArr)
+    
+                rspArr = sortBibleVersion(rspArr, ps);
+    
+                // 判斷是否要顯示「下一章、上一章的箭頭」 nextchap prevchap
+                showhide_chapNext_Back_Arrow_Button()
+    
+                // Title: 就是每個譯本
+                render_titles(rspArr)
+    
+                //var mode = 1;// 原本的. 就切回0
+                var mode = ps.show_mode;
+                let $htmlContent = mode == 2 ? render_mode2(rspArr,isOld) : render_mode1(rspArr,isOld)
+                
+                ps.sn_stastic = get_sn_stastic(rspArr, $htmlContent)
+    
+                // add 2016.10 地圖與照片
+                if (ps.ispos || ps.ispho) {
+                    render_pos_and_pho($htmlContent)
+                } else {
+                    htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
+                    
+                }
+
+                $lec.find('#lecMain').first()
+                    .html(htmlContent)
+                    .attr('mode', mode);
+                $('#lecMain').css({ 'padding': '' })
+    
+                // 對齊 不同譯本 同一節 高度
+                fhlLecture.reshape(ps);
+    
+                // 2016.01.21(四) 版權宣告 snow
+                render_copyright(ps.version)
+    
+                setCSS(ps.version.length, ps);
+                setFont();
+                
+                // 清除 「暗黃色」目前選擇，並且將目前 選擇的節，設為「暗黃色」，並且將 scroll 到目前那一節
+                that.selectLecture(null, null, ps.sec);
+    
+                // 加入 注腳 2016.08
+                render_footer();
+    
+                that.registerEvents(ps);
+            }
+            function rspArr_fixed_for_recover_version(rspArr){
+                // 恢復本 2018.03 snow add
+                for (var j = 0; j < rspArr.length; j++) {
                     if (rspArr[j].version == 'recover') {
-                        if (rspArr[j].record[0].sec == 0) {
+                        if (rspArr[j].record[0].sec == 0) { // 不是一定發生
                             var sec1 = rspArr[j].record[1];
                             var sec0 = rspArr[j].record[0];
                             sec1.bible_text = "(" + sec0.bible_text + ")" + sec1.bible_text;
@@ -678,552 +723,409 @@ function FhlLectureEs6Js(){
                         break;
                     }
                 }
-    
-                rspArr = sortBibleVersion(rspArr, ps);
-    
-                // nextchap prevchap
-                var bookName = getBookFunc("bookFullName", ps.chineses);
-                if (bookName != "failed") {
-                    if (ps.chineses == book[0] && ps.chap == 1) {
-                        $lec.find('.chapBack').first().css('display', 'none');
-                    } else {
-                        $lec.find('.chapBack').first().css('display', 'block');
-                    }
-                    if (ps.chineses == book[65] && ps.chap == 22) {
-                        $lec.find('.chapNext').first().css('display', 'none');
-                    } else {
-                        $lec.find('.chapNext').first().css('display', 'block');
-                    }
-                }
-    
-                // get maxRecordCnt maxRecordIdx 
-                var maxRecordCnt = 0;
-                var maxRecordIdx = 0;
-                for (var i = 0; i < rspArr.length; i++) {
-                    if (rspArr[i].record_count > maxRecordCnt) {
-                        maxRecordCnt = rspArr[i].record_count;
-                        maxRecordIdx = i;
-                        //console.log("maxRecordCnt:"+maxRecordCnt+",maxRecordIdx:"+maxRecordIdx);
-                    }
-                }
-    
-                // title
-                // console.log(JSON.stringify(rspArr))
-                var dtitle = $('#lecMainTitle');
-                dtitle.empty();
-                for (var i = 0; i < rspArr.length; i++) {
-                    var o = rspArr[i];
-                    if (o.v_name === "原文直譯(參考用)")
-                        dtitle.append($("<div class=lecContent><div class=versionName>" + o.v_name + "<span class='closeButton' cname='" + "原文直譯" + "'>&#215</span></div></div>"));
-                    else{
-                        dtitle.append($("<div class=lecContent><div class=versionName>" + o.v_name + "<span class='closeButton' cname='" + o.v_name + "'>&#215</span></div></div>"));
-                    }
-                }
-    
-                //var mode = 1;// 原本的. 就切回0
-                var mode = ps.show_mode;
-                switch (mode) {
-                    case 0:
-                        {
-                            // 每一節 i, 以最大的那個版本為主 maxR
-                            for (var i = 0; i < maxRecordCnt; i++) {
-                                var maxR = rspArr[maxRecordIdx].record[i];
-                                htmlContent += "<div class=lec style='font-size: " + ps.fontSize + "pt; line-height: " + ps.fontSize * 1.25 + "pt; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'>";
-                                //htmlContent+="<div class=lecTitle>"+maxR.chap+":"+maxR.sec+"</div>";
-                                for (j = 0; j < rspArr.length; j++) {
-                                    var chap = maxR.chap, sec = maxR.sec;
-                                    var rec = getRecord(rspArr[j].record, null, chap, sec);
-                                    //var r=rspArr[j].record[i];
-                                    if (rec != null) {
-                                        var bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
-                                        if (bibleText == "a")
-                                            bibleText = "【併入上節】";
-                                    } else {
-                                        bibleText = "";
-                                    }
-                                    if (rspArr[j].version == "bhs") {
-                                        var bibleText = bibleText.split(/\n/g).reverse().join("<br>");
-                                    }
-                                    else if (rspArr[j].version == "cbol") {
-                                        var bibleText = bibleText.split(/\n/g).join("<br>");
-                                    }
-                                    else if (rspArr[j].version == "nwh") {
-                                        var bibleText = bibleText.split(/\n/g).join("<br>");
-                                    }
-    
-                                    var className = '';
-                                    if (rspArr[j].version == "thv12h") // 2018.01 客語特殊字型(太1)
-                                        className += 'bstw '
-    
-                                    var bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText) // add by snow. 2021.07
-                                    htmlContent += "<div class='lecContent " + rspArr[j].version + "'><div class='bstw' style='margin: 0px 20px 0px 1px; padding: 7px 0px; height: 100%;'><span class='verseNumber'>" + maxR.sec + "</span><span class='verseContent'>" + bibleText2 + "</span></div></div>";
-                                }
-                                htmlContent += "</div>";
-                            }
-                        }
-                        break;
-                    case 1:
-                        {
-                            // case1: 不同版本，併排顯示；case2，不同版本，交錯顯示
-                            // 注意, 這個變數, 只是暫存的, 它輽出的結果是 html 文字, 不包含自己, 所以lecMain屬性是在另種設定, 不是在這
-                            // 不要再從這裡改 <div style=padding:10px 50px></div>, 不會有效果的.
-                            var $htmlContent = $("<div id='lecMain'></div>");
-    
-                            var cx1 = 100 / rspArr.length;
-                            for (let j = 0; j < rspArr.length; j++) {
-                                // 分3欄
-                                var onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
-                                $htmlContent.append(onever);
-                            }
-    
-                            // 每1欄內容
-                            for (let j = 0; j < rspArr.length; j++) { //each version
-                                for (var i = 0; i < rspArr[j].record_count; i++) {//each sec
-                                    var maxR = rspArr[j].record[i]; //原 var maxR = rspArr[maxRecordIdx].record[i];
-                                    var chap = maxR.chap, sec = maxR.sec;
-                                    var rec = rspArr[j].record[i]; //原 var rec = getRecord(rspArr[j].record, null, chap, sec);
-    
-                                    var bibleText = "";
-                                    if (rec != null)
-                                        bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
-                                    else
-                                        bibleText = "";
-                                    if (bibleText == "a") {
-                                        bibleText = "【併入上節】";
-                                    }
-    
-    
-                                    if (rspArr[j].version == "bhs") 
-                                    {
-                                        bibleText = bibleText.split(/\n/g).reverse().join("<br>");
-                                    }
-                                    else if (rspArr[j].version == "cbol") {
-                                        bibleText = bibleText.split(/\n/g).join("<br>");
-                                        //console.log(bibleText);
-                                    }
-                                    else if (rspArr[j].version == "nwh") {
-                                        bibleText = bibleText.split(/\n/g).join("<br>");
-                                    }
-    
-                                    // 2018.01 客語特殊字型(太1)
-                                    var className = 'verseContent ';
-                                    if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh')
-                                        className += ' bstw'
-    
-                                    // bhs 馬索拉原文 , 靠右對齊 要放在div, 放在 verseContent 無效
-                                    // add by snow. 2021.07
-                                    var classDiv = ''
-                                    if (rspArr[j].version == 'bhs') {
-                                        classDiv += ' hebrew-char-div'
-                                    }
-    
-                                    // add by snow. 2021.07
-                                    // 希伯來文右至左，使得「節」數字，會跑到左邊，應該放在右邊
-                                    var brForHebrew = ''
-                                    if (isHebrewOrGeekVersion(rspArr[j].version)) {
-                                        brForHebrew += '<br/>'
-                                    }
-    
-                                    // add by snow. 2021.07 原文字型大小獨立出來
-                                    var bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
-
-                                    
-                                    let book = ps.bookIndex 
-                                    
-                                    let div_lec = $("<div>").addClass('lec').attr('ver', rspArr[j].version).attr('chap', chap).attr('sec', sec).attr('book', book).append($("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append($("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2)))
-                                    
-                                    $htmlContent.children().eq(j).append(div_lec)
-                                }//for each verse
-                            }//for each version
-
-
-                            function get_sn_stastic(rspArr){
-                                /**
-                                 * 如果是具有 sn 的譯本 "unv", "kjv", "rcuv"，統計數量 (挑一個譯本來統計)
-                                 * @param {{version: str}[]} rspArr 
-                                 * @returns 
-                                 */
-                                function get_preferredVersion_for_sn_stastic(rspArr){
-                                    let j = -1;
-                                    const preferredVersions = ["unv", "kjv", "rcuv"];
-                                    
-                                    for (const version of preferredVersions) {
-                                        const foundIndex = rspArr.findIndex(element => element.version === version);
-                                        if (foundIndex !== -1) {
-                                            j = foundIndex;
-                                            return version
-                                            break;
-                                        }
-                                    }
-                                    return undefined
-                                }
-                                let version_sn = get_preferredVersion_for_sn_stastic(rspArr)
-                                if ( version_sn == undefined ){
-                                    return {}
-                                }
-                                // 開始統計
-                                // 並排模式下 .lecMain div 下，會有 .vercol 三個 (若3譯本)，再次那個 .vercol 下找 .sn
-                                // 交錯模式下 .lecMain 下，只會有一個 .vercol，每個 .lec 就是每一節經文，它會有 attr ver 取得是不是 kjv
-                                // 就算 sn 沒顯示，在 dom 中也有它們，只是使用了 sn-hidden class
-
-                                // 使用 jQuery 得到 .lecMain
-                                const div_lecMain = $htmlContent[0]
-                                // 取得所有 div.lec ， 並且它的 attr 的 ver 是 version_sn
-                                const div_lec = $(div_lecMain).find(`div.lec[ver=${version_sn}]`)
-                                // 取得所有 div.lec 下的 .sn
-                                const div_sn = div_lec.find('.sn')
-                                
-                                // 分析 div_sn 的 attr sn 與 attr n ，型成 sn = [] n = [] 陣列
-                                let sn = []
-                                let n = []
-                                div_sn.each((i, e) => {
-                                    sn.push($(e).attr('sn'))
-                                    n.push($(e).attr('n'))
-                                })
-                                // 檢查: 理論上，所有 n 都是同個值
-                                const isTheSame_n = true
-                                for (let i = 1; i < n.length; i++) {
-                                    if (n[i] !== n[0]){
-                                        isTheSame_n = false
-                                        break
-                                    }
-                                }
-                                if (isTheSame_n == false){
-                                    console.error('n 不一致，請回報此書卷')
-                                    return {}
-                                } 
-                                // 統計每個sn，出現次數，最後要能夠查表
-                                let sn_count = {}
-                                for (let i = 0; i < sn.length; i++) {
-                                    if (sn_count[sn[i]] == undefined){
-                                        sn_count[sn[i]] = 1
-                                    } else {
-                                        sn_count[sn[i]] += 1
-                                    }
-                                }
-                                // 以 value 來排序，從大到小 (目前還沒用到，不久會用到)
-                                // let sn_count_sorted = Object.entries(sn_count).sort((a, b) => b[1] - a[1])
-                                // 顯示前 10 個
-                                // console.log(sn_count_sorted.slice(0, 10));
-                                return sn_count
-                            }
-                            ps.sn_stastic = get_sn_stastic(rspArr)
-    
-                            // add 2016.10 地圖與照片
-                            if (ps.ispos || ps.ispho) {
-                                var url2 = "sobj.php?engs=" + ps.engs + "&chap=" + ps.chap;
-                                if (ps.gb == 1)
-                                    url2 += "&gb=1";
-                                fhl.json_api_text(url2, function (aa1, aa2) {
-                                    var jrr1 = JSON.parse(aa1);
-                                    //console.log(jrr1);
-    
-                                    var id2reg = {};
-                                    var id2obj = {};
-                                    $.each(jrr1.record, function (aaa1, aaa2) {
-                                        var id = aaa2.id.toString();
-                                        var nas = {};//Egyte,埃及,埃及. 就可以排除同樣名稱的
-                                        nas[aaa2.cname] = 1;
-                                        nas[aaa2.c1name] = 1;
-                                        nas[aaa2.c2name] = 1;
-                                        if (aaa2.ename != null && aaa2.ename.trim().length != 0)
-                                            nas["[ ,\\n:;\\.]" + aaa2.ename + "[ ,\\n:;\\.]"] = 1;//斷開英文可能結尾「空白,逗號,句號,冒號, 2016.11
-                                        //nas[aaa2.ename] = 1;
-    
-                                        var nas2 = [];
-                                        $.each(nas, function (b1, b2) {
-                                            // 2016.10 nas2 若出現 ()會造成一定成立.
-                                            if (b1 != null && b1.trim().length != 0)
-                                                nas2.push(b1);
-                                        });
-    
-                                        var regstr = "((" + nas2.join(")|(") + "))"; // ((羅馬)|([空白字元]Rome[空白字元]))
-                                        var regex = new RegExp(regstr, "i");
-                                        id2obj[id] = aaa2;
-                                        id2reg[id] = regex;
-                                    }, null);
-                                    $htmlContent.find(".verseContent").each(function (c1, c2) {
-                                        var str = c2.innerHTML;
-                                        var ischanged = false;
-    
-                                        // 每1節都要測所有的 regex, 並取代
-                                        $.each(id2reg, function (b1, b2) {
-                                            // b1 是 sobj id ... id2obj 是 sobj 物件
-                                            var b3 = id2obj[b1];
-                                            var issite = b3.objpath == null || b3.objpath.trim().length == 0 ? false : true;
-                                            var isphoto = true; //目前無法判定是不是相片,全都當是 TODO
-    
-                                            // 再優化部分(能不regex,就略過)
-                                            if (ps.ispos && ps.ispho == false && issite == false)
-                                                return;//next reg
-                                            else if (ps.ispho && ps.ispos == false && isphoto == false)
-                                                return;//next reg
-    
-                                            if (b2.test(str)) 
-                                            {
-                                                ischanged = true;
-                                                // const isExistPhoto = ps.ispho && isphoto // 目前一定是 true
-                                                const strpho = `<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=${ps.gb}&LIMIT=${b1}'><img class='pho'></img></a>`
-                                                
-                                                const isExistPos = ps.ispos && issite
-                                                if ( isExistPos ){
-                                                    // $1 就是「本都」這字眼
-                                                    // 要產生 聖光地理 搜尋的網址 
-                                                    // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
-                                                    str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
-                                                } else {
-                                                    str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strpho + "</span>");
-                                                }
-                                            }
-                                        });
-    
-                                        if (ischanged) {
-                                            c2.innerHTML = str;
-                                        }
-                                    });//each
-                                    htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
-                                }, function (aa1, aa2) {
-                                    console.error(aa1);
-                                }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題
-                            }
-                            else
-                                htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
-    
-                        }
-                        break;
-    
-                    case 2:
-                        { // case2 是不同版本交錯， case1 是不同版本並排
-    
-                            // 注意, 這個變數, 只是暫存的, 它輽出的結果是 html 文字, 不包含自己, 所以lecMain屬性是在另種設定, 不是在這
-                            // 不要再從這裡改 <div style=padding:10px 50px></div>, 不會有效果的.
-                            var $htmlContent = $("<div id='lecMain'></div>");
-    
-                            var onever = $("<div class='vercol' style='vertical-align:top; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
-
-                            $htmlContent.append(onever);
-    
-                            // 每一節內容
-                            for (var i = 0; i < maxRecordCnt; i++) {
-                                var maxR = rspArr[maxRecordIdx].record[i]; //原 var maxR = rspArr[maxRecordIdx].record[i];
-                                var chap = maxR.chap, sec = maxR.sec;
-    
-                                for (var j = 0; j < rspArr.length; j++) 
-                                {
-                                    var r1 = rspArr[j];
-
-                                    if (rspArr.length > 1) 
-                                    {
-                                        var vname = "<br/><span class='ver'> (" + r1.v_name + ")</span> "; //新譯本 合和本 etc
-                                    }
-                                    else
-                                    {
-                                        var vname = ""; //只有一種版本就不要加了
-                                    }
-
-                                    if (i >= r1.record_count) 
-                                    {
-                                        //此版本 本章節比較少,
-                                        var className = 'verseContent ';
-                                        if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh') // 2018.01 客語特殊字型(太1)
-                                            className += ' bstw'
-
-                                        let book = ps.bookIndex
-                                        let div_lec = $("<div>").addClass("lec").attr('book',book).attr('chap',chap).attr('sec',sec).attr('ver',rspArr[j].version).append(
-                                            $("<div>").css('margin', '0px 0px 0px 0px').css('padding', '7px 0px').css('height', '100%').append(
-                                                $("<span>").addClass('verseNumber').text(sec)).append($("<span>").addClass(className).html(vname))
-                                        )
-    
-                                        onever.append(div_lec)
-
-                                    }
-                                    else 
-                                    {
-    
-                                        var rec = rspArr[j].record[i]; //原 var rec = getRecord(rspArr[j].record, null, chap, sec);
-                                        var bibleText = "";
-                                        if (rec != null)
-                                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
-                                        else
-                                            bibleText = "";
-                                        if (bibleText == "a") {
-                                            bibleText = "【併入上節】";
-                                        }
-                                        if (rspArr[j].version == "bhs") {
-                                            // bhs 馬索拉原文 (希伯來文)
-                                            bibleText = bibleText.split(/\n/g).reverse().join("<br>");
-                                        }
-                                        else if (rspArr[j].version == "cbol") {
-                                            // cbol: 原文直譯參考用
-                                            bibleText = bibleText.split(/\n/g).join("<br>");
-                                            //console.log(bibleText);
-                                        }
-                                        else if (rspArr[j].version == "nwh") {
-                                            bibleText = bibleText.split(/\n/g).join("<br>");
-                                        }
-    
-                                        var className = 'verseContent';
-                                        if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh') // 2018.01 客語特殊字型(太1)
-                                            className += ' bstw'
-    
-                                        // bhs 馬索拉原文 , 靠右對齊 要放在div, 放在 verseContent 無效
-                                        // add by snow. 2021.07
-                                        var classDiv = ''
-                                        if (rspArr[j].version == 'bhs') {
-                                            classDiv += ' hebrew-char-div'
-                                        }
-    
-                                        // add by snow. 2021.07
-                                        // 希伯來文右至左，使得「節」數字，會跑到左邊，應該放在右邊
-                                        var brForHebrew = ''
-                                        if (isHebrewOrGeekVersion(rspArr[j].version)) {
-                                            brForHebrew += '<br/>'
-                                        }
-    
-                                        // add by snow. 2021.07 原文字型大小獨立出來                
-                                        bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
-                                        
-                                        let book = ps.bookIndex
-                                        let div_lec = $("<div>").addClass("lec").attr('book',book).attr('chap',chap).attr('sec',sec).attr('ver',rspArr[j].version).append(
-                                            $("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append(
-                                                $("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2 + vname))
-                                        )
-                                        onever.append(div_lec)
-                                    }
-                                }
-                            }
-    
-                            // add 2016.10 地圖與照片
-                            if (ps.ispos || ps.ispho) {
-                                var url2 = "sobj.php?engs=" + ps.engs + "&chap=" + ps.chap;
-                                if (ps.gb == 1)
-                                    url2 += "&gb=1";
-                                fhl.json_api_text(url2, function (aa1, aa2) {
-                                    var jrr1 = JSON.parse(aa1);
-                                    //console.log(jrr1);
-    
-                                    var id2reg = {};
-                                    var id2obj = {};
-                                    $.each(jrr1.record, function (aaa1, aaa2) {
-                                        var id = aaa2.id.toString();
-                                        var nas = {};
-                                        nas[aaa2.cname] = 1;
-                                        nas[aaa2.c1name] = 1;
-                                        nas[aaa2.c2name] = 1;
-                                        nas[aaa2.ename] = 1;
-    
-                                        var nas2 = [];
-                                        $.each(nas, function (b1, b2) {
-                                            // 2016.10 nas2 若出現 ()會造成一定成立.
-                                            if (b1 != null && b1.trim().length != 0)
-                                                nas2.push(b1);
-                                        });
-    
-                                        var regstr = "((" + nas2.join(")|(") + "))"; // ((羅馬)|(Rome))
-                                        var regex = new RegExp(regstr, "i");
-                                        id2obj[id] = aaa2;
-                                        id2reg[id] = regex;
-                                    }, null);
-                                    $htmlContent.find(".verseContent").each(function (c1, c2) {
-                                        var str = c2.innerHTML;
-                                        var ischanged = false;
-    
-                                        // 每1節都要測所有的 regex, 並取代
-                                        $.each(id2reg, function (b1, b2) 
-                                        {
-                                            var b3 = id2obj[b1];
-                                            var issite = b3.objpath == null || b3.objpath.trim().length == 0 ? false : true;
-                                            var isphoto = true; //目前無法判定是不是相片,全都當是 TODO
-    
-                                            // 再優化部分(能不regex,就略過)
-                                            if (ps.ispos && ps.ispho == false && issite == false)
-                                                return;//next reg
-                                            else if (ps.ispho && ps.ispos == false && isphoto == false)
-                                                return;//next reg
-                                            if (b2.test(str)) 
-                                            {
-                                                ischanged = true;
-                                                // const isExistPhoto = ps.ispho && isphoto // 目前一定是 true
-                                                const strpho = `<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=${ps.gb}&LIMIT=${b1}'><img class='pho'></img></a>`
-                                                
-                                                const isExistPos = ps.ispos && issite
-                                                if ( isExistPos ){
-                                                    // $1 就是「本都」這字眼
-                                                    // 要產生 聖光地理 搜尋的網址 
-                                                    // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
-                                                    str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
-                                                } else {
-                                                    str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strpho + "</span>");
-                                                }
-                                            }    
-                                        });
-    
-                                        if (ischanged) {
-                                            c2.innerHTML = str;
-                                        }
-                                    });//each
-                                    htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
-                                }, function (aa1, aa2) {
-                                    console.error(aa1);
-                                }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題
-                            }
-                            else
-                                htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
-                        } break;
-                }
-    
-    
-                $lec.find('#lecMain').first()
-                    .html(htmlContent)
-                    .attr('mode', mode);
-                $('#lecMain').css({ 'padding': '' })
-    
-
-    
-    
-                fhlLecture.reshape(ps);
-    
-                // 2016.01.21(四) 版權宣告 snow
-                {
-                    let div_copyrigh = $('<div id="div_copyright" class="lec copyright"></div>');
-                    $('#lecMain').append(div_copyrigh); // 放在 lecMain 才會在最下面. 因為 parent 有設 position 屬性
-                    let rr = React.createElement(copyright_api.R.frame, { ver: ps.version });
-                    const ss = React.render(rr, document.getElementById("div_copyright"));  // snow add 2016.01.21(四),
-                    // bug 小心: 版權宣告 render 必須在 dom.html 之後唷, 這樣才找到的 divCopyright 實體
-                }
-    
-                if (mode == 0) {
-                    for (var i = 0; i < maxRecordCnt; i++) {
-                        var r = rspArr[maxRecordIdx].record[i];
-                        dom.find('.lec:eq(' + i + ')').attr('chap', r.chap);
-                        dom.find('.lec:eq(' + i + ')').attr('sec', r.sec);
-                    }
-                }
-                setCSS(col, ps);
-                setFont();
-                that.selectLecture(null, null, ps.sec);
-    
-                {// 2016.08 snow, 注腳
-                    $lec.find('.lec').each(function (a1, a2) {
-                        var ver = $(a2).attr('ver');
-                        $(this).find('.verseContent').each(function (aa1, aa2) {
-                            aa2.innerHTML = aa2.innerHTML.replace(/【(\d+)】/g, "<span class=ft ft=$1 ver='" + ver + "' chap=" + ps.chap + " engs='" + ps.engs + "'>【$1】</span>");
-                        });
-    
-                        //if ( ver == 'fhlwh')
-                        //{// 2016.10 snow, 新約原文,要套用字型 (剛剛好也是每個 .lec, 所以就搭注腳的forEach順風車)
-                        //  $(a2).css('font-family', 'COBSGreekWeb');
-                        //  		}
+            }
+            /**
+             * @param {string[]} versions ["unv", "cbol"] ... 存在於 ps.version
+             */
+            function render_copyright(versions){
+                let div_copyrigh = $('<div id="div_copyright" class="lec copyright"></div>');
+                $('#lecMain').append(div_copyrigh); // 放在 lecMain 才會在最下面. 因為 parent 有設 position 屬性
+                let rr = React.createElement(copyright_api.R.frame, { ver: versions });
+                const ss = React.render(rr, document.getElementById("div_copyright"));  // snow add 2016.01.21(四),
+                // bug 小心: 版權宣告 render 必須在 dom.html 之後唷, 這樣才找到的 divCopyright 實體
+            }
+            function render_footer(){
+                // 2016.08 snow, 注腳
+                $lec.find('.lec').each(function (a1, a2) {
+                    var ver = $(a2).attr('ver');
+                    $(this).find('.verseContent').each(function (aa1, aa2) {
+                        aa2.innerHTML = aa2.innerHTML.replace(/【(\d+)】/g, "<span class=ft ft=$1 ver='" + ver + "' chap=" + ps.chap + " engs='" + ps.engs + "'>【$1】</span>");
                     });
+
+                    //if ( ver == 'fhlwh')
+                    //{// 2016.10 snow, 新約原文,要套用字型 (剛剛好也是每個 .lec, 所以就搭注腳的forEach順風車)
+                    //  $(a2).css('font-family', 'COBSGreekWeb');
+                    //  		}
+                });
+            }            
+            function showhide_chapNext_Back_Arrow_Button(){
+                /** @type {TPPageState} */
+                const ps = window.pageState
+                if (!'bookIndex' in ps) {
+                    console.error('bookIndex not in pageState');
+                }
+                
+                const isVisibleBack = ps.bookIndex == 1 && ps.chap == 1
+                const isVisibleNext = ps.bookIndex == 66 && ps.chap == 22
+                const fhlLecture = $('#fhlLecture')
+
+                fhlLecture.find('.chapBack').first().css('display', isVisibleBack ? 'none' : 'block')
+                fhlLecture.find('.chapNext').first().css('display', isVisibleNext ? 'none' : 'block')
+
+                // var bookName = getBookFunc("bookFullName", ps.chineses);
+                // if (bookName != "failed") {
+                //     if (ps.chineses == book[0] && ps.chap == 1) {
+                //         $lec.find('.chapBack').first().css('display', 'none');
+                //     } else {
+                //         $lec.find('.chapBack').first().css('display', 'block');
+                //     }
+                //     if (ps.chineses == book[65] && ps.chap == 22) {
+                //         $lec.find('.chapNext').first().css('display', 'none');
+                //     } else {
+                //         $lec.find('.chapNext').first().css('display', 'block');
+                //     }
+                // }                
+            }
+            function render_titles(rspArr){
+                // console.log(JSON.stringify(rspArr))
+                let dtitle = $('#lecMainTitle');
+                dtitle.empty();
+
+                for (let i = 0; i < rspArr.length; i++) {
+                    const o = rspArr[i];
+                    // o.version == 'cbol' 原文直譯
+                    const cname = o.version == 'cbol' ? '原文直譯' : o.v_name
+                    
+                    // 目前 closeButton 已經沒用，但在重構階段，保持原本
+                    dtitle.append($(`<div class=lecContent><div class=versionName>${o.v_name}<span class='closeButton' cname='${cname}'>x</span></div></div>`));
+                }
+            }            
+            function render_mode2(rspArr,isOld){
+                { // case2 是不同版本交錯， case1 是不同版本並排
+
+                    // get maxRecordCnt maxRecordIdx 
+                    var maxRecordCnt = 0;
+                    var maxRecordIdx = 0;
+                    for (var i = 0; i < rspArr.length; i++) {
+                        if (rspArr[i].record_count > maxRecordCnt) {
+                            maxRecordCnt = rspArr[i].record_count;
+                            maxRecordIdx = i;
+                            //console.log("maxRecordCnt:"+maxRecordCnt+",maxRecordIdx:"+maxRecordIdx);
+                        }
+                    }
+
+                    // 注意, 這個變數, 只是暫存的, 它輽出的結果是 html 文字, 不包含自己, 所以lecMain屬性是在另種設定, 不是在這
+                    // 不要再從這裡改 <div style=padding:10px 50px></div>, 不會有效果的.
+                    var $htmlContent = $("<div id='lecMain'></div>");
+
+                    var onever = $("<div class='vercol' style='vertical-align:top; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
+
+                    $htmlContent.append(onever);
+
+                    // 每一節內容
+                    for (var i = 0; i < maxRecordCnt; i++) {
+                        var maxR = rspArr[maxRecordIdx].record[i]; //原 var maxR = rspArr[maxRecordIdx].record[i];
+                        var chap = maxR.chap, sec = maxR.sec;
+
+                        for (var j = 0; j < rspArr.length; j++) 
+                        {
+                            var r1 = rspArr[j];
+
+                            if (rspArr.length > 1) 
+                            {
+                                var vname = "<br/><span class='ver'> (" + r1.v_name + ")</span> "; //新譯本 合和本 etc
+                            }
+                            else
+                            {
+                                var vname = ""; //只有一種版本就不要加了
+                            }
+
+                            if (i >= r1.record_count) 
+                            {
+                                //此版本 本章節比較少,
+                                var className = 'verseContent ';
+                                if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh') // 2018.01 客語特殊字型(太1)
+                                    className += ' bstw'
+
+                                let book = ps.bookIndex
+                                let div_lec = $("<div>").addClass("lec").attr('book',book).attr('chap',chap).attr('sec',sec).attr('ver',rspArr[j].version).append(
+                                    $("<div>").css('margin', '0px 0px 0px 0px').css('padding', '7px 0px').css('height', '100%').append(
+                                        $("<span>").addClass('verseNumber').text(sec)).append($("<span>").addClass(className).html(vname))
+                                )
+
+                                onever.append(div_lec)
+
+                            }
+                            else 
+                            {
+
+                                var rec = rspArr[j].record[i]; //原 var rec = getRecord(rspArr[j].record, null, chap, sec);
+                                var bibleText = "";
+                                if (rec != null)
+                                    bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
+                                else
+                                    bibleText = "";
+                                if (bibleText == "a") {
+                                    bibleText = "【併入上節】";
+                                }
+                                if (rspArr[j].version == "bhs") {
+                                    // bhs 馬索拉原文 (希伯來文)
+                                    bibleText = bibleText.split(/\n/g).reverse().join("<br>");
+                                }
+                                else if (rspArr[j].version == "cbol") {
+                                    // cbol: 原文直譯參考用
+                                    bibleText = bibleText.split(/\n/g).join("<br>");
+                                    //console.log(bibleText);
+                                }
+                                else if (rspArr[j].version == "nwh") {
+                                    bibleText = bibleText.split(/\n/g).join("<br>");
+                                }
+
+                                var className = 'verseContent';
+                                if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh') // 2018.01 客語特殊字型(太1)
+                                    className += ' bstw'
+
+                                // bhs 馬索拉原文 , 靠右對齊 要放在div, 放在 verseContent 無效
+                                // add by snow. 2021.07
+                                var classDiv = ''
+                                if (rspArr[j].version == 'bhs') {
+                                    classDiv += ' hebrew-char-div'
+                                }
+
+                                // add by snow. 2021.07
+                                // 希伯來文右至左，使得「節」數字，會跑到左邊，應該放在右邊
+                                var brForHebrew = ''
+                                if (isHebrewOrGeekVersion(rspArr[j].version)) {
+                                    brForHebrew += '<br/>'
+                                }
+
+                                // add by snow. 2021.07 原文字型大小獨立出來                
+                                const bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
+                                
+                                let book = ps.bookIndex
+                                let div_lec = $("<div>").addClass("lec").attr('book',book).attr('chap',chap).attr('sec',sec).attr('ver',rspArr[j].version).append(
+                                    $("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append(
+                                        $("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2 + vname))
+                                )
+                                onever.append(div_lec)
+                            }
+                        }
+                    }
+
+                } 
+                return $htmlContent
+            }
+            function render_mode1(rspArr,isOld){
+                // case1: 不同版本，併排顯示；case2，不同版本，交錯顯示
+                // 注意, 這個變數, 只是暫存的, 它輽出的結果是 html 文字, 不包含自己, 所以lecMain屬性是在另種設定, 不是在這
+                // 不要再從這裡改 <div style=padding:10px 50px></div>, 不會有效果的.
+                var $htmlContent = $("<div id='lecMain'></div>");
+
+                var cx1 = 100 / rspArr.length;
+                for (let j = 0; j < rspArr.length; j++) {
+                    // 分3欄
+                    var onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top; margin-top: " + (ps.fontSize * 1.25 - 15) + "px'></div>");
+                    $htmlContent.append(onever);
                 }
 
+                // 每1欄內容
+                for (let j = 0; j < rspArr.length; j++) { //each version
+                    for (var i = 0; i < rspArr[j].record_count; i++) {//each sec
+                        var maxR = rspArr[j].record[i]; //原 var maxR = rspArr[maxRecordIdx].record[i];
+                        var chap = maxR.chap, sec = maxR.sec;
+                        var rec = rspArr[j].record[i]; //原 var rec = getRecord(rspArr[j].record, null, chap, sec);
+
+                        var bibleText = "";
+                        if (rec != null)
+                            bibleText = parseBibleText(rec.bible_text, ps, isOld, rspArr[j].version);
+                        else
+                            bibleText = "";
+                        if (bibleText == "a") {
+                            bibleText = "【併入上節】";
+                        }
+
+
+                        if (rspArr[j].version == "bhs") 
+                        {
+                            bibleText = bibleText.split(/\n/g).reverse().join("<br>");
+                        }
+                        else if (rspArr[j].version == "cbol") {
+                            bibleText = bibleText.split(/\n/g).join("<br>");
+                            //console.log(bibleText);
+                        }
+                        else if (rspArr[j].version == "nwh") {
+                            bibleText = bibleText.split(/\n/g).join("<br>");
+                        }
+
+                        // 2018.01 客語特殊字型(太1)
+                        var className = 'verseContent ';
+                        if (rspArr[j].version == "thv12h" || rspArr[j].version == 'ttvh')
+                            className += ' bstw'
+
+                        // bhs 馬索拉原文 , 靠右對齊 要放在div, 放在 verseContent 無效
+                        // add by snow. 2021.07
+                        var classDiv = ''
+                        if (rspArr[j].version == 'bhs') {
+                            classDiv += ' hebrew-char-div'
+                        }
+
+                        // add by snow. 2021.07
+                        // 希伯來文右至左，使得「節」數字，會跑到左邊，應該放在右邊
+                        var brForHebrew = ''
+                        if (isHebrewOrGeekVersion(rspArr[j].version)) {
+                            brForHebrew += '<br/>'
+                        }
+
+                        // add by snow. 2021.07 原文字型大小獨立出來
+                        var bibleText2 = addHebrewOrGreekCharClass(rspArr[j].version, bibleText)
+
+                        
+                        let book = ps.bookIndex 
+                        
+                        let div_lec = $("<div>").addClass('lec').attr('ver', rspArr[j].version).attr('chap', chap).attr('sec', sec).attr('book', book).append($("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append($("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2)))
+                        
+                        $htmlContent.children().eq(j).append(div_lec)
+                    }//for each verse
+                }//for each version
+                return $htmlContent
+            }
+            function render_pos_and_pho($htmlContent) {
+                var url2 = "sobj.php?engs=" + ps.engs + "&chap=" + ps.chap;
+                if (ps.gb == 1)
+                    url2 += "&gb=1";
+                fhl.json_api_text(url2, function (aa1, aa2) {
+                    var jrr1 = JSON.parse(aa1);
+                    //console.log(jrr1);
+
+                    var id2reg = {};
+                    var id2obj = {};
+                    $.each(jrr1.record, function (aaa1, aaa2) {
+                        var id = aaa2.id.toString();
+                        var nas = {};//Egyte,埃及,埃及. 就可以排除同樣名稱的
+                        nas[aaa2.cname] = 1;
+                        nas[aaa2.c1name] = 1;
+                        nas[aaa2.c2name] = 1;
+                        if (aaa2.ename != null && aaa2.ename.trim().length != 0)
+                            nas["[ ,\\n:;\\.]" + aaa2.ename + "[ ,\\n:;\\.]"] = 1;//斷開英文可能結尾「空白,逗號,句號,冒號, 2016.11
+                        //nas[aaa2.ename] = 1;
+
+                        var nas2 = [];
+                        $.each(nas, function (b1, b2) {
+                            // 2016.10 nas2 若出現 ()會造成一定成立.
+                            if (b1 != null && b1.trim().length != 0)
+                                nas2.push(b1);
+                        });
+
+                        var regstr = "((" + nas2.join(")|(") + "))"; // ((羅馬)|([空白字元]Rome[空白字元]))
+                        var regex = new RegExp(regstr, "i");
+                        id2obj[id] = aaa2;
+                        id2reg[id] = regex;
+                    }, null);
+                    $htmlContent.find(".verseContent").each(function (c1, c2) {
+                        var str = c2.innerHTML;
+                        var ischanged = false;
+
+                        // 每1節都要測所有的 regex, 並取代
+                        $.each(id2reg, function (b1, b2) {
+                            // b1 是 sobj id ... id2obj 是 sobj 物件
+                            var b3 = id2obj[b1];
+                            var issite = b3.objpath == null || b3.objpath.trim().length == 0 ? false : true;
+                            var isphoto = true; //目前無法判定是不是相片,全都當是 TODO
+
+                            // 再優化部分(能不regex,就略過)
+                            if (ps.ispos && ps.ispho == false && issite == false)
+                                return;//next reg
+                            else if (ps.ispho && ps.ispos == false && isphoto == false)
+                                return;//next reg
+
+                            if (b2.test(str)) 
+                            {
+                                ischanged = true;
+                                // const isExistPhoto = ps.ispho && isphoto // 目前一定是 true
+                                const strpho = `<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=${ps.gb}&LIMIT=${b1}'><img class='pho'></img></a>`
+                                
+                                const isExistPos = ps.ispos && issite
+                                if ( isExistPos ){
+                                    // $1 就是「本都」這字眼
+                                    // 要產生 聖光地理 搜尋的網址 
+                                    // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
+                                    str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
+                                } else {
+                                    str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strpho + "</span>");
+                                }
+                            }
+                        });
+
+                        if (ischanged) {
+                            c2.innerHTML = str;
+                        }
+                    });//each
+                    htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
+                }, function (aa1, aa2) {
+                    console.error(aa1);
+                }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題            
+            }         
+            // 在 mode1 mode2 都要用到
+            function get_sn_stastic(rspArr,$htmlContent){
+                /**
+                 * 如果是具有 sn 的譯本 "unv", "kjv", "rcuv"，統計數量 (挑一個譯本來統計)
+                 * @param {{version: str}[]} rspArr 
+                 * @returns 
+                 */
+                function get_preferredVersion_for_sn_stastic(rspArr){
+                    let j = -1;
+                    const preferredVersions = ["unv", "kjv", "rcuv"];
+                    
+                    for (const version of preferredVersions) {
+                        const foundIndex = rspArr.findIndex(element => element.version === version);
+                        if (foundIndex !== -1) {
+                            j = foundIndex;
+                            return version
+                            break;
+                        }
+                    }
+                    return undefined
+                }
+                let version_sn = get_preferredVersion_for_sn_stastic(rspArr)
+                if ( version_sn == undefined ){
+                    return {}
+                }
+                // 開始統計
+                // 並排模式下 .lecMain div 下，會有 .vercol 三個 (若3譯本)，再次那個 .vercol 下找 .sn
+                // 交錯模式下 .lecMain 下，只會有一個 .vercol，每個 .lec 就是每一節經文，它會有 attr ver 取得是不是 kjv
+                // 就算 sn 沒顯示，在 dom 中也有它們，只是使用了 sn-hidden class
+
+                // 使用 jQuery 得到 .lecMain
+                const div_lecMain = $htmlContent[0]
+                // 取得所有 div.lec ， 並且它的 attr 的 ver 是 version_sn
+                const div_lec = $(div_lecMain).find(`div.lec[ver=${version_sn}]`)
+                // 取得所有 div.lec 下的 .sn
+                const div_sn = div_lec.find('.sn')
                 
-    
-    
-    
-                that.registerEvents(ps);
-            });
-            return
+                // 分析 div_sn 的 attr sn 與 attr n ，型成 sn = [] n = [] 陣列
+                let sn = []
+                let n = []
+                div_sn.each((i, e) => {
+                    sn.push($(e).attr('sn'))
+                    n.push($(e).attr('n'))
+                })
+                // 檢查: 理論上，所有 n 都是同個值
+                const isTheSame_n = true
+                for (let i = 1; i < n.length; i++) {
+                    if (n[i] !== n[0]){
+                        isTheSame_n = false
+                        break
+                    }
+                }
+                if (isTheSame_n == false){
+                    console.error('n 不一致，請回報此書卷')
+                    return {}
+                } 
+                // 統計每個sn，出現次數，最後要能夠查表
+                let sn_count = {}
+                for (let i = 0; i < sn.length; i++) {
+                    if (sn_count[sn[i]] == undefined){
+                        sn_count[sn[i]] = 1
+                    } else {
+                        sn_count[sn[i]] += 1
+                    }
+                }
+                // 以 value 來排序，從大到小 (目前還沒用到，不久會用到)
+                // let sn_count_sorted = Object.entries(sn_count).sort((a, b) => b[1] - a[1])
+                // 顯示前 10 個
+                // console.log(sn_count_sorted.slice(0, 10));
+                return sn_count
+            }            
             function setFont() {
                 $('.bhs').addClass('hebrew');
                 $('.nwh').addClass('greek');
