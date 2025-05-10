@@ -127,7 +127,15 @@ export class FhlLecture {
      * @param {HTMLElement} dom 
      * @returns 
      */    
-    render(ps, dom){            
+    render(ps = null, dom = null){
+        if ( ps == null ){
+            ps = window.pageState
+        }
+        if ( dom == null ){
+            dom = this.dom
+        }
+        this.dom = dom
+
         /** @type {JQuery<HTMLElement>} */
         // 2025.02 add sn 本章次數統計
         ps.sn_stastic = {}
@@ -257,7 +265,7 @@ async function renderLectureHtml(that){
             ps.sn_stastic = get_sn_stastic(rspArr, $htmlContent)
 
             // add 2016.10 地圖與照片
-            let htmlContent = (ps.ispos || ps.ispho)? render_pos_and_pho : $htmlContent.html() //.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
+            let htmlContent = (ps.ispos || ps.ispho)? render_pos_and_pho($htmlContent) : $htmlContent.html() //.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
 
             that.$lecture.find('#lecMain').first()
                 .html(htmlContent)
@@ -557,6 +565,8 @@ async function renderLectureHtml(that){
             return $htmlContent
         }
         function render_pos_and_pho($htmlContent) {
+            let htmlContent = ""
+            const ps = window.pageState
             var url2 = "sobj.php?engs=" + ps.engs + "&chap=" + ps.chap;
             if (ps.gb == 1)
                 url2 += "&gb=1";

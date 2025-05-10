@@ -2,7 +2,7 @@ import { BookSelect } from './BookSelect.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
 import { FhlLecture } from './FhlLecture.es2023.js'
 
-// import { } from './LeftWindowTool.es2023.js' // 還沒作
+import { LeftWindowTool } from './LeftWindowTool.es2023.js' // 還沒作
 export class ViewHistory {
     static #s = null
     /** @returns {ViewHistory} */
@@ -81,6 +81,7 @@ export class ViewHistory {
     registerEvents(ps){
         var that = this;
         $('#viewHistory p').on('click', function () {
+            const leftWindowTool = LeftWindowTool.s
             if (leftWindowTool.isOpenedHistory(this)) {
                 leftWindowTool.openSettings() // open setting 就是 close history
             } else {
@@ -96,7 +97,7 @@ export class ViewHistory {
         })
     }
     render(ps, dom){
-        $("#viewHistory p").text(leftWindowTool.getTitleOpenedSetting())
+        $("#viewHistory p").text(LeftWindowTool.s.getTitleOpenedSetting())
     }
 
     when_liclick(fn){

@@ -43,6 +43,9 @@ import { BookSelect } from './BookSelect.es2023.js'
 import { ViewHistory } from './ViewHistory.es2023.js'
 import { VersionSelect } from './VersionSelect.es2023.js'
 
+import { LeftWindowTool } from './LeftWindowTool.es2023.js'
+import { FhlLeftWindow } from './FhlLeftWindow.es2023.js'
+
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
     window.getBookFunc = getBookFunc
@@ -98,7 +101,8 @@ import { VersionSelect } from './VersionSelect.es2023.js'
         testThenDoAsync(() => window.Ijnjs != undefined)
             .then(() => {
                 var files = [
-                    'initPageStateFlow', 'LeftWindowTool',
+                    'initPageStateFlow', 
+                    // 'LeftWindowTool',
                     { dir: 'DialogTemplate', children: ['DialogTemplate', 'OrigDict', 'ParsingReference', 'ParsingOrigDict', 'SnDictDialog.html'] },
                     'checkHtmlVersion',
                     {
@@ -125,17 +129,17 @@ import { VersionSelect } from './VersionSelect.es2023.js'
                     // 'bookSelectName',
                     // 'bookSelectChapter',
 
-                    'fhlLeftWindow',
-                    'settings',
-                    'snSelect',
-                    'gbSelect',
-                    'show_mode',
-                    'realTimePopUpSelect',
-                    'mapTool',
-                    'imageTool',
+                    // 'fhlLeftWindow',
+                    // 'settings',
+                    // 'snSelect',
+                    // 'gbSelect',
+                    // 'show_mode',
+                    // 'realTimePopUpSelect',
+                    // 'mapTool',
+                    // 'imageTool',
                     // 'renderTsk', //es 模式成功，讓這個被拿掉
                     // 'SnBranchRender', //es 模式成功，讓這個被拿掉
-                    'fontSizeTool',
+                    // 'fontSizeTool',
                     
                     // 'versionSelect',
                     'docEvent',
@@ -150,7 +154,7 @@ import { VersionSelect } from './VersionSelect.es2023.js'
                     'parsingPopUp',
                     'searchTool',
                     'coreInfoWindowShowHide',
-                    'FontSizeToolBase',
+                    // 'FontSizeToolBase',
                     'charHG',
                     'doSearch',
                     // 'do_preach',
@@ -265,8 +269,8 @@ function doNoReadyStep1() {
     eval(caches.getStr('initPageStateFlow'))
 
     // export window.LeftWindowTool
-    function fn1() { eval(caches.getStr('LeftWindowTool')) }
-    fn1.call(window)
+    // function fn1() { eval(caches.getStr('LeftWindowTool')) }
+    // fn1.call(window)
 
     // export DialogTemplate and findPrsingTableSnClassAndLetItCanClick
     function fn2() { eval(caches.getStr('DialogTemplate/DialogTemplate')) }
@@ -335,7 +339,7 @@ function doNoReadyStep3() {
     // var bookEng = tp1.ENGLISH_BOOK_ABBREVIATIONS;
     // var bookEngShort = tp1.ENGLISH_BOOK_SHORT_ABBREVIATIONS
 
-    var leftWindowTool = new LeftWindowTool()
+    var leftWindowTool = LeftWindowTool.s
 
     // modify by snow. 2021.07
     // 需要加防抖程式，可看 1.5.11 版的說明
@@ -398,9 +402,9 @@ function doReadyStep2() {
         $('#problemsReport').attr("href", "mailto:tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
 
         fhlToolBar.init(pageState);
-        fhlLeftWindow.init(pageState);
+        FhlLeftWindow.s.init(pageState);
         fhlMidWindow.init(pageState);
-        fhlInfo.init(pageState);
+        FhlInfo.s.init(pageState);
         registerEvents(pageState);
 
         $('#title')[0].firstChild.nodeValue = pageState.gb === 1 ? "信望爱圣经工具 " : "信望愛聖經工具 ";
@@ -412,7 +416,7 @@ function doReadyStep2() {
         // 開啟時，保持上次設定 (左、右功能視窗，隱藏 or 顯示)
         coreInfoWindowShowHide(function () {
             setTimeout(function () {
-                fhlLecture.reshape(pageState); // 加這行會有 Bug, 因此要在 setTimeout 中 (其它地方呼叫不需要如此)         
+                FhlLecture.s.reshape(pageState); // 加這行會有 Bug, 因此要在 setTimeout 中 (其它地方呼叫不需要如此)         
             }, 0)
         }, pageState.isVisibleLeftWindow == 1, pageState.isVisibleInfoWindow == 1)
 

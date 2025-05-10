@@ -1,25 +1,35 @@
-var imageTool = {
-    init: function (ps, dom) {
+import { FhlLecture } from "./FhlLecture.es2023.js";
+
+
+
+export class ImageTool {
+    static #s = null
+    /** @returns {ImageTool} */
+    static get s() { if (this.#s == null) this.#s = new ImageTool(); return this.#s }
+    dom = null
+
+    init(ps, dom) {
         this.dom = dom;
         this.render(ps, this.dom);
-    },
-    registerEvents: function (ps) {
-        $('#imageToolOnOffSwitch').change(
+    }
+    registerEvents(ps) {
+        $('#imageToolOnOffSwitch').off('change').on('change',
             function () {
+                const ps = window.pageState
                 if ($(this).is(':checked')) {
                     // checked 是指開啟圓圈移到右邊. 那就應該是 出現「ON」
                     ps.ispho = true;
-                    fhlLecture.render(ps, fhlLecture.dom);
+                    FhlLecture.s.render();
                 }
                 else {
                     // 出現「Off」
                     ps.ispho = false;
-                    fhlLecture.render(ps, fhlLecture.dom);
+                    FhlLecture.s.render();
                 }
                 triggerGoEventWhenPageStateAddressChange(ps);
             });
-    },
-    render: function (ps, dom) {
+    }
+    render(ps, dom) {
         var html = "<div>" + gbText("圖片顯示", ps.gb) + ":</div>";
         html += '<div class="onOffSwitch">\
                               <input type="checkbox" name="imageToolOnOffSwitch" class="onOffSwitch-checkbox" id="imageToolOnOffSwitch">\
@@ -33,8 +43,3 @@ var imageTool = {
         $('#imageToolOnOffSwitch').attr("checked", ps.ispho);
     }
 };
-
-
-(function(root){
-    root.imageTool = imageTool
-})(this)

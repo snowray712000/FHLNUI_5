@@ -66,20 +66,20 @@ function doLast3() {
   // Left Window 相關
   var caches = Ijnjs.cachesIndex
   Enumerable.from([
-    'fhlLeftWindow',
-    'settings',
-    'snSelect',
-    'gbSelect',
-    'show_mode',
-    'realTimePopUpSelect',
-    'mapTool',
-    'imageTool',
+    // 'fhlLeftWindow',
+    // 'settings',
+    // 'snSelect',
+    // 'gbSelect',
+    // 'show_mode',
+    // 'realTimePopUpSelect',
+    // 'mapTool',
+    // 'imageTool',
     // 'renderTsk',
     'SN_Act_Color',
     'parsing_render_top',
     'parsing_render_bottom_table',
     // 'SnBranchRender',
-    'fontSizeTool',
+    // 'fontSizeTool',
   ]).forEach(a1 => {
     function aaa() { eval(caches.getStr(a1)) }
     aaa.call(window)
@@ -99,7 +99,7 @@ function doLast2() {
     'parsingPopUp',
     'searchTool',
     'coreInfoWindowShowHide',
-    'FontSizeToolBase',
+    // 'FontSizeToolBase',
     'charHG',
     'doSearch',
     // 'do_preach',
