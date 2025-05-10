@@ -153,7 +153,7 @@ function do_remark(remark){
         // 2.11-13 ... 連結會是 2.11.png
         // 2.11
         let pstr3 = pstr2.replace(/([0-9.]+)(-[0-9]+)?/g, function(...s2){
-            link_url = "/new/pimg/" + s2[1] + ".png";
+            let link_url = "/new/pimg/" + s2[1] + ".png";
             // 希望在開發的時候，就是 port 是 5500 時，網址會從 /new/pimg/2.19.png 變成 http://bible.fhl.net:5500/new/pimg/2.19.png
             if (location.port == "5500") {
                 link_url = "http://bible.fhl.net:80" + link_url;
