@@ -39,9 +39,8 @@ import { FhlInfoContent } from './fhlInfoContent.es2023.js'
 
 import { getBookFunc } from './getBookFunc.es2023.js'
 import { BookSelect } from './BookSelect.es2023.js'
-// import { BookSelectPopUp } from './BookSelectPopUp.es2023.js'
-// import { BookSelectName } from './BookSelectName.es2023.js'
-// import { BookSelectChapter } from './BookSelectChapter.es2023.js'
+
+import { ViewHistory } from './ViewHistory.es2023.js'
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -77,9 +76,8 @@ import { BookSelect } from './BookSelect.es2023.js'
     window.fhlInfoContent = FhlInfoContent.s // fhlInfoContent 用
 
     window.bookSelect = BookSelect.s // bookSelect 用
-    // window.bookSelectPopUp = BookSelectPopUp.s // bookSelect 用
-    // window.bookSelectName = BookSelectName.s // bookSelect 用
-    // window.bookSelectChapter = BookSelectChapter.s // bookSelect 用
+
+    window.viewHistory = ViewHistory.s // viewHistory 用
 
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
@@ -138,7 +136,7 @@ import { BookSelect } from './BookSelect.es2023.js'
                     
                     'versionSelect',
                     'docEvent',
-                    'viewHistory',
+                    // 'viewHistory',
                     'fhlMidWindow',
                     //'fhlLecture', //es 模式成功，讓這個被拿掉
                     'fhlMidBottomWindow',

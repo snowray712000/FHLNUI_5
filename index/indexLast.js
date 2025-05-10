@@ -91,7 +91,7 @@ function doLast2() {
   Enumerable.from([
     'versionSelect',
     'docEvent',
-    'viewHistory',
+    // 'viewHistory',
     'fhlMidWindow',
     // 'fhlLecture',
     'fhlMidBottomWindow',

@@ -12,6 +12,8 @@ import { Bible_fhlwh_json } from './Bible_fhlwh_json.es2023.js'
 
 import { getBookFunc } from './getBookFunc.es2023.js'
 
+import { ViewHistory } from './ViewHistory.es2023.js'
+
 /* 
 若有 2 個譯本，並且是併排方式
 <div#fhlLecture>
@@ -1114,7 +1116,7 @@ function reshape_for_align_each_sec(){
 function when_click_chapback(e){
     /** @type {TPPageState} */
     let ps = window.pageState
-    let viewHistory = window.viewHistory
+    let viewHistory = ViewHistory.s
     let fhlInfo = window.fhlInfo
     let fhlLecture = window.fhlLecture
     let bookSelect = window.bookSelect
@@ -1146,7 +1148,7 @@ function when_click_chapback(e){
 function when_click_chapnext(e){
     /** @type {TPPageState} */
     let ps = window.pageState
-    let viewHistory = window.viewHistory
+    let viewHistory = ViewHistory.s
     let fhlInfo = window.fhlInfo
     let fhlLecture = window.fhlLecture
     let bookSelect = window.bookSelect
