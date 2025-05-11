@@ -46,6 +46,9 @@ import { VersionSelect } from './VersionSelect.es2023.js'
 import { LeftWindowTool } from './LeftWindowTool.es2023.js'
 import { FhlLeftWindow } from './FhlLeftWindow.es2023.js'
 
+import { FhlToolBar } from './FhlToolBar.es2023.js'
+import { FhlMidWindow } from './FhlMidWindow.es2023.js'
+
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
     window.getBookFunc = getBookFunc
@@ -120,10 +123,10 @@ import { FhlLeftWindow } from './FhlLeftWindow.es2023.js'
                     'requestFullscreen',
                     'registerEvents',
 
-                    'fhlToolBar',
-                    'help',
-                    'helpingPopUp',
-                    'windowControl',
+                    // 'fhlToolBar',
+                    // 'help',
+                    // 'helpingPopUp',
+                    // 'windowControl',
                     // 'bookSelect',
                     // 'bookSelectPopUp',
                     // 'bookSelectName',
@@ -144,15 +147,15 @@ import { FhlLeftWindow } from './FhlLeftWindow.es2023.js'
                     // 'versionSelect',
                     'docEvent',
                     // 'viewHistory',
-                    'fhlMidWindow',
+                    // 'fhlMidWindow',
                     //'fhlLecture', //es 模式成功，讓這個被拿掉
-                    'fhlMidBottomWindow',
+                    // 'fhlMidBottomWindow',
                     'SN_Act_Color',
                     'parsing_render_top',
                     'parsing_render_bottom_table',
                     // 'fhlInfoContent',
                     'parsingPopUp',
-                    'searchTool',
+                    // 'searchTool',
                     'coreInfoWindowShowHide',
                     // 'FontSizeToolBase',
                     'charHG',
@@ -401,9 +404,9 @@ function doReadyStep2() {
         // $('#problemsReport').attr("href", "mailto:sean@fhl.net,tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
         $('#problemsReport').attr("href", "mailto:tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
 
-        fhlToolBar.init(pageState);
+        FhlToolBar.s.init(pageState);
         FhlLeftWindow.s.init(pageState);
-        fhlMidWindow.init(pageState);
+        FhlMidWindow.s.init(pageState);
         FhlInfo.s.init(pageState);
         registerEvents(pageState);
 

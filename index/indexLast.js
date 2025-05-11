@@ -48,14 +48,14 @@ function doLast4() {
   // Toolbar 相關
   var caches = Ijnjs.cachesIndex
   Enumerable.from([
-    'fhlToolBar',
-    'help',
-    'helpingPopUp',
-    'windowControl',
-    'bookSelect',
-    'bookSelectPopUp',
-    'bookSelectName',
-    'bookSelectChapter',
+    // 'fhlToolBar',
+    // 'help',
+    // 'helpingPopUp',
+    // 'windowControl',
+    // 'bookSelect',
+    // 'bookSelectPopUp',
+    // 'bookSelectName',
+    // 'bookSelectChapter',
   ]).forEach(a1 => {
     function aaa() { eval(caches.getStr(a1)) }
     aaa.call(window)
@@ -92,12 +92,12 @@ function doLast2() {
     // 'versionSelect',
     'docEvent',
     // 'viewHistory',
-    'fhlMidWindow',
+    // 'fhlMidWindow',
     // 'fhlLecture',
-    'fhlMidBottomWindow',
+    // 'fhlMidBottomWindow',
     // 'fhlInfoContent',
     'parsingPopUp',
-    'searchTool',
+    // 'searchTool',
     'coreInfoWindowShowHide',
     // 'FontSizeToolBase',
     'charHG',
