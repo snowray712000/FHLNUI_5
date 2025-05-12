@@ -355,14 +355,14 @@ function doNoReadyStep3() {
 
     // 2017.07 下面整理與NUI2一致.
 
-    var chineseNumber = FHL.CONSTANT.Bible.CHINESE_NUMBERS;
-    var book = FHL.CONSTANT.Bible.CHINESE_BOOK_ABBREVIATIONS;
-    var bookGB = FHL.CONSTANT.Bible.CHINESE_BOOK_ABBREVIATIONS_GB;
-    var bookFullName = FHL.CONSTANT.Bible.CHINESE_BOOK_NAMES;
-    var bookFullName2 = FHL.CONSTANT.Bible.CHINESE_BOOK_NAMES_GB;
-    var bookChapters = FHL.CONSTANT.Bible.BOOK_CHAPTERS;
-    var bookEng = FHL.CONSTANT.Bible.ENGLISH_BOOK_ABBREVIATIONS;
-    var bookEngShort = FHL.CONSTANT.Bible.ENGLISH_BOOK_SHORT_ABBREVIATIONS
+    // var chineseNumber = FHL.CONSTANT.Bible.CHINESE_NUMBERS;
+    // var book = FHL.CONSTANT.Bible.CHINESE_BOOK_ABBREVIATIONS;
+    // var bookGB = FHL.CONSTANT.Bible.CHINESE_BOOK_ABBREVIATIONS_GB;
+    // var bookFullName = FHL.CONSTANT.Bible.CHINESE_BOOK_NAMES;
+    // var bookFullName2 = FHL.CONSTANT.Bible.CHINESE_BOOK_NAMES_GB;
+    // var bookChapters = FHL.CONSTANT.Bible.BOOK_CHAPTERS;
+    // var bookEng = FHL.CONSTANT.Bible.ENGLISH_BOOK_ABBREVIATIONS;
+    // var bookEngShort = FHL.CONSTANT.Bible.ENGLISH_BOOK_SHORT_ABBREVIATIONS
     // var tp1 = FHL.BibleConstant.s
     // var chineseNumber = tp1.CHINESE_NUMBERS;
     // var book = tp1.CHINESE_BOOK_ABBREVIATIONS;
@@ -394,18 +394,18 @@ function doNoReadyStep3() {
         }
     }, 200))
 
-    window.isRDLocation = isRDLocation
-    window.urlJSON = urlJSON
-    window.chineseNumber = chineseNumber
-    window.book = book
-    window.bookGB = bookGB
-    window.bookFullName = bookFullName
-    window.bookFullName2 = bookFullName2
-    window.bookChapters = bookChapters
-    window.bookEng = bookEng
-    window.bookEngShort = bookEngShort
+    // window.isRDLocation = isRDLocation
+    // window.urlJSON = urlJSON
+    // window.chineseNumber = chineseNumber
+    // window.book = book
+    // window.bookGB = bookGB
+    // window.bookFullName = bookFullName
+    // window.bookFullName2 = bookFullName2
+    // window.bookChapters = bookChapters
+    // window.bookEng = bookEng
+    // window.bookEngShort = bookEngShort
 
-    window.leftWindowTool = leftWindowTool
+    // window.leftWindowTool = leftWindowTool
 }
 
 function doReadyStep1() {

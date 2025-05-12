@@ -8,6 +8,8 @@ import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPa
 import { FhlInfo } from './FhlInfo.es2023.js';
 import { FhlLecture } from './FhlLecture.es2023.js';
 import { BookSelect } from './BookSelect.es2023.js';
+import { BibleConstant } from './BibleConstant.es2023.js';
+import { TPPageState } from './TPPageState.es2023.js';
 
 export function doSearch(keyword, ps, isAll) {
     /// <summary> 新版本 (2015.08.01, 搜尋</summary>
@@ -24,18 +26,20 @@ export function doSearch(keyword, ps, isAll) {
 
     // 2015.07.29(三)
     sephp.act_ref_button_click = function (pdata) {
+        const ps = TPPageState.s
+
         /// <summary> 會傳入 engs, chap, sec, ver 資訊. 通常是用來切換章節</summary>
         // console.log("act_ref_button_click not assign., 會傳入 engs, chap, sec, ver 資訊. 通常是用來切換章節");
         var idx = getBookFunc("indexByEngs", pdata.data.engs);
-        ps.chineses = book[idx];
-        ps.engs = bookEng[idx];
+        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
+        ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[idx];
         ps.chap = pdata.data.chap;
         ps.sec = pdata.data.sec;
         triggerGoEventWhenPageStateAddressChange(ps);
-        BookSelect.s.render(pageState, BookSelect.s.dom);
-        FhlLecture.s.render(pageState, FhlLecture.s.dom);
+        BookSelect.s.render(ps, BookSelect.s.dom);
+        FhlLecture.s.render(ps, FhlLecture.s.dom);
         FhlLecture.s.selectLecture(ps.engs, ps.chap, ps.sec);
-        FhlInfo.s.render(pageState);
+        FhlInfo.s.render(ps);
     }; //設定按下查詢之後的空白圓圈圈要作的事
 
     var issn = false;

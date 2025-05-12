@@ -11,6 +11,7 @@ import { FhlInfo } from './FhlInfo.es2023.js';
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
 import { TPPageState } from './TPPageState.es2023.js';
 import { ViewHistory } from './ViewHistory.es2023.js';
+import { BibleConstant } from './BibleConstant.es2023.js';
 
 export class BookSelect {
     static #s = null
@@ -45,15 +46,15 @@ export class BookSelect {
                     const ps = TPPageState.s
 
                     var re = dlg.getResult()
-                    ps.chineses = book[re.book - 1]
-                    ps.engs = bookEng[re.book - 1]
+                    ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[re.book - 1]
+                    ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[re.book - 1]
                     ps.chap = re.chap
                     ps.sec = 1
                     ps.bookIndex = re.book
                     triggerGoEventWhenPageStateAddressChange(ps);
-                    BookSelect.s.render(ps, bookSelect.dom);
-                    FhlLecture.s.render(ps, fhlLecture.dom);
-                    ViewHistory.s.render(ps, viewHistory.dom);
+                    BookSelect.s.render(ps, BookSelect.s.dom);
+                    FhlLecture.s.render(ps, FhlLecture.s.dom);
+                    ViewHistory.s.render(ps, ViewHistory.s.dom);
                     FhlInfo.s.render(ps);
                     BookSelectPopUp.s.dom.hide();
                     //bookselectchapter.dom.hide();
@@ -108,9 +109,9 @@ export class BookSelect {
         var bookName = getBookFunc("bookFullName", ps.chineses);
         var html = "";
         if (bookName != "詩篇" && bookName != "诗篇")
-            html = bookName + "： 第" + chineseNumber[ps.chap] + "章";
+            html = bookName + "： 第" + BibleConstant.CHINESE_NUMBERS[ps.chap] + "章";
         else
-            html = bookName + "： 第" + chineseNumber[ps.chap] + "篇";
+            html = bookName + "： 第" + BibleConstant.CHINESE_NUMBERS[ps.chap] + "篇";
         html += '&nbsp;&#9660;';
         dom.html(html);
         this.registerEvents(ps);

@@ -97,7 +97,7 @@ export class ViewHistory {
             }, 350));
         })
     }
-    render(ps, dom){
+    render(ps = null, dom = null){
         $("#viewHistory p").text(LeftWindowTool.s.getTitleOpenedSetting())
     }
 

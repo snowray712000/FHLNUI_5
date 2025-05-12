@@ -1,3 +1,4 @@
+import { BibleConstant } from "./BibleConstant.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 
 
@@ -56,22 +57,22 @@ export function setBook(ps, bookName) {
     if (ps == null) { ps = TPPageState.s; }
 
     var idx = null;
-    if (book.indexOf(bookName) != -1) {
-        idx = book.indexOf(bookName);
+    if (BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(bookName) != -1) {
+        idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(bookName);
     }
-    else if (bookGB.indexOf(bookName) != -1) {
-        idx = bookGB.indexOf(bookName);
+    else if (BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB.indexOf(bookName) != -1) {
+        idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB.indexOf(bookName);
     }
-    else if (bookEng.indexOf(bookName) != -1) {
-        idx = book.indexOf(bookName);
+    else if (BibleConstant.ENGLISH_BOOK_ABBREVIATIONS.indexOf(bookName) != -1) {
+        idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(bookName);
     } else {
         idx = null;
     }
 
     if (idx != null) {
         ps.bookIndex = idx+1 // 從 0-based 變成 1-based
-        ps.chineses = book[idx];
-        ps.engs = bookEng[idx];
+        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
+        ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[idx];
     } else {
         console.log('setBook error:idx is null');
     }

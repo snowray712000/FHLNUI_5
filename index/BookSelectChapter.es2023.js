@@ -4,6 +4,8 @@ import { FhlInfo } from "./FhlInfo.es2023.js";
 import { BookSelect } from "./BookSelect.es2023.js";
 import { BibleConstant } from "./BibleConstant.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
+import { ViewHistory } from "./ViewHistory.es2023.js";
+
 /**
  * - 它的 init 會被多次呼叫。只要是切換選項了，就會被呼叫一次 init。
  * - 它 init 參數 position 是 BookSelectName 事件中，計算出來的 (就是將所有選項，分成 6 大欄，是決定 Left，而 top 就是那個選項的位置 top 值)
@@ -35,25 +37,20 @@ export class BookSelectChapter {
 
         const doms = $(this.dom).find('li');
         doms.off('click').on('click', function (e) {
-            ps.chineses = book[that.idx];
-            ps.engs = bookEng[that.idx];
+            ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[that.idx];
+            ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[that.idx];
             ps.chap = parseInt($(this).attr('chap'));
             ps.sec = 1;
             ps.bookIndex = that.idx + 1; // 0-based轉1-based (book已經被注釋用掉了)
             triggerGoEventWhenPageStateAddressChange(ps);
 
-            const bookSelect = BookSelect.s
-            const fhlLecture = FhlLecture.s
-            const fhlInfo = FhlInfo.s
-            const bookSelectPopUp = BookSelectPopUp.s
-
-            bookSelect.render(ps, bookSelect.dom);
-            fhlLecture.render(ps, fhlLecture.dom);
-            viewHistory.render(ps, viewHistory.dom);
-            fhlInfo.render(ps);
-            bookSelectPopUp.dom.hide();
+            BookSelect.s.render(ps);
+            FhlLecture.s.render(ps);
+            ViewHistory.s.render(ps);
+            FhlInfo.s.render(ps);
+            BookSelectPopUp.s.dom.hide();
             //bookselectchapter.dom.hide();
-            bookSelect.dom.css({ 'color': '#FFFFFF' });
+            BookSelect.s.dom.css({ 'color': '#FFFFFF' });
 
             $(that).trigger('chapchanged');
         })

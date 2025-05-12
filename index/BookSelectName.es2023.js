@@ -1,6 +1,7 @@
 import { BookSelectChapter } from "./BookSelectChapter.es2023.js"
 import { getBookFunc } from "./getBookFunc.es2023.js"
 import { gbText } from "./gbText.es2023.js";
+import { BibleConstant } from "./BibleConstant.es2023.js";
 export class BookSelectName {
     static #s = null
     /** @returns {BookSelectName} */
@@ -157,10 +158,13 @@ export class BookSelectName {
                 }, 1);
         });
     }
-    render(ps, dom) {
+    render(ps = null, dom = null) {
+        if ( ps == null ) ps = TPPageState.s
+        if ( dom == null ) dom = this.dom
+
         // console.warn(dom); // 好像只會被呼叫一次，然後平常是 hide 起來。
 
-        var nagb = ps.gb !== 1 ? bookFullName : bookFullName2;
+        var nagb = ps.gb !== 1 ? BibleConstant.CHINESE_BOOK_NAMES : BibleConstant.CHINESE_BOOK_NAMES_GB;
         // gb text
         function gbt(str) {
             return gbText(str, ps.gb) // 一致用 gbText 2021-07 Snow
@@ -205,7 +209,7 @@ export class BookSelectName {
         dom.html(html);
 
         for (var i = 0; i < nagb.length; i++) {
-            dom.find('li li:eq(' + i + ')').attr('chineses', book[i]);
+            dom.find('li li:eq(' + i + ')').attr('chineses', BibleConstant.CHINESE_BOOK_ABBREVIATIONS[i]);
         }
         /*for(var i=0;i<bookFullName.length;i++){
           dom.find('li:eq('+i+')').attr('chineses',book[i]);

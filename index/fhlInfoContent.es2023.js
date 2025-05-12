@@ -9,6 +9,10 @@ import { parsing_render_bottom_table } from './parsing_render_bottom_table.es202
 import { parsing_render_top } from './parsing_render_top.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
 import { getAjaxUrl } from './getAjaxUrl.es2023.js'
+import { BibleConstant } from './BibleConstant.es2023.js'
+import { FhlLecture } from './FhlLecture.es2023.js'
+import { FhlInfo } from './FhlInfo.es2023.js'
+import { ViewHistory } from './ViewHistory.es2023.js'
 
 export class FhlInfoContent {
     static #s = null
@@ -153,16 +157,16 @@ export class FhlInfoContent {
                     var oldChap = ps.chap;
                     ps.engs = $(this).attr('engs');
                     var idx = getBookFunc('indexByEngs', ps.engs);
-                    ps.chineses = book[idx];
+                    ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
                     ps.chap = $(this).attr('chap');
                     ps.sec = $(this).attr('sec');
                     triggerGoEventWhenPageStateAddressChange(ps);
                     bookSelect.render(ps, bookSelect.dom);
                     if (oldEngs != ps.engs || oldChap != ps.chap)
-                        fhlLecture.render(ps, fhlLecture.dom);
-                    fhlInfo.render(ps);
-                    fhlLecture.selectLecture(null, null, ps.sec);
-                    viewHistory.render(ps, viewHistory.dom);
+                        FhlLecture.s.render(ps);
+                    FhlInfo.s.render(ps);
+                    FhlLecture.s.selectLecture(null, null, ps.sec);
+                    ViewHistory.s.render();
                 });
                 break;
             case "fhlInfoComment":
@@ -212,7 +216,7 @@ export class FhlInfoContent {
                     var oldChap = ps.chap;
                     ps.engs = $(this).attr('engs');
                     var idx = getBookFunc('indexByEngs', ps.engs);
-                    ps.chineses = book[idx];
+                    ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
                     ps.chap = $(this).attr('chap');
                     ps.sec = $(this).attr('sec');
                     triggerGoEventWhenPageStateAddressChange(ps);
@@ -231,7 +235,7 @@ export class FhlInfoContent {
                         ps.commentBackgroundSec = ps.sec;
                         ps.engs = $(this).attr('engs');
                         var idx = getBookFunc('indexByEngs', ps.engs);
-                        ps.chineses = book[idx];
+                        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
                         ps.chap = $(this).attr('chap');
                         ps.sec = $(this).attr('sec');
                         fhlInfo.render(ps);
@@ -342,7 +346,7 @@ export class FhlInfoContent {
                                         var bookNameEnd = tok.indexOf("&nbsp");
                                         var bookName = tok.substring(0, bookNameEnd);
                                         var chapNumber = tok.substring(bookNameEnd + 5, chapNumberEnd); //+5是因為&nbsp
-                                        span_str += bookEng[book.indexOf(bookName)];
+                                        span_str += BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(bookName)];
                                     }
                                     span_str += " chap=" + chapNumber + " sec='" + secNumber + "'>" + tok + "</span>&nbsp;";
                                 }
@@ -514,7 +518,7 @@ export class FhlInfoContent {
                 // 有聲聖經 snow
                 {
                     var pfn_callback = function fn_after_set(ibook, ichap) {
-                        ps.chineses = book[idx];
+                        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
                         ps.chap = ichap + 1; //因為是0-based 與 1-based
                         ps.sec = 1;
                         bookSelect.render(pageState, bookSelect.dom);

@@ -733,7 +733,7 @@ async function renderLectureHtml(that){
         function checkOldNew(ps) {
             //0 - Old
             //1 - New
-            return (book.indexOf(ps.chineses) >= 39) ? 0 : 1;
+            return (BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(ps.chineses) >= 39) ? 0 : 1;
         }
         function parseBibleText(text, ps, isOld, bibleVersion) {
             var ret;
@@ -1136,17 +1136,13 @@ function reshape_for_align_each_sec(){
 function when_click_chapback(e){
     /** @type {TPPageState} */
     let ps = TPPageState.s
-    let viewHistory = ViewHistory.s
-    let fhlInfo = FhlInfo.s
-    let fhlLecture = FhlLecture.s
-    let bookSelect = BookSelect.s
 
     var idx = getBookFunc("index", ps.chineses); // 0-based
     if (ps.chap == 1) {
         idx--;
-        ps.chineses = book[idx];
-        ps.engs = bookEng[idx];
-        ps.chap = bookChapters[idx];
+        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
+        ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[idx];
+        ps.chap = BibleConstant.COUNT_OF_CHAP[idx];
     } else {
         if (ps.chap == 0) {
             ps.chap = ps.commentBackgroundChap;
@@ -1157,10 +1153,10 @@ function when_click_chapback(e){
     ps.bookIndex = idx + 1; // 此idx回傳是 0-based
     ps.sec = 1;
     triggerGoEventWhenPageStateAddressChange(ps);
-    viewHistory.render(ps, viewHistory.dom);
-    fhlLecture.render(ps, fhlLecture.dom);
-    fhlInfo.render(ps);
-    bookSelect.render(ps, bookSelect.dom);
+    ViewHistory.s.render(ps, ViewHistory.s.dom);
+    FhlLecture.s.render(ps, FhlLecture.s.dom);
+    FhlInfo.s.render(ps);
+    BookSelect.s.render(ps, BookSelect.s.dom);
     e.stopPropagation();
 
     $('#fhlLecture').trigger('chapchanged'); // 變更 history.
@@ -1168,17 +1164,13 @@ function when_click_chapback(e){
 function when_click_chapnext(e){
     /** @type {TPPageState} */
     let ps = TPPageState.s
-    let viewHistory = ViewHistory.s
-    let fhlInfo = FhlInfo.s
-    let fhlLecture = FhlLecture.s
-    let bookSelect = BookSelect.s
 
     var idx = getBookFunc("index", ps.chineses);
     // 設定 ps 資訊(供後面用)
-    if (ps.chap == bookChapters[idx]) {//if last chapter
+    if (ps.chap == BibleConstant.COUNT_OF_CHAP[idx]) {//if last chapter
         idx++;
-        ps.chineses = book[idx];//book+1
-        ps.engs = bookEng[idx];
+        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];//book+1
+        ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[idx];
         ps.chap = 1;
     } else {
         if (ps.chap == 0) {
@@ -1191,10 +1183,10 @@ function when_click_chapnext(e){
 
     ps.sec = 1;
     triggerGoEventWhenPageStateAddressChange(ps); // 這個事件，有人在用唷，就是 viewHistory 會用
-    viewHistory.render(ps, viewHistory.dom); // 這應該是舊的 viewHistory, 被 mark 起來也不會有變化
-    fhlLecture.render(ps, fhlLecture.dom); // 內部經文變化
-    fhlInfo.render(ps); // 右手邊的 info 也要跟著更新
-    bookSelect.render(ps, bookSelect.dom); // 影響「約翰福音：第一章」那裡的顯示
+    ViewHistory.s.render(ps, ViewHistory.s.dom); // 這應該是舊的 viewHistory, 被 mark 起來也不會有變化
+    FhlLecture.s.render(ps, FhlLecture.s.dom); // 內部經文變化
+    FhlInfo.s.render(ps); // 右手邊的 info 也要跟著更新
+    BookSelect.s.render(ps, BookSelect.s.dom); // 影響「約翰福音：第一章」那裡的顯示
     e.stopPropagation();
 
     $('#fhlLecture').trigger('chapchanged');
@@ -1224,7 +1216,7 @@ function show_dialog_pick_bible_version(){
 function when_click_on_lec(e, $lecMain){
     /** @type {TPPageState} */
     let ps = TPPageState.s
-    let fhlInfo = FhlInfo.s
+
     // const $lecMain = $('#lecMain')
     const currentTarget = e.currentTarget // 原程式的 this
     const $this = $(currentTarget) // 原程式的 this
@@ -1251,7 +1243,7 @@ function when_click_on_lec(e, $lecMain){
     }
 
     triggerGoEventWhenPageStateAddressChange(ps);
-    fhlInfo.render(ps);
+    FhlInfo.s.render(ps);
 
     // 因為搜尋還沒有加事件, 這個是暫時用的 2017.09
     var idx = getBookFunc("index", ps.chineses);
