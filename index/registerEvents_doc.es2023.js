@@ -1,8 +1,12 @@
-(root => {
-    root.registerEvents = registerEvents
-})(this)
 
-function registerEvents(ps) {
+import { TPPageState } from "./TPPageState.es2023.js";
+import { getBookFunc } from "./getBookFunc.es2023.js";
+import { BookSelectChapter } from "./BookSelectChapter.es2023.js";
+
+/**
+ * @param {TPPageState} ps 
+ */
+export function registerEvents_doc(ps) {
     /* scrolling register */
     /*setTimeout(function() {
         $('div').scroll(function() {
@@ -15,7 +19,11 @@ function registerEvents(ps) {
     }, 2000);*/ //等到其他function 跑完 (backup 用)
     /*shortcut register*/
     // 快速鍵
-    $(document).on('keyup', function (e) {
+    $(document).on('keyup', 
+        /**
+         * @param {Event} e 
+         */
+        function (e) {
         if (e.altKey && e.shiftKey) {
             var maps = {
                 'KeyS': () => {
@@ -23,11 +31,12 @@ function registerEvents(ps) {
                     var position = $('#bookSelect').position();
                     position.left = '40%'; //$('#bookSelect').position().left;
                     position.top = '20%'; //$('#bookSelect').position().top+$('#bookSelect').height()+10;
-                    bookSelectChapter.init(ps, $('#bookSelectChapter'), idx, position);
-                    bookSelectChapter.registerEvents(ps);
+                    
+                    BookSelectChapter.s.init(ps, $('#bookSelectChapter'), idx, position);
+                    BookSelectChapter.s.registerEvents(ps);
                     //isBookSelectChapterPopUp=true;
                     //bookselectchapter.dom.hide();
-                    bookSelectChapter.dom.show();
+                    BookSelectChapter.s.dom.show();
                     //alert(pageState.chineses);
                 },
                 'KeyF': () => {
@@ -43,7 +52,7 @@ function registerEvents(ps) {
             if (maps[e.code] != undefined) {
                 maps[e.code]()
             }
-            console.log(e.code);
+            // console.log(e.code);
         }
     })
     
@@ -75,3 +84,7 @@ function registerEvents(ps) {
         $('.searchBtn').trigger("click");
     });
 }
+
+// (root => {
+//     root.registerEvents = registerEvents
+// })(this)

@@ -56,6 +56,7 @@ import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { TPPageState } from "./TPPageState.es2023.js";
 import { setBook, DocEvent } from './DocEvent.es2023.js'
 import { gbText } from './gbText.es2023.js'
+import { registerEvents_doc } from './registerEvents_doc.es2023.js'
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -151,7 +152,7 @@ import { gbText } from './gbText.es2023.js'
                     // 'getAjaxUrl',
                     // 'getBookFunc',
                     // 'requestFullscreen',
-                    'registerEvents',
+                    // 'registerEvents',
 
                     // 'fhlToolBar',
                     // 'help',
@@ -438,7 +439,7 @@ function doReadyStep2() {
         FhlLeftWindow.s.init(TPPageState.s);
         FhlMidWindow.s.init(TPPageState.s);
         FhlInfo.s.init(TPPageState.s);
-        registerEvents(TPPageState.s);
+        registerEvents_doc(TPPageState.s);        
 
         $('#title')[0].firstChild.nodeValue = TPPageState.s.gb === 1 ? "信望爱圣经工具 " : "信望愛聖經工具 ";
         // console.log($('#title')[0].childNodes[1]);

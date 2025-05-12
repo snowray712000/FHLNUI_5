@@ -38,7 +38,7 @@ function doLast5() {
     // 'getAjaxUrl',
     // 'getBookFunc',
     // 'requestFullscreen',
-    'registerEvents',
+    // 'registerEvents',
   ]).forEach(a1 => {
     function aaa() { eval(caches.getStr(a1)) }
     aaa.call(window)
