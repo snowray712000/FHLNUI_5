@@ -3,6 +3,7 @@ import { FhlLecture } from "./FhlLecture.es2023.js";
 import { FhlInfo } from "./FhlInfo.es2023.js";
 import { BookSelect } from "./BookSelect.es2023.js";
 import { BibleConstant } from "./BibleConstant.es2023.js";
+import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 /**
  * - 它的 init 會被多次呼叫。只要是切換選項了，就會被呼叫一次 init。
  * - 它 init 參數 position 是 BookSelectName 事件中，計算出來的 (就是將所有選項，分成 6 大欄，是決定 Left，而 top 就是那個選項的位置 top 值)

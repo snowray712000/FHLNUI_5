@@ -14,6 +14,11 @@ import { getBookFunc } from './getBookFunc.es2023.js'
 
 import { ViewHistory } from './ViewHistory.es2023.js'
 
+import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
+
+import { ParsingPopUp } from './ParsingPopUp.es2023.js'
+
+
 /* 
 若有 2 個譯本，並且是併排方式
 <div#fhlLecture>
@@ -2060,7 +2065,7 @@ function when_click_on_ft(e){
 
     var offset = $this.offset();
     offset.top += $this.height() + 10;
-    parsingPopUp.render(ps, parsingPopUp.dom, offset, "ft");
+    ParsingPopUp.s.render(ps, ParsingPopUp.s.dom, offset, "ft");
 
     var ftid = $this.attr('ft');
     var engs = $this.attr('engs');

@@ -12,7 +12,8 @@ import { Settings } from "./Settings.es2023.js";
 import { ViewHistory } from "./ViewHistory.es2023.js";
 import { LeftWindowTool } from "./LeftWindowTool.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
-
+import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
+import { updateLocalStorage } from './updateLocalStorage.es2023.js';
 
 export class FhlLeftWindow {
     static #s = null

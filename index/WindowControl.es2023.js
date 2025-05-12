@@ -28,6 +28,8 @@
 
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { FhlMidBottomWindow } from "./FhlMidBottomWindow.es2023.js";
+import { requestFullscreen } from "./requestFullscreen.es2023.js";
+import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
 
 export class WindowControl {
   static #s = null

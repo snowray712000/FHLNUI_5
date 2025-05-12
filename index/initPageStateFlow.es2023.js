@@ -1,7 +1,10 @@
 /// <reference path="DPageState.d.js" />
 
-window.initPageStateFlow = initPageStateFlow
-function initPageStateFlow(currentSWVer) {
+import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
+
+
+
+export function initPageStateFlow(currentSWVer) {
   //fhlTopMenu.init(pageState);
   //fhlTopMenu.render(pageState);
   //Check cache
@@ -14,10 +17,11 @@ function initPageStateFlow(currentSWVer) {
       // 而是透過 makeSureValueExistForNewVersions 新增的 key
       // pageStateInit(); 
       pageState = tmp // 然後缺的會在下面補足
-      pageState.swVer = currentSWVer // 更新                        
+      pageState.swVer = currentSWVer // 更新   
+      window.pageState = pageState                     
     } else {
       // 從 localStorage 載入
-      pageState = tmp;
+      window.pageState = tmp;
     }
   } else {
     pageStateInit();
@@ -32,7 +36,7 @@ function initPageStateFlow(currentSWVer) {
 
   return
   function pageStateInit() {
-    pageState = genereateDefaultPageState();
+    window.pageState = genereateDefaultPageState();
   }
   /** 
    * 當工程師，在新增 pageState 參數時，因為版本沒更新，所以常常忘了它是 undfined
@@ -40,10 +44,11 @@ function initPageStateFlow(currentSWVer) {
    * 另外，這樣也才不會，因為更新版本，過去的設定都清空歸 0 了
    */
   function makeSureValueExistForNewVersions() {
+    const ps2 = window.pageState;
     var ps = genereateDefaultPageState()    
     for (var k in ps) {
-      if (pageState[k] == undefined) {
-        pageState[k] = ps[k]
+      if (ps2[k] == undefined) {
+        ps2[k] = ps[k]
       }
     }
   }

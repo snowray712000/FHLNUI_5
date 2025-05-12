@@ -1,4 +1,5 @@
 import { FhlLecture } from "./FhlLecture.es2023.js";
+import { updateLocalStorage } from './updateLocalStorage.es2023.js';
 
 /**
  * - 這個不是用 singleton 模式，會建 3 個物件，管理 Hebrew, Greek, Sn 字型大小

@@ -1,4 +1,6 @@
 import { FhlLecture } from "./FhlLecture.es2023.js";
+import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
+import { updateLocalStorage } from "./updateLocalStorage.es2023.js";
 
 export class SnSelect {
     static #s = null

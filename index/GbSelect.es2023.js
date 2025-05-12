@@ -3,6 +3,8 @@ import { FhlLecture } from './FhlLecture.es2023.js';
 import { FhlInfoTitle } from './FhlInfoTitle.es2023.js';
 import { FhlInfo } from './FhlInfo.es2023.js';
 import { BookSelectName } from './BookSelectName.es2023.js';
+import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
+import { updateLocalStorage } from './updateLocalStorage.es2023.js';
 
 export class GbSelect {
     static #s = null

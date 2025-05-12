@@ -1,4 +1,6 @@
 import { FhlMidBottomWindow } from "./FhlMidBottomWindow.es2023.js";
+import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
+import { doSearch } from "./doSearch.es2023.js";
 
 export class SearchTool {
     static #s = null

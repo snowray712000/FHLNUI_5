@@ -1,3 +1,8 @@
+import { ParsingPopUp } from "./ParsingPopUp.es2023.js";
+import { FhlInfoTitle } from "./FhlInfoTitle.es2023.js";
+import { FhlInfoContent } from "./FhlInfoContent.es2023.js";
+import { FhlLecture } from "./FhlLecture.es2023.js";
+import { updateLocalStorage } from './updateLocalStorage.es2023.js';
 
 export class FhlInfo {
     static #s = null
@@ -6,16 +11,13 @@ export class FhlInfo {
 
     dom = null
     init(ps) {
-        const fhlInfoTitle = window.fhlInfoTitle
-        const fhlInfoContent = window.fhlInfoContent
-        const parsingPopUp = window.parsingPopUp
         const rfhlmap = window.rfhlmap
 
-        fhlInfoTitle.init(ps, $('#fhlInfoTitle'));
-        fhlInfoTitle.registerEvents(ps);
-        fhlInfoContent.init(ps, $('#fhlInfoContent'));
-        fhlInfoContent.registerEvents(ps);
-        parsingPopUp.init(ps, $('#parsingPopUp'));
+        FhlInfoTitle.s.init(ps, $('#fhlInfoTitle'));
+        FhlInfoTitle.s.registerEvents(ps);
+        FhlInfoContent.s.init(ps, $('#fhlInfoContent'));
+        FhlInfoContent.s.registerEvents(ps);
+        ParsingPopUp.s.init(ps, $('#parsingPopUp'));
         this.registerEvents();
         this.render(ps);
         var fhlInfoWidth = 500; //這邊改了，css裡面也要改
@@ -38,7 +40,6 @@ export class FhlInfo {
             // minWidth: 300,
             resize: function (event, ui) {
                 const ps = window.pageState
-                const fhlLecture = window.fhlLecture
 
                 const currentWidth = ui.size.width;
 
@@ -56,14 +57,13 @@ export class FhlInfo {
                     'right': currentWidth + 'px'
                 });
 
-                fhlLecture.reshape(ps); // snow add 2016-07
+                FhlLecture.s.reshape(ps); // snow add 2016-07
             }
         });
         $('.ui-resizable-handle.ui-resizable-w').html('<span>&#9776;</span>');
     }
     render(ps) {
-        const fhlInfoContent = window.fhlInfoContent
-        fhlInfoContent.render(ps, fhlInfoContent.dom);
+        FhlInfoContent.s.render(ps, FhlInfoContent.s.dom);
     }
 }
 

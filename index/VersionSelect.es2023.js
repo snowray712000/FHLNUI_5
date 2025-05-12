@@ -1,4 +1,4 @@
-
+import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
 export class VersionSelect {
     static #s = null
     /** @returns {VersionSelect} */

@@ -3,8 +3,9 @@
 /// <reference path="../libs/jsdoc/jquery.js" />
 /// <reference path="../libs/jsdoc/jquery-ui.js" />
 /// <reference path="../libs/jsdoc/jquery.ui.touch-punch.js" />
+import { updateLocalStorage } from './updateLocalStorage.es2023.js';
 
-function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
+export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
     /// <summary> 這是為了開發 "記錄上一次設定 左右視窗 寬度 和 顯示與否 功能而整理" </summary>
     /// 在 click 與 resize 事件中會被呼叫
     /// 2021.07 by snow
@@ -254,7 +255,3 @@ function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
         }
     }
 }
-
-(function (root) {
-    root.coreInfoWindowShowHide = coreInfoWindowShowHide
-})(this)

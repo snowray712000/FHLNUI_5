@@ -1,6 +1,7 @@
 import { FhlInfo } from "./FhlInfo.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
-import { FhlInfoContent } from "./fhlInfoContent.es2023.js";
+import { FhlInfoContent } from "./FhlInfoContent.es2023.js";
+import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 
 export class RealTimePopUpSelect {
     static #s = null

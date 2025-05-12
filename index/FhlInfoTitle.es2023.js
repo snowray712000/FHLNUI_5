@@ -1,4 +1,4 @@
-
+import { triggerGoEventWhenPageStateAddressChange, triggerInfoTitleChanged } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
 export class FhlInfoTitle {
     static #s = null
     /** @returns {FhlInfoTitle} */

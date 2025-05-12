@@ -37,7 +37,7 @@ function doLast5() {
   Enumerable.from([
     'getAjaxUrl',
     // 'getBookFunc',
-    'requestFullscreen',
+    // 'requestFullscreen',
     'registerEvents',
   ]).forEach(a1 => {
     function aaa() { eval(caches.getStr(a1)) }
@@ -96,17 +96,17 @@ function doLast2() {
     // 'fhlLecture',
     // 'fhlMidBottomWindow',
     // 'fhlInfoContent',
-    'parsingPopUp',
+    // 'parsingPopUp',
     // 'searchTool',
-    'coreInfoWindowShowHide',
+    // 'coreInfoWindowShowHide',
     // 'FontSizeToolBase',
     'charHG',
-    'doSearch',
+    // 'doSearch',
     // 'do_preach',
     'gbText',
-    'updateLocalStorage',
-    'triggerGoEventWhenPageStateAddressChange',
-    'windowAdjust',
+    // 'updateLocalStorage',
+    // 'triggerGoEventWhenPageStateAddressChange',
+    // 'windowAdjust',
   ]).forEach(a1 => {
     function aaa() { eval(caches.getStr(a1)) }
     aaa.call(window)

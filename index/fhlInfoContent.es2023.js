@@ -3,6 +3,8 @@ import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDia
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 import { getBookFunc } from './getBookFunc.es2023.js'
+import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
+
 export class FhlInfoContent {
     static #s = null
     /** @returns {FhlInfoContent} */

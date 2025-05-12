@@ -35,7 +35,7 @@ import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬�
 
 import { FhlInfo } from './FhlInfo.es2023.js' // fhlInfoContent 用
 import { FhlInfoTitle } from './FhlInfoTitle.es2023.js' // fhlInfoContent 用
-import { FhlInfoContent } from './fhlInfoContent.es2023.js'
+import { FhlInfoContent } from './FhlInfoContent.es2023.js'
 
 import { getBookFunc } from './getBookFunc.es2023.js'
 import { BookSelect } from './BookSelect.es2023.js'
@@ -48,6 +48,10 @@ import { FhlLeftWindow } from './FhlLeftWindow.es2023.js'
 
 import { FhlToolBar } from './FhlToolBar.es2023.js'
 import { FhlMidWindow } from './FhlMidWindow.es2023.js'
+import { windowAdjust } from './windowAdjust.es2023.js'
+import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
+import { initPageStateFlow } from './initPageStateFlow.es2023.js'
+import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -88,6 +92,8 @@ import { FhlMidWindow } from './FhlMidWindow.es2023.js'
 
     window.versionSelect = VersionSelect.s // versionSelect 用
 
+    window.triggerGoEventWhenPageStateAddressChange = triggerGoEventWhenPageStateAddressChange // indexLast 重構前，還是要有
+
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
     // window.BibleConstantEs6Js = BibleConstantEs6Js 
@@ -104,7 +110,7 @@ import { FhlMidWindow } from './FhlMidWindow.es2023.js'
         testThenDoAsync(() => window.Ijnjs != undefined)
             .then(() => {
                 var files = [
-                    'initPageStateFlow', 
+                    // 'initPageStateFlow', 
                     // 'LeftWindowTool',
                     { dir: 'DialogTemplate', children: ['DialogTemplate', 'OrigDict', 'ParsingReference', 'ParsingOrigDict', 'SnDictDialog.html'] },
                     'checkHtmlVersion',
@@ -120,7 +126,7 @@ import { FhlMidWindow } from './FhlMidWindow.es2023.js'
 
                     'getAjaxUrl',
                     // 'getBookFunc',
-                    'requestFullscreen',
+                    // 'requestFullscreen',
                     'registerEvents',
 
                     // 'fhlToolBar',
@@ -154,17 +160,17 @@ import { FhlMidWindow } from './FhlMidWindow.es2023.js'
                     'parsing_render_top',
                     'parsing_render_bottom_table',
                     // 'fhlInfoContent',
-                    'parsingPopUp',
+                    // 'parsingPopUp',
                     // 'searchTool',
-                    'coreInfoWindowShowHide',
+                    // 'coreInfoWindowShowHide',
                     // 'FontSizeToolBase',
                     'charHG',
-                    'doSearch',
+                    // 'doSearch',
                     // 'do_preach',
                     'gbText',
-                    'updateLocalStorage',
-                    'triggerGoEventWhenPageStateAddressChange',
-                    'windowAdjust',
+                    // 'updateLocalStorage',
+                    // 'triggerGoEventWhenPageStateAddressChange',
+                    // 'windowAdjust',
 
                     'fhl.css'
                 ]
@@ -269,7 +275,7 @@ function doNoReadyStep1() {
     /** @type {Ijnjs.FileCache} */
     var caches = Ijnjs.cachesIndex
     // export window.initPageStateFlow
-    eval(caches.getStr('initPageStateFlow'))
+    // eval(caches.getStr('initPageStateFlow'))
 
     // export window.LeftWindowTool
     // function fn1() { eval(caches.getStr('LeftWindowTool')) }
@@ -350,7 +356,7 @@ function doNoReadyStep3() {
     // 用 lodash lib 作到 https://mropengate.blogspot.com/2017/12/dom-debounce-throttle.html
     $(window).resize(_.debounce(function (e) {
         if (e.target == window) {
-            testThenDoAsync(() => window.windowAdjust != undefined)
+            testThenDoAsync(() => windowAdjust != null)
                 .then(a1 => {
                     windowAdjust();
                 })

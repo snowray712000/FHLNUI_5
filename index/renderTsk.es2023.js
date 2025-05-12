@@ -1,3 +1,5 @@
+import { doSearch } from "./doSearch.es2023.js";
+
 export function renderTsk(ps) {
     if (ps.titleId == "fhlInfoTsk") {
         var dom2 = document.getElementById("fhlInfoContent");
