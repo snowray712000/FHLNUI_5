@@ -1,8 +1,13 @@
-(function (root) {
-    root.gbText = gbText
-})(this)
+// (function (root) {
+//     root.gbText = gbText
+// })(this)
+
+import { TPPageState } from "./TPPageState.es2023.js";
+
 // gb: 1 or 0 2020/11 繁簡合併
-function gbText(str, gb) {
+export function gbText(str, gb) {
+    const pageState = TPPageState.s
+    
     if (gb == undefined) {
         gb = pageState.gb;
     }

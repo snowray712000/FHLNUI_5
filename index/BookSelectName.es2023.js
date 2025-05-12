@@ -1,6 +1,6 @@
 import { BookSelectChapter } from "./BookSelectChapter.es2023.js"
 import { getBookFunc } from "./getBookFunc.es2023.js"
-
+import { gbText } from "./gbText.es2023.js";
 export class BookSelectName {
     static #s = null
     /** @returns {BookSelectName} */

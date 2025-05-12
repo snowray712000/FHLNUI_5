@@ -8,6 +8,7 @@ import { FontSizeTool } from "./FontSizeTool.es2023.js";
 import { FontSizeToolBase } from "./FontSizeToolBase.es2023.js";
 import { LeftWindowTool } from "./LeftWindowTool.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
+import { gbText } from "./gbText.es2023.js";
 
 export class Settings {
     static #s = null

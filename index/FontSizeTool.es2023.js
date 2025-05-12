@@ -1,6 +1,7 @@
 
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { updateLocalStorage } from './updateLocalStorage.es2023.js';
+import { gbText } from './gbText.es2023.js';
 
 export class FontSizeTool {
     static #s = null

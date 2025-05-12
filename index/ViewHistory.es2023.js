@@ -3,6 +3,7 @@ import { FhlInfo } from './FhlInfo.es2023.js'
 import { FhlLecture } from './FhlLecture.es2023.js'
 
 import { LeftWindowTool } from './LeftWindowTool.es2023.js' // 還沒作
+import { setBook } from './DocEvent.es2023.js' // 還沒作
 export class ViewHistory {
     static #s = null
     /** @returns {ViewHistory} */

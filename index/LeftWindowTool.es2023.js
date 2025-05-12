@@ -1,4 +1,5 @@
 import { TPPageState } from "./TPPageState.es2023.js";
+import { gbText } from "./gbText.es2023.js";
 
 export class LeftWindowTool {
     static #s = null

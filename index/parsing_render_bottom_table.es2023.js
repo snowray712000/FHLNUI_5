@@ -1,5 +1,7 @@
 /// <reference path="./fhlParsing.d.ts" />
 
+import { charHG } from "./charHG.es2023.js"
+
 /**
  * render parsing 工具，下半部的 table
  * 從 fhlInfoContent 中被提取的程式碼

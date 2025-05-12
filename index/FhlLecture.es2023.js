@@ -21,6 +21,7 @@ import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { TPPageState } from "./TPPageState.es2023.js";
 import { BookSelect } from './BookSelect.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
+import { charHG } from './charHG.es2023.js'
 
 /* 
 若有 2 個譯本，並且是併排方式

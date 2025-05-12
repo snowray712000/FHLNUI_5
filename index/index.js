@@ -54,6 +54,8 @@ import { initPageStateFlow } from './initPageStateFlow.es2023.js'
 import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
 import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { TPPageState } from "./TPPageState.es2023.js";
+import { setBook, DocEvent } from './DocEvent.es2023.js'
+import { gbText } from './gbText.es2023.js'
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -97,7 +99,10 @@ import { TPPageState } from "./TPPageState.es2023.js";
     window.triggerGoEventWhenPageStateAddressChange = triggerGoEventWhenPageStateAddressChange // indexLast 重構前，還是要有
     window.SN_Act_Color = SN_Act_Color // SN_Act_Color 用
 
-    // indexLast.js 還在用
+    // indexLast 還在用
+    window.docEvent = DocEvent.s //
+    window.setBook = setBook // 
+    window.gbText = gbText // sephp.create_dialog_presearch 用
     Object.defineProperty(window, 'pageState', {
         get() {
             return TPPageState.s; // 假設 TPPageState.s 是你的全域狀態
@@ -112,6 +117,7 @@ import { TPPageState } from "./TPPageState.es2023.js";
         configurable: true, // 允許重新定義
         enumerable: true    // 允許列舉
     });
+    
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
     // window.BibleConstantEs6Js = BibleConstantEs6Js 
@@ -169,7 +175,7 @@ import { TPPageState } from "./TPPageState.es2023.js";
                     // 'fontSizeTool',
                     
                     // 'versionSelect',
-                    'docEvent',
+                    // 'docEvent',
                     // 'viewHistory',
                     // 'fhlMidWindow',
                     //'fhlLecture', //es 模式成功，讓這個被拿掉
@@ -182,10 +188,10 @@ import { TPPageState } from "./TPPageState.es2023.js";
                     // 'searchTool',
                     // 'coreInfoWindowShowHide',
                     // 'FontSizeToolBase',
-                    'charHG',
+                    // 'charHG',
                     // 'doSearch',
                     // 'do_preach',
-                    'gbText',
+                    // 'gbText',
                     // 'updateLocalStorage',
                     // 'triggerGoEventWhenPageStateAddressChange',
                     // 'windowAdjust',

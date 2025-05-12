@@ -3,6 +3,7 @@ import { FhlLecture } from "./FhlLecture.es2023.js";
 import { FhlInfoContent } from "./FhlInfoContent.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
+import { gbText } from "./gbText.es2023.js";
 
 export class RealTimePopUpSelect {
     static #s = null
