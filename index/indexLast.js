@@ -35,7 +35,7 @@ function let_sn_color_change_in_search_result() {
 function doLast5() {
   var caches = Ijnjs.cachesIndex
   Enumerable.from([
-    'getAjaxUrl',
+    // 'getAjaxUrl',
     // 'getBookFunc',
     // 'requestFullscreen',
     'registerEvents',
@@ -90,7 +90,7 @@ function doLast2() {
   var caches = Ijnjs.cachesIndex
   Enumerable.from([
     // 'versionSelect',
-    'docEvent',
+    // 'docEvent',
     // 'viewHistory',
     // 'fhlMidWindow',
     // 'fhlLecture',

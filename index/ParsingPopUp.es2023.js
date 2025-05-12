@@ -1,5 +1,8 @@
 import { doSearch } from './doSearch.es2023.js'
 import { TPPageState } from "./TPPageState.es2023.js";
+import { dev_sbdag } from "./dev_sbdag.es2023.js"
+import { dev_stwcbhdic } from "./dev_stwcbhdic.es2023.js"
+import { getAjaxUrl } from './getAjaxUrl.es2023.js';
 
 export class ParsingPopUp {
     static #s = null

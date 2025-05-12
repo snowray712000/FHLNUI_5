@@ -8,6 +8,7 @@ import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { parsing_render_bottom_table } from './parsing_render_bottom_table.es2023.js'
 import { parsing_render_top } from './parsing_render_top.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
+import { getAjaxUrl } from './getAjaxUrl.es2023.js'
 
 export class FhlInfoContent {
     static #s = null

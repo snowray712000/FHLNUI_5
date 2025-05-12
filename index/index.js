@@ -148,7 +148,7 @@ import { gbText } from './gbText.es2023.js'
                     },
                     'indexLast',
 
-                    'getAjaxUrl',
+                    // 'getAjaxUrl',
                     // 'getBookFunc',
                     // 'requestFullscreen',
                     'registerEvents',
