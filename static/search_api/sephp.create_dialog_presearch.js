@@ -111,14 +111,35 @@ sephp.pre_search_click = function pre_search_click(pdata) {
   }, 400);
   
 };//pre_search_click
+
+/**
+ * @typedef {Object} OneSeRecord
+ * @property {number} chap
+ * @property {number} sec
+ * @property {number} ibook 3
+ * @property {string} engs Num
+ * @property {string} chineses 民
+ * @property {string} ver lcc
+ * @property {string} bible_text
+ * @typedef {Object} OneVerResult
+ * @property {string} key
+ * @property {OneSeRecord[]} record
+ * @property {number} record_count
+ */
+
+/**
+ * 
+ * @param {(OneVerResult | null)[]} jrets 
+ */
 sephp.create_dialog_presearch = function create_dialog_presearch(jrets) {
   /// <param type="jret[]" name="jrets" parameterArray="true">通常是 pre_search_sn pre_search_keyword 結果</param>
+  const jrets_a = jrets.filter(a1=>a1 != null);
 
   var jret2 = {};
   {//2015.08.13(四) 先把先有排序
     // 合併
     var Lq_tmp = Enumerable.empty();
-    $.each(jrets, function (idx, obj) {
+    $.each(jrets_a, function (idx, obj) {
       Lq_tmp = Lq_tmp.concat(Enumerable.from(obj.record));
     });
 
@@ -130,7 +151,7 @@ sephp.create_dialog_presearch = function create_dialog_presearch(jrets) {
 
   //合併 jrets 中的 record 
   var Lq1 = Enumerable.empty();
-  $.each(jrets, function (idx, jret) {
+  $.each(jrets_a, function (idx, jret) {
     Lq1 = Lq1.concat(Enumerable.from(jret["record"]));
   });
 
