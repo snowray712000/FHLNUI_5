@@ -52,6 +52,8 @@ import { windowAdjust } from './windowAdjust.es2023.js'
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
 import { initPageStateFlow } from './initPageStateFlow.es2023.js'
 import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
+import { SN_Act_Color } from './SN_Act_Color.es2023.js'
+import { TPPageState } from "./TPPageState.es2023.js";
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -93,7 +95,23 @@ import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
     window.versionSelect = VersionSelect.s // versionSelect 用
 
     window.triggerGoEventWhenPageStateAddressChange = triggerGoEventWhenPageStateAddressChange // indexLast 重構前，還是要有
+    window.SN_Act_Color = SN_Act_Color // SN_Act_Color 用
 
+    // indexLast.js 還在用
+    Object.defineProperty(window, 'pageState', {
+        get() {
+            return TPPageState.s; // 假設 TPPageState.s 是你的全域狀態
+        },
+        configurable: true, // 允許重新定義
+        enumerable: true    // 允許列舉
+    });
+    Object.defineProperty(window, 'ps', {
+        get() {
+            return TPPageState.s; // 假設 TPPageState.s 是你的全域狀態
+        },
+        configurable: true, // 允許重新定義
+        enumerable: true    // 允許列舉
+    });
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
     // window.BibleConstantEs6Js = BibleConstantEs6Js 
@@ -156,9 +174,9 @@ import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
                     // 'fhlMidWindow',
                     //'fhlLecture', //es 模式成功，讓這個被拿掉
                     // 'fhlMidBottomWindow',
-                    'SN_Act_Color',
-                    'parsing_render_top',
-                    'parsing_render_bottom_table',
+                    // 'SN_Act_Color',
+                    // 'parsing_render_top',
+                    // 'parsing_render_bottom_table',
                     // 'fhlInfoContent',
                     // 'parsingPopUp',
                     // 'searchTool',
@@ -191,7 +209,7 @@ import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
                     doNoReadyStep3()
 
                     // doNoReadyStep1 會載入這個全域變數
-                    init_fontsize_css_variable_from_pagestate(window.pageState)
+                    init_fontsize_css_variable_from_pagestate(TPPageState.s)
 
                     doReadyStep1()
                     doReadyStep2()
@@ -363,8 +381,8 @@ function doNoReadyStep3() {
 
             // add by snow. 2021.07, device 旋轉也算
             coreInfoWindowShowHide(function () {
-                fhlLecture.reshape(pageState); //ps的全域即是 pageState, 只是這裡沒有傳過來, 只好偷存取全域的 snow-add
-            }, pageState.isVisibleLeftWindow, pageState.isVisibleInfoWindow)
+                fhlLecture.reshape(TPPageState.s); //ps的全域即是 TPPageState.s, 只是這裡沒有傳過來, 只好偷存取全域的 snow-add
+            }, TPPageState.s.isVisibleLeftWindow, TPPageState.s.isVisibleInfoWindow)
 
         }
     }, 200))
@@ -410,24 +428,24 @@ function doReadyStep2() {
         // $('#problemsReport').attr("href", "mailto:sean@fhl.net,tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
         $('#problemsReport').attr("href", "mailto:tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
 
-        FhlToolBar.s.init(pageState);
-        FhlLeftWindow.s.init(pageState);
-        FhlMidWindow.s.init(pageState);
-        FhlInfo.s.init(pageState);
-        registerEvents(pageState);
+        FhlToolBar.s.init(TPPageState.s);
+        FhlLeftWindow.s.init(TPPageState.s);
+        FhlMidWindow.s.init(TPPageState.s);
+        FhlInfo.s.init(TPPageState.s);
+        registerEvents(TPPageState.s);
 
-        $('#title')[0].firstChild.nodeValue = pageState.gb === 1 ? "信望爱圣经工具 " : "信望愛聖經工具 ";
+        $('#title')[0].firstChild.nodeValue = TPPageState.s.gb === 1 ? "信望爱圣经工具 " : "信望愛聖經工具 ";
         // console.log($('#title')[0].childNodes[1]);
-        $('#title')[0].childNodes[1].textContent = "v" + pageState.swVer;
+        $('#title')[0].childNodes[1].textContent = "v" + TPPageState.s.swVer;
         checkHtmlVersion() // checkHtmlVersion.js
 
         // add by snow. 2021.07
         // 開啟時，保持上次設定 (左、右功能視窗，隱藏 or 顯示)
         coreInfoWindowShowHide(function () {
             setTimeout(function () {
-                FhlLecture.s.reshape(pageState); // 加這行會有 Bug, 因此要在 setTimeout 中 (其它地方呼叫不需要如此)         
+                FhlLecture.s.reshape(TPPageState.s); // 加這行會有 Bug, 因此要在 setTimeout 中 (其它地方呼叫不需要如此)         
             }, 0)
-        }, pageState.isVisibleLeftWindow == 1, pageState.isVisibleInfoWindow == 1)
+        }, TPPageState.s.isVisibleLeftWindow == 1, TPPageState.s.isVisibleInfoWindow == 1)
 
     });
 }

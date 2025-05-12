@@ -4,6 +4,10 @@ import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtD
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 import { getBookFunc } from './getBookFunc.es2023.js'
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
+import { SN_Act_Color } from './SN_Act_Color.es2023.js'
+import { parsing_render_bottom_table } from './parsing_render_bottom_table.es2023.js'
+import { parsing_render_top } from './parsing_render_top.es2023.js'
+import { TPPageState } from './TPPageState.es2023.js'
 
 export class FhlInfoContent {
     static #s = null
@@ -12,6 +16,8 @@ export class FhlInfoContent {
 
     dom = null
     init(ps, dom){
+        if (ps == null) ps = TPPageState.s
+
         this.dom = dom
         this.render(ps, this.dom)
     }
@@ -19,6 +25,8 @@ export class FhlInfoContent {
      * @param {TPPageState} ps 
      */
     registerEvents(ps){
+        if (ps == null) ps = TPPageState.s
+
         var that = this;
         switch (ps.titleId) {
             case "fhlInfoParsing":
@@ -91,7 +99,7 @@ export class FhlInfoContent {
                         // 取出 sn
                         const sn = div.find('.sn').attr('sn')
                         const N = div.find('.sn').attr('tp') == 'H' ? 1 : 0
-                        SN_Act_Color.act_add(sn, N)
+                        SN_Act_Color.s.act_add(sn, N)
 
                         // 跳出對應的那格 wid
                         if (ps.realTimePopUp == 1 && !is_pause_realtime_temporary) {
@@ -100,7 +108,7 @@ export class FhlInfoContent {
                         }                        
                     }).on('mouseleave', function (ev) {
                         // 把 sn 去掉
-                        SN_Act_Color.act_remove()
+                        SN_Act_Color.s.act_remove()
 
                         if (ps.realTimePopUp == 1 && !is_pause_realtime_temporary) {
                             close_snbtn_result_dialog()
@@ -132,10 +140,10 @@ export class FhlInfoContent {
                         var r2 = $(dom)
                         var sn = r2.attr('sn')
                         var N = r2.attr('tp') == 'H' ? 1 : 0
-                        SN_Act_Color.act_add(sn, N)
+                        SN_Act_Color.s.act_add(sn, N)
                     }).on('mouseleave', '.sn', function (ev) {
                         // 把 sn 去掉
-                        SN_Act_Color.act_remove()
+                        SN_Act_Color.s.act_remove()
                     })
                 }
 
@@ -171,12 +179,12 @@ export class FhlInfoContent {
                     var N = r2.attr('tp') == 'H' ? 1 : 0
                     ps.snAct = sn
                     ps.snActN = N
-                    SN_Act_Color.act_add(sn, N)
+                    SN_Act_Color.s.act_add(sn, N)
                 })
                 $('#fhlInfoContent').off('mouseleave', '.sn').on('mouseleave', '.sn', function () {
                     ps.snAct = ""
                     ps.snActN = -1
-                    SN_Act_Color.act_remove()
+                    SN_Act_Color.s.act_remove()
                 })
                 
                 $('#fhlInfoContent').off('click', '.commentJump').on('click', '.commentJump', ev => {
@@ -246,7 +254,10 @@ export class FhlInfoContent {
                 break;
         }
     }
-    render(ps, dom){
+    render(ps = null, dom = null){
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = this.dom
+
         var that = this;
         switch (ps.titleId) {
             case "fhlInfoParsing":

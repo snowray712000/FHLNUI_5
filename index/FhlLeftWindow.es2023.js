@@ -14,6 +14,7 @@ import { LeftWindowTool } from "./LeftWindowTool.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { updateLocalStorage } from './updateLocalStorage.es2023.js';
+import { TPPageState } from './TPPageState.es2023.js';
 
 export class FhlLeftWindow {
     static #s = null
@@ -21,6 +22,8 @@ export class FhlLeftWindow {
     static get s() { if (this.#s == null) this.#s = new FhlLeftWindow(); return this.#s; }
 
     init(ps) {
+        if (ps == null) ps = TPPageState.s
+
         Settings.s.init(ps, $('#settings'));
         Settings.s.registerEvents(ps);
 
@@ -72,6 +75,8 @@ export class FhlLeftWindow {
                     {
                         var s = Ijnjs.BibieVersionDialog.s
                         s.setCallbackClosed(jo => {
+                            const pageState = TPPageState.s
+
                             aa = jo
                             var vers = jo.selects
                             pageState.versionOffens = jo.offens
@@ -100,7 +105,8 @@ export class FhlLeftWindow {
                             .then(() => {
                                 s.setVersionsFromApi(getAbvResult())
                                 function getAbvResult() {
-                                    var r1 = pageState.gb == 1 ? abvphp.g_bibleversionsGb : abvphp.g_bibleversions
+                                
+                                    var r1 = TPPageState.s.gb == 1 ? abvphp.g_bibleversionsGb : abvphp.g_bibleversions
                                     var r2 = Enumerable.from(r1).select(a1 => ({ 'na': a1.value.book, 'cna': a1.key })).toArray()
                                     return r2
                                 }
@@ -114,9 +120,9 @@ export class FhlLeftWindow {
                         return
                         function open() {
                             Ijnjs.BibieVersionDialog.s.open({
-                                selects: pageState.version,
-                                offens: pageState.versionOffens,
-                                sets: pageState.versionSets,
+                                selects: TPPageState.s.version,
+                                offens: TPPageState.s.versionOffens,
+                                sets: TPPageState.s.versionSets,
                             })
 
                         }
@@ -133,7 +139,7 @@ export class FhlLeftWindow {
             resize: function (event, ui) {
                 var currentWidth = ui.size.width;
 
-                pageState.cxLeftWindow = currentWidth // add by snow. 2021.07
+                TPPageState.s.cxLeftWindow = currentWidth // add by snow. 2021.07
                 updateLocalStorage()
 
                 var fhlMidWindowWidth;
@@ -156,7 +162,7 @@ export class FhlLeftWindow {
                 // });
 
                 // snow add 2016-07
-                FhlLecture.s.reshape(pageState);
+                FhlLecture.s.reshape(TPPageState.s);
             }
         });
         $('.ui-resizable-handle.ui-resizable-e').html('<span>☰</span>');

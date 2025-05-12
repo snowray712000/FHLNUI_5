@@ -2,11 +2,13 @@ import { FhlInfo } from "./FhlInfo.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { FhlInfoContent } from "./FhlInfoContent.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class RealTimePopUpSelect {
     static #s = null
     /** @returns {RealTimePopUpSelect} */
     static get s() { if (this.#s == null) this.#s = new RealTimePopUpSelect(); return this.#s }
+    
     dom = null
     init(ps, dom) {
         this.dom = dom;
@@ -15,7 +17,7 @@ export class RealTimePopUpSelect {
     registerEvents(ps) {
         $('#realTimeOnOffSwitch').off('change').on('change',
             function () {
-                const ps = window.pageState
+                const ps = TPPageState.s
 
                 if ($(this).is(':checked')) {
                     ps.realTimePopUp = 1;
@@ -31,6 +33,9 @@ export class RealTimePopUpSelect {
             });
     }
     render(ps, dom) {
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = this.dom
+
         var html = "<div>" + gbText("即時顯示", ps.gb) + ":</div>";
         html += '<div class="onOffSwitch">\
                               <input type="checkbox" name="realTimeOnOffSwitch" class="onOffSwitch-checkbox" id="realTimeOnOffSwitch">\

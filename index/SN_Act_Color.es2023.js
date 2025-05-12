@@ -1,12 +1,16 @@
 /**
  * mouserenter mouseleave 事件使用，改變 sn 顏色
  */
-class SN_Act_Color {
+export class SN_Act_Color {
+    static #s = null
+    /** @type {SN_Act_Color} */
+    static get s() { if (this.#s == null) this.#s = new SN_Act_Color(); return this.#s; }
+
     /**
      * jQuery selector
      * @returns {str} jQuery selector
      */
-    static ids(){
+    ids(){
         // 下面會重複使用 lecMain 閱讀 search_result 搜尋結果 parsingTable 原文 commentScrollDiv 注釋
         let id_array_for_jquery = '#lecMain, #search_result, #parsingTable, #commentScrollDiv'
         return id_array_for_jquery
@@ -14,7 +18,7 @@ class SN_Act_Color {
     /**
      * .snAct .snAct2 remove
      */
-    static act_remove(){
+    act_remove(){
         // sn.mouseleave event use
         $(this.ids()).find('.snAct, .snAct2').removeClass('snAct').removeClass('snAct2')
     }
@@ -24,7 +28,7 @@ class SN_Act_Color {
      * @param {str} sn sn，但要注意，應該都要把前面的零去掉。要小心，若想用 trim left 把 0 去掉，要小心不要遇到 00000 。 
      * @param {0|1} N 0 新約，1 舊約。 
      */
-    static act_add(sn, N){
+    act_add(sn, N){
         // Activate sn，標記為紅色
         let cod1 = `[sn=${sn}][N=${N}]` // 原本是 find('.sn[sn=sn][N=N]')，但現在多了 .sn-text 也要一樣的條件
         let needAddClassSnAct = $(this.ids()).find(`.sn${cod1}, .sn-text${cod1}`)
@@ -57,7 +61,3 @@ class SN_Act_Color {
         }                
     }
 }
-
-(root => {
-    root.SN_Act_Color = SN_Act_Color
-})(this)

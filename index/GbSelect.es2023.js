@@ -5,11 +5,13 @@ import { FhlInfo } from './FhlInfo.es2023.js';
 import { BookSelectName } from './BookSelectName.es2023.js';
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
 import { updateLocalStorage } from './updateLocalStorage.es2023.js';
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class GbSelect {
     static #s = null
     /** @returns {GbSelect} */
     static get s() { if (this.#s == null) this.#s = new GbSelect(); return this.#s }
+    
     dom = null
     init(ps, dom) {
         this.dom = dom;
@@ -18,7 +20,7 @@ export class GbSelect {
     registerEvents(ps) {
         $('#gbSelectSwitch').off('change').on('change',
             function () {
-                const ps = window.pageState
+                const ps = TPPageState.s
 
                 if ($(this).is(':checked')) {
                     ps.gb = 1;
@@ -49,7 +51,10 @@ export class GbSelect {
                 updateLocalStorage()
             });
     }
-    render(ps, dom) {
+    render(ps = null, dom = null) {
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = this.dom
+
         var html = "<div> " + gbText('繁簡切換', ps.gb) + ":</div>";
         html += '<div class="onOffSwitch">\
                               <input type="checkbox" name="gbSelectSwitch" class="onOffSwitch-checkbox" id="gbSelectSwitch">\

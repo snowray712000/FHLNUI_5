@@ -1,6 +1,7 @@
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export function updateLocalStorage() {
-    const ps = window.pageState;
+    const ps = TPPageState.s
     localStorage.setItem("fhlPageState", JSON.stringify(ps));
 }
 

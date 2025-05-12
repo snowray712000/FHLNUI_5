@@ -1,4 +1,5 @@
 import { triggerGoEventWhenPageStateAddressChange, triggerInfoTitleChanged } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
+import { TPPageState } from './TPPageState.es2023.js';
 export class FhlInfoTitle {
     static #s = null
     /** @returns {FhlInfoTitle} */
@@ -9,16 +10,22 @@ export class FhlInfoTitle {
     title = null
 
     init(ps, dom) {
+        if (ps == null) ps = TPPageState.s
+
         this.dom = dom;
         this.setTitleViaGb(ps);
         this.render(ps, this.dom);
     }
     registerEvents(ps) {
+        if (ps == null) ps = TPPageState.s
+
         // 型成 jquery 用字串.
         // #fhlInfoParsing,#fhlInfoComment,#fhlInfoPreach,#fhlInfoTsk,#fhlInfoOb,#fhlInfoAudio,#fhlInfoMap,#fhlSnBranch
         var selectAll = this.title.map(a1 => `#${a1.id}`).join(',')
 
         $(selectAll).on('click', function (_) {
+            const ps = TPPageState.s
+
             var idTitle = $(this).attr('id');
             if (idTitle == ps.titleId) {
                 // 目前是注釋，又點了一次注釋 (防呆)
@@ -37,6 +44,8 @@ export class FhlInfoTitle {
 
         // 樹狀圖，只有在羅馬書才會出現title        
         $(document).on('go', function (event, addr) {
+            const ps = TPPageState.s
+            
             // assert ps.titleIdold != ps.titleId
             if (ps.titleId == "fhlSnBranch") {
                 if (addr.book != 45) { // 若目前是 樹狀圖，但變成不是時，會隱藏，但要自動切換掉
@@ -53,6 +62,9 @@ export class FhlInfoTitle {
     }
 
     render(ps, dom) {
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = this.dom
+
         this.setTitleViaGb(ps);
         var html = "<ul>";
         for (var i = 0; i < this.title.length; i++) {

@@ -24,9 +24,9 @@ function let_sn_color_change_in_search_result() {
     pageState.snAct = sn
     pageState.snActN = N
 
-    SN_Act_Color.act_add(sn, N)
+    SN_Act_Color.s.act_add(sn, N)
   }).on('mouseleave', '.sn', function () {
-    SN_Act_Color.act_remove()
+    SN_Act_Color.s.act_remove()
     pageState.snAct = ''
     pageState.snActN = -1
   })
@@ -75,9 +75,9 @@ function doLast3() {
     // 'mapTool',
     // 'imageTool',
     // 'renderTsk',
-    'SN_Act_Color',
-    'parsing_render_top',
-    'parsing_render_bottom_table',
+    // 'SN_Act_Color',
+    // 'parsing_render_top',
+    // 'parsing_render_bottom_table',
     // 'SnBranchRender',
     // 'fontSizeTool',
   ]).forEach(a1 => {

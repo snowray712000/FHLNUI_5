@@ -1,7 +1,7 @@
 /// <reference path="DPageState.d.js" />
 
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
-
+import { TPPageState } from './TPPageState.es2023.js';
 
 
 export function initPageStateFlow(currentSWVer) {
@@ -18,10 +18,10 @@ export function initPageStateFlow(currentSWVer) {
       // pageStateInit(); 
       pageState = tmp // 然後缺的會在下面補足
       pageState.swVer = currentSWVer // 更新   
-      window.pageState = pageState                     
+      TPPageState.s.updateFromDict(pageState)
     } else {
       // 從 localStorage 載入
-      window.pageState = tmp;
+      TPPageState.s.updateFromDict(tmp);
     }
   } else {
     pageStateInit();
@@ -31,12 +31,12 @@ export function initPageStateFlow(currentSWVer) {
   makeSureValueExistForNewVersions()
     
   $(function () {
-    triggerGoEventWhenPageStateAddressChange(pageState);
+    triggerGoEventWhenPageStateAddressChange(TPPageState.s);
   })
 
   return
   function pageStateInit() {
-    window.pageState = genereateDefaultPageState();
+    TPPageState.s.updateFromDict(genereateDefaultPageState());
   }
   /** 
    * 當工程師，在新增 pageState 參數時，因為版本沒更新，所以常常忘了它是 undfined
@@ -44,7 +44,7 @@ export function initPageStateFlow(currentSWVer) {
    * 另外，這樣也才不會，因為更新版本，過去的設定都清空歸 0 了
    */
   function makeSureValueExistForNewVersions() {
-    const ps2 = window.pageState;
+    const ps2 = TPPageState.s;
     var ps = genereateDefaultPageState()    
     for (var k in ps) {
       if (ps2[k] == undefined) {

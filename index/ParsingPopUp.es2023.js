@@ -1,4 +1,5 @@
 import { doSearch } from './doSearch.es2023.js'
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class ParsingPopUp {
     static #s = null
@@ -308,7 +309,7 @@ function parse_dic_stwcbhdic(html){
 }
 // 原本有匯出，但外部似乎沒用，就不匯出吧
 function parseDic(text) {
-    const ps = window.pageState
+    const ps = TPPageState.s
     text = text.replace(/(定義|自希伯來文|於|自|參|與|同義詞|和|見|from|and|See|see entry)(\s+)/g,
         function replacer(match, p1, offset, string) { return p1; });
     text = text.replace(/ /g, "&nbsp;");

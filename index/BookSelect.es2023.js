@@ -9,6 +9,8 @@ import { BookSelectPopUp } from './BookSelectPopUp.es2023.js';
 import { FhlLecture } from './FhlLecture.es2023.js';
 import { FhlInfo } from './FhlInfo.es2023.js';
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
+import { TPPageState } from './TPPageState.es2023.js';
+import { ViewHistory } from './ViewHistory.es2023.js';
 
 export class BookSelect {
     static #s = null
@@ -25,18 +27,14 @@ export class BookSelect {
         bookSelectPopUp.registerEvents(ps)
     }
     /**
-     * @param {DPageState} ps 
+     * @param {TPPageState} ps 
      */
-    registerEvents(ps) {
-        var that = this;
-        $('#bookSelect').unbind().click(function(e) { 
-            // 加上unbind() 讓創世記第二節之後的dropdown不會自動消失
-            
-            const bookSelectPopUp = BookSelectPopUp.s
-            const bookSelect = BookSelect.s
-            const fhlLecture = FhlLecture.s
-            const fhlInfo = FhlInfo.s
+    registerEvents(ps = null) {
+        if (ps == null) ps = TPPageState.s
 
+        var that = this;
+        $('#bookSelect').off().on('click', function(e) { 
+            // 加上unbind() 讓創世記第二節之後的dropdown不會自動消失
             var cx = $(window).width()
             if (cx < 1280) { // 那個視窗大概需1100，取個 1280 吧
                 /**
@@ -44,6 +42,8 @@ export class BookSelect {
                  */
                 var dlg = Ijnjs.BookChapDialog.s // 不想打字那麼長而已，非必要        
                 dlg.setCBHided(() => {
+                    const ps = TPPageState.s
+
                     var re = dlg.getResult()
                     ps.chineses = book[re.book - 1]
                     ps.engs = bookEng[re.book - 1]
@@ -51,28 +51,29 @@ export class BookSelect {
                     ps.sec = 1
                     ps.bookIndex = re.book
                     triggerGoEventWhenPageStateAddressChange(ps);
-                    bookSelect.render(ps, bookSelect.dom);
-                    fhlLecture.render(ps, fhlLecture.dom);
-                    viewHistory.render(ps, viewHistory.dom);
-                    fhlInfo.render(ps);
-                    bookSelectPopUp.dom.hide();
+                    BookSelect.s.render(ps, bookSelect.dom);
+                    FhlLecture.s.render(ps, fhlLecture.dom);
+                    ViewHistory.s.render(ps, viewHistory.dom);
+                    FhlInfo.s.render(ps);
+                    BookSelectPopUp.s.dom.hide();
                     //bookselectchapter.dom.hide();
-                    bookSelect.dom.css({
+                    BookSelect.s.dom.css({
                         'color': '#FFFFFF'
                     });
 
                     $(that).trigger('chapchanged');
                 })
+                
                 Ijnjs.BookChapDialog.s.show({ book: ps.bookIndex, chap: ps.chap, isGb: ps.gb == 1 })
             } else {
-                if (bookSelectPopUp.dom.is(":visible")) {
-                    bookSelectPopUp.dom.fadeOut('0.2');
+                if (BookSelectPopUp.s.dom.is(":visible")) {
+                    BookSelectPopUp.s.dom.fadeOut('0.2');
                     setTimeout(function() {
-                        bookSelect.dom.css({ 'color': '#D0D0D0' });
+                        BookSelect.s.dom.css({ 'color': '#D0D0D0' });
                     }, 200);
                 } else {
-                    bookSelectPopUp.dom.fadeIn('0.2');
-                    bookSelect.dom.css({ 'color': '#00A0FF' });
+                    BookSelectPopUp.s.dom.fadeIn('0.2');
+                    BookSelect.s.dom.css({ 'color': '#00A0FF' });
                 }
             }
 
@@ -100,7 +101,10 @@ export class BookSelect {
             }
         });
     }
-    render (ps, dom){
+    render (ps = null , dom = null) {
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = this.dom
+
         var bookName = getBookFunc("bookFullName", ps.chineses);
         var html = "";
         if (bookName != "詩篇" && bookName != "诗篇")

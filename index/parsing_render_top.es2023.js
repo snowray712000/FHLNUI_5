@@ -1,13 +1,14 @@
 /// <reference path="./fhlParsing.d.js" />
 
-const BibleConstantHelper = BibleConstantHelperEs6Js()
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
+
 /**
  * 於 fhlInfoContent.js 重構出來
  * @param {IDParsingResult} jsonObj 
  * @param {IDAddress} ps
  * @returns {string} html description string 
  */
-function parsing_render_top(jsonObj, ps){
+export function parsing_render_top(jsonObj, ps){
     let chap_ctrl_str = generate_parsing_top_button_title(ps, jsonObj)
     let div_parsingTop2 = generate_parsing_top_div(jsonObj, ps)
 
@@ -15,9 +16,9 @@ function parsing_render_top(jsonObj, ps){
     return html
 }
 
-(root => {
-    root.parsing_render_top = parsing_render_top
-})(this)
+// (root => {
+//     root.parsing_render_top = parsing_render_top
+// })(this)
 
 
 /**
@@ -102,7 +103,7 @@ function generate_parsing_top_div(jsonObj,ps){
         
         return div_parsingTop
 
-        function generate_title(){
+        function generate_title(){            
             let bookId = BibleConstantHelper.getBookId(ps.engs.toLowerCase())
             let bookname = BibleConstantHelper.getBookNameArrayChineseFull(ps.gb)[bookId - 1]
 

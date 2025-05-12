@@ -3,6 +3,7 @@ import { FhlInfoTitle } from "./FhlInfoTitle.es2023.js";
 import { FhlInfoContent } from "./FhlInfoContent.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { updateLocalStorage } from './updateLocalStorage.es2023.js';
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class FhlInfo {
     static #s = null
@@ -39,7 +40,7 @@ export class FhlInfo {
             maxWidth: cx * 0.9,
             // minWidth: 300,
             resize: function (event, ui) {
-                const ps = window.pageState
+                const ps = TPPageState.s
 
                 const currentWidth = ui.size.width;
 

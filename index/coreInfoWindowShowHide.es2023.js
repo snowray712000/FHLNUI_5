@@ -4,6 +4,7 @@
 /// <reference path="../libs/jsdoc/jquery-ui.js" />
 /// <reference path="../libs/jsdoc/jquery.ui.touch-punch.js" />
 import { updateLocalStorage } from './updateLocalStorage.es2023.js';
+import { TPPageState } from './TPPageState.es2023.js';
 
 export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
     /// <summary> 這是為了開發 "記錄上一次設定 左右視窗 寬度 和 顯示與否 功能而整理" </summary>
@@ -16,8 +17,8 @@ export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
         isShow3 = $('#fhlInfoWindowControl').hasClass('selected')
     }
 
-    pageState.isVisibleInfoWindow = isShow3 ? 1 : 0
-    pageState.isVisibleLeftWindow = isShow1 ? 1 : 0
+    TPPageState.s.isVisibleInfoWindow = isShow3 ? 1 : 0
+    TPPageState.s.isVisibleLeftWindow = isShow1 ? 1 : 0
     updateLocalStorage()
 
     if (isShow1) {
@@ -250,8 +251,8 @@ export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
         function makeSureParams() {
             is1 = is1 == undefined ? $("#fhlLeftWindowControl").hasClass("selected") : is1
             is3 = is3 == undefined ? $("#fhlInfoWindowControl").hasClass("selected") : is3
-            cx1 = cx1 == undefined ? pageState.cxLeftWindow : cx1
-            cx3 = cx3 == undefined ? pageState.cxInfoWindow : cx3
+            cx1 = cx1 == undefined ? TPPageState.s.cxLeftWindow : cx1
+            cx3 = cx3 == undefined ? TPPageState.s.cxInfoWindow : cx3
         }
     }
 }

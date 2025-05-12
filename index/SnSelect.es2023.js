@@ -1,6 +1,7 @@
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { updateLocalStorage } from "./updateLocalStorage.es2023.js";
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class SnSelect {
     static #s = null
@@ -8,15 +9,19 @@ export class SnSelect {
     static get s() { if (this.#s == null) this.#s = new SnSelect(); return this.#s }
 
     dom = null
-    init(ps, dom) {
+    init(ps, dom) {        
+        if ( ps == null ) ps = TPPageState.s
+
         this.dom = dom;
         this.render(ps, this.dom);
         this.registerEvents(ps);
     }
     registerEvents(ps) {
+        if (ps == null) ps = TPPageState.s
+
         $('#snOnOffSwitch').off('change').on('change',
             function () {
-                const ps = window.pageState
+                const ps = TPPageState.s
 
                 if ($(this).is(':checked')) {
                     ps.strong = 1;
@@ -30,7 +35,10 @@ export class SnSelect {
                 updateLocalStorage()
             });
     }
-    render(ps, dom) {
+    render(ps = null, dom = null) {
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = this.dom
+        
         var html = "<div>" + gbText("原文編號", ps.gb) + ":</div>";
         html += '<div class="onOffSwitch">\
                               <input type="checkbox" name="snOnOffSwitch" class="onOffSwitch-checkbox" id="snOnOffSwitch">\

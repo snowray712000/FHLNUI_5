@@ -7,6 +7,7 @@ import { ImageTool } from "./ImageTool.es2023.js";
 import { FontSizeTool } from "./FontSizeTool.es2023.js";
 import { FontSizeToolBase } from "./FontSizeToolBase.es2023.js";
 import { LeftWindowTool } from "./LeftWindowTool.es2023.js";
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class Settings {
     static #s = null
@@ -14,7 +15,10 @@ export class Settings {
     static get s() { if (this.#s == null) this.#s = new Settings(); return this.#s; }
 
     dom = null
-    init(ps, dom) {
+    init(ps = null, dom = null) {
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = document.getElementById('settings')
+
         this.dom = dom;
         this.render(ps, this.dom);
         SnSelect.s.init(ps, $('#snSelect'));

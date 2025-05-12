@@ -7,7 +7,7 @@
  * @param {'H'|'G'} tp
  * @returns {string} 
  */
-function parsing_render_bottom_table(jsonObj, tp) 
+export function parsing_render_bottom_table(jsonObj, tp) 
 {
     const N = tp == 'H' ? 1 : 0
 
@@ -107,9 +107,10 @@ function parsing_render_bottom_table(jsonObj, tp)
 
     return div_parsingTable[0].outerHTML
 }
-(root => {
-    root.parsing_render_bottom_table = parsing_render_bottom_table
-})(this)
+
+// (root => {
+//     root.parsing_render_bottom_table = parsing_render_bottom_table
+// })(this)
 
 function get_sn_shorter(sn){
     // sn 有可能是 09003 就變 9003

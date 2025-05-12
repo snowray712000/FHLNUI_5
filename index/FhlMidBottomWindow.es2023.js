@@ -3,6 +3,7 @@
 /// <reference path="../jsdoc/jquery-ui.js" />
 /// <reference path="../ijnjs/ijnjs.d.js" />
 /// <reference path="DPageState.d.js" />
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class FhlMidBottomWindow {
     static #s = null
@@ -14,6 +15,9 @@ export class FhlMidBottomWindow {
     dom$ = $();
 
     init(ps, dom$){
+        if (ps == null) ps = TPPageState.s
+        if (dom$ == null) dom$ = $('#fhlMidBottomWindow')
+
         // 此處，每搜尋一次，只會呼叫一次
         this.dom$ = dom$;
         this.render(ps, dom$);
@@ -46,6 +50,8 @@ export class FhlMidBottomWindow {
         }
     }
     registerEvents(ps) {
+        if (ps == null) ps = TPPageState.s
+
         var that = this
         var fhlMidBottomWindow$ = $('#fhlMidBottomWindow')
         var pre_search$ = fhlMidBottomWindow$.find('#pre_search')
@@ -63,8 +69,9 @@ export class FhlMidBottomWindow {
      * @param {JQuery<HTMLElement>} dom$ $('#fhlMidBottomWindow') 
      */
     render(ps, dom$){
-        dom$ = dom$ == undefined ? this.dom$ : dom$
-
+        if (ps == null) ps = TPPageState.s
+        if (dom$ == null) dom$ = this.dom$
+        
         // 此處，每搜尋一次，都會呼叫一次
         if (dom$.find('#pre_search2').length == 0) {
             // 裡面那層，會被清空，有兩層才能維持 resizable 

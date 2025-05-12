@@ -17,7 +17,10 @@ import { ViewHistory } from './ViewHistory.es2023.js'
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
 
 import { ParsingPopUp } from './ParsingPopUp.es2023.js'
-
+import { SN_Act_Color } from './SN_Act_Color.es2023.js'
+import { TPPageState } from "./TPPageState.es2023.js";
+import { BookSelect } from './BookSelect.es2023.js'
+import { FhlInfo } from './FhlInfo.es2023.js'
 
 /* 
 若有 2 個譯本，並且是併排方式
@@ -63,8 +66,11 @@ export class FhlLecture {
     constructor(){
     }
     /** @return {TPPageState} */
-    get ps() { return window.pageState }
+    get ps() { return TPPageState.s }
     init(ps, dom){
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = document.getElementById('fhlLecture')
+
         this.dom = dom
         this.render(ps, dom)
         
@@ -133,12 +139,9 @@ export class FhlLecture {
      * @returns 
      */    
     render(ps = null, dom = null){
-        if ( ps == null ){
-            ps = window.pageState
-        }
-        if ( dom == null ){
-            dom = this.dom
-        }
+        if (ps == null) ps = TPPageState.s
+        if (dom == null) dom = this.dom
+
         this.dom = dom
 
         /** @type {JQuery<HTMLElement>} */
@@ -234,7 +237,7 @@ async function renderLectureHtml(that){
     
         async function getBibleTextAsync(){
             /** @type {TPPageState} */
-            const ps = window.pageState
+            const ps = TPPageState.s
 
             const col = ps.version.length
             
@@ -248,7 +251,7 @@ async function renderLectureHtml(that){
 
         function when_query_bibletext_complete(that, rspArr) {
             /** @type {TPPageState} */
-            let ps = window.pageState
+            let ps = TPPageState.s
             
             var isOld = checkOldNew(ps);
             
@@ -321,7 +324,7 @@ async function renderLectureHtml(that){
             // bug 小心: 版權宣告 render 必須在 dom.html 之後唷, 這樣才找到的 divCopyright 實體
         }
         function render_footer(that){
-            const ps = window.pageState
+            const ps = TPPageState.s
             // 2016.08 snow, 注腳
             that.$lecMain.find('.lec').each(function (a1, a2) {
                 var ver = $(a2).attr('ver');
@@ -337,7 +340,7 @@ async function renderLectureHtml(that){
         }            
         function showhide_chapNext_Back_Arrow_Button(){
             /** @type {TPPageState} */
-            const ps = window.pageState
+            const ps = TPPageState.s
             if (!'bookIndex' in ps) {
                 console.error('bookIndex not in pageState');
             }
@@ -378,7 +381,7 @@ async function renderLectureHtml(that){
             }
         }            
         function render_mode2(rspArr,isOld){
-            const ps = window.pageState
+            const ps = TPPageState.s
             { // case2 是不同版本交錯， case1 是不同版本並排
 
                 // get maxRecordCnt maxRecordIdx 
@@ -494,7 +497,7 @@ async function renderLectureHtml(that){
             return $htmlContent
         }
         function render_mode1(rspArr,isOld){
-            const ps = window.pageState
+            const ps = TPPageState.s
 
             // case1: 不同版本，併排顯示；case2，不同版本，交錯顯示
             // 注意, 這個變數, 只是暫存的, 它輽出的結果是 html 文字, 不包含自己, 所以lecMain屬性是在另種設定, 不是在這
@@ -571,7 +574,7 @@ async function renderLectureHtml(that){
         }
         function render_pos_and_pho($htmlContent) {
             let htmlContent = ""
-            const ps = window.pageState
+            const ps = TPPageState.s
             var url2 = "sobj.php?engs=" + ps.engs + "&chap=" + ps.chap;
             if (ps.gb == 1)
                 url2 += "&gb=1";
@@ -1130,11 +1133,11 @@ function reshape_for_align_each_sec(){
 }
 function when_click_chapback(e){
     /** @type {TPPageState} */
-    let ps = window.pageState
+    let ps = TPPageState.s
     let viewHistory = ViewHistory.s
-    let fhlInfo = window.fhlInfo
-    let fhlLecture = window.fhlLecture
-    let bookSelect = window.bookSelect
+    let fhlInfo = FhlInfo.s
+    let fhlLecture = FhlLecture.s
+    let bookSelect = BookSelect.s
 
     var idx = getBookFunc("index", ps.chineses); // 0-based
     if (ps.chap == 1) {
@@ -1162,11 +1165,11 @@ function when_click_chapback(e){
 }
 function when_click_chapnext(e){
     /** @type {TPPageState} */
-    let ps = window.pageState
+    let ps = TPPageState.s
     let viewHistory = ViewHistory.s
-    let fhlInfo = window.fhlInfo
-    let fhlLecture = window.fhlLecture
-    let bookSelect = window.bookSelect
+    let fhlInfo = FhlInfo.s
+    let fhlLecture = FhlLecture.s
+    let bookSelect = BookSelect.s
 
     var idx = getBookFunc("index", ps.chineses);
     // 設定 ps 資訊(供後面用)
@@ -1218,8 +1221,8 @@ function show_dialog_pick_bible_version(){
  */
 function when_click_on_lec(e, $lecMain){
     /** @type {TPPageState} */
-    let ps = window.pageState
-    let fhlInfo = window.fhlInfo
+    let ps = TPPageState.s
+    let fhlInfo = FhlInfo.s
     // const $lecMain = $('#lecMain')
     const currentTarget = e.currentTarget // 原程式的 this
     const $this = $(currentTarget) // 原程式的 this
@@ -1263,7 +1266,7 @@ function when_click_on_lec(e, $lecMain){
  */
 function when_mouseenter_on_lec(e){
     /** @type {TPPageState} */
-    let ps = window.pageState
+    let ps = TPPageState.s
     let currentTarget = e.currentTarget // 原程式的 this
     let $this = $(currentTarget) // 原程式的 this
     // 取得這個 dom ， 它會有 attr sec ( 在 .sn mouseenter 要用到 )
@@ -1327,7 +1330,7 @@ function get_sn_count_in_chap(sn, book){
  */
 function mouseenter_sn_set_snAct_and_Color_act(e){
     /** @type {TPPageState} */
-    let ps = window.pageState
+    let ps = TPPageState.s
     const dom = e.currentTarget
 
     let N = $(dom).attr('N') // 1: 舊約 0: 新約
@@ -1336,7 +1339,7 @@ function mouseenter_sn_set_snAct_and_Color_act(e){
     ps.snActN = N
     
     // Activate sn，標記為紅色
-    SN_Act_Color.act_add(sn, N)
+    SN_Act_Color.s.act_add(sn, N)
 }
 class ParsingCache {
     /**
@@ -1438,7 +1441,7 @@ class SnDictCache {
  */
 function mouseenter_sn_dialog(e){
     /** @type {TPPageState} */
-    let ps = window.pageState
+    let ps = TPPageState.s
     const dom = e.currentTarget
     let N = $(dom).attr('N') // 1: 舊約 0: 新約
     let sn = $(dom).attr('sn')                    
@@ -1446,7 +1449,7 @@ function mouseenter_sn_dialog(e){
     ps.snActN = N
     
     // Activate sn，標記為紅色
-    // SN_Act_Color.act_add(sn, N)
+    // SN_Act_Color.s.act_add(sn, N)
 
     // 取得資料 async 
     // 若取得資料完成時，滑鼠還在同一個 sn 上，就繼續顯示，若非，就不顯示
@@ -1842,10 +1845,10 @@ function mouseenter_sn_dialog(e){
         
         // 設定 dlg 位置，是在上面，還是下面
         // 如果目前 cursor 在上半部 50 % 就下顯示
-        const isCursorTop = window.pageState.xy_hover.y < window.innerHeight / 2
+        const isCursorTop = TPPageState.s.xy_hover.y < window.innerHeight / 2
         // const pos_ref = $("#mainWindow") # 不知道為何 mainWindow 會失效，曾經成功
         const pos_ref2 = $("#fhlTopMenu")
-        const pos_ref3 = pageState.isVisibleLeftWindow ? $("#fhlLeftWindow") : $("#fhlMidWindow")
+        const pos_ref3 = TPPageState.s.isVisibleLeftWindow ? $("#fhlLeftWindow") : $("#fhlMidWindow")
         const width_dlg = isCursorTop ? $("#fhlToolBar").width() : pos_ref2.width()
         const position_dlg = isCursorTop ? ({
             my: "left bottom", at: "left bottom", of: pos_ref3
@@ -1919,7 +1922,7 @@ function mouseenter_sn_dialog(e){
     function when_data_ready([re_parsing, re_dict]){
         // console.log(one);
         /** @type {TPPageState} */
-        let ps = window.pageState
+        let ps = TPPageState.s
         let sn = ps.snAct
         let N = ps.N
         let sec = ps.sec_hover
@@ -1970,7 +1973,7 @@ class Dialog_Sn_Info_Summary {
     /**
      * @returns {TPPageState} 方便使用
      */
-    get ps() { return window.pageState}
+    get ps() { return TPPageState.s}
     /**
      * 於 FhlLecture 中的 init 中，定義事件中，會被呼叫 .sn click
      * @param {Event} e
@@ -2000,7 +2003,7 @@ class Dialog_Sn_Info_Summary {
             // 非即時模式，直接顯示即可
             ps.snAct = ""
             ps.snActN = -1
-            SN_Act_Color.act_remove()
+            SN_Act_Color.s.act_remove()
             mouseenter_sn_set_snAct_and_Color_act(e)  
             mouseenter_sn_dialog(e)
             this.is_pause_realtime_temporary_sn = true 
@@ -2041,7 +2044,7 @@ class Dialog_Sn_Info_Summary {
             ps.snAct = ""
             ps.snActN = -1
 
-            SN_Act_Color.act_remove()
+            SN_Act_Color.s.act_remove()
             
             // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
             let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
@@ -2057,7 +2060,7 @@ class Dialog_Sn_Info_Summary {
  * 可使用 呂振中譯本 開發測試
  */
 function when_click_on_ft(e){
-    const ps = window.pageState
+    const ps = TPPageState.s
     const currentTarget = e.currentTarget
     const $this = $(currentTarget)
     //console.log(this); //範例: <span class=ft ft=42 ver=tcv chap=2>【42】</span>
@@ -2300,7 +2303,7 @@ function when_click_on_ft(e){
 //             return
 //             async function getBibleTextAsync(){
 //                 /** @type {TPPageState} */
-//                 const ps = window.pageState
+//                 const ps = TPPageState.s
 
 //                 const col = ps.version.length
                 
@@ -2314,7 +2317,7 @@ function when_click_on_ft(e){
 
 //             function when_query_bibletext_complete(that, rspArr) {
 //                 /** @type {TPPageState} */
-//                 let ps = window.pageState
+//                 let ps = TPPageState.s
                 
 //                 var isOld = checkOldNew(ps);
                 
@@ -2407,7 +2410,7 @@ function when_click_on_ft(e){
 //             }            
 //             function showhide_chapNext_Back_Arrow_Button(){
 //                 /** @type {TPPageState} */
-//                 const ps = window.pageState
+//                 const ps = TPPageState.s
 //                 if (!'bookIndex' in ps) {
 //                     console.error('bookIndex not in pageState');
 //                 }
@@ -3195,7 +3198,7 @@ function when_click_on_ft(e){
 // }
 // function when_click_chapback(e){
 //     /** @type {TPPageState} */
-//     let ps = window.pageState
+//     let ps = TPPageState.s
 //     let viewHistory = window.viewHistory
 //     let fhlInfo = window.fhlInfo
 //     let fhlLecture = window.fhlLecture
@@ -3227,7 +3230,7 @@ function when_click_on_ft(e){
 // }
 // function when_click_chapnext(e){
 //     /** @type {TPPageState} */
-//     let ps = window.pageState
+//     let ps = TPPageState.s
 //     let viewHistory = window.viewHistory
 //     let fhlInfo = window.fhlInfo
 //     let fhlLecture = window.fhlLecture
@@ -3283,7 +3286,7 @@ function when_click_on_ft(e){
 //  */
 // function when_click_on_lec(e, $lecMain){
 //     /** @type {TPPageState} */
-//     let ps = window.pageState
+//     let ps = TPPageState.s
 //     let fhlInfo = window.fhlInfo
 //     // const $lecMain = $('#lecMain')
 //     const currentTarget = e.currentTarget // 原程式的 this
@@ -3328,7 +3331,7 @@ function when_click_on_ft(e){
 //  */
 // function when_mouseenter_on_lec(e){
 //     /** @type {TPPageState} */
-//     let ps = window.pageState
+//     let ps = TPPageState.s
 //     let currentTarget = e.currentTarget // 原程式的 this
 //     let $this = $(currentTarget) // 原程式的 this
 //     // 取得這個 dom ， 它會有 attr sec ( 在 .sn mouseenter 要用到 )
@@ -3392,7 +3395,7 @@ function when_click_on_ft(e){
 //  */
 // function mouseenter_sn_set_snAct_and_Color_act(e){
 //     /** @type {TPPageState} */
-//     let ps = window.pageState
+//     let ps = TPPageState.s
 //     const dom = e.currentTarget
 
 //     let N = $(dom).attr('N') // 1: 舊約 0: 新約
@@ -3401,7 +3404,7 @@ function when_click_on_ft(e){
 //     ps.snActN = N
     
 //     // Activate sn，標記為紅色
-//     SN_Act_Color.act_add(sn, N)
+//     SN_Act_Color.s.act_add(sn, N)
 // }
 // class ParsingCache {
 //     /**
@@ -3503,7 +3506,7 @@ function when_click_on_ft(e){
 //  */
 // function mouseenter_sn_dialog(e){
 //     /** @type {TPPageState} */
-//     let ps = window.pageState
+//     let ps = TPPageState.s
 //     const dom = e.currentTarget
 //     let N = $(dom).attr('N') // 1: 舊約 0: 新約
 //     let sn = $(dom).attr('sn')                    
@@ -3511,7 +3514,7 @@ function when_click_on_ft(e){
 //     ps.snActN = N
     
 //     // Activate sn，標記為紅色
-//     // SN_Act_Color.act_add(sn, N)
+//     // SN_Act_Color.s.act_add(sn, N)
 
 //     // 取得資料 async 
 //     // 若取得資料完成時，滑鼠還在同一個 sn 上，就繼續顯示，若非，就不顯示
@@ -3907,7 +3910,7 @@ function when_click_on_ft(e){
         
 //         // 設定 dlg 位置，是在上面，還是下面
 //         // 如果目前 cursor 在上半部 50 % 就下顯示
-//         const isCursorTop = window.pageState.xy_hover.y < window.innerHeight / 2
+//         const isCursorTop = TPPageState.s.xy_hover.y < window.innerHeight / 2
 //         // const pos_ref = $("#mainWindow") # 不知道為何 mainWindow 會失效，曾經成功
 //         const pos_ref2 = $("#fhlTopMenu")
 //         const pos_ref3 = pageState.isVisibleLeftWindow ? $("#fhlLeftWindow") : $("#fhlMidWindow")
@@ -3984,7 +3987,7 @@ function when_click_on_ft(e){
 //     function when_data_ready([re_parsing, re_dict]){
 //         // console.log(one);
 //         /** @type {TPPageState} */
-//         let ps = window.pageState
+//         let ps = TPPageState.s
 //         let sn = ps.snAct
 //         let N = ps.N
 //         let sec = ps.sec_hover
@@ -4035,7 +4038,7 @@ function when_click_on_ft(e){
 //     /**
 //      * @returns {TPPageState} 方便使用
 //      */
-//     get ps() { return window.pageState}
+//     get ps() { return TPPageState.s}
 //     /**
 //      * 於 FhlLecture 中的 init 中，定義事件中，會被呼叫 .sn click
 //      * @param {Event} e
@@ -4065,7 +4068,7 @@ function when_click_on_ft(e){
 //             // 非即時模式，直接顯示即可
 //             ps.snAct = ""
 //             ps.snActN = -1
-//             SN_Act_Color.act_remove()
+//             SN_Act_Color.s.act_remove()
 //             mouseenter_sn_set_snAct_and_Color_act(e)  
 //             mouseenter_sn_dialog(e)
 //             this.is_pause_realtime_temporary_sn = true 
@@ -4106,7 +4109,7 @@ function when_click_on_ft(e){
 //             ps.snAct = ""
 //             ps.snActN = -1
 
-//             SN_Act_Color.act_remove()
+//             SN_Act_Color.s.act_remove()
             
 //             // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
 //             let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
@@ -4122,7 +4125,7 @@ function when_click_on_ft(e){
 //  * 可使用 呂振中譯本 開發測試
 //  */
 // function when_click_on_ft(e){
-//     const ps = window.pageState
+//     const ps = TPPageState.s
 //     const currentTarget = e.currentTarget
 //     const $this = $(currentTarget)
 //     //console.log(this); //範例: <span class=ft ft=42 ver=tcv chap=2>【42】</span>

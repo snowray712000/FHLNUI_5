@@ -1,3 +1,4 @@
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export class LeftWindowTool {
     static #s = null
@@ -19,16 +20,16 @@ export class LeftWindowTool {
         return { top: 'auto', height: '2rem', bottom: '0rem' }
     }
     getTitleClosedSetting() {
-        return "▶ " + gbText("設定", pageState.gb)
+        return "▶ " + gbText("設定", TPPageState.s.gb)
     }
     getTitleOpenedSetting() {
-        return "▼ " + gbText("設定", pageState.gb)
+        return "▼ " + gbText("設定", TPPageState.s.gb)
     }
     getTitleClosedHistory() {
-        return "▶ " + gbText("歷史記錄", pageState.gb)
+        return "▶ " + gbText("歷史記錄", TPPageState.s.gb)
     }
     getTitleOpenedHistory() {
-        return "▼ " + gbText("歷史記錄", pageState.gb)
+        return "▼ " + gbText("歷史記錄", TPPageState.s.gb)
     }
     // ViewHistory 會用到
     isOpenedHistory(pthis) {

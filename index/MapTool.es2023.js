@@ -1,6 +1,8 @@
 // import { gbText } from './gbText.es2023.js'
 import { FhlLecture } from './FhlLecture.es2023.js';
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
+import { TPPageState } from "./TPPageState.es2023.js";
+
 export class MapTool {
     static #s = null
     /** @returns {MapTool} */
@@ -14,7 +16,7 @@ export class MapTool {
     registerEvents(ps) {
         $('#mapToolOnOffSwitch').off('change').on('change',
             function () {
-                const ps = window.pageState
+                const ps = TPPageState.s
                 if ($(this).is(':checked')) {
                     // checked 是指開啟圓圈移到右邊. 那就應該是 出現「ON」
                     ps.ispos = true;

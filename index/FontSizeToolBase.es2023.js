@@ -1,5 +1,6 @@
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { updateLocalStorage } from './updateLocalStorage.es2023.js';
+import { TPPageState } from "./TPPageState.es2023.js";
 
 /**
  * - 這個不是用 singleton 模式，會建 3 個物件，管理 Hebrew, Greek, Sn 字型大小
@@ -59,7 +60,7 @@ export class FontSizeToolBase {
             $("#" + that.getIdSlider).val(sz)
 
             updateFontSize()
-            FhlLecture.s.reshape(pageState)
+            FhlLecture.s.reshape(TPPageState.s)
             return
 
             function updateFontSize() {
@@ -74,9 +75,9 @@ export class FontSizeToolBase {
                 }
             }
             function updatePageStateFontSize(sz) {
-                if (that.isGreek()) { pageState.fontSizeGreek = sz }
-                else if (that.isHebrew()) { pageState.fontSizeHebrew = sz }
-                else if (that.isStrongNumber()) { pageState.fontSizeStrongNumber = sz }
+                if (that.isGreek()) { TPPageState.s.fontSizeGreek = sz }
+                else if (that.isHebrew()) { TPPageState.s.fontSizeHebrew = sz }
+                else if (that.isStrongNumber()) { TPPageState.s.fontSizeStrongNumber = sz }
                 updateLocalStorage()
             }
         }
@@ -104,13 +105,13 @@ export class FontSizeToolBase {
     /** 在 render 中使用 */
     getSizeForInitial() {
         if (this.isHebrew()) {
-            return pageState.fontSizeHebrew
+            return TPPageState.s.fontSizeHebrew
         } else if (this.isGreek()) {
-            return pageState.fontSizeGreek
+            return TPPageState.s.fontSizeGreek
         } else if (this.isStrongNumber()) {
-            return pageState.fontSizeStrongNumber
+            return TPPageState.s.fontSizeStrongNumber
         }
-        return pageState.fontSize
+        return TPPageState.s.fontSize
     }
     render(ps, dom) {
         var sz = this.getSizeForInitial()
@@ -201,7 +202,7 @@ export class FontSizeToolBase {
 //         $("#" + that.getIdSlider).val(sz)
 
 //         updateFontSize()
-//         fhlLecture.reshape(pageState)
+//         fhlLecture.reshape(TPPageState.s)
 //         return
 
 //         function updateFontSize() {
@@ -216,9 +217,9 @@ export class FontSizeToolBase {
 //           }
 //         }
 //         function updatePageStateFontSize(sz) {
-//           if (that.isGreek()) { pageState.fontSizeGreek = sz }
-//           else if (that.isHebrew()) { pageState.fontSizeHebrew = sz }
-//           else if (that.isStrongNumber()) { pageState.fontSizeStrongNumber = sz }
+//           if (that.isGreek()) { TPPageState.s.fontSizeGreek = sz }
+//           else if (that.isHebrew()) { TPPageState.s.fontSizeHebrew = sz }
+//           else if (that.isStrongNumber()) { TPPageState.s.fontSizeStrongNumber = sz }
 //           updateLocalStorage()
 //         }
 //       }
@@ -247,13 +248,13 @@ export class FontSizeToolBase {
 //     /** 在 render 中使用 */
 //     FontSizeToolBase.prototype.getSizeForInitial = function () {
 //       if (this.isHebrew()) {
-//         return pageState.fontSizeHebrew
+//         return TPPageState.s.fontSizeHebrew
 //       } else if (this.isGreek()) {
-//         return pageState.fontSizeGreek
+//         return TPPageState.s.fontSizeGreek
 //       } else if (this.isStrongNumber()) {
-//         return pageState.fontSizeStrongNumber
+//         return TPPageState.s.fontSizeStrongNumber
 //       }
-//       return pageState.fontSize
+//       return TPPageState.s.fontSize
 //     }
 //     FontSizeToolBase.prototype.render = function (ps, dom) {
 //       var sz = this.getSizeForInitial()

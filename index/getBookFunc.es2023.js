@@ -1,4 +1,7 @@
 import { BibleConstant } from "./BibleConstant.es2023.js";
+import { TPPageState } from "./TPPageState.es2023.js";
+
+
 export function getBookFunc(func, bookName) {
     var i;
     // 2016.11, 簡體中文, 會取出 null, 修正完畢
@@ -21,7 +24,7 @@ export function getBookFunc(func, bookName) {
             ret = i;
             break;
         case "bookFullName":
-            ret = (pageState.gb == 1) ? bookFullName2[i] : bookFullName[i];
+            ret = (TPPageState.s.gb == 1) ? bookFullName2[i] : bookFullName[i];
             break;
         case "bookChapters":
             ret = bookChapters[i];
