@@ -101,6 +101,7 @@ import { registerEvents_doc } from './registerEvents_doc.es2023.js'
     window.SN_Act_Color = SN_Act_Color // SN_Act_Color 用
 
     // indexLast 還在用
+    window.BibleConstant = BibleConstant
     window.docEvent = DocEvent.s //
     window.setBook = setBook // 
     window.gbText = gbText // sephp.create_dialog_presearch 用

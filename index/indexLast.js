@@ -125,8 +125,8 @@ function doLast1() {
         console.log('bible trigger')
         // console.log(fhlUrlParameter.bibleResult) // {book: 1, chap: 12, sec: 9}
         if (pageState != undefined) {
-          pageState.chineses = FHL.CONSTANT.Bible.CHINESE_BOOK_ABBREVIATIONS[fhlUrlParameter.bibleResult.book - 1]
-          pageState.engs = FHL.CONSTANT.Bible.ENGLISH_BOOK_ABBREVIATIONS[fhlUrlParameter.bibleResult.book - 1]
+          pageState.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[fhlUrlParameter.bibleResult.book - 1]
+          pageState.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[fhlUrlParameter.bibleResult.book - 1]
           if (fhlUrlParameter.bibleResult.book > 0) {
 
             pageState.bookIndex = fhlUrlParameter.bibleResult.book
@@ -141,17 +141,17 @@ function doLast1() {
       $(window).trigger('hashchange')
 
       $(fhlLecture).on('chapchanged', function () {
-        var bookEn = FHL.CONSTANT.Bible.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1]
+        var bookEn = BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1]
         history.pushState(null, null, '#/bible/' + bookEn + '/' + pageState.chap)
       });
       $(fhlLecture).on('secchanged', function () {
-        var bookEn = FHL.CONSTANT.Bible.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1];
+        var bookEn = BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1];
         history.replaceState(null, null, '#/bible/' + bookEn + '/' + pageState.chap + '/' + pageState.sec)
       });
       $(fhlLecture).trigger('secchanged')
 
       $(bookSelectChapter).on('chapchanged', function () {
-        var bookEn = FHL.CONSTANT.Bible.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1]
+        var bookEn = BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1]
         history.pushState(null, null, '#/bible/' + bookEn + '/' + pageState.chap)
       })
     });

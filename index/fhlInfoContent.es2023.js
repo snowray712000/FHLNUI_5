@@ -13,6 +13,8 @@ import { BibleConstant } from './BibleConstant.es2023.js'
 import { FhlLecture } from './FhlLecture.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
 import { ViewHistory } from './ViewHistory.es2023.js'
+import { eachFitDo } from './eachFitDo.es2023.js'
+
 
 export class FhlInfoContent {
     static #s = null
@@ -311,7 +313,7 @@ export class FhlInfoContent {
                             var i = 0;
 
                             // 2017.12 詩篇 30 篇 #30| 按下去會變 undefined Bug
-                            FHL.STR.eachFitDo(/#([0-9]+)\|/, t, function (m1) {
+                            eachFitDo(/#([0-9]+)\|/, t, function (m1) {
                                 //var replaceTag = '<span class="commentJump" engs="Ps" chap="30" sec="1">30</span>';
                                 var chap = m1[1];
                                 var replaceTag = '<span class="commentJump" engs="' + ps.engs + '" chap="' + chap + '" sec="1">' + chap + '</span>';
@@ -423,9 +425,9 @@ export class FhlInfoContent {
 
                                 function gText背景資料() {
                                     if (ps.gb !== 1) {
-                                        return bookFullName[idx] + "&nbsp;背景資料";
+                                        return BibleConstant.CHINESE_BOOK_NAMES[idx] + "&nbsp;背景資料";
                                     } else {
-                                        return bookFullName2[idx] + "&nbsp;背景资料";
+                                        return BibleConstant.CHINESE_BOOK_NAMES_GB[idx] + "&nbsp;背景资料";
                                     }
                                 }
 
