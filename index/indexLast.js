@@ -311,9 +311,20 @@ function doLast1() {
               var r4 = r3.find('.contents')
               if (r4.children().length == 0) {
                 setDomVersionInfo()
-                Ijnjs.loadCssSync('index/version-infos-dialog.css')
+                // Ijnjs.loadCssSync('index/version-infos-dialog.css')
+                loadCssAsync('index/version-infos-dialog.css')
               }
               return;
+              function loadCssAsync(url) {
+                return new Promise((resolve, reject) => {
+                  const link = document.createElement('link');
+                  link.rel = 'stylesheet';
+                  link.href = url;
+                  link.onload = () => resolve();
+                  link.onerror = (err) => reject(err);
+                  document.head.appendChild(link);
+                });
+              }
               function setDomVersionInfo() {
                 if (r4.children().length != 0) {
                   return;
@@ -358,7 +369,8 @@ function doLast1() {
                       var r4a = it.na2.map(function (a1) {
                         return '<li>' + a1 + '</li>';
                       }).join('');
-                      return re = '<span><ul>' + r4a + '</ul></span>';
+                      const re = '<span><ul>' + r4a + '</ul></span>';
+                      return re 
                     } else {
                       return undefined;
                     }

@@ -16,7 +16,7 @@ export function initPageStateFlow(currentSWVer) {
       // replace by snow. 2021.07 不要再直接更新所有設定，
       // 而是透過 makeSureValueExistForNewVersions 新增的 key
       // pageStateInit(); 
-      pageState = tmp // 然後缺的會在下面補足
+      const pageState = tmp // 然後缺的會在下面補足
       pageState.swVer = currentSWVer // 更新   
       TPPageState.s.updateFromDict(pageState)
     } else {
