@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "3.1.1",
+        "last": "3.3.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -10,6 +10,7 @@
                     "新功能) 原文直譯, 用程式從 Parsing 整合入 SN",                    
                     "新功能) 舊約原文, 用程式從 Parsing 整合入 SN",
                     "新功能) 產生 AI Prompt，",
+                    "新功能) 自訂段落",
                     "優化) 加入說明，什麼是 Strong Number ， Strong Number 可能可以怎麼用的情境",
                     "優化) 加入說明，什麼是同源字，同源字工具可能可以怎麼用的情境",
                     "優化) 搜尋結果，滑鼠移過去，也要能夠顯示active",
@@ -20,6 +21,16 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "3.3.1",
+                "na2": [
+                    "優化) 和合本、KJV、原文，這些具有 SN 的譯本，若點擊要切換「目前節」，原本若按到字，會沒辦法切換。現在，若點擊到字，若目前節不是「目前節」，就不會顯示 SN 的字典。",
+                    "新功能) 顯示模式，從原本的 2 種模式，變為 3 種模式。原本是，「併排」與「交錯」，但現在是「併排(段落)」",
+                    "承上，因為「同個原文」或「同源字」會被標為同色，但是原本的顯示模式，會很多空白，以段落為單位，經文就會比較密集。",
+                    "承上，目前以「新譯本」的段落為預設，期待以後會開啟其它的段落供選擇，甚至開放使用者自訂段落。",
+                    "承上，期待「不同譯本」能夠佔不同比例的寬度。",
+                    "Youtube說明) <a href='https://youtu.be/PH0zsso6-Dg' target='_blank'>NUI 3.3.1 新功能說明</a>"                    
                 ]
             },{
                 "na": "3.1.1",

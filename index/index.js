@@ -57,6 +57,7 @@ import { TPPageState } from "./TPPageState.es2023.js";
 import { setBook, DocEvent } from './DocEvent.es2023.js'
 import { gbText } from './gbText.es2023.js'
 import { registerEvents_doc } from './registerEvents_doc.es2023.js'
+import { ParagraphData } from './ParagraphData_es2023.js'
 
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -129,6 +130,7 @@ import { registerEvents_doc } from './registerEvents_doc.es2023.js'
     // window.queryReferenceAndShowAtDialogAsyncEs6Js = queryReferenceAndShowAtDialogAsyncEs6Js
 
     load_json_gz_Async()
+    ParagraphData.s.isReadyAndStartingIfNeed()
     
     window.fhlLecture = FhlLecture.s
 
