@@ -1434,19 +1434,17 @@ nav#fhlTopMenu {
     margin-right: 1px;
     font-size: 8px;
 }
-#fhlLecture .lecContent span.verseNumber {
-    position: relative;
-    top: -8px;
-    margin-left: 1px;
-    margin-right: 1px;
-    font-size: 6pt;
+/* 使用 margin 較易「反白選則」包含到節，雖然已經加入空白，但是因為希伯來文，所以若只加 maring-left，就在馬索拉原文譯本不適，它應該要 margin-right。所以最後 2 個都加 */
+.verseNumber{
+    color: blue;    
+    margin-left: 0.25em;
+    margin-right: 0.25em;
 }
-#fhlLecture span.verseNumber {
-    position: relative;
-    top: -8px;
-    margin-left: 1px;
-    margin-right: 1px;
-    font-size: 6pt;
+/* new Line, 只是小寫的 L, 會不好判斷，所以寫成大寫。 */
+.nL {
+    color: gray;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
 }
 #fhlLecture .versionName{
     display: inline-block;

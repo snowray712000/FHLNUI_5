@@ -53,7 +53,26 @@ export function addHebrewOrGreekCharClass(version, bibleText) {
 export function isHebrewOrGeekVersion(ver) {
     return ['fhlwh', 'lxx', 'bhs'].indexOf(ver) != -1
 }
+/**
+ * ### 換行處理 \n 變成 <br/> 或 ↩
+ * @param {string} bibleText 
+ * @param {string} version_of_record 
+ * @returns 
+ */
+export function replace_newline_char(bibleText, version_of_record) {
+    const newline_symbol = version_of_record == "bhs" ? "↪" : "↩"; 
+    
+    // 只有 bhs 並且 mode 1 2 才是用 <br/> ， 因為 新方法真的很省空間，也漂亮。
+    const newlineMethod = ps.show_mode in [1, 2] && version_of_record == "bhs" ? "<br/>" : `<span class='nL'>${newline_symbol}</span>`;
+    return bibleText.split(/\r?\n\r?/g).join(newlineMethod); 
+}
+export function generate_verse_number_jdom(sec, version_of_record){
+    // 阿拉伯數字，若是希伯來文，要有希伯來文字元「夾住它」，這阿拉伯數字，才會以希伯來字元一起排序 (從右至左)，而這字元就是使用 \u200F，稱為 Right-to-Left Mark (RTL)，這樣就可以讓阿拉伯數字在希伯來文中正確顯示。
 
+    // 注意看程式碼，sec 後，還有一個空白。還要有一個空白，copy 時，才不會黏在一起    
+    const text_of_verse = version_of_record == 'bhs' ? `\u200F${sec} ` : `${sec} `; 
+    return $("<span>").addClass('verseNumber').text(text_of_verse)
+}
 
 export function parseBibleText(text, ps, isOld, bibleVersion) {
     var ret;

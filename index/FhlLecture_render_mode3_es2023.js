@@ -1,9 +1,14 @@
 import { charHG } from "./charHG.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js"
 
-import { addHebrewOrGreekCharClass, isHebrewOrGeekVersion, parseBibleText } from "./FhlLecture_render_mode_common_es2023.js";
+import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVersion, parseBibleText, replace_newline_char } from "./FhlLecture_render_mode_common_es2023.js";
 import { Hash_DAddress } from "./Hash_DAddress_es2023.js";
 import { ParagraphData } from './ParagraphData_es2023.js'
+
+// vercol 本來是併排用的，但交錯時，它其實裡面的內容就不是同一譯本了。
+// 新增「段落功能後」，.lec 原本是「單節」的設計，現在多一層 grouped 的概念，新增 .paragraph 的 div 好了。
+// 也就是說 以後 模式4，交錯的話，應該是 <div.paragraph ver='ver1'> </div> <div.paragraph ver='ver2'> </div> 也就是說, 真正確定同個譯本的, 會是 .paragraph，也不是 .vercol。
+
 // <div#lecMain>
 //     <div.vercol>
 //     <div.lec>...第1節內容...</div>
@@ -17,6 +22,9 @@ import { ParagraphData } from './ParagraphData_es2023.js'
 //     </div>
 //     <div#div_copyright.vercol>...</div>
 // </div>
+
+
+
 
 /**
  * 
@@ -48,7 +56,14 @@ export function FhlLecture_render_mode3(rspApp) {
                     margin: '0px 0.25rem 0px 0.25rem',
                     padding: '7px 0px',
                     height: '100%',
+                }).addClass('paragraph').attr('ver', version_of_record)
+            
+            if ( version_of_record == "bhs" ) {
+                div_grouped.css({
+                    'text-align': 'right',
+                    'direction': 'rtl', // 右至左
                 });
+            }
 
             for (let i = 0; i < recordIndices.length; i++) {
                 const recordIndex = recordIndices[i];
@@ -64,17 +79,8 @@ export function FhlLecture_render_mode3(rspApp) {
                 if (bibleText == "a") {
                     bibleText = "【併入上節】";
                 }
-
-                if (version_of_record == "bhs") {
-                    bibleText = bibleText.split(/\n/g).reverse().join("<br>");
-                }
-                else if (version_of_record == "cbol") {
-                    bibleText = bibleText.split(/\n/g).join("<br>");
-                    //console.log(bibleText);
-                }
-                else if (version_of_record == "nwh") {
-                    bibleText = bibleText.split(/\n/g).join("<br>");
-                }
+                
+                bibleText = replace_newline_char(bibleText, version_of_record);
 
                 // 2018.01 客語特殊字型(太1)
                 let className = 'verseContent ';
@@ -87,23 +93,18 @@ export function FhlLecture_render_mode3(rspApp) {
                 if (version_of_record == 'bhs') {
                     classDiv += ' hebrew-char-div'
                 }
-
-                // add by snow. 2021.07
-                // 希伯來文右至左，使得「節」數字，會跑到左邊，應該放在右邊
-                var brForHebrew = ''
-                if (isHebrewOrGeekVersion(version_of_record)) {
-                    brForHebrew += '<br/>'
-                }
-
+            
                 // add by snow. 2021.07 原文字型大小獨立出來
                 let bibleText2 = addHebrewOrGreekCharClass(version_of_record, bibleText)
 
                 let div_lec = $("<span>").addClass('lec').attr('ver', version_of_record).attr('chap', chap).attr('sec', sec).attr('book', book)
 
                 let div_lec2 = $("<span>").addClass(classDiv).appendTo(div_lec);
+                
+                // <span.verseNumber>1 </span>
+                div_lec2.append(generate_verse_number_jdom(sec, version_of_record))
 
-                div_lec2.append($("<span>").addClass('verseNumber').text(sec))
-                div_lec2.append(brForHebrew).append($("<span>").addClass(className).html(bibleText2))
+                div_lec2.append($("<span>").addClass(className).html(bibleText2))
 
                 div_grouped.append(div_lec);
             }
@@ -117,7 +118,6 @@ export function FhlLecture_render_mode3(rspApp) {
 
     return htmlContent;
 }
-
 
 /**
  * 
@@ -135,6 +135,7 @@ function generate_htmlContent_with_VersionColumns(rspArr, fontSizeOfPs) {
     for (let j = 0; j < rspArr.length; j++) {
         // 分3欄
         let onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top; margin-top: " + (fontSizeOfPs * 1.25 - 15) + "px'></div>");
+        
         $htmlContent.append(onever);
     }
 

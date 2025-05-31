@@ -1,7 +1,7 @@
 import { charHG } from "./charHG.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js"
 
-import { addHebrewOrGreekCharClass, isHebrewOrGeekVersion, parseBibleText } from "./FhlLecture_render_mode_common_es2023.js";
+import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVersion, parseBibleText, replace_newline_char } from "./FhlLecture_render_mode_common_es2023.js";
 
 
 // <div#lecMain>
@@ -63,18 +63,10 @@ function generate_div_lec(one_record, ps, version_of_record) {
 
     if (bibleText == "a") {
         bibleText = "【併入上節】";
-    }
+    } 
 
-    if (version_of_record == "bhs") {
-        bibleText = bibleText.split(/\n/g).reverse().join("<br>");
-    }
-    else if (version_of_record == "cbol") {
-        bibleText = bibleText.split(/\n/g).join("<br>");
-        //console.log(bibleText);
-    }
-    else if (version_of_record == "nwh") {
-        bibleText = bibleText.split(/\n/g).join("<br>");
-    }
+    // 換行處理 \n 變成 <br/> 或 ↩
+    bibleText = replace_newline_char(bibleText, version_of_record)
 
     // 2018.01 客語特殊字型(太1)
     let className = 'verseContent ';
@@ -86,13 +78,6 @@ function generate_div_lec(one_record, ps, version_of_record) {
     let classDiv = ''
     if (version_of_record == 'bhs') {
         classDiv += ' hebrew-char-div'
-    }
-
-    // add by snow. 2021.07
-    // 希伯來文右至左，使得「節」數字，會跑到左邊，應該放在右邊
-    var brForHebrew = ''
-    if (isHebrewOrGeekVersion(version_of_record)) {
-        brForHebrew += '<br/>'
     }
 
     // add by snow. 2021.07 原文字型大小獨立出來
@@ -110,8 +95,10 @@ function generate_div_lec(one_record, ps, version_of_record) {
         height: '100%',
     }).appendTo(div_lec);
 
-    div_lec2.append($("<span>").addClass('verseNumber').text(sec))
-    div_lec2.append(brForHebrew).append($("<span>").addClass(className).html(bibleText2))
+    // <span.verseNumber>1 </span>
+    div_lec2.append(generate_verse_number_jdom(sec, version_of_record))
+
+    div_lec2.append($("<span>").addClass(className).html(bibleText2))    
 
     return div_lec;
 }

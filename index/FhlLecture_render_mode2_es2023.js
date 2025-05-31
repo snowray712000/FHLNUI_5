@@ -1,5 +1,5 @@
 import { TPPageState } from "./TPPageState.es2023.js";
-import { addHebrewOrGreekCharClass, isHebrewOrGeekVersion, parseBibleText } from "./FhlLecture_render_mode_common_es2023.js";
+import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVersion, parseBibleText, replace_newline_char } from "./FhlLecture_render_mode_common_es2023.js";
 
 {/* <div id="lecMain">
     <div class="vercol" style="vertical-align:top; margin-top: [計算值]px">
@@ -65,10 +65,12 @@ export function FhlLecture_render_mode2(rspArr) {
                 if (version_of_record == "thv12h" || version_of_record == 'ttvh') // 2018.01 客語特殊字型(太1)
                     className += ' bstw'
 
+                // <span class='verseNumber'>1 </span>
+                const jdom_verse_number = generate_verse_number_jdom(sec, version_of_record);
+
                 let book = ps.bookIndex
                 let div_lec = $("<div>").addClass("lec").attr('book', book).attr('chap', chap).attr('sec', sec).attr('ver', version_of_record).append(
-                    $("<div>").css('margin', '0px 0px 0px 0px').css('padding', '7px 0px').css('height', '100%').append(
-                        $("<span>").addClass('verseNumber').text(sec)).append($("<span>").addClass(className).html(vname))
+                    $("<div>").css('margin', '0px 0px 0px 0px').css('padding', '7px 0px').css('height', '100%').append(jdom_verse_number).append($("<span>").addClass(className).html(vname))
                 )
 
                 onever.append(div_lec)
@@ -87,19 +89,10 @@ export function FhlLecture_render_mode2(rspArr) {
                 if (bibleText == "a") {
                     bibleText = "【併入上節】";
                 }
-                if (version_of_record == "bhs") {
-                    // bhs 馬索拉原文 (希伯來文)
-                    bibleText = bibleText.split(/\n/g).reverse().join("<br>");
-                }
-                else if (version_of_record == "cbol") {
-                    // cbol: 原文直譯參考用
-                    bibleText = bibleText.split(/\n/g).join("<br>");
-                    //console.log(bibleText);
-                }
-                else if (version_of_record == "nwh") {
-                    bibleText = bibleText.split(/\n/g).join("<br>");
-                }
 
+                // 換行處理 \n 變成 <br/> 或 ↩
+                bibleText = replace_newline_char(bibleText, version_of_record);
+                
                 var className = 'verseContent';
                 if (version_of_record == "thv12h" || version_of_record == 'ttvh') // 2018.01 客語特殊字型(太1)
                     className += ' bstw'
@@ -111,20 +104,15 @@ export function FhlLecture_render_mode2(rspArr) {
                     classDiv += ' hebrew-char-div'
                 }
 
-                // add by snow. 2021.07
-                // 希伯來文右至左，使得「節」數字，會跑到左邊，應該放在右邊
-                var brForHebrew = ''
-                if (isHebrewOrGeekVersion(version_of_record)) {
-                    brForHebrew += '<br/>'
-                }
-
                 // add by snow. 2021.07 原文字型大小獨立出來                
                 const bibleText2 = addHebrewOrGreekCharClass(version_of_record, bibleText)
 
+                // <span class='verseNumber'>1 </span>
+                const jdom_verse_number = generate_verse_number_jdom(sec, version_of_record);
+    
                 let book = ps.bookIndex
                 let div_lec = $("<div>").addClass("lec").attr('book', book).attr('chap', chap).attr('sec', sec).attr('ver', version_of_record).append(
-                    $("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append(
-                        $("<span>").addClass('verseNumber').text(sec)).append(brForHebrew).append($("<span>").addClass(className).html(bibleText2 + vname))
+                    $("<div>").addClass(classDiv).css('margin', '0px 0.25rem 0px 0.25rem').css('padding', '7px 0px').css('height', '100%').append(                        jdom_verse_number).append($("<span>").addClass(className).html(bibleText2 + vname))
                 )
                 onever.append(div_lec)
             }
