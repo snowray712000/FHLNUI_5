@@ -87,13 +87,15 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
 
     if (-1 != ["unv", "kjv", "rcuv", "fhlwh"].indexOf(bibleVersion)) {
-        // 和合本 KJV 和合本2010
+        text = replace_newline_char(text, bibleVersion);
+        
+        // 和合本 KJV 和合本2010 ... 原本的 <WTH412> 變 span.sn sn="412" N="1" 
         text = do_sn(text)
 
         // 下面使用 jquery 操作，最後取 .html()
         let text_jq = $(`<span>${text}</span>`)
 
-        // 將 sn 前面對應的文字，加上 sn-text class
+        // 將 sn 前面對應的文字，加上 sn-text class ... 取代純文字, 變 span.sn-text sn, N 
         add_sn_text(text_jq)
 
         // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
@@ -105,14 +107,15 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
     ret = text;
 
-    if (bibleVersion == "bhs" || bibleVersion == "fhlwh") {
-        // 舊約馬索拉原文, 新約WH原文
-        // 新約原文，加上 SN 了，再加這兩行會錯誤 (但我不確定這會不會用到，所以還保留著)
-        // ret = ret.replace(/</g, "&lt");
-        // ret = ret.replace(/>/g, "&gt");
-        ret = ret.replace(/\r\n/g, "<br>");
-    }
-    // console.log(ret);
+    
+    // if (bibleVersion == "bhs" || bibleVersion == "fhlwh") {
+    //     // 舊約馬索拉原文, 新約WH原文
+    //     // 新約原文，加上 SN 了，再加這兩行會錯誤 (但我不確定這會不會用到，所以還保留著)
+    //     // ret = ret.replace(/</g, "&lt");
+    //     // ret = ret.replace(/>/g, "&gt");
+    //     ret = ret.replace(/\r\n/g, "<br>");
+    // }
+    // // console.log(ret);
     return ret;
 
     // 將 sn 前面對應的文字，加上 sn-text class
@@ -140,8 +143,8 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
                 // 分割文字，成2部分
                 let text_split = split_two_part(textContents[i - 1].data)
-                let text_prev1 = text_split[0]
-                let text_prev2 = text_split[1]
+                let text_prev1 = text_split[0] // , 等等的符號，不能被包在中文中，斷開了
+                let text_prev2 = text_split[1] // 真正的文字
 
                 // 若第二個字是 empty string 就不處理
                 if (text_prev2.trim() == '') {
@@ -158,10 +161,17 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
 
                     // 要把原本位置的 #text 刪掉，然後加上 2 個 span, text_prev1 是純文字， text_prev2 是 <span class="sn-text" sn=sn n=n>text_prev2</span>
-                    let sn_text2 = `<span class="sn-text" sn=${sn} n=${n}>${text_prev2}</span>`
+                    // let sn_text2 = `<span class="sn-text" sn=${sn} n=${n}>${text_prev2}&nbsp;</span>`
+                    let sn_text2 = ` <span class="sn-text" sn=${sn} n=${n}>${text_prev2.trim()}</span>`
+                    
+                    // console.log(text_prev2)
+
+                    // 大部分 text_prev2 字，前面都有一個空白字元，但少數會沒有，例如換行符號之後的
+                    
+                    // console.log(text_prev1, text_prev2)
                     $(textContents[i - 1]).remove()
                     if (text_prev1.trim().length != 0) {
-                        $(one_dom).before(text_prev1)
+                        $(one_dom).before(text_prev1) 
                     }
                     $(one_dom).before(sn_text2)
                 }

@@ -75,10 +75,10 @@ span.bibtext
     color: mediumpurple;
     font-size: var( --fontsize-hebrew );
 }
-/* 前後加一空白 */
-.hebrew-char::before, .hebrew-char::after {
-    content: " ";
-}
+/* 前後加一空白 因為這樣 看得到 copy 不到*/
+/* .hebrew-char::before, .hebrew-char::after {
+    content: "";
+} */
 /* add by snow. 2021.07 */
 .greek-char {
     /* display: inline-block; */
@@ -87,10 +87,10 @@ span.bibtext
     color: mediumpurple;
     font-size: var( --fontsize-greek );
 }
-/* 前後加一空白 */
-.greek-char::before, .greek-char::after {
-    content: " ";
-}
+/* 前後加一空白，不再使用這方法，因為這樣 copy 不到 */
+/* .greek-char::before, .greek-char::after {
+    content: "";
+} */
 .hebrew {
   font-family: COBSHebrew;
   font-weight: 700;
