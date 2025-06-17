@@ -85,7 +85,6 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
 
 
-
     if (-1 != ["unv", "kjv", "rcuv", "fhlwh"].indexOf(bibleVersion)) {
         text = replace_newline_char(text, bibleVersion);
         
@@ -162,7 +161,8 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
                     // 要把原本位置的 #text 刪掉，然後加上 2 個 span, text_prev1 是純文字， text_prev2 是 <span class="sn-text" sn=sn n=n>text_prev2</span>
                     // let sn_text2 = `<span class="sn-text" sn=${sn} n=${n}>${text_prev2}&nbsp;</span>`
-                    let sn_text2 = ` <span class="sn-text" sn=${sn} n=${n}>${text_prev2.trim()}</span>`
+                    const space_add = -1 == ['fhlwh', 'lxx', 'bhs', 'kjv'].indexOf(bibleVersion) ? '' : ' '; 
+                    let sn_text2 = space_add + `<span class="sn-text" sn=${sn} n=${n}>${text_prev2.trim()}</span>`
                     
                     // console.log(text_prev2)
 
