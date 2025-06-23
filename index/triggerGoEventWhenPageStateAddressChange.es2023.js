@@ -1,8 +1,11 @@
+import { assert } from "./assert_es2023.js";
+
 export function triggerGoEventWhenPageStateAddressChange(ps) {
-    var idx = getBookFunc("index", ps.chineses); // 0-based    
+    assert(ps.bookIndex != null, "ps.bookIndex is null");
+    
+    const book = ps.bookIndex
     $(document).trigger('go', {
-        chineses: ps.chineses,
-        book: idx+1, // 1-based
+        book: book, // 1-based
         chap: ps.chap,
         sec: ps.sec
     });

@@ -80,10 +80,9 @@ export function addViewHistoryEvents(){
         localStorage.setItem("fhlPageState", JSON.stringify(TPPageState.s));
     });
     function render3(){
-        const ps = TPPageState.s;
-        BookSelect.s.render(ps, BookSelect.s.dom);
-        FhlLecture.s.render(ps, FhlLecture.s.dom);
-        FhlInfo.s.render(ps, FhlInfo.s.dom);
+        BookSelect.s.render();
+        FhlLecture.s.render();
+        FhlInfo.s.render(TPPageState.s);
     }
     function change_address_of_ps_via_vh_idxchanged() {
         const address = ViewHistoryData.s.current_address;
