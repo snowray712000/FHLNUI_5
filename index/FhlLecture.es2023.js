@@ -28,7 +28,9 @@ import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 import { FhlLecture_render_mode1 } from './FhlLecture_render_mode1_es2023.js'
 import { FhlLecture_render_mode2 } from './FhlLecture_render_mode2_es2023.js'
 import { FhlLecture_render_mode3 } from './FhlLecture_render_mode3_es2023.js'
-
+import { testThenDoAsync } from './testThenDo.es2023.js'
+import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
+import { assert } from './assert_es2023.js'
 /* 
 若有 2 個譯本，並且是併排方式
 <div#fhlLecture>
@@ -197,10 +199,15 @@ export class FhlLecture {
         /// <summary> fhlLecture 提供的 event </summary>
         /// <param type="fn(e)" name="fnb" parameterArray="false">older history view</param>
         /// <param type="fn(e)" name="fnn" parameterArray="false">newer history view</param>
-        this.$lecture.on({
-            bclick: fnb,
-            nclick: fnn
-        });
+        testThenDoAsync({
+            cbTest: () => this != null && this.$lecture != null,
+            ms: 300,
+        }).then( re => {
+            this.$lecture.on({
+                bclick: fnb,
+                nclick: fnn
+            });
+        })
     }
     /**
      * 要提供給 render 使用，也可能會在 doSearch 中、InfoContent 中使用。
@@ -744,30 +751,50 @@ function reshape_for_align_each_sec(){
         }
     }
 }
+function render4(){
+    ViewHistory.s.render();
+    FhlLecture.s.render();
+    FhlInfo.s.render(ps);
+    BookSelect.s.render();    
+}
 function when_click_chapback(e){
     /** @type {TPPageState} */
     let ps = TPPageState.s
-
-    var idx = getBookFunc("index", ps.chineses); // 0-based
-    if (ps.chap == 1) {
-        idx--;
-        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
-        ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[idx];
-        ps.chap = BibleConstant.COUNT_OF_CHAP[idx];
-    } else {
-        if (ps.chap == 0) {
-            ps.chap = ps.commentBackgroundChap;
-            ps.sec = ps.commentBackgroundSec;
-        }
-        ps.chap--;
+    assert(ps.bookIndex != null, 'bookIndex not in pageState')
+    if ( ps.bookIndex == 1 && (ps.chap == 1 || ps.chap == 0) ){
+        // 都不該生效 (應該不會被按到才對)
+        return 
     }
-    ps.bookIndex = idx + 1; // 此idx回傳是 0-based
-    ps.sec = 1;
+
+    if ( ps.chap == 0 ) {
+        // 此時，是註解，按了「書卷背景」。
+        // 若 book 又是第1章，此時按上一頁會出錯「第零章」錯誤
+        // 同樣，若在最後1章，進入書卷背景，再按下一章，也會出現錯誤
+        if ( ps.commentBackgroundChap == 1 ) {
+            // 要上一卷書
+            ps.bookIndex--;
+            ps.chap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1];
+        } else {
+            ps.chap = ps.commentBackgroundChap - 1
+        }        
+    } else {
+        if ( ps.chap == 1 ) {
+            // 按上一章，就是切換書卷了
+            ps.bookIndex--;
+            ps.chap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1];
+        } else {
+            ps.chap--;
+        }
+    }
+    ps.sec = 1; // 每次切換章節，預設是第一節
+
+    // 當使用者切換章節時，若是看過的章，則跳到「那節」，而不要「第一節」
+    change_sec_of_ps_if_address_exist_in_view_history()
+
     triggerGoEventWhenPageStateAddressChange(ps);
-    ViewHistory.s.render(ps, ViewHistory.s.dom);
-    FhlLecture.s.render(ps, FhlLecture.s.dom);
-    FhlInfo.s.render(ps);
-    BookSelect.s.render(ps, BookSelect.s.dom);
+    
+    render4()
+    
     e.stopPropagation();
 
     $('#fhlLecture').trigger('chapchanged'); // 變更 history.
@@ -775,29 +802,40 @@ function when_click_chapback(e){
 function when_click_chapnext(e){
     /** @type {TPPageState} */
     let ps = TPPageState.s
-
-    var idx = getBookFunc("index", ps.chineses);
-    // 設定 ps 資訊(供後面用)
-    if (ps.chap == BibleConstant.COUNT_OF_CHAP[idx]) {//if last chapter
-        idx++;
-        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];//book+1
-        ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[idx];
-        ps.chap = 1;
-    } else {
-        if (ps.chap == 0) {
-            ps.chap = ps.commentBackgroundChap;
-            ps.sec = ps.commentBackgroundSec;
-        }
-        ps.chap++;
+    assert(ps.bookIndex != null, 'bookIndex not in pageState')
+    if ( ps.bookIndex == 66 && (ps.chap == 22 || ps.chap == 0) ){
+        // 都不該生效 (應該不會被按到才對)
+        return 
     }
-    ps.bookIndex = idx + 1; // 此idx回傳是 0-based
 
-    ps.sec = 1;
+    const lastChap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1]
+    if ( ps.chap == 0 ) {
+        // 此時，是按了「註解」中的「書卷背景」。此時應當要用
+        if ( ps.commentBackgroundChap == lastChap ) {
+            // 要下一卷書
+            ps.bookIndex++;
+            ps.chap = 1;
+        } else {
+            ps.chap = ps.commentBackgroundChap + 1
+        }
+    } else {
+        if ( ps.chap == lastChap ) {
+            // 按下一章，就是切換書卷了
+            ps.bookIndex++;
+            ps.chap = 1;
+        } else {
+            ps.chap++;
+        }
+    }
+    ps.sec = 1; // 每次切換章節，預設是第一節
+
+    // 當使用者切換章節時，若是看過的章，則跳到「那節」，而不要「第一節」
+    change_sec_of_ps_if_address_exist_in_view_history()
+
     triggerGoEventWhenPageStateAddressChange(ps); // 這個事件，有人在用唷，就是 viewHistory 會用
-    ViewHistory.s.render(ps, ViewHistory.s.dom); // 這應該是舊的 viewHistory, 被 mark 起來也不會有變化
-    FhlLecture.s.render(ps, FhlLecture.s.dom); // 內部經文變化
-    FhlInfo.s.render(ps); // 右手邊的 info 也要跟著更新
-    BookSelect.s.render(ps, BookSelect.s.dom); // 影響「約翰福音：第一章」那裡的顯示
+    
+    render4()
+
     e.stopPropagation();
 
     $('#fhlLecture').trigger('chapchanged');

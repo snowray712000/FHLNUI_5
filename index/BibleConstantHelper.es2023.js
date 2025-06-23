@@ -1,5 +1,5 @@
 import { BibleConstant } from "./BibleConstant.es2023.js"
-
+import { TPPageState } from "./TPPageState.es2023.js";
 export class BibleConstantHelper {
     /** @type {Object.<string, number>} */
     static _mapName2Id;
@@ -106,7 +106,11 @@ export class BibleConstantHelper {
      * @param {boolean} isGb
      * @returns {string[]}
      */
-    static getBookNameArrayChineseShort(isGb) {
+    static getBookNameArrayChineseShort(isGb=null) {
+        if ( isGb == null ){
+            isGb = TPPageState.s.gb == 1 ? true : false
+        }
+
         return isGb ? BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB : BibleConstant.CHINESE_BOOK_ABBREVIATIONS;
     }
 
@@ -115,7 +119,10 @@ export class BibleConstantHelper {
      * @param {boolean} isGb
      * @returns {string[]}
      */
-    static getBookNameArrayChineseFull(isGb) {
+    static getBookNameArrayChineseFull(isGb=null) {
+        if ( isGb == null ){
+            isGb = TPPageState.s.gb == 1 ? true : false
+        }
         return isGb ? BibleConstant.CHINESE_BOOK_NAMES_GB : BibleConstant.CHINESE_BOOK_NAMES;
     }
 

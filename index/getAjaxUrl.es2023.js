@@ -1,4 +1,6 @@
+import { assert } from "./assert_es2023.js";
 import { BibleConstant } from "./BibleConstant.es2023.js";
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { isRDLocation } from "./isRDLocation.es2023.js"
 
 
@@ -20,12 +22,11 @@ export function getAjaxUrl(func, ps, idx) {
         func = "sd"
     }
 
-    if (func == 'qb') {
-        // add by snow. 2021.07
-        var r1 = Enumerable.from(BibleConstant.ENGLISH_BOOK_ABBREVIATIONS).indexOf(ps.engs);
-        var r2 = ps.gb == 1 ? BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB : BibleConstant.CHINESE_BOOK_ABBREVIATIONS;
-        ps.chineses = r2[r1];
-    }
+    assert(ps.bookIndex != null, "ps.bookIndex is null");
+    const chineses = BibleConstantHelper.getBookNameArrayChineseShort()[ps.bookIndex-1];
+    const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex-1];
+    ps.chineses = chineses; // 因為 qp 是以 chineses 作為參數
+    ps.engs = engs; // 因為 sc qp 是以 engs 作為
 
     var getFullAjaxUrl = function (func, ps, idx) {
         var ret = fhl.urlJSON + func + ".php?";
