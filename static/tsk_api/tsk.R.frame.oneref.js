@@ -9,7 +9,7 @@ var tsk = tsk || {};
 tsk.R = tsk.R || {
   /// <summary> 當其中一行是 "# 2Ki 1:8; Zec 13:4; Mt 3:4|" 的類型，就會使用此型 </summary>
   oneref: React.createClass({
-    pfn_click_oneref: function (reftxt) {
+    pfn_click_oneref: function (reftxt, event) {
       // 修正後，相依的程式
       const splitReference = splitReferenceEs6Js()
       const queryReferenceAndShowAtDialogAsync = queryReferenceAndShowAtDialogAsyncEs6Js()
@@ -37,17 +37,22 @@ tsk.R = tsk.R || {
       // console.log(r1);
       let r2 = Enumerable.from(r1).firstOrDefault(a1 => a1.refAddresses != null)
       if (r2 == null) { throw new Error("assert r2 is not null in tsk.R.pfn_click_oneref") }
+      
       let r3 = cvtAddrsToRef(r2.refAddresses, "羅")
       reftxt = r3
-
+      
       // 原流程
-      queryReferenceAndShowAtDialogAsync({ addrsDescription: reftxt, bookDefault: bookId })
+      queryReferenceAndShowAtDialogAsync({ 
+        addrsDescription: reftxt, 
+        addrs: r2.refAddresses,
+        bookDefault: bookId , 
+        event: event})
     },
-    handleClick: function () {
+    handleClick: function (event) {
       if (this.state.rDetail == null) {
         var txt = this.props.txt_ori.trim();
         var keyword2 = txt.substr(1, txt.length - 2); // 去頭去尾 # |
-        this.pfn_click_oneref(keyword2);
+        this.pfn_click_oneref(keyword2, event);
       } else {
         this.setState({
           rDetail: null

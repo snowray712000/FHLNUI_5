@@ -86,6 +86,8 @@ export class TPPageState {
     this.swVer = "0.0.0"
     /** @type {0|1|2} 0是早期顯示版本，1是併排，2是交錯 */
     this.show_mode = 1
+    /** @type {0|1|2} 0: 每次詢問，1: 直接方法1，2: 直接方法2*/
+    this.reference_method = 0
 
     /** @type {Object.<string, number>} str 為 key ， 次數為 value。此變數不會真的需要存在 localstorage */
     this.sn_stastic = {}
@@ -103,6 +105,27 @@ export class TPPageState {
         console.error(`Error: Key "${key}" does not exist in TPPageState.`);
         this[key] = value; // 動態新增屬性
       }
+    }
+  }
+
+  /**
+   * 將當前 TPPageState 實例儲存到 localStorage。
+   */
+  saveToLocalStorage(){    
+    localStorage.setItem("fhlPageState", JSON.stringify(TPPageState.s));
+  }
+  /**
+   * 
+   * @returns {TPPageState|null} 如果成功載入，則返回 TPPageState 實例，否則返回 null。
+   */
+  loadFromLocalStorage(){
+    const res = localStorage.getItem("fhlPageState");
+    if ( res == null ){
+      return null
+    } else {
+      const ps = JSON.parse(res);
+      TPPageState.s.updateFromDict(ps);
+      return TPPageState.s;
     }
   }
 }

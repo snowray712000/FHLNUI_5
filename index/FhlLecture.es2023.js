@@ -1537,7 +1537,7 @@ function mouseenter_sn_dialog(e){
 
                 dlg.on('click', '.ref', a1 => {
                     let addrs = JSON.parse($(a1.target).attr('data-addrs'))
-                    queryReferenceAndShowAtDialogAsync({addrs:addrs})
+                    queryReferenceAndShowAtDialogAsync({addrs:addrs, event: a1})
                 })
 
                 dlg.parent().off('click', '.sn').on({

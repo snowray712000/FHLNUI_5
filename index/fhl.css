@@ -1851,14 +1851,16 @@ nav#fhlTopMenu {
 
 #commentTitle {
     position: absolute; 
-    left: 60%; 
+    left: 10%; 
+    width: 80%;
+    text-wrap-mode: nowrap;
+    overflow-x: clip; 
     top: 17px; 
-    transform: translate(-50%, 0%); 
+    /* transform: translate(-50%, 0%);  */
     display: block; 
-    width: 280px; 
     height: 40px; 
     text-align: center; 
-    font-size: 1.0rem; 
+    font-size: 0.8rem; 
     line-height: 28pt;
     cursor: default; 
     margin: 0px; 

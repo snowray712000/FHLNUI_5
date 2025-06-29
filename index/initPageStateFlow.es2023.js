@@ -5,27 +5,14 @@ import { TPPageState } from './TPPageState.es2023.js';
 
 
 export function initPageStateFlow(currentSWVer) {
-  //fhlTopMenu.init(pageState);
-  //fhlTopMenu.render(pageState);
-  //Check cache
-  if (localStorage.getItem("fhlPageState") != null) {
-    //console.log(localStorage.getItem("fhlPageState"));
-    var tmp = JSON.parse(localStorage.getItem("fhlPageState"));
-    if (tmp.swVer != currentSWVer) {
-      // pageState 版本變更            
-      // replace by snow. 2021.07 不要再直接更新所有設定，
-      // 而是透過 makeSureValueExistForNewVersions 新增的 key
-      // pageStateInit(); 
-      const pageState = tmp // 然後缺的會在下面補足
-      pageState.swVer = currentSWVer // 更新   
-      TPPageState.s.updateFromDict(pageState)
-    } else {
-      // 從 localStorage 載入
-      TPPageState.s.updateFromDict(tmp);
+  let ps = TPPageState.s.loadFromLocalStorage()
+  if ( ps != null ){
+    if ( ps.swVer != currentSWVer ) {
+      ps.swVer = currentSWVer; // 更新版本號
+      TPPageState.s.saveToLocalStorage()
     }
   } else {
-    pageStateInit();
-    // 2017.07 若人家是直接貼上url含有 書卷章節, 就從裡面取代
+    pageStateInit(); // 初始化
   }
 
   makeSureValueExistForNewVersions()

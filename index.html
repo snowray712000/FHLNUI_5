@@ -39,7 +39,15 @@
   integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
   crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
-    
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
+<div class="markdown-body">
+  <!-- markdown-it 產生的 HTML 放這裡 -->
+</div>
+  <script type="module">
+  import markdownIt from 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
+  </script>
+  
   <script>
     // 這幾行，只是為了 intellisense 作用
     function AppVersion() {
@@ -55,7 +63,7 @@
     };
     AppVersion.s = new AppVersion();
 
-    var currentSWVer = "3.7.1"
+    var currentSWVer = "3.7.2"
     $.ajax({ url: 'index/AppVersion.js', async: false, dataType: 'script' })
     if (AppVersion.s.getCntThisVersion() == 1) {
       location.reload(true)

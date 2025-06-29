@@ -208,7 +208,8 @@ export class FhlInfoContent {
                     /** @type {DText[]} */
                     let dtexts = splitReference(refs, addrDefault)
                     queryReferenceAndShowAtDialogAsync({
-                        addrs: dtexts[0].refAddresses
+                        addrs: dtexts[0].refAddresses,
+                        event: ev
                     })
                 })
 

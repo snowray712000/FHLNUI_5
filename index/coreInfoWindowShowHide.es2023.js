@@ -3,7 +3,7 @@
 /// <reference path="../libs/jsdoc/jquery.js" />
 /// <reference path="../libs/jsdoc/jquery-ui.js" />
 /// <reference path="../libs/jsdoc/jquery.ui.touch-punch.js" />
-import { updateLocalStorage } from './updateLocalStorage.es2023.js';
+
 import { TPPageState } from './TPPageState.es2023.js';
 
 export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
@@ -19,7 +19,8 @@ export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
 
     TPPageState.s.isVisibleInfoWindow = isShow3 ? 1 : 0
     TPPageState.s.isVisibleLeftWindow = isShow1 ? 1 : 0
-    updateLocalStorage()
+
+    TPPageState.s.saveToLocalStorage()
 
     if (isShow1) {
         $("#fhlLeftWindowControl").addClass("selected")

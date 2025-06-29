@@ -13,7 +13,7 @@
 
 //             if (isChanged) {
 //                 pageState.version = vers
-//                 // pageState.cname = [] // 原本也有設 cname,  (好像沒有也沒關係, 注解先保留著好了)
+//                 // .cname = [] // 原本也有設 cname,  (好像沒有也沒關係, 注解先保留著好了)
 //                 triggerGoEventWhenPageStateAddressChange(pageState);
 //                 updateLocalStorage();
 //                 fhlLecture.render(pageState, fhlLecture.dom);

@@ -77,7 +77,7 @@ export function addViewHistoryEvents(){
     DocEvent.s.when_vh_itemschanged(function (e, p1) {
         TPPageState.s.history = p1.datas;
         pageState.history = p1.datas;
-        localStorage.setItem("fhlPageState", JSON.stringify(TPPageState.s));
+        TPPageState.s.saveToLocalStorage();
     });
     function render3(){
         BookSelect.s.render();
