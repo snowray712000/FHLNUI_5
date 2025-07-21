@@ -13,6 +13,8 @@ export function initPageStateFlow(currentSWVer) {
     }
   } else {
     pageStateInit(); // 初始化
+    
+    TPPageState.s.makesure_bookIndex_exist()
   }
 
   makeSureValueExistForNewVersions()

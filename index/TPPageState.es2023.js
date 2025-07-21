@@ -1,6 +1,7 @@
 /// <reference path="./../FHL.BibleConstant.js" />
-
-
+import { BibleConstant } from "./BibleConstant.es2023.js";
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
+import { updateInstanceFromDict } from "./updateInstanceFromDict_es2023.js";
 /**
 * @typedef {"fhlInfoParsing"|"fhlInfoComment"|"fhlInfoPreach"|"fhlInfoTsk"|"fhlInfoOb"|"fhlInfoAudio"|"fhlInfoMap"|"fhlSnBranch"} TPFhlTitleId
 */
@@ -98,13 +99,8 @@ export class TPPageState {
    * @param {Object} dict - 包含要更新的屬性和值的物件。
    */
   updateFromDict(dict) {
-    for (const [key, value] of Object.entries(dict)) {
-      if (key in this) {
-        this[key] = value;
-      } else {
-        console.error(`Error: Key "${key}" does not exist in TPPageState.`);
-        this[key] = value; // 動態新增屬性
-      }
+    if (dict != null ){
+      updateInstanceFromDict(dict, () => this);
     }
   }
 
@@ -127,5 +123,30 @@ export class TPPageState {
       TPPageState.s.updateFromDict(ps);
       return TPPageState.s;
     }
+  }
+  makesure_bookIndex_exist(){
+    if (this.bookIndex == null ){
+      if (this.chineses != null ){
+        let idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(this.chineses)
+        if ( idx == -1 ){
+          idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB.indexOf(this.chineses)
+        }
+        if ( idx != -1 ){
+          this.bookIndex = idx + 1; // 1based
+          return
+        }
+      } else if ( this.engs != null ){
+        let idx = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS.indexOf(this.engs)
+        if ( idx != -1 ){
+          this.bookIndex = idx + 1; // 1based
+          return
+        }
+      }
+    }
+
+    // default bookIndex
+    this.bookIndex = 1; // 創世記
+    this.chineses = BibleConstantHelper.getBookNameArrayChineseShort()[0]
+    this.engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[0]
   }
 }

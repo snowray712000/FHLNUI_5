@@ -2135,6 +2135,11 @@ nav#fhlTopMenu {
     .bible-address {
         color: blue;
     }
+    .address {
+        color: blue;
+        cursor: pointer;
+        text-decoration: underline;
+    }
 
     .bstw {
         font-family: "bstw";

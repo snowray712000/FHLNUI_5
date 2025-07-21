@@ -5,6 +5,7 @@ export class FhlInfoTitle {
     /** @returns {FhlInfoTitle} */
     static get s() { if (!this.#s) { this.#s = new FhlInfoTitle(); } return this.#s; }
 
+    /** @type {HTMLElement} #fhlInfoTitle */
     dom = null
     /** @type {string} 於 setTitleViaGb 初始化一次 */
     title = null

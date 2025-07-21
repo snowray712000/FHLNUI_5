@@ -27,6 +27,9 @@ sephp.pre_search_keyword_core = function pre_search_keyword_core(keyword, versio
     return url;
   };
 
+  /**
+   * @type {{record_count: number, record: Array<{engs: string, chineses: string, ibook: number, chap: number, sec: number, ver: string}>}}
+   */
   var jret = null;
   var linqRecord = Enumerable.empty();
   var action_do_search = null;

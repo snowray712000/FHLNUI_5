@@ -5,13 +5,12 @@
 import { TPPageState } from "./TPPageState.es2023.js";
 
 // gb: 1 or 0 2020/11 繁簡合併
-export function gbText(str, gb) {
-    const pageState = TPPageState.s
-    
-    if (gb == undefined) {
-        gb = pageState.gb;
+export function gbText(str, gb = null) {
+    if (gb == null) {
+        gb = TPPageState.s.gb;
     }
-    if (gb !== 1) { return str; }
+
+    if (gb != 1) { return str; }
 
     var r1 = {
         "設定": "设定",
@@ -42,6 +41,10 @@ export function gbText(str, gb) {
         "交錯（單節）": "交错（单节）",
         "併排（單節）": "并排（单节）",
         "交互參照方法": "交互参照方法",
+
+        "背景資料": "背景资料",
+        "返回註釋": "返回注释",
+        "施工中...": "施工中...",
     };
 
     for (var a1 in r1) {

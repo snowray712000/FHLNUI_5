@@ -127,7 +127,7 @@ export class BibleConstantHelper {
     }
 
     /**
-     * 取得英文標準書卷名稱
+     * 取得英文標準書卷名稱 'Gen', 'Ex', 'Lev', 'Num'...
      * @returns {string[]}
      */
     static getBookNameArrayEnglishNormal() {

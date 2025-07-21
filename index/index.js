@@ -59,9 +59,23 @@ import { gbText } from './gbText.es2023.js'
 import { registerEvents_doc } from './registerEvents_doc.es2023.js'
 import { ParagraphData } from './ParagraphData_es2023.js'
 import { addViewHistoryEvents } from './addViewHistoryEvents_es2023.js'
+import { SearchFlow } from './SearchFlow_es2023.js'
+
+import { Search_DataForGroupUi } from './Search_DataForGroupUi_es2023.js'
+import { Search_UiOfGroupRender } from './Search_UiOfGroupRender_es2023.js'
+import { Search_initializePreSearchEventHandlersAsync } from './Search_initializePreSearchEventHandlersAsync_es2023.js'
+import { Search_continue_search } from './Search_continue_search_es2023.js'
+import { Search_create_dialog_search_result } from './Search_create_dialog_search_result_es2023.js' 
+import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
     window.getBookFunc = getBookFunc
+    window.Search_DataForGroupUi = Search_DataForGroupUi
+    window.Search_UiOfGroupRender = Search_UiOfGroupRender
+    window.Search_initializePreSearchEventHandlersAsync = Search_initializePreSearchEventHandlersAsync
+    window.Search_continue_search = Search_continue_search
+    window.Search_create_dialog_search_result = Search_create_dialog_search_result
+    window.Search_pre_search_click = Search_pre_search_click
 
     window.BibleConstantEs6Js = () => BibleConstant
     window.BibleConstantHelperEs6Js = () => BibleConstantHelper
@@ -84,7 +98,7 @@ import { addViewHistoryEvents } from './addViewHistoryEvents_es2023.js'
     window.queryDictionaryAndShowAtDialogAsyncEs6Js = () => queryDictionaryAndShowAtDialogAsync
     window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
     // window.FhlLectureEs6Js = () => FhlLecture // 不需要，別人只用到實體 window.fhlLecture
-
+    window.SearchFlow = SearchFlow
     window.renderTsk = renderTsk // 因為 fhlInfoContent 還沒成 es2023
     window.SnBranchRender = SnBranchRender // 樹狀圖(羅馬書才有)
     window.do_preach = do_preach // 講道
