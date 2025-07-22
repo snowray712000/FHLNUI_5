@@ -36,18 +36,11 @@ export function comment_register_events() {
     })
 
     $('#fhlInfoContent').off('click', '.commentJump').on('click', '.commentJump', ev => {
-        /** @type {JQuery<HTMLElement>} */
-        let that = $(ev.target)
-        let engs = that.attr('engs')
-        let book = getBookFunc('indexByEngs', engs) + 1
-        let chap = that.attr("chap")
-        let sec = that.attr("sec")
-        let addrDefault = { book: book, chap: parseInt(chap), verse: parseInt(sec) }
+        const ps = TPPageState.s;
+        const defaultAddress = { book: ps.bookIndex, chap: ps.chap, verse: ps.sec };
 
-        let refs = that[0].innerHTML
-
-        /** @type {DText[]} */
-        let dtexts = splitReference(refs, addrDefault)
+        const current_target = ev.currentTarget
+        const dtexts = splitReference($(current_target).text(), defaultAddress)
         queryReferenceAndShowAtDialogAsync({
             addrs: dtexts[0].refAddresses,
             event: ev

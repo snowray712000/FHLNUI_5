@@ -101,7 +101,7 @@ function generate_div_comment_content(res) {
     }
     function parseComment(t) {
         t = t.replace(/\n/g, "</br>");
-        t = t.replace(/ /g, "&nbsp");
+        t = t.replace(/ /g, "&nbsp;");
         var pt, pt1;
         var tok, tok_str;
         var span_str;
@@ -116,38 +116,23 @@ function generate_div_comment_content(res) {
         });
 
         while (true) {
+            // t 是所有文字，它會被不斷的修改，#...| 的文字會被 span_str 取代
+            // console.log(t);
+            
             pt = t.indexOf("#");
             pt1 = t.indexOf("|");
             if (pt < 0 || pt1 < 0 || pt1 <= pt)
                 break;
+
+            // #民&nbsp21:1-24:25;民&nbsp31:16|
+            // #2:1-3|
+            // #太&nbsp7:15-20|
+            // #猶&nbsp1:4-7|
             tok_str = t.substring(pt + 1, pt1);
-            span_str = "";
 
-            while (tok_str.length !== 0) {
-                var firstTokEnd = tok_str.indexOf(";");
-                if (firstTokEnd === -1)
-                    firstTokEnd = tok_str.length;
-                tok = tok_str.substring(0, firstTokEnd);
-                tok_str = tok_str.substring(firstTokEnd + 1, tok_str.length);
+            let span_comment_jump = $("<span class='commentJump'></span>").text(tok_str.replace(/&nbsp;/g, " "))
+            t = t.substring(0, pt) + " " + span_comment_jump[0].outerHTML + " " + t.substring(pt1 + 1);
 
-                span_str += "&nbsp;<span class='commentJump' engs=";
-                var secNumberEnd = tok.indexOf("-");
-                if (secNumberEnd === -1)
-                    secNumberEnd = tok.length;
-                var chapNumberEnd = tok.indexOf(":");
-                var secNumber = tok.substring(chapNumberEnd + 1, secNumberEnd);
-                if (!isNaN(tok[0])) { // parse 在同一卷書裡面跳的
-                    var chapNumber = tok.substring(0, chapNumberEnd);
-                    span_str += ps.engs;
-                } else { // parse 有中文字在前面的
-                    var bookNameEnd = tok.indexOf("&nbsp");
-                    var bookName = tok.substring(0, bookNameEnd);
-                    var chapNumber = tok.substring(bookNameEnd + 5, chapNumberEnd); //+5是因為&nbsp
-                    span_str += BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(bookName)];
-                }
-                span_str += " chap=" + chapNumber + " sec='" + secNumber + "'>" + tok + "</span>&nbsp;";
-            }
-            t = t.substring(0, pt) + span_str + t.substring(pt1 + 1);
         }
 
         function sn_replace(...s) {
