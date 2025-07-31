@@ -6,6 +6,9 @@ import { isRDLocation } from "./isRDLocation.es2023.js"
 
 
 export function getAjaxUrl(func, ps, idx) {
+    if ( func == 'qb' ){
+        console.warn("getAjaxUrl: qb is deprecated, use parsing_api_async instead")
+    }
     var paramArr = ["engs", "chineses", "chap", "sec", "version",
         "strong", "gb", "book", "N", "k"];
         var urlParams = {

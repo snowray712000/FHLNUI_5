@@ -53,11 +53,7 @@ export class FhlInfoTitle {
                     $('#' + ps.titleIdold).trigger('click')
                 }
             } else {
-                if (addr.book == 45) {
-                    $('#fhlSnBranch').css('visibility', '');
-                } else {
-                    $('#fhlSnBranch').css('visibility', 'hidden');
-                }
+                $('#fhlSnBranch').css('display', addr.book == 45 ? '' : 'none');                
             }
         });
     }
@@ -91,6 +87,7 @@ export class FhlInfoTitle {
                 { "name": "有声", "id": "fhlInfoAudio" },
                 { "name": "地図", "id": "fhlInfoMap" },
                 { "name": "树状图", "id": "fhlSnBranch" },
+                { "name": "AI", "id": "fhlAi" },
             ];
         } else {
             this.title = [
@@ -102,6 +99,7 @@ export class FhlInfoTitle {
                 { "name": "有聲", "id": "fhlInfoAudio" },
                 { "name": "地圖", "id": "fhlInfoMap" },
                 { "name": "樹狀圖", "id": "fhlSnBranch" },
+                { "name": "AI", "id": "fhlAi" },
             ];
         }
     }

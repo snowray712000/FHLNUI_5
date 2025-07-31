@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "3.7.6",
+        "last": "4.1.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -9,7 +9,6 @@
                     "🆕 新功能: 關閉SN時，卻強制 SN 顯示某些指定的, 例如 G1063",
                     "🆕 新功能: 原文直譯, 用程式從 Parsing 整合入 SN",                    
                     "🆕 新功能: 舊約原文, 用程式從 Parsing 整合入 SN",
-                    "🆕 新功能: 產生 AI Prompt，",
                     "🆕 新功能: 自訂段落",
                     "📈 優化: 譯本併排時, 寬度比例自動調整",
                     "✅ Bug: 原文Parsing, 彼前4:13 2526 備註",
@@ -24,6 +23,15 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na":"4.1.1",
+                "na2": [
+                    "🐛 Bug: 原文Parsing 於 太3:2 下面表格會是錯誤，已修正",
+                    "🆕 新功能: 新增 AI Parsing 上下文工具 (複製的文字，是方便 ai 閱讀，而非 人類 閱讀為主)",
+                    "📈 優化: 原文Parsing 的 Table，加入「字序」，以便配合 AI 工具",
+                    "📝 工程師筆記: Parsing api 結果，加上了 address 的正規化，將 prev next record 中的 chineses engs 都以 book 取代.",
+                    "📝: 承上，parsing next prev 的確還是用 .engs，這次改掉了."
                 ]
             },{
                 "na": "3.7.6",

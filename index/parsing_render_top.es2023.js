@@ -1,7 +1,7 @@
 /// <reference path="./fhlParsing.d.js" />
 
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
-
+import { splitStringByRegex } from "./splitStringByRegex.es2023.js"
 /**
  * 於 fhlInfoContent.js 重構出來
  * @param {IDParsingResult} jsonObj 
@@ -9,16 +9,33 @@ import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
  * @returns {string} html description string 
  */
 export function parsing_render_top(jsonObj, ps){
+    // - 產生 2 個 button ， 與一個 title
     let chap_ctrl_str = generate_parsing_top_button_title(ps, jsonObj)
+    // - 產生 原文 與 直譯
     let div_parsingTop2 = generate_parsing_top_div(jsonObj, ps)
 
     let html = chap_ctrl_str + div_parsingTop2[0].outerHTML
     return html
 }
 
-// (root => {
-//     root.parsing_render_top = parsing_render_top
-// })(this)
+function is_record_count_mismatch_with_word_split(word,cnt_of_record){
+    // ### 判斷「method2演算法」前提，是個數不同
+    // - cnt_of_record 就是 jsonObj.record.length
+    // - wid 從 1 開始，每個字，會有一個 wid，中間會有各種可能出現的符號隔開，而 record 也是從 1 開始，對應各個 wid。🍇 實例: 例如，5 個原文字，應該會有 wid 從 1-5，對應的 record.length 會是 6。
+    // - 若是新約，會有 + 符號，也是佔用一個符號，所以，split 參數才不會有 + 符號。
+
+    // 用空白隔開，判斷不準，因為 太 1:9 有 +,\n 符號，舊約有 ־ 這不是 dash - 符號，其實應該是2個 wid，另外，舊約有\r\n                         
+    let split1 = word.split(/[ \n\r־,.]/g)
+
+    // 去除 trim 也是空白的                                
+    split1 = split1.filter(a1 => a1.trim() != "");
+
+    if ( cnt_of_record - 1 != split1.length ){
+        console.warn(`record count mismatch, record.length=${cnt_of_record}, split1.length=${split1.length}, word=${word}`);
+        return true
+    }              
+    return false     
+}
 
 
 /**
@@ -28,9 +45,24 @@ export function parsing_render_top(jsonObj, ps){
  * @returns {JQuery<HTMLElement>}
  */
 function generate_parsing_top_div(jsonObj,ps){
-    let word = jsonObj.record[0].word
-    let exp = jsonObj.record[0].exp
-    let remark = jsonObj.record[0].remark ?? "" // 舊約可能用到，平行經文
+    // - 結果是 <div id='parsingTop'></div>, 而 top 與 title 、 2個按鈕、還有下面的 table 是平行的
+    // - 承上，其中是 一行 原文 一行 譯文。<div#greek-char> <div#exp>，當然，也可能是 #hebrew-char
+    // - 譯文，很簡單，就是把資料直接放進去，連 span 都沒有
+    // - 原文，一個原文是一個 <span#sn-btn[wid]> </span>
+    // - 原文，是 <span#sn-btn>空格/逗號...<span#sn-btn>，交錯著
+    // - 若新約，有韋式，聯式，要注意，字序其實會不連續，因為 + 符號，也會佔一個字序，即 wid。
+    // - wid 是 1based
+    // - 首先，record 要用 \n 分隔。這個新約與舊約會有點不同，因為希伯來文的特性，所以舊約 第1行原文 會對應 最後一行譯文。
+    // - 太3:2 1:25 都是特別的，尤其 3:2 是只有一半的。目前還算 Bug
+    const record_0 = jsonObj.record[0]
+
+    let word = record_0.word
+    let exp = record_0.exp
+    let remark = record_0.remark ?? "" // 舊約可能用到，平行經文
+
+    const book = record_0.book
+    const chap = record_0.chap
+    const sec = record_0.sec
 
     let tp = jsonObj.N == 1 ? 'H' : 'G'
     // class 是 hebrew-char or greek-char (下面 for loop 要用)
@@ -44,15 +76,18 @@ function generate_parsing_top_div(jsonObj,ps){
 
     
     function method_2(){
-        // 用空白隔開，判斷不準，因為 太 1:9 有 +,\n 符號，舊約有 ־ 這不是 dash - 符號，其實應該是2個 wid，另外，舊約有\r\n
-        if (is_wid_length_not_equal_word_split()){
+        // - 前提，wid 個數與 record 數量搭得起來
+        if ( is_record_count_mismatch_with_word_split(word, jsonObj.record.length) ){
+            console.error(`${book} ${chap}:${sec} error, record 與 word 以空白隔開數量不同`);
             return undefined // 改用 method_1
         }
 
-        // 舊約的順序要先處理好，再綁定對應的 wid，不然會亂掉。
-        if ( tp == 'H'){
-            word = word.split(/\r?\n/g).reverse().join("\n")
-        }
+        // - 舊約的順序要先處理好，再綁定對應的 wid，不然會亂掉。
+        // - 取完資料，已經馬上作了
+        // if ( tp == 'H'){
+        //     word = word.replaceAll(/\r/g, "");
+        //     word = word.split(/\r?\n/g).reverse().join("\n")
+        // }
 
         // 把每一個與對應的資料綁在一起
         let word2 = add_wid_to_span(word)
@@ -102,33 +137,7 @@ function generate_parsing_top_div(jsonObj,ps){
         }
         
         return div_parsingTop
-
-        function generate_title(){            
-            let bookId = BibleConstantHelper.getBookId(ps.engs.toLowerCase())
-            let bookname = BibleConstantHelper.getBookNameArrayChineseFull(ps.gb)[bookId - 1]
-
-            console.warn(`book: ${bookname} ${ps.chap}:${ps.sec} error, wid 與 word 以空白隔開數量不同`);
-            return `book: ${bookname} ${ps.chap}:${ps.sec}`
-        }
         
-        function is_wid_length_not_equal_word_split(){
-            // 用空白隔開，判斷不準，因為 太 1:9 有 +,\n 符號，舊約有 ־ 這不是 dash - 符號，其實應該是2個 wid，另外，舊約有\r\n                         
-            var split1 = word.split(/[ \n\r־,.]/g)
-
-            // 去除 trim 也是空白的                                
-            split1 = split1.filter(a1 => a1.trim() != "")
-            
-            let count_word = split1.length
-            // console.log(split1);
-            // console.log(`count_word = ${count_word}`);
-            // console.log(`jsonObj.record.length = ${jsonObj.record.length}`);
-                                                
-            if ( jsonObj.record.length-1 != count_word ){
-                console.warn(`${generate_title()} error, wid 與 word 以空白隔開數量不同`);
-                return true
-            }              
-            return false                      
-        }
         /**
          * @param {string} word 
          * @returns {string}
@@ -299,14 +308,18 @@ function generate_parsing_top_div(jsonObj,ps){
     }
 }
 /**
- * 
+ * ### 產生 <div.parsingSecBack></div><div.parsingSecNext></div><div#parsing-where-title></div>
  * @param {IDAddress} ps 
  * @param {{prev:IDAddress, next: IDAddress}} jsonObj
  * @returns {string} 
  */
 function generate_parsing_top_button_title(ps, jsonObj){
-    let bookId = BibleConstantHelper.getBookId(ps.engs.toLowerCase())
+    if ( Object.hasOwn(ps, 'bookIndex') == false ){
+        throw new Error("ps.bookIndex is required");
+    }
+    let bookId = ps.bookIndex
     
+
     if (bookId == undefined || bookId == -1) {
         return ""
     }
@@ -314,6 +327,7 @@ function generate_parsing_top_button_title(ps, jsonObj){
     let prev_button = generate_parsing_sec_back_button()
     let next_button = generate_parsing_sec_next_button()
     let parsing_where_title = generate_parsing_where_title(ps)
+    
     return prev_button + next_button + parsing_where_title
 
     function generate_parsing_sec_back_button(){                                    
@@ -321,10 +335,8 @@ function generate_parsing_top_button_title(ps, jsonObj){
             // add by snow. 2021.07 存在空白會錯誤
             return ""
         } else {
-            let prev_sec = jsonObj.prev.sec
-            let prev_chap = jsonObj.prev.chap
-            let prev_engs = jsonObj.prev.engs
-            return `<div class='parsingSecBack' engs='${prev_engs}' chap='${prev_chap}' sec='${prev_sec}'><span>&#x276e;</span></div>`
+            const prev = jsonObj.prev
+            return `<div class='parsingSecBack' book='${prev.book}' chap='${prev.chap}' sec='${prev.sec}'><span>&#x276e;</span></div>`
         }
     }
     function generate_parsing_sec_next_button(){
@@ -332,15 +344,13 @@ function generate_parsing_top_button_title(ps, jsonObj){
             // add by snow. 2021.07 存在空白會錯誤
             return ""
         } else {
-            let next_sec = jsonObj.next.sec
-            let next_chap = jsonObj.next.chap
-            let next_engs = jsonObj.next.engs
-            return `<div class='parsingSecNext' engs='${next_engs}' chap='${next_chap}' sec='${next_sec}'><span>&#x276f;</span></div>`
+            const next = jsonObj.next
+            return `<div class='parsingSecNext' book='${next.book}' chap='${next.chap}' sec='${next.sec}'><span>&#x276f;</span></div>`
         }
     }
     function generate_parsing_where_title(){
         let bookName = BibleConstantHelper.getBookNameArrayChineseFull(ps.gb)[bookId - 1]
         
-        return `<div id='parsing-where-title'>${bookName}&nbsp${ps.chap}:${ps.sec}</div>`
+        return `<div id='parsing-where-title'>${bookName}&nbsp;${ps.chap}:${ps.sec}</div>`
     }
 }

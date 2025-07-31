@@ -55,6 +55,12 @@ span.bibtext
   font-family: COBSGreekWeb;
   font-weight: 700;
 }
+.greek_w {
+  background-color: #FFFF99;
+}
+.greek_u {
+  background-color: #FFCCCC;
+}
 /* add by snow. 2021.07 */
 .hebrew-char-div {
     /* 包住含有 hebrew-char 的 div */

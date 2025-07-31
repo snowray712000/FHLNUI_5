@@ -16,7 +16,11 @@ import { ViewHistory } from './ViewHistory.es2023.js'
 import { eachFitDo } from './eachFitDo.es2023.js'
 import { comment_render_async } from './comment_render_es2023.js'
 import { comment_register_events } from './comment_register_events_es2023.js'
-
+import { Parsing_normalize_address } from './Parsing_normalize_Address_es2023.js'
+import { BookSelect } from './BookSelect.es2023.js'
+import { render_ai_tools } from './parsing_render_ai_tools_es2023.js'
+import { ParsingCache } from './ParsingCache_es2023.js'
+import { parsing_render_async } from './parsing_render_async_es2023.js'
 export class FhlInfoContent {
     static #s = null
     /** @returns {FhlInfoContent} */
@@ -155,23 +159,29 @@ export class FhlInfoContent {
                         SN_Act_Color.s.act_remove()
                     })
                 }
+                $('.parsingSecBack, .parsingSecNext').off('click').on('click', function (event) {
+                    let ps = TPPageState.s
+                    const bookLast = ps.bookIndex
+                    const chapLast = ps.chap
 
-                $('.parsingSecBack, .parsingSecNext').click(function () {
-                    var oldEngs = ps.engs;
-                    var oldChap = ps.chap;
-                    ps.engs = $(this).attr('engs');
-                    var idx = getBookFunc('indexByEngs', ps.engs);
-                    ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
-                    ps.chap = $(this).attr('chap');
-                    ps.sec = $(this).attr('sec');
-                    triggerGoEventWhenPageStateAddressChange(ps);
-                    bookSelect.render(ps, bookSelect.dom);
-                    if (oldEngs != ps.engs || oldChap != ps.chap)
-                        FhlLecture.s.render(ps);
-                    FhlInfo.s.render(ps);
-                    FhlLecture.s.selectLecture(null, null, ps.sec);
-                    ViewHistory.s.render();
-                });
+                    const target = $(event.currentTarget)                    
+                    const book = target.attr('book')
+                    const chap = target.attr('chap')
+                    const sec = target.attr('sec')
+
+                    ps.bookIndex = parseInt(book)
+                    ps.chap = parseInt(chap)
+                    ps.sec = parseInt(sec)
+
+                    triggerGoEventWhenPageStateAddressChange(ps)
+                    BookSelect.s.render()
+                    if ( bookLast != ps.bookIndex || chapLast != ps.chap ) {
+                        FhlLecture.s.render(ps)
+                    }
+                    FhlInfo.s.render(ps)
+                    FhlLecture.s.selectLecture(null, null, sec)
+                    ViewHistory.s.render()
+                })
                 break;
             case "fhlInfoComment":
                 comment_register_events()
@@ -187,33 +197,7 @@ export class FhlInfoContent {
         var that = this;
         switch (ps.titleId) {
             case "fhlInfoParsing":
-                var ajaxUrl = getAjaxUrl("qp", ps);
-                $.ajax({
-                    url: ajaxUrl
-                }).done(function (d, s, j) {
-                    //console.log(d);// d 是回傳 純文字版, 但直接 JSON.parse 就要要用到的資料 (羅16:24有問題)
-                    //console.log(s);// s 是回傳 success 字串
-                    //console.log(j);// j 是回傳 ??物件, 總之 j.responseText 即是 d
-                    if ( !j ){
-                        return
-                    }
-
-                    /** @type {IDParsingResult} */
-                    var jsonObj = JSON.parse(j.responseText);
-                    
-                    let html = parsing_render_top(jsonObj, ps)
-                    html += parsing_render_bottom_table(jsonObj, jsonObj.N == 1 ? 'H' : 'G')
-
-                    // 中間那個灰框，這也是為何 top 會是 212 px 的原因
-                    html = "<div style='position: absolute; top: 200px; left: 0px; right: 0px; height: 12px; background: #A0A0A0;'></div>" + html + "";
-
-
-                    dom.html(html);
-
-                    that.registerEvents(ps);
-
-                    }); // api async callback
-                //tjm
+                parsing_render_async()
                 break;
             case "fhlInfoComment":
                 comment_render_async()
@@ -269,6 +253,9 @@ export class FhlInfoContent {
                 break;
             case "fhlSnBranch":
                 SnBranchRender.s.render(ps)
+                break
+            case "fhlAi":
+                render_ai_tools()
                 break
         }
         fhlmap_titleId_prev = ps.titleId; //地圖 map 會用到, 因為切換走分頁, 再切換回來要 re-create render object. see also: fhlmap_render
