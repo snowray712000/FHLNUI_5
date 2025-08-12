@@ -1,10 +1,9 @@
 import { DialogHtml } from "./DialogHtml.es2023.js"
 
-export function help_ai_parsing_tp0(event) {
+export function help_ai_parsing_tp1(event) {
     let htmlContent = `<ul>
-        <li> 目前只適用新約</li>
         <li> 產生的資料，適用 AI 閱讀，而非 人類 閱讀</li>
-        <li> 我只用最基本的 ChatGpt 4o</li>
+        <li> 開發測試是用 openAI ChatGpt</li>
         <li> 目前產生資料，以聯式為主，韋式會先略過，以後再開放設定</li>
         </ul>
         <hr/>

@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "4.1.2",
+        "last": "4.1.3",
         "historys": [
             {
                 "na": "TODOs",
@@ -25,9 +25,15 @@
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]
             },{
+                "na": "4.1.3",
+                "na2": [
+                    "📈 優化: Parsing 結構分析1",
+                    "📝 工程師筆記: parsing 1 延伸功能，命名為 1a 1b。而接下來 parsing 2 功能，會是「多節」資料。"
+                ]
+            },{
                 "na": "4.1.2",
                 "na2": [
-                    "📈 優化: AI Parsing 自動產生，舊約也可以了。",
+                    "🆕 新功能: AI Parsing 自動產生，舊約也可以了。",
                     "📈 優化: 自動產生 原文 部分，反括號作用在「值」而非「鍵」上，這樣 AI 閱讀更容易。",
                     "📝 工程師筆記: 王上3:5w13 很適合作為測試實例"
                 ]
