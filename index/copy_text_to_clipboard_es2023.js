@@ -11,11 +11,11 @@ export async function copy_text_to_clipboard(text) {
     } else {
         // 回退到舊方法
         const copyTextarea = document.createElement('textarea');
-        copyTextarea.value = bible_text;
+        copyTextarea.value = text;
         document.body.appendChild(copyTextarea);
         copyTextarea.select();
         document.execCommand('copy');
         document.body.removeChild(copyTextarea);
-        console.warn('使用舊方法複製文字:', bible_text);
+        console.warn('使用舊方法複製文字:', text);
     }
 }

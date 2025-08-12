@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "4.1.1",
+        "last": "4.1.2",
         "historys": [
             {
                 "na": "TODOs",
@@ -23,6 +23,13 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "4.1.2",
+                "na2": [
+                    "📈 優化: AI Parsing 自動產生，舊約也可以了。",
+                    "📈 優化: 自動產生 原文 部分，反括號作用在「值」而非「鍵」上，這樣 AI 閱讀更容易。",
+                    "📝 工程師筆記: 王上3:5w13 很適合作為測試實例"
                 ]
             },{
                 "na":"4.1.1",
