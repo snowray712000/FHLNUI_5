@@ -27,6 +27,8 @@
             },{
                 "na": "4.1.3",
                 "na2": [
+                    "🆕 新功能: 產生「結構分析」AI Prompt，基於 Parsing 資料。",
+                    "🆕 新功能: 產生「結構與對話」AI Prompt，基於 Parsing 資料。",
                     "📈 優化: Parsing 結構分析1",
                     "📝 工程師筆記: parsing 1 延伸功能，命名為 1a 1b。而接下來 parsing 2 功能，會是「多節」資料。"
                 ]
