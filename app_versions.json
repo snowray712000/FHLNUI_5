@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "4.1.3",
+        "last": "4.3.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -23,6 +23,15 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na":"4.3.1",
+                "na2":[
+                    "🆕 新功能: 產生「譯本資料」AI Prompt。",
+                    "📈 優化: 優化 AI Prompt Parsing 應用 1a。結構分析，新增了「主句」及「與上文關聯」兩個步驟，並且將「結構分析」與「繪出結構圖」對換順序，準確度較好",
+                    "📈 優化: 優化 AI Prompt Parsing 應用 1b。新增類似 NotebookLM 的產生 FAQ 功能，對思考益",
+                    "📈 優化: 優化 AI Prompt Parsing 說明",
+                    "📝 工程師筆記: 檔案以 ai_ 前綴，更直覺。"
                 ]
             },{
                 "na": "4.1.3",

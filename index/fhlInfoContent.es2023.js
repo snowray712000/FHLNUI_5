@@ -18,7 +18,7 @@ import { comment_render_async } from './comment_render_es2023.js'
 import { comment_register_events } from './comment_register_events_es2023.js'
 import { Parsing_normalize_address } from './Parsing_normalize_Address_es2023.js'
 import { BookSelect } from './BookSelect.es2023.js'
-import { render_ai_tools } from './parsing_render_ai_tools_es2023.js'
+import { ai_render_tools } from './ai_render_tools_es2023.js'
 import { ParsingCache } from './ParsingCache_es2023.js'
 import { parsing_render_async } from './parsing_render_async_es2023.js'
 export class FhlInfoContent {
@@ -255,7 +255,7 @@ export class FhlInfoContent {
                 SnBranchRender.s.render(ps)
                 break
             case "fhlAi":
-                render_ai_tools()
+                ai_render_tools()
                 break
         }
         fhlmap_titleId_prev = ps.titleId; //地圖 map 會用到, 因為切換走分頁, 再切換回來要 re-create render object. see also: fhlmap_render

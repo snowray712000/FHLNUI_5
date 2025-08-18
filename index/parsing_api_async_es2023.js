@@ -8,7 +8,7 @@ import { isRDLocation } from "./isRDLocation.es2023.js"
  * @returns {Promise<{status: string, record: Array<{engs: string, chineses: string, chap: number, sec: number, wid:number, sn: string, wform: string, orig: string, remark: string, exp: string, word: string, pro: string}>}>}
  */
 export async function parsing_api_async(address){
-    // - qb.php 是核心
+    // - qp.php 是核心
     let engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[address.book - 1]
     let chap = address.chap
     let sec = address.sec

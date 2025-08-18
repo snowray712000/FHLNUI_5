@@ -1,12 +1,14 @@
 import { DialogHtml } from "./DialogHtml.es2023.js"
 
 export function help_ai_parsing_tp1(event) {
-    let htmlContent = `<ul>
+    let htmlContent = `<h3>此功能發想，是更好使用「原文分析」資料</h3>
+    <ul>
         <li> 產生的資料，適用 AI 閱讀，而非 人類 閱讀</li>
         <li> 開發測試是用 openAI ChatGpt</li>
         <li> 目前產生資料，以聯式為主，韋式會先略過，以後再開放設定</li>
         </ul>
         <hr/>
+        <code> 紅字，是你手動輸入的 </code><br/>
         例子(太1:1):<br/>
         
         <code>
