@@ -18,7 +18,8 @@ export async function ai_parsing_get_data_async(address) {
     const gb = ps.gb
 
     let endpoint = `/json/qp.php?engs=${engs}&chap=${chap}&sec=${sec}&gb=${gb}`
-    let host = isRDLocation() ? 'https://bible.fhl.net' : ''
+    // let host = isRDLocation() ? 'https://bible.fhl.net' : ''
+    let host = isRDLocation() ? 'http://127.0.0.1:5600' : ''
     let url = host + endpoint
 
     try{

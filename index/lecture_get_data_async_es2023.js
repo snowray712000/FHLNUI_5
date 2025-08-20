@@ -22,15 +22,29 @@ export async function lecture_get_data_async() {
         }
     })
 
+    // - 同步取得
     const joResults = await Promise.all(versionPromises)
 
+    // - 將 engs 或 chineses 轉成 book
     joResults.map(a1 => add_book_property_to_bibletext_record(a1))
 
+    // - 避免 bhs 順序
+    const idx_bhs = ps.version.indexOf("bhs")
+    if ( idx_bhs != -1){
+        modify_bhs_bible_text(joResults[idx_bhs])
+    }
     return joResults
 }
 
+function modify_bhs_bible_text(joResult) {
+    for (let ja = 0; ja < joResult.record.length; ja++) {
+        const a2 = joResult.record[ja];
+        // - 以 split \r\n 切割多個，然後再 reverse，再用 \n 合併回來
+        a2.bible_text = a2.bible_text.split(/\r?\n\r?/g).reverse().join("\n");
+    }
+}
+
 /**
- * 
  * @param {TpOneRecordBibleText} result 
  * @param {boolean} is_remove_engs_and_chineses 
  */
