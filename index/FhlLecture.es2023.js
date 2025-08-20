@@ -31,6 +31,7 @@ import { FhlLecture_render_mode3 } from './FhlLecture_render_mode3_es2023.js'
 import { testThenDoAsync } from './testThenDo.es2023.js'
 import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
 import { assert } from './assert_es2023.js'
+import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
 /* 
 若有 2 個譯本，並且是併排方式
 <div#fhlLecture>
@@ -246,26 +247,10 @@ export class FhlLecture {
  * @param {FhlLecture} that
  */
 async function renderLectureHtml(that){
-    let rspArr = await getBibleTextAsync()
+    let rspArr = await lecture_get_data_async()
     when_query_bibletext_complete(that,rspArr)
     return 
     
-    /**
-     * @returns {Promise<TpResultBibleText[]>}
-     */
-    async function getBibleTextAsync(){
-        /** @type {TPPageState} */
-        const ps = TPPageState.s
-
-        const col = ps.version.length
-        
-        return new Promise((resolve, reject) => {
-            let rspArr = new Array()
-            // 第3個參數，是多個譯本，多執行緒，其中一個執行緒完成時呼叫
-            // 第4個參數，是所有譯本都完成時呼叫，它會用 while loop 等待次執行緒，所以回到主執緒。
-            getBibleText(col, ps, o => rspArr.push(o), () => resolve(rspArr))
-        })
-    }
         /**
          * @param {FhlLecture} that 
          * @param {TpOneRecordBibleText[]} rspArr 
@@ -621,72 +606,7 @@ async function renderLectureHtml(that){
         function isGreekVersion(ver){
             return ['fhlwh','lxx'].indexOf(ver) != -1
         }
-        function getBibleText(col, ps, cbk, defCbk) {
-            var sem = col; // 版本數量
-
-            var r1 = Enumerable.range(0, col).select(i => ({
-                ver: ps.version[i],
-                vna: abvphp.get_cname_from_book(ps.version[i], ps.gb == 1),
-                url: getAjaxUrl("qb", ps, i)
-            })).toArray()
-
-            Enumerable.from(r1).forEach(a1 => {
-                // console.error(a1);
-                // console.error(ps);
-                
-                if ( a1.ver == "fhlwh"){
-                    // 新約原文，若要有 SN，要用這個資料，而不是從 api 取得。
-                    testThenDoAsync(() => Bible_fhlwh_json.s.filecontent != null).then(() => {
-                        // bookIndex 45 chap 1
-                        /** @type {{number,number,number,string}[]} */
-                        const bk = ps.bookIndex
-                        const ch = ps.chap
-                        // where [0]=bk and [1]=ch
-                        const jaBible = Bible_fhlwh_json.s.filecontent["data"].filter(ja => ja[0] == bk && ja[1] == ch)
-                        // console.log(jaBible);
-
-                        // chap, sec, bible_text
-                        const jaBible2 = jaBible.map(ja => ({
-                            chap: ja[1],
-                            sec: ja[2],
-                            bible_text: ja[3],
-                            book: ja[0]
-                        }))
-                        const joResult = {
-                            "status": "success",
-                            "version": a1.ver,
-                            "record": jaBible2,
-                            "record_count": jaBible2.length,
-                            "v_name": "新約原文"
-                        }
-
-                        add_book_property_to_bibletext_record(joResult)
-
-                        cbk(  joResult )
-
-                        sem--       
-                    })
-                } else {
-                    $.ajax({
-                        url: a1.url
-                    }).done(function (d, s, j) {
-                        if (j) {
-                            var jsonObj = JSON.parse(j.responseText);
-                            // jsonObj.version = a1.ver  // qb.php 有但 qsb.php 沒有
-
-                            add_book_property_to_bibletext_record(jsonObj)
-
-                            cbk(jsonObj);
-                            sem--;
-                        }
-                    });
-                }                 
-
-            })
-
-            testThenDoAsync(() => sem == 0)
-                .then(() => defCbk())
-        }
+        
 }
 /**
  * 在 fhlLecture init 時初始化
@@ -1735,90 +1655,4 @@ function when_click_on_ft(e){
     }, function (a1, a2) {
         $('#parsingPopUpInside').text("錯誤:於" + url + "時發生");
     }, null);
-}
-
-/**
- * 
- * @param {TpOneRecordBibleText} result 
- * @param {boolean} is_remove_engs_and_chineses 
- */
-function add_book_property_to_bibletext_record(result, is_remove_engs_and_chineses = false) {
-    // 找出所有用到的 engs. 類似 np.unique
-    let fnEngs2 = a1 => a1.engs != null ? a1.engs : a1.chineses
-    let fnEngs3 = a1 => a1 != null ? fnEngs2(a1) : null
-
-    let allengs = result.record.map(fnEngs2)
-    
-    // 將 next 與 prev 的也加入
-    allengs.push(fnEngs3(result.next), fnEngs3(result.prev))
-
-    // 型成 engs: book 的對應表，順便就有 Set 效果
-    let dict_chap_cnt = {}
-    for (let i = 0; i < allengs.length; i++) {
-        const engs = allengs[i];
-        
-        if ( engs != null && dict_chap_cnt[engs] == undefined) {            
-            dict_chap_cnt[engs] = BibleConstantHelper.getBookId(engs.toLowerCase())
-        }
-    }
-
-    // 開始處理每個 record
-    for (const a1 of result.record) {
-        // 有資料，原本就有 book 就略過
-        if (a1.book == undefined) 
-        {
-            // a1 是一個 record
-            // 取得 engs，然後從 dict_chap_cnt 中取得 book
-            const keyEngs = fnEngs2(a1)
-            let book = dict_chap_cnt[keyEngs]
-            if (book == undefined) {
-                // 若沒有找到，則預設為 0
-                console.error(`找不到 book 對應的 engs: ${a1.engs || a1.chineses}`)
-                book = 0
-            }
-    
-            // 設定 book 屬性
-            a1.book = book
-        }
-
-        if (is_remove_engs_and_chineses) {
-            // 若要移除 engs 與 chineses
-            delete a1.engs
-            delete a1.chineses
-        }
-    }
-
-    // 處理 next 與 prev
-    if ( result.next != undefined ) {
-        if (result.next.book == undefined) 
-        {
-            // next 也要加上 book 屬性
-            const keyEngs = fnEngs3(result.next)
-            result.next.book = dict_chap_cnt[keyEngs]
-            if (result.next.book == undefined) {
-                console.error(`找不到 next book 對應的 engs: ${result.next}`)
-                result.next.book = 0
-            }        
-        }
-        if (is_remove_engs_and_chineses) {
-            delete result.next.engs
-            delete result.next.chineses
-        }
-    }
-    if ( result.prev != undefined ) {
-        if (result.prev.book == undefined)
-        {
-            // prev 也要加上 book 屬性
-            const keyEngs = fnEngs3(result.prev)
-            result.prev.book = dict_chap_cnt[keyEngs]
-            if (result.prev.book == undefined) {
-                console.error(`找不到 prev book 對應的 engs: ${result.prev}`)
-                result.prev.book = 0
-            }
-        }
-        if (is_remove_engs_and_chineses) {
-            delete result.prev.engs
-            delete result.prev.chineses
-        }
-    }
 }
