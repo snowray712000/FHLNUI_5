@@ -11,7 +11,7 @@ export class ParsingCache {
     // - 不是 api 最原始的，而是將 address 正規成 book chap sec 後的
     // - 不是 api 最原始的，若是舊約，會將 \r 拿掉，並且將 word 換行交換，使其與 exp 一致。
     _joResult = null
-    // - 衍生屬性，對 render top 很有幫助，也對 ai 產生「具有 字序 的原文」有幫助。
+    // - 衍生屬性，對 render top 很有幫助，也對 ai 產生「具有 詞索引 的原文」有幫助。
     /** @type {{w:string, wid?: number, wu?: 'w'|'u'}[]} */
     _jaWord = null
 

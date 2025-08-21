@@ -11,7 +11,8 @@ export function ai_translations_gen_tp1b(parsing_standard_content, translation_s
 - 使用 b 表示「書卷編號」(book)。e.g. b1 為創世記。
 - 使用 c 表示「章」(chapter)。e.g. c1 c2 c3。
 - 使用 v 表示「節」(verse)。e.g. v1 v2 v3。
-- 使用 w 表示「原文編號」或「字序」(word)。e.g. w1 w2 w3。
+- 使用 w 表示「詞索引」(word id)。e.g. w1 w2 w3。
+- 可結合使用，當討論的內容已包含多個節或多個章或多卷書時。e.g. v1w1 c1v1w1 b1c1v1w1
 - 省略
   - 若內容，都是同節，則可省略 v。e.g. w1 w2 w3 或 v1w1 w2 w3。
 
@@ -27,7 +28,7 @@ export function ai_translations_gen_tp1b(parsing_standard_content, translation_s
 ### 步驟一: 對齊
 **對齊 (Alignment)**
 - 目的: 為了使步驟二更準確，先作這一步。
-- 以【原文分析】為依據，將各譯本詞語對應到原文的字序編號與語法角色。  
+- 以【原文分析】為依據，將各譯本詞語對應到原文的詞索引與語法角色。  
 - 對齊可精確至子句或詞組層級。  
 - 標註譯文中出現的：省略（omission）、重組（reordering）、意譯（paraphrase）或增譯（addition）。
 

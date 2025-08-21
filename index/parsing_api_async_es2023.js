@@ -1,7 +1,7 @@
 import { BibleConstant } from "./BibleConstant.es2023.js"
 import { isRDLocation } from "./isRDLocation.es2023.js"
 
-       // msg += `\n字序: ${r.wid} SN: G${get_sn_shorter(r.sn)} 原文字: ${r.word} 詞性: ${pro} 字彙分析: 『${wform}』 原型: ${r.orig} 原型簡義: 『${r.exp}』 備註:『 ${remark}』`
+       // msg += `\n詞索引: ${r.wid} SN: G${get_sn_shorter(r.sn)} 原文字: ${r.word} 詞性: ${pro} 字彙分析: 『${wform}』 原型: ${r.orig} 原型簡義: 『${r.exp}』 備註:『 ${remark}』`
 /**
  * 
  * @param {{book: number, chap: number, sec: number}} address 

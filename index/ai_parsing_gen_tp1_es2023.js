@@ -5,16 +5,16 @@ import { ParsingCache } from "./ParsingCache_es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 
 function gen_prompt_exp(exp) {
-    return exp.replace(/\n/g, " ↩ ")
+    return exp.replace(/\r?\n\r?/g, " ↩ ")
 }
 
 /**
  * @param {ParsingCache} cache 
  */
 export function ai_parsing_gen_tp1(cache) {
-    const msg_word = gen_prompt_word_include_wid(cache._jaWord)
+    const msg_word = gen_prompt_word_include_wid(cache._jaWord, -1)
     const msg_exp = gen_prompt_exp(cache._joResult.record[0].exp)
-    const msg_prompt = gen_prompt_parsing_table(cache._joResult, cache.get_HG, cache._jaWord, [])
+    const msg_prompt = gen_prompt_parsing_table(cache._joResult, cache.get_HG, cache._jaWord, -1, [])
     
     const ps = TPPageState.s
     const book = ps.bookIndex

@@ -93,8 +93,8 @@ export function parsing_render_bottom_table(jsonObj, tp) {
 
         // 空白字元
         const white_char = "&nbsp;"
-        // - 字序: 1
-        $(`<span><span class='item-title'>字序:</span> ${wid}</span>`).appendTo(divOne)
+        // - 詞索引: 1
+        $(`<span><span class='item-title'>詞索引:</span> ${wid}</span>`).appendTo(divOne)
 
         divOne.append(white_char)
 

@@ -7,7 +7,8 @@ function get_sn_shorter(sn) {
 
 const LRM = "\u200E"; // Left-to-Right Mark 
 const RLM = "\u200F"; // Right-to-Left Mark 
-function gen_for_greek(jsonObj, tp, jaWord, exclude){
+function gen_for_greek(jsonObj, tp, jaWord, sec, exclude){
+    // - sec，< 1，就是只使用 w1 w2，反之，使用 v2w1 v2w2
     // - 找出哪些 wid, 具有 w, 等等要被 continue 的
     const wu_w_wids = jaWord.filter( a1 => a1.wid != null && a1.wu == 'w').map( a1 => a1.wid)
 
@@ -28,19 +29,13 @@ function gen_for_greek(jsonObj, tp, jaWord, exclude){
         let remark = r.remark.trim()
         let wform = r.wform.trim()
         
-        // msg += `\n字序: ${r.wid} SN: G${get_sn_shorter(r.sn)} 原文字: ${r.word} 詞性: ${pro} 字彙分析: 『${wform}』 原型: ${r.orig} 原型簡義: 『${r.exp}』 備註:『 ${remark}』`
-        
         if (pro == '') pro = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
         if (remark == '') remark = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
         if (wform == '') wform = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
-        // msg += `\n字序: ${r.wid} SN: G${get_sn_shorter(r.sn)} 原文字: ${r.word} 詞性: ${pro} 字彙分析: \`${wform}\` 原型: ${r.orig} 原型簡義: \`${r.exp}\` 備註: \`${remark}\``
 
-        // msg += `\n字序: \`${r.wid}\` SN: \`G${get_sn_shorter(r.sn)}\` 原文字: \`${r.word}\` 詞性: \`${pro}\` 字彙分析: \`${wform}\` 原型: \`${r.orig}\` 原型簡義: \`${r.exp}\` 備註: \`${remark}\``
-
-         // msg += `\n- 字序: \`${r.wid}\` | SN: \`G${get_sn_shorter(r.sn)}\` | 原文字: \`${r.word}\` | 詞性: \`${pro}\` | 字彙分析: \`${wform}\` | 原型: \`${r.orig}\` | 原型簡義: \`${r.exp}\` | 備註: \`${remark}\``
-
-         const msgs = [
-            `字序: \`${r.wid}\``,
+        const vwid = sec < 1 ? `w${r.wid}` : `v${sec}w${r.wid}`
+        const msgs = [
+            `詞索引: \`${vwid}\``,
             `SN: \`G${get_sn_shorter(r.sn)}\``,
             `原文字: \`${r.word}\``,
             `詞性: \`${pro}\``,
@@ -49,7 +44,7 @@ function gen_for_greek(jsonObj, tp, jaWord, exclude){
             `原型簡義: \`${r.exp}\``,
             `備註: \`${remark}\``
         ]
-        const keys = ['字序', 'SN', '原文字', '詞性', '字彙分析', '原型', '原型簡義', '備註']
+        const keys = ['詞索引', 'SN', '原文字', '詞性', '字彙分析', '原型', '原型簡義', '備註']
         // - 取得 indice ，哪些是要留的
         const indices = keys.map( (k, idx) => exclude.includes(k) ? -1 : idx ).filter( idx => idx >= 0 )
         // - 只保留要的
@@ -65,7 +60,8 @@ function fix_str_for_hebrew_parsing(s){
     s = s.replaceAll(RTL_RX, (match) => match + LRM)
     return s
 }
-function gen_for_hebrew(jsonObj, tp, jaWord, exclude){
+function gen_for_hebrew(jsonObj, tp, jaWord, sec,exclude){
+    // - sec，< 1，就是只使用 w1 w2，反之，使用 v2w1 v2w2
     // - 舊約沒 .pro 詞性
     
     // - 找出哪些 wid, 具有 w, 等等要被 continue 的
@@ -82,13 +78,12 @@ function gen_for_hebrew(jsonObj, tp, jaWord, exclude){
         remark = fix_str_for_hebrew_parsing(remark)
         wform = fix_str_for_hebrew_parsing(wform)
         
-        // msg += `\n字序: ${r.wid} SN: G${get_sn_shorter(r.sn)} 原文字: ${r.word} 詞性: ${pro} 字彙分析: 『${wform}』 原型: ${r.orig} 原型簡義: 『${r.exp}』 備註:『 ${remark}』`
-        
         if (remark == '') remark = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
         if (wform == '') wform = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
         
-         const msgs = [
-            `字序: \`${r.wid}\``,
+        const vwid = sec < 1 ? `w${r.wid}` : `v${sec}w${r.wid}`
+        const msgs = [
+            `詞索引: \`${vwid}\``,
             `SN: \`H${get_sn_shorter(r.sn)}\``,
             `原文字: \`${r.word}\``,
             `字彙分析: \`${wform}\``,
@@ -96,7 +91,7 @@ function gen_for_hebrew(jsonObj, tp, jaWord, exclude){
             `原型簡義: \`${r.exp}\``,
             `備註: \`${remark}\``
         ]
-        const keys = ['字序', 'SN', '原文字', '字彙分析', '原型', '原型簡義', '備註']
+        const keys = ['詞索引', 'SN', '原文字', '字彙分析', '原型', '原型簡義', '備註']
         // - 取得 indice ，哪些是要留的
         const indices = keys.map( (k, idx) => exclude.includes(k) ? -1 : idx ).filter( idx => idx >= 0 )
         // - 只保留要的
@@ -109,12 +104,12 @@ function gen_for_hebrew(jsonObj, tp, jaWord, exclude){
  * @param {*} jsonObj 
  * @param {*} tp 
  * @param {{w:string, wid?: number, wu?: 'w'|'u'}[]} jaWord 傳入此，協助判斷，韋式、聯式。目前版本，只顯示聯式，以後再開放設定
- * @param {{"SN"|"原文字"|"詞性"|"字彙分析"|"原型"|"原型簡義"|"備註"}[]} exclude 要排除的字序
+ * @param {{"SN"|"原文字"|"詞性"|"字彙分析"|"原型"|"原型簡義"|"備註"}[]} exclude 要排除的索引
  * @returns 
  */
-export function gen_prompt_parsing_table(jsonObj, tp, jaWord, exclude = ["SN", "原型"]) {
+export function gen_prompt_parsing_table(jsonObj, tp, jaWord, sec = -1, exclude = ["SN", "原型"]) {
     if (tp=='H'){
-        return gen_for_hebrew(jsonObj, tp, jaWord, exclude)
+        return gen_for_hebrew(jsonObj, tp, jaWord, sec, exclude)
     }
-    return gen_for_greek(jsonObj, tp, jaWord, exclude)
+    return gen_for_greek(jsonObj, tp, jaWord, sec, exclude)
 }
