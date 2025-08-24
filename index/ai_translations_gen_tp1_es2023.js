@@ -24,8 +24,6 @@ function gen_one_sec(one_sec_data){
  * @param {{addr: number[], addrs: string, texts:{na:string,cna:string,text: string}[]}[]} data 
  */
 export function ai_translations_gen_tp1(data){
-    console.log(data);
-    
     // ### 生成文字，雖然一開始是用一節，但是直接寫多節相容
     const msg = `
 # 譯本資料

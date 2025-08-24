@@ -40,29 +40,27 @@ function registerEvents() {
     isAlreadyRegistered = true
 
     $("#fhlInfoContent").on("click", ".ai_parsing", async function (event) {
-        const ps = TPPageState.s;
-        const chap = ps.chap;
-        const sec = ps.sec;
-        const book = ps.bookIndex
         const tp = $(event.currentTarget).attr("method") || 'tp0';
 
-        const cache = await ai_parsing_get_data_async({ book, chap, sec });
+        const fn_get_basic = async () => {
+            const ps = TPPageState.s;
+            const chap = ps.chap;
+            const sec = ps.sec;
+            const book = ps.bookIndex
+            const cache = await ai_parsing_get_data_async({ book, chap, sec });
+            return ai_parsing_gen_tp1(cache)
+        }
 
         // - render 純文字供複製
-        if (tp == "tp1"){
-            const copy_text = ai_parsing_gen_tp1(cache)
-            copy_text_to_clipboard(copy_text)
+        if (tp == "tp1") {
+            await copy_text_to_clipboard(async () => await fn_get_basic())
             // - 按鈕文字變更「已複製」
-            set_div_text_and_restor(event)            
-        } else if (tp=="tp1a"){
-            const copy_text = ai_parsing_gen_tp1(cache)
-            const copy_text2 = ai_parsing_gen_tp1a(copy_text)
-            copy_text_to_clipboard(copy_text2)
             set_div_text_and_restor(event)
-        } else if (tp=="tp1b"){
-            const copy_text = ai_parsing_gen_tp1(cache)
-            const copy_text2 = ai_parsing_gen_tp1b(copy_text)
-            copy_text_to_clipboard(copy_text2)
+        } else if (tp == "tp1a") {
+            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1a(await fn_get_basic()))
+            set_div_text_and_restor(event)
+        } else if (tp == "tp1b") {
+            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1b(await fn_get_basic()))
             set_div_text_and_restor(event)
         }
     })
@@ -85,30 +83,38 @@ function registerEvents() {
         const translations = ps.version
         const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
         if (tp == "tp1") {
-            // - 抓譯本資料，並且轉換
-            const a1 = await ai_translations_get_data_async(addrs, translations)
-            // - 產生 #譯本資料 標準內容
-            const text_copy = ai_translations_gen_tp1(a1)
             // - 按鈕文字變更「已複製」
-            copy_text_to_clipboard(text_copy)
+            await copy_text_to_clipboard(async () => {
+                // - 抓譯本資料，並且轉換
+                const a1 = await ai_translations_get_data_async(addrs, translations)
+                // - 產生 #譯本資料 標準內容
+                const text_copy = ai_translations_gen_tp1(a1)
+                return text_copy
+            })
             set_div_text_and_restor(event)
+
+            
         } else if (tp == "tp1a") {
-            // - 抓譯本資料，並且轉換
-            const addrs = [[ps.bookIndex, ps.chap, ps.sec]]            
-            const a1 = await ai_translations_get_data_async(addrs, translations)
-            const text_copy = ai_translations_gen_tp1(a1)
-            const text_copy2 = ai_translations_gen_tp1a(text_copy)
-            copy_text_to_clipboard(text_copy2)
+            await copy_text_to_clipboard(async () => {
+                // - 抓譯本資料，並且轉換
+                const addrs = [[ps.bookIndex, ps.chap, ps.sec]]            
+                const a1 = await ai_translations_get_data_async(addrs, translations)
+                const text_copy = ai_translations_gen_tp1(a1)
+                const text_copy2 = ai_translations_gen_tp1a(text_copy)
+                return text_copy2
+            })
             set_div_text_and_restor(event)
         } else if (tp == "tp1b"){
-            const parsing_and_translations = await Promise.all([
-                ai_parsing_get_data_async({ book: ps.bookIndex, chap: ps.chap, sec: ps.sec }),
-                ai_translations_get_data_async(addrs, translations)
-            ])
-            const parsing_standard_content = ai_parsing_gen_tp1(parsing_and_translations[0])
-            const translation_standard_content = ai_translations_gen_tp1(parsing_and_translations[1])
-            const text_copy = ai_translations_gen_tp1b(parsing_standard_content, translation_standard_content)
-            copy_text_to_clipboard(text_copy)
+            await copy_text_to_clipboard(async () => {
+                const parsing_and_translations = await Promise.all([
+                    ai_parsing_get_data_async({ book: ps.bookIndex, chap: ps.chap, sec: ps.sec }),
+                    ai_translations_get_data_async(addrs, translations)
+                ])
+                const parsing_standard_content = ai_parsing_gen_tp1(parsing_and_translations[0])
+                const translation_standard_content = ai_translations_gen_tp1(parsing_and_translations[1])
+                const text_copy = ai_translations_gen_tp1b(parsing_standard_content, translation_standard_content)
+                return text_copy
+            })
             set_div_text_and_restor(event)
         }
     })
