@@ -25,7 +25,6 @@ export class GbSelect {
 
                 if ($(this).is(':checked')) {
                     ps.gb = 1;
-                    //ps.chineses = bookGB[book.indexOf(ps.chineses)];
                     FhlLecture.s.render(ps, FhlLecture.s.dom);
                     FhlInfoTitle.s.render(ps, FhlInfoTitle.s.dom);
                     FhlInfoTitle.s.registerEvents(ps);
@@ -38,7 +37,6 @@ export class GbSelect {
                 }
                 else {
                     ps.gb = 0;
-                    //ps.chineses = book[bookGB.indexOf(ps.chineses)];
                     FhlLecture.s.render(ps, FhlLecture.s.dom);
                     FhlInfoTitle.s.render(ps, FhlInfoTitle.s.dom);
                     FhlInfoTitle.s.registerEvents(ps);

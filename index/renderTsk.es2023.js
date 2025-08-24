@@ -1,5 +1,11 @@
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { doSearch } from "./doSearch.es2023.js";
+import { TPPageState } from "./TPPageState.es2023.js";
 
+/**
+ * 
+ * @param {TPPageState} ps 
+ */
 export function renderTsk(ps) {
     if (ps.titleId == "fhlInfoTsk") {
         var dom2 = document.getElementById("fhlInfoContent");
@@ -8,10 +14,12 @@ export function renderTsk(ps) {
                 doSearch(sn, ps, false);
             };
 
-            var jret = tsk.tskapi(ps.engs, ps.chap, ps.sec, ps.gb ? true : false);
+            const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex-1]
+
+            var jret = tsk.tskapi(engs, ps.chap, ps.sec, ps.gb ? true : false);
             var r = React.createElement(tsk.R.frame, {
                 txt_ori: jret.record[0].com_text,
-                default_book: ps.engs,
+                default_book: engs,
                 chap: ps.chap,
                 verse: ps.sec,
                 default_version: "unv",

@@ -65,7 +65,7 @@ export class FhlLecture {
     static #s = null
     /** @returns {FhlLecture} */
     static get s() { if (this.#s == null) this.#s = new FhlLecture(); return this.#s; }
-    
+
     /** @type {HTMLElement} */
     dom = null
     /** @type {JQuery<HTMLElement>} Lecture 的根，裡面許多按鈕，還有顯示經文的地方，還有Title等。*/
@@ -73,17 +73,17 @@ export class FhlLecture {
     /** @type {JQuery<HTMLElement>} 這下一層是多個譯本，多個譯本下層就是每節經文 */
     $lecMain = null
 
-    constructor(){
+    constructor() {
     }
     /** @return {TPPageState} */
     get ps() { return TPPageState.s }
-    init(ps, dom){
+    init(ps, dom) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = document.getElementById('fhlLecture')
-            
+
         this.dom = dom
         this.render(ps, dom)
-        
+
         // render 後，才取得
         this.$lecture = $(this.dom)
         this.$lecMain = this.$lecture.find('#lecMain')
@@ -93,7 +93,7 @@ export class FhlLecture {
         $('.chapBack').off('click').on('click', when_click_chapback)
         $('.chapNext').off('click').on('click', when_click_chapnext)
         // 讓滾動較漂亮 (firefox 看不出，edge 看得出)
-        $('#lecMain').off('scroll').on('scroll',when_scroll)
+        $('#lecMain').off('scroll').on('scroll', when_scroll)
         // 選擇譯本 (因為 .versionName 是動態產生的，所以不能使用上面的方式簡化)
         $('#lecMainTitle').on({
             click: show_dialog_pick_bible_version,
@@ -140,15 +140,15 @@ export class FhlLecture {
                     $(document).trigger('sobj_pos', { sid: sid });
                 } catch (ex) { }
             }
-        }, 'img.pos');        
+        }, 'img.pos');
     }
     /**
      * 
      * @param {TPPageState} ps 
      * @param {HTMLElement} dom 
      * @returns 
-     */    
-    render(ps = null, dom = null){
+     */
+    render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
 
@@ -167,7 +167,7 @@ export class FhlLecture {
         renderLectureHtml(this)
         return
     };
-    registerEvents(ps){
+    registerEvents(ps) {
         // 雖然 registerEvents 裡面目前空空的，但保持原本的架構，所以留著
 
         // snow add
@@ -189,7 +189,7 @@ export class FhlLecture {
         //$('#lecMain').scroll(function () { });
 
         // .ft click 也移到 init 完成
-        
+
     }
     /**
      * 真正被使用，是在 indexLast 時呼叫一次。應該是有順序關系
@@ -203,7 +203,7 @@ export class FhlLecture {
         testThenDoAsync({
             cbTest: () => this != null && this.$lecture != null,
             ms: 300,
-        }).then( re => {
+        }).then(re => {
             this.$lecture.on({
                 bclick: fnb,
                 nclick: fnn
@@ -246,372 +246,363 @@ export class FhlLecture {
 /**
  * @param {FhlLecture} that
  */
-async function renderLectureHtml(that){
+async function renderLectureHtml(that) {
     let rspArr = await lecture_get_data_async()
-    when_query_bibletext_complete(that,rspArr)
-    return 
-    
-        /**
-         * @param {FhlLecture} that 
-         * @param {TpOneRecordBibleText[]} rspArr 
-         */
-        function when_query_bibletext_complete(that, rspArr) {
-            /** @type {TPPageState} */
-            let ps = TPPageState.s
-            
-            var isOld = checkOldNew(ps);
-            
-            // 恢復本 2018.03 snow add
-            rspArr_fixed_for_recover_version(rspArr)
+    when_query_bibletext_complete(that, rspArr)
+    return
 
-            rspArr = sortBibleVersion(rspArr, ps);
+    /**
+     * @param {FhlLecture} that 
+     * @param {TpOneRecordBibleText[]} rspArr 
+     */
+    function when_query_bibletext_complete(that, rspArr) {
+        /** @type {TPPageState} */
+        let ps = TPPageState.s
 
-            // 判斷是否要顯示「下一章、上一章的箭頭」 nextchap prevchap
-            showhide_chapNext_Back_Arrow_Button()
+        var isOld = checkOldNew(ps);
 
-            // Title: 就是每個譯本
-            render_titles(rspArr)
+        // 恢復本 2018.03 snow add
+        rspArr_fixed_for_recover_version(rspArr)
 
-            //var mode = 1;// 原本的. 就切回0
-            var mode = ps.show_mode;
-            let $htmlContent = "";
-            if (mode == 3){
-                $htmlContent = render_mode3(rspArr, isOld);
-            } else if (mode == 2 ){
-                $htmlContent = render_mode2(rspArr, isOld);
-            } else {
-                $htmlContent = render_mode1(rspArr, isOld);
-            }
+        rspArr = sortBibleVersion(rspArr, ps);
 
-            ps.sn_stastic = get_sn_stastic(rspArr, $htmlContent)
+        // 判斷是否要顯示「下一章、上一章的箭頭」 nextchap prevchap
+        showhide_chapNext_Back_Arrow_Button()
 
-            // add 2016.10 地圖與照片
-            let htmlContent = (ps.ispos || ps.ispho)? render_pos_and_pho($htmlContent) : $htmlContent.html() //.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
+        // Title: 就是每個譯本
+        render_titles(rspArr)
 
-            that.$lecture.find('#lecMain').first()
-                .html(htmlContent)
-                .attr('mode', mode);
-            $('#lecMain').css({ 'padding': '' })
-
-            // 對齊 不同譯本 同一節 高度
-            that.reshape(ps);
-
-            // 2016.01.21(四) 版權宣告 snow
-            render_copyright(ps.version)
-
-            setCSS(ps.version.length, ps);
-            setFont();
-            
-            // 清除 「暗黃色」目前選擇，並且將目前 選擇的節，設為「暗黃色」，並且將 scroll 到目前那一節
-            that.selectLecture(null, null, ps.sec);
-
-            // 加入 注腳 2016.08
-            render_footer(that);
-
-            that.registerEvents(ps);
+        //var mode = 1;// 原本的. 就切回0
+        var mode = ps.show_mode;
+        let $htmlContent = "";
+        if (mode == 3) {
+            $htmlContent = render_mode3(rspArr, isOld);
+        } else if (mode == 2) {
+            $htmlContent = render_mode2(rspArr, isOld);
+        } else {
+            $htmlContent = render_mode1(rspArr, isOld);
         }
-        function rspArr_fixed_for_recover_version(rspArr){
-            // 恢復本 2018.03 snow add
-            for (var j = 0; j < rspArr.length; j++) {
-                if (rspArr[j].version == 'recover') {
-                    if (rspArr[j].record[0].sec == 0) { // 不是一定發生
-                        var sec1 = rspArr[j].record[1];
-                        var sec0 = rspArr[j].record[0];
-                        sec1.bible_text = "(" + sec0.bible_text + ")" + sec1.bible_text;
 
-                        rspArr[j].record.shift();
-                        --rspArr[j].record_count;
+        ps.sn_stastic = get_sn_stastic(rspArr, $htmlContent)
+
+        // add 2016.10 地圖與照片
+        let htmlContent = (ps.ispos || ps.ispho) ? render_pos_and_pho($htmlContent) : $htmlContent.html() //.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
+
+        that.$lecture.find('#lecMain').first()
+            .html(htmlContent)
+            .attr('mode', mode);
+        $('#lecMain').css({ 'padding': '' })
+
+        // 對齊 不同譯本 同一節 高度
+        that.reshape(ps);
+
+        // 2016.01.21(四) 版權宣告 snow
+        render_copyright(ps.version)
+
+        setCSS(ps.version.length, ps);
+        setFont();
+
+        // 清除 「暗黃色」目前選擇，並且將目前 選擇的節，設為「暗黃色」，並且將 scroll 到目前那一節
+        that.selectLecture(null, null, ps.sec);
+
+        // 加入 注腳 2016.08
+        render_footer(that);
+
+        that.registerEvents(ps);
+    }
+    function rspArr_fixed_for_recover_version(rspArr) {
+        // 恢復本 2018.03 snow add
+        for (var j = 0; j < rspArr.length; j++) {
+            if (rspArr[j].version == 'recover') {
+                if (rspArr[j].record[0].sec == 0) { // 不是一定發生
+                    var sec1 = rspArr[j].record[1];
+                    var sec0 = rspArr[j].record[0];
+                    sec1.bible_text = "(" + sec0.bible_text + ")" + sec1.bible_text;
+
+                    rspArr[j].record.shift();
+                    --rspArr[j].record_count;
+                }
+                break;
+            }
+        }
+    }
+    /**
+     * @param {string[]} versions ["unv", "cbol"] ... 存在於 ps.version
+     */
+    function render_copyright(versions) {
+        let div_copyrigh = $('<div id="div_copyright" class="lec copyright"></div>');
+        $('#lecMain').append(div_copyrigh); // 放在 lecMain 才會在最下面. 因為 parent 有設 position 屬性
+        let rr = React.createElement(copyright_api.R.frame, { ver: versions });
+        const ss = React.render(rr, document.getElementById("div_copyright"));  // snow add 2016.01.21(四),
+        // bug 小心: 版權宣告 render 必須在 dom.html 之後唷, 這樣才找到的 divCopyright 實體
+    }
+    function render_footer(that) {
+        const ps = TPPageState.s
+        const book = ps.bookIndex
+        // 2016.08 snow, 注腳
+        that.$lecMain.find('.lec').each(function (a1, a2) {
+            var ver = $(a2).attr('ver');
+            $(this).find('.verseContent').each(function (aa1, aa2) {
+                aa2.innerHTML = aa2.innerHTML.replace(/【(\d+)】/g, "<span class=ft ft=$1 ver='" + ver + "' chap=" + ps.chap + " book='" + book + "'>【$1】</span>");
+            });
+
+            //if ( ver == 'fhlwh')
+            //{// 2016.10 snow, 新約原文,要套用字型 (剛剛好也是每個 .lec, 所以就搭注腳的forEach順風車)
+            //  $(a2).css('font-family', 'COBSGreekWeb');
+            //  		}
+        });
+    }
+    function showhide_chapNext_Back_Arrow_Button() {
+        /** @type {TPPageState} */
+        const ps = TPPageState.s
+        if (!'bookIndex' in ps) {
+            console.error('bookIndex not in pageState');
+        }
+
+        const isVisibleBack = ps.bookIndex == 1 && ps.chap == 1
+        const isVisibleNext = ps.bookIndex == 66 && ps.chap == 22
+        const fhlLecture = $('#fhlLecture')
+
+        fhlLecture.find('.chapBack').first().css('display', isVisibleBack ? 'none' : 'block')
+        fhlLecture.find('.chapNext').first().css('display', isVisibleNext ? 'none' : 'block')
+    }
+    function render_titles(rspArr) {
+        // console.log(JSON.stringify(rspArr))
+        let dtitle = $('#lecMainTitle');
+        dtitle.empty();
+
+        for (let i = 0; i < rspArr.length; i++) {
+            const o = rspArr[i];
+            // o.version == 'cbol' 原文直譯
+            const cname = o.version == 'cbol' ? '原文直譯' : o.v_name
+
+            // 目前 closeButton 已經沒用，但在重構階段，保持原本
+            dtitle.append($(`<div class=lecContent><div class=versionName>${o.v_name}<span class='closeButton' cname='${cname}'>x</span></div></div>`));
+        }
+    }
+    function render_mode2(rspArr, isOld) {
+        return FhlLecture_render_mode2(rspArr);
+    }
+    /**
+     * @param {TpResultBibleText[]} rspArr 
+     * @param {boolean} isOld 
+     * @returns 
+     */
+    function render_mode1(rspArr, isOld) {
+        return FhlLecture_render_mode1(rspArr);
+    }
+    /**
+     * @param {TpResultBibleText[]} rspArr 
+     * @param {boolean} isOld 
+     * @returns 
+     */
+    function render_mode3(rspArr, isOld) {
+        return FhlLecture_render_mode3(rspArr)
+    }
+    function render_pos_and_pho($htmlContent) {
+        let htmlContent = ""
+        const ps = TPPageState.s
+        const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1];
+        var url2 = "sobj.php?engs=" + engs + "&chap=" + ps.chap;
+        if (ps.gb == 1)
+            url2 += "&gb=1";
+        fhl.json_api_text(url2, function (aa1, aa2) {
+            var jrr1 = JSON.parse(aa1);
+            //console.log(jrr1);
+
+            var id2reg = {};
+            var id2obj = {};
+            $.each(jrr1.record, function (aaa1, aaa2) {
+                var id = aaa2.id.toString();
+                var nas = {};//Egyte,埃及,埃及. 就可以排除同樣名稱的
+                nas[aaa2.cname] = 1;
+                nas[aaa2.c1name] = 1;
+                nas[aaa2.c2name] = 1;
+                if (aaa2.ename != null && aaa2.ename.trim().length != 0)
+                    nas["[ ,\\n:;\\.]" + aaa2.ename + "[ ,\\n:;\\.]"] = 1;//斷開英文可能結尾「空白,逗號,句號,冒號, 2016.11
+                //nas[aaa2.ename] = 1;
+
+                var nas2 = [];
+                $.each(nas, function (b1, b2) {
+                    // 2016.10 nas2 若出現 ()會造成一定成立.
+                    if (b1 != null && b1.trim().length != 0)
+                        nas2.push(b1);
+                });
+
+                var regstr = "((" + nas2.join(")|(") + "))"; // ((羅馬)|([空白字元]Rome[空白字元]))
+                var regex = new RegExp(regstr, "i");
+                id2obj[id] = aaa2;
+                id2reg[id] = regex;
+            }, null);
+            $htmlContent.find(".verseContent").each(function (c1, c2) {
+                var str = c2.innerHTML;
+                var ischanged = false;
+
+                // 每1節都要測所有的 regex, 並取代
+                $.each(id2reg, function (b1, b2) {
+                    // b1 是 sobj id ... id2obj 是 sobj 物件
+                    var b3 = id2obj[b1];
+                    var issite = b3.objpath == null || b3.objpath.trim().length == 0 ? false : true;
+                    var isphoto = true; //目前無法判定是不是相片,全都當是 TODO
+
+                    // 再優化部分(能不regex,就略過)
+                    if (ps.ispos && ps.ispho == false && issite == false)
+                        return;//next reg
+                    else if (ps.ispho && ps.ispos == false && isphoto == false)
+                        return;//next reg
+
+                    if (b2.test(str)) {
+                        ischanged = true;
+                        // const isExistPhoto = ps.ispho && isphoto // 目前一定是 true
+                        const strpho = `<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=${ps.gb}&LIMIT=${b1}'><img class='pho'></img></a>`
+
+                        const isExistPos = ps.ispos && issite
+                        if (isExistPos) {
+                            // $1 就是「本都」這字眼
+                            // 要產生 聖光地理 搜尋的網址 
+                            // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
+                            str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
+                        } else {
+                            str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strpho + "</span>");
+                        }
                     }
+                });
+
+                if (ischanged) {
+                    c2.innerHTML = str;
+                }
+            });//each
+            htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
+        }, function (aa1, aa2) {
+            console.error(aa1);
+        }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題   
+
+        return htmlContent
+    }
+    // 在 mode1 mode2 都要用到
+    function get_sn_stastic(rspArr, $htmlContent) {
+        /**
+         * 如果是具有 sn 的譯本 "unv", "kjv", "rcuv"，統計數量 (挑一個譯本來統計)
+         * @param {{version: str}[]} rspArr 
+         * @returns 
+         */
+        function get_preferredVersion_for_sn_stastic(rspArr) {
+            let j = -1;
+            const preferredVersions = ["unv", "kjv", "rcuv"];
+
+            for (const version of preferredVersions) {
+                const foundIndex = rspArr.findIndex(element => element.version === version);
+                if (foundIndex !== -1) {
+                    j = foundIndex;
+                    return version
                     break;
                 }
             }
+            return undefined
         }
-        /**
-         * @param {string[]} versions ["unv", "cbol"] ... 存在於 ps.version
-         */
-        function render_copyright(versions){
-            let div_copyrigh = $('<div id="div_copyright" class="lec copyright"></div>');
-            $('#lecMain').append(div_copyrigh); // 放在 lecMain 才會在最下面. 因為 parent 有設 position 屬性
-            let rr = React.createElement(copyright_api.R.frame, { ver: versions });
-            const ss = React.render(rr, document.getElementById("div_copyright"));  // snow add 2016.01.21(四),
-            // bug 小心: 版權宣告 render 必須在 dom.html 之後唷, 這樣才找到的 divCopyright 實體
+        let version_sn = get_preferredVersion_for_sn_stastic(rspArr)
+        if (version_sn == undefined) {
+            return {}
         }
-        function render_footer(that){
-            const ps = TPPageState.s
-            // 2016.08 snow, 注腳
-            that.$lecMain.find('.lec').each(function (a1, a2) {
-                var ver = $(a2).attr('ver');
-                $(this).find('.verseContent').each(function (aa1, aa2) {
-                    aa2.innerHTML = aa2.innerHTML.replace(/【(\d+)】/g, "<span class=ft ft=$1 ver='" + ver + "' chap=" + ps.chap + " engs='" + ps.engs + "'>【$1】</span>");
-                });
+        // 開始統計
+        // 並排模式下 .lecMain div 下，會有 .vercol 三個 (若3譯本)，再次那個 .vercol 下找 .sn
+        // 交錯模式下 .lecMain 下，只會有一個 .vercol，每個 .lec 就是每一節經文，它會有 attr ver 取得是不是 kjv
+        // 就算 sn 沒顯示，在 dom 中也有它們，只是使用了 sn-hidden class
 
-                //if ( ver == 'fhlwh')
-                //{// 2016.10 snow, 新約原文,要套用字型 (剛剛好也是每個 .lec, 所以就搭注腳的forEach順風車)
-                //  $(a2).css('font-family', 'COBSGreekWeb');
-                //  		}
-            });
-        }            
-        function showhide_chapNext_Back_Arrow_Button(){
-            /** @type {TPPageState} */
-            const ps = TPPageState.s
-            if (!'bookIndex' in ps) {
-                console.error('bookIndex not in pageState');
+        // 使用 jQuery 得到 .lecMain
+        const div_lecMain = $htmlContent[0]
+        // 取得所有 div.lec ， 並且它的 attr 的 ver 是 version_sn
+        // const div_lec = $(div_lecMain).find(`div.lec[ver=${version_sn}]`)
+        const div_lec = $(div_lecMain).find(`.lec[ver=${version_sn}]`) // mode 1 2 是 div.lec 而 mode 3 是 span.lec
+        // 取得所有 div.lec 下的 .sn
+        const div_sn = div_lec.find('.sn')
+
+        // 分析 div_sn 的 attr sn 與 attr n ，型成 sn = [] n = [] 陣列
+        let sn = []
+        let n = []
+        div_sn.each((i, e) => {
+            sn.push($(e).attr('sn'))
+            n.push($(e).attr('n'))
+        })
+        // 檢查: 理論上，所有 n 都是同個值
+        const isTheSame_n = true
+        for (let i = 1; i < n.length; i++) {
+            if (n[i] !== n[0]) {
+                isTheSame_n = false
+                break
             }
-            
-            const isVisibleBack = ps.bookIndex == 1 && ps.chap == 1
-            const isVisibleNext = ps.bookIndex == 66 && ps.chap == 22
-            const fhlLecture = $('#fhlLecture')
-
-            fhlLecture.find('.chapBack').first().css('display', isVisibleBack ? 'none' : 'block')
-            fhlLecture.find('.chapNext').first().css('display', isVisibleNext ? 'none' : 'block')
-
-            // var bookName = getBookFunc("bookFullName", ps.chineses);
-            // if (bookName != "failed") {
-            //     if (ps.chineses == book[0] && ps.chap == 1) {
-            //         $lec.find('.chapBack').first().css('display', 'none');
-            //     } else {
-            //         $lec.find('.chapBack').first().css('display', 'block');
-            //     }
-            //     if (ps.chineses == book[65] && ps.chap == 22) {
-            //         $lec.find('.chapNext').first().css('display', 'none');
-            //     } else {
-            //         $lec.find('.chapNext').first().css('display', 'block');
-            //     }
-            // }                
         }
-        function render_titles(rspArr){
-            // console.log(JSON.stringify(rspArr))
-            let dtitle = $('#lecMainTitle');
-            dtitle.empty();
-
-            for (let i = 0; i < rspArr.length; i++) {
-                const o = rspArr[i];
-                // o.version == 'cbol' 原文直譯
-                const cname = o.version == 'cbol' ? '原文直譯' : o.v_name
-                
-                // 目前 closeButton 已經沒用，但在重構階段，保持原本
-                dtitle.append($(`<div class=lecContent><div class=versionName>${o.v_name}<span class='closeButton' cname='${cname}'>x</span></div></div>`));
+        if (isTheSame_n == false) {
+            console.error('n 不一致，請回報此書卷')
+            return {}
+        }
+        // 統計每個sn，出現次數，最後要能夠查表
+        let sn_count = {}
+        for (let i = 0; i < sn.length; i++) {
+            if (sn_count[sn[i]] == undefined) {
+                sn_count[sn[i]] = 1
+            } else {
+                sn_count[sn[i]] += 1
             }
-        }            
-        function render_mode2(rspArr,isOld){
-            return FhlLecture_render_mode2(rspArr);
         }
-        /**
-         * @param {TpResultBibleText[]} rspArr 
-         * @param {boolean} isOld 
-         * @returns 
-         */
-        function render_mode1(rspArr,isOld){
-            return FhlLecture_render_mode1(rspArr);
-        }
-        /**
-         * @param {TpResultBibleText[]} rspArr 
-         * @param {boolean} isOld 
-         * @returns 
-         */        
-        function render_mode3(rspArr, isOld){
-            return FhlLecture_render_mode3(rspArr)
-        }
-        function render_pos_and_pho($htmlContent) {
-            let htmlContent = ""
-            const ps = TPPageState.s
-            var url2 = "sobj.php?engs=" + ps.engs + "&chap=" + ps.chap;
-            if (ps.gb == 1)
-                url2 += "&gb=1";
-            fhl.json_api_text(url2, function (aa1, aa2) {
-                var jrr1 = JSON.parse(aa1);
-                //console.log(jrr1);
-
-                var id2reg = {};
-                var id2obj = {};
-                $.each(jrr1.record, function (aaa1, aaa2) {
-                    var id = aaa2.id.toString();
-                    var nas = {};//Egyte,埃及,埃及. 就可以排除同樣名稱的
-                    nas[aaa2.cname] = 1;
-                    nas[aaa2.c1name] = 1;
-                    nas[aaa2.c2name] = 1;
-                    if (aaa2.ename != null && aaa2.ename.trim().length != 0)
-                        nas["[ ,\\n:;\\.]" + aaa2.ename + "[ ,\\n:;\\.]"] = 1;//斷開英文可能結尾「空白,逗號,句號,冒號, 2016.11
-                    //nas[aaa2.ename] = 1;
-
-                    var nas2 = [];
-                    $.each(nas, function (b1, b2) {
-                        // 2016.10 nas2 若出現 ()會造成一定成立.
-                        if (b1 != null && b1.trim().length != 0)
-                            nas2.push(b1);
-                    });
-
-                    var regstr = "((" + nas2.join(")|(") + "))"; // ((羅馬)|([空白字元]Rome[空白字元]))
-                    var regex = new RegExp(regstr, "i");
-                    id2obj[id] = aaa2;
-                    id2reg[id] = regex;
-                }, null);
-                $htmlContent.find(".verseContent").each(function (c1, c2) {
-                    var str = c2.innerHTML;
-                    var ischanged = false;
-
-                    // 每1節都要測所有的 regex, 並取代
-                    $.each(id2reg, function (b1, b2) {
-                        // b1 是 sobj id ... id2obj 是 sobj 物件
-                        var b3 = id2obj[b1];
-                        var issite = b3.objpath == null || b3.objpath.trim().length == 0 ? false : true;
-                        var isphoto = true; //目前無法判定是不是相片,全都當是 TODO
-
-                        // 再優化部分(能不regex,就略過)
-                        if (ps.ispos && ps.ispho == false && issite == false)
-                            return;//next reg
-                        else if (ps.ispho && ps.ispos == false && isphoto == false)
-                            return;//next reg
-
-                        if (b2.test(str)) 
-                        {
-                            ischanged = true;
-                            // const isExistPhoto = ps.ispho && isphoto // 目前一定是 true
-                            const strpho = `<a target='_blank' href='http://bible.fhl.net/object/sd.php?gb=${ps.gb}&LIMIT=${b1}'><img class='pho'></img></a>`
-                            
-                            const isExistPos = ps.ispos && issite
-                            if ( isExistPos ){
-                                // $1 就是「本都」這字眼
-                                // 要產生 聖光地理 搜尋的網址 
-                                // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
-                                str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
-                            } else {
-                                str = str.replace(b2, "<span class='sobj' sid=" + b1 + "><span>$1</span>" + strpho + "</span>");
-                            }
-                        }
-                    });
-
-                    if (ischanged) {
-                        c2.innerHTML = str;
-                    }
-                });//each
-                htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
-            }, function (aa1, aa2) {
-                console.error(aa1);
-            }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題   
-            
-            return htmlContent
-        }         
-        // 在 mode1 mode2 都要用到
-        function get_sn_stastic(rspArr,$htmlContent){
-            /**
-             * 如果是具有 sn 的譯本 "unv", "kjv", "rcuv"，統計數量 (挑一個譯本來統計)
-             * @param {{version: str}[]} rspArr 
-             * @returns 
-             */
-            function get_preferredVersion_for_sn_stastic(rspArr){
-                let j = -1;
-                const preferredVersions = ["unv", "kjv", "rcuv"];
-                
-                for (const version of preferredVersions) {
-                    const foundIndex = rspArr.findIndex(element => element.version === version);
-                    if (foundIndex !== -1) {
-                        j = foundIndex;
-                        return version
-                        break;
-                    }
-                }
-                return undefined
-            }
-            let version_sn = get_preferredVersion_for_sn_stastic(rspArr)
-            if ( version_sn == undefined ){
-                return {}
-            }
-            // 開始統計
-            // 並排模式下 .lecMain div 下，會有 .vercol 三個 (若3譯本)，再次那個 .vercol 下找 .sn
-            // 交錯模式下 .lecMain 下，只會有一個 .vercol，每個 .lec 就是每一節經文，它會有 attr ver 取得是不是 kjv
-            // 就算 sn 沒顯示，在 dom 中也有它們，只是使用了 sn-hidden class
-
-            // 使用 jQuery 得到 .lecMain
-            const div_lecMain = $htmlContent[0]
-            // 取得所有 div.lec ， 並且它的 attr 的 ver 是 version_sn
-            // const div_lec = $(div_lecMain).find(`div.lec[ver=${version_sn}]`)
-            const div_lec = $(div_lecMain).find(`.lec[ver=${version_sn}]`) // mode 1 2 是 div.lec 而 mode 3 是 span.lec
-            // 取得所有 div.lec 下的 .sn
-            const div_sn = div_lec.find('.sn')
-            
-            // 分析 div_sn 的 attr sn 與 attr n ，型成 sn = [] n = [] 陣列
-            let sn = []
-            let n = []
-            div_sn.each((i, e) => {
-                sn.push($(e).attr('sn'))
-                n.push($(e).attr('n'))
-            })
-            // 檢查: 理論上，所有 n 都是同個值
-            const isTheSame_n = true
-            for (let i = 1; i < n.length; i++) {
-                if (n[i] !== n[0]){
-                    isTheSame_n = false
-                    break
+        // 以 value 來排序，從大到小 (目前還沒用到，不久會用到)
+        // let sn_count_sorted = Object.entries(sn_count).sort((a, b) => b[1] - a[1])
+        // 顯示前 10 個
+        // console.log(sn_count_sorted.slice(0, 10));
+        return sn_count
+    }
+    function setFont() {
+        $('.bhs').addClass('hebrew');
+        $('.nwh').addClass('greek');
+        $('.lxx').addClass('greek');
+    }
+    /**
+     * 
+     * @param {TPPageState} ps 
+     * @returns 0 old testment 1 new testment
+     */
+    function checkOldNew(ps) {
+        assert(ps?.bookIndex != null)
+        return (ps.bookIndex > 39) ? 1 : 0; // 1-based
+    }
+    function sortBibleVersion(r, ps) {
+        var tmpArr = new Array();
+        for (var i = 0; i < ps.version.length; i++) {
+            var version = ps.version[i];
+            for (var j = 0; j < r.length; j++) {
+                if (version == r[j].version) {
+                    tmpArr.push(r[j]);
                 }
             }
-            if (isTheSame_n == false){
-                console.error('n 不一致，請回報此書卷')
-                return {}
-            } 
-            // 統計每個sn，出現次數，最後要能夠查表
-            let sn_count = {}
-            for (let i = 0; i < sn.length; i++) {
-                if (sn_count[sn[i]] == undefined){
-                    sn_count[sn[i]] = 1
-                } else {
-                    sn_count[sn[i]] += 1
-                }
-            }
-            // 以 value 來排序，從大到小 (目前還沒用到，不久會用到)
-            // let sn_count_sorted = Object.entries(sn_count).sort((a, b) => b[1] - a[1])
-            // 顯示前 10 個
-            // console.log(sn_count_sorted.slice(0, 10));
-            return sn_count
-        }            
-        function setFont() {
-            $('.bhs').addClass('hebrew');
-            $('.nwh').addClass('greek');
-            $('.lxx').addClass('greek');
         }
-        function checkOldNew(ps) {
-            //0 - Old
-            //1 - New
-            return (BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(ps.chineses) >= 39) ? 0 : 1;
-        }
-        function sortBibleVersion(r, ps) {
-            var tmpArr = new Array();
-            for (var i = 0; i < ps.version.length; i++) {
-                var version = ps.version[i];
-                for (var j = 0; j < r.length; j++) {
-                    if (version == r[j].version) {
-                        tmpArr.push(r[j]);
-                    }
-                }
-            }
-            return tmpArr;
-        }
+        return tmpArr;
+    }
 
-        function setCSS(col, ps) {
-            var totalWidth = 100;
-            $('.lecContent').css('width', (totalWidth / col) + "%");
-            $('.lecVersion').css('width', (totalWidth / col) + "%");
-        }
-        /** 
-        * bhs 馬索拉原文 (希伯來文)
-        * @param {string} ver - fhlwh lxx bhs
-        */            
-        function isHebrewVersion(ver){
-            return ['bhs'].indexOf(ver) != -1
-        }
-        /** 
-        * fhlwh 新約原文 lxx 七十士譯本(舊約用希臘文)
-        * @param {string} ver - fhlwh lxx bhs
-        */            
-        function isGreekVersion(ver){
-            return ['fhlwh','lxx'].indexOf(ver) != -1
-        }
-        
+    function setCSS(col, ps) {
+        var totalWidth = 100;
+        $('.lecContent').css('width', (totalWidth / col) + "%");
+        $('.lecVersion').css('width', (totalWidth / col) + "%");
+    }
+    /** 
+    * bhs 馬索拉原文 (希伯來文)
+    * @param {string} ver - fhlwh lxx bhs
+    */
+    function isHebrewVersion(ver) {
+        return ['bhs'].indexOf(ver) != -1
+    }
+    /** 
+    * fhlwh 新約原文 lxx 七十士譯本(舊約用希臘文)
+    * @param {string} ver - fhlwh lxx bhs
+    */
+    function isGreekVersion(ver) {
+        return ['fhlwh', 'lxx'].indexOf(ver) != -1
+    }
+
 }
 /**
  * 在 fhlLecture init 時初始化
  */
-function goBackgoNext_setupEvents(){
+function goBackgoNext_setupEvents() {
     // 向後巡覽 / 向前巡覽
     const $lecture = $('#fhlLecture');
     const $vhb = $('#viewHistoryButton');
@@ -642,20 +633,20 @@ function goBackgoNext_setupEvents(){
                 vh_idxchanged: recolor,
                 vh_itemschanged: recolor
             });
-    })();    
+    })();
 }
 /**
  * 這不是事件，是 fhlLecture 會被呼叫 reshape 時主動呼叫的
  */
-function reshape_for_align_each_sec(){
+function reshape_for_align_each_sec() {
     /// @verbatim 對齊必須在 dom.html(html) 之後才作, 因為那時候才會有實體, 否則取出來的 height() 會是 0@endverbatim
     const $lecMain = $("#lecMain")
     if ($lecMain == null) {
-        return 
+        return
     }
-    
+
     const cols = $lecMain.children('.vercol') // 原程式用 children 會包含到 div#div_copyright，所以改用 .vercol
-    
+
     var qcols = Enumerable.from(cols);
     var qvers = qcols.select(function (a1) { return $(a1).children(); });
 
@@ -671,34 +662,34 @@ function reshape_for_align_each_sec(){
         }
     }
 }
-function render4(){
+function render4() {
     ViewHistory.s.render();
     FhlLecture.s.render();
     FhlInfo.s.render(ps);
-    BookSelect.s.render();    
+    BookSelect.s.render();
 }
-function when_click_chapback(e){
+function when_click_chapback(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     assert(ps.bookIndex != null, 'bookIndex not in pageState')
-    if ( ps.bookIndex == 1 && (ps.chap == 1 || ps.chap == 0) ){
+    if (ps.bookIndex == 1 && (ps.chap == 1 || ps.chap == 0)) {
         // 都不該生效 (應該不會被按到才對)
-        return 
+        return
     }
 
-    if ( ps.chap == 0 ) {
+    if (ps.chap == 0) {
         // 此時，是註解，按了「書卷背景」。
         // 若 book 又是第1章，此時按上一頁會出錯「第零章」錯誤
         // 同樣，若在最後1章，進入書卷背景，再按下一章，也會出現錯誤
-        if ( ps.commentBackgroundChap == 1 ) {
+        if (ps.commentBackgroundChap == 1) {
             // 要上一卷書
             ps.bookIndex--;
             ps.chap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1];
         } else {
             ps.chap = ps.commentBackgroundChap - 1
-        }        
+        }
     } else {
-        if ( ps.chap == 1 ) {
+        if (ps.chap == 1) {
             // 按上一章，就是切換書卷了
             ps.bookIndex--;
             ps.chap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1];
@@ -712,26 +703,26 @@ function when_click_chapback(e){
     change_sec_of_ps_if_address_exist_in_view_history()
 
     triggerGoEventWhenPageStateAddressChange(ps);
-    
+
     render4()
-    
+
     e.stopPropagation();
 
     $('#fhlLecture').trigger('chapchanged'); // 變更 history.
 }
-function when_click_chapnext(e){
+function when_click_chapnext(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     assert(ps.bookIndex != null, 'bookIndex not in pageState')
-    if ( ps.bookIndex == 66 && (ps.chap == 22 || ps.chap == 0) ){
+    if (ps.bookIndex == 66 && (ps.chap == 22 || ps.chap == 0)) {
         // 都不該生效 (應該不會被按到才對)
-        return 
+        return
     }
 
     const lastChap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1]
-    if ( ps.chap == 0 ) {
+    if (ps.chap == 0) {
         // 此時，是按了「註解」中的「書卷背景」。此時應當要用
-        if ( ps.commentBackgroundChap == lastChap ) {
+        if (ps.commentBackgroundChap == lastChap) {
             // 要下一卷書
             ps.bookIndex++;
             ps.chap = 1;
@@ -739,7 +730,7 @@ function when_click_chapnext(e){
             ps.chap = ps.commentBackgroundChap + 1
         }
     } else {
-        if ( ps.chap == lastChap ) {
+        if (ps.chap == lastChap) {
             // 按下一章，就是切換書卷了
             ps.bookIndex++;
             ps.chap = 1;
@@ -753,7 +744,7 @@ function when_click_chapnext(e){
     change_sec_of_ps_if_address_exist_in_view_history()
 
     triggerGoEventWhenPageStateAddressChange(ps); // 這個事件，有人在用唷，就是 viewHistory 會用
-    
+
     render4()
 
     e.stopPropagation();
@@ -763,17 +754,17 @@ function when_click_chapnext(e){
 /**
  * @param {Event} e 
  */
-function when_scroll(e){
+function when_scroll(e) {
     // 滾動時，較漂亮， scrolling .css 中有定義 。
     // TODO: 這裡可以使用 debounce，這樣會更好
     const currentTarget = e.currentTarget
     $(currentTarget).addClass('scrolling');
     clearTimeout($.data(currentTarget, "scrollCheck"));
-    $.data(currentTarget, "scrollCheck", setTimeout( () => {
+    $.data(currentTarget, "scrollCheck", setTimeout(() => {
         $(currentTarget).removeClass('scrolling');
     }, 350));
 }
-function show_dialog_pick_bible_version(){
+function show_dialog_pick_bible_version() {
     // 與 ios 版，統一操作模式
     $('#versionSelect3').trigger('click')
 }
@@ -782,7 +773,7 @@ function show_dialog_pick_bible_version(){
  * @param {Event} e 
  * @param {JQuery<HTMLElement>} $lecMain
  */
-function when_click_on_lec(e, $lecMain){
+function when_click_on_lec(e, $lecMain) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
 
@@ -801,7 +792,7 @@ function when_click_on_lec(e, $lecMain){
     ps.chap = parseInt($this.attr('chap'));
 
     // selected class 處理
-    const alllec = $lecMain.find('.lec');        
+    const alllec = $lecMain.find('.lec');
     alllec.removeClass('selected').filter(`[sec=${ps.sec}]`).addClass("selected"); // 先移除所有的選擇，再加入
 
 
@@ -809,9 +800,8 @@ function when_click_on_lec(e, $lecMain){
     FhlInfo.s.render(ps);
 
     // 因為搜尋還沒有加事件, 這個是暫時用的 2017.09
-    var idx = getBookFunc("index", ps.chineses);
-    ps.bookIndex = idx + 1; // 此idx回傳是 0-based
-
+    assert( ps?.bookIndex != null)
+    
     // 2017.08
     if (oldsec != ps.sec || oldchap != ps.chap)
         $lecMain.trigger('secchanged')
@@ -821,7 +811,7 @@ function when_click_on_lec(e, $lecMain){
  * 這是為了使 .sn 功能而需要的
  * @param {Event} e
  */
-function when_mouseenter_on_lec(e){
+function when_mouseenter_on_lec(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     let currentTarget = e.currentTarget // 原程式的 this
@@ -833,7 +823,7 @@ function when_mouseenter_on_lec(e){
     let chap = $this.attr('chap');
     ps.chap_hover = chap
     let book = $this.attr('book');
-    ps.book_hover = book    
+    ps.book_hover = book
 }
 
 /**
@@ -842,22 +832,22 @@ function when_mouseenter_on_lec(e){
  * @param {0|1} N 
  * @returns {number} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt 
  */
-function get_sn_count_in_bible(sn, N){
+function get_sn_count_in_bible(sn, N) {
     if (Sd_cnt_json.s.filecontent == null) return -2
-    
+
     let hg = N == 0 ? "greek" : "hebrew"
     let cnt = Sd_cnt_json.s.filecontent[hg][sn]
-    if ( cnt != undefined ){
+    if (cnt != undefined) {
         return cnt
     }
     return -1
 }
-function get_sn_count_in_book(sn, book){
+function get_sn_count_in_book(sn, book) {
     if (Sn_cnt_book_unv_json.s.filecontent == null) return -2
-    
+
     let hg = book >= 40 ? "G" : "H"
     let cnt = Sn_cnt_book_unv_json.s.filecontent[hg][sn][book]
-    if ( cnt != undefined ){
+    if (cnt != undefined) {
         return cnt
     }
     return -1
@@ -868,14 +858,14 @@ function get_sn_count_in_book(sn, book){
  * @param {number} book 1based book id 1-66
  * @returns {Object<number,number>} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt
  */
-function get_sn_count_in_chap(sn, book){
-    if ( Sn_cnt_chap_unv_json.s.filecontent == null) return -2
+function get_sn_count_in_chap(sn, book) {
+    if (Sn_cnt_chap_unv_json.s.filecontent == null) return -2
 
     let hg = book >= 40 ? "G" : "H"
-    
-    let dict_chap_cnt = Sn_cnt_chap_unv_json.s.filecontent[hg][sn][book]    
-        
-    if ( dict_chap_cnt != undefined ){
+
+    let dict_chap_cnt = Sn_cnt_chap_unv_json.s.filecontent[hg][sn][book]
+
+    if (dict_chap_cnt != undefined) {
         // return clone result, not the original, to prevent change the original
         return JSON.parse(JSON.stringify(dict_chap_cnt))
     }
@@ -885,16 +875,16 @@ function get_sn_count_in_chap(sn, book){
 /**
  * @param {Event} e 
  */
-function mouseenter_sn_set_snAct_and_Color_act(e){
+function mouseenter_sn_set_snAct_and_Color_act(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     const dom = e.currentTarget
 
     let N = $(dom).attr('N') // 1: 舊約 0: 新約
-    let sn = $(dom).attr('sn')                    
+    let sn = $(dom).attr('sn')
     ps.snAct = sn
     ps.snActN = N
-    
+
     // Activate sn，標記為紅色
     SN_Act_Color.s.act_add(sn, N)
 }
@@ -905,12 +895,12 @@ class ParsingCache {
      */
     static try_get(address) {
         let { book, chap, sec } = address
-        
+
         let book1 = ParsingCache._data[book]
-        if ( book1 == undefined ) return undefined
-        
+        if (book1 == undefined) return undefined
+
         let chap1 = book1[chap]
-        if ( chap1 == undefined ) return undefined
+        if (chap1 == undefined) return undefined
 
         return chap1[sec]
     }
@@ -919,8 +909,8 @@ class ParsingCache {
      * 例如會加上 .one = xxxx 
      * @param {DAddress_Realtime} address 
      * @returns {IDParsingResult|undefined}
-     */        
-    static try_get_clone(address){
+     */
+    static try_get_clone(address) {
         let r1 = this.try_get(address)
         if (r1 == undefined) return undefined
         return this._json_clone(r1)
@@ -941,15 +931,15 @@ class ParsingCache {
         // 這裡要 clone, 不然我們 add 後，以為順序對了，就是存了原始的
         // 但 add 後，若被更改，例如 jo.one = xxx ， 因為是指向同個記憶體，仍然會被改變
         // 所以保險的方法，是這裡要 clone 
-        this._data[book][chap][sec] = this._json_clone( value );
-        
+        this._data[book][chap][sec] = this._json_clone(value);
+
     }
     /**
      * 因為 es6 沒有支援 tuple 作為 key
      * @type {Object<number,Object<number,Object<number,IDParsingResult>>}
      */
     static _data = {}
-    static _json_clone(jo){return JSON.parse(JSON.stringify(jo))}
+    static _json_clone(jo) { return JSON.parse(JSON.stringify(jo)) }
 }
 /**
  * sn mouseenter realtime 要用的
@@ -960,7 +950,7 @@ class SnDictCache {
      * @returns {DataOfDictOfFhl|undefined}
      */
     static try_get(sn_N) {
-        let { sn , N } = sn_N
+        let { sn, N } = sn_N
 
         let r1 = this._data[N]
         if (r1 == undefined) return undefined
@@ -970,8 +960,8 @@ class SnDictCache {
     /**
      * @param {{N: 0|1, sn: string}} sn_N 
      * @returns {DataOfDictOfFhl|undefined}
-     */        
-    static try_get_clone(sn_N){
+     */
+    static try_get_clone(sn_N) {
         let r1 = this.try_get(sn_N)
         if (r1 == undefined) return undefined
         return this._json_clone(r1)
@@ -981,7 +971,7 @@ class SnDictCache {
      * @param {DataOfDictOfFhl} value 
      */
     static add(sn_N, value) {
-        let { sn , N } = sn_N
+        let { sn, N } = sn_N
         if (this._data[N] === undefined) {
             this._data[N] = {};
         }
@@ -991,20 +981,20 @@ class SnDictCache {
      * @type {Object<number,Object<string,DataOfDictOfFhl>>}
      */
     static _data = {}
-    static _json_clone(jo){return JSON.parse(JSON.stringify(jo))}
+    static _json_clone(jo) { return JSON.parse(JSON.stringify(jo)) }
 }
 /**
  * @param {Event} e 
  */
-function mouseenter_sn_dialog(e){
+function mouseenter_sn_dialog(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     const dom = e.currentTarget
     let N = $(dom).attr('N') // 1: 舊約 0: 新約
-    let sn = $(dom).attr('sn')                    
+    let sn = $(dom).attr('sn')
     ps.snAct = sn
     ps.snActN = N
-    
+
     // Activate sn，標記為紅色
     // SN_Act_Color.s.act_add(sn, N)
 
@@ -1012,14 +1002,14 @@ function mouseenter_sn_dialog(e){
     // 若取得資料完成時，滑鼠還在同一個 sn 上，就繼續顯示，若非，就不顯示
     // 可以有 cache 資料
     // 若還沒取得，就變成下一個 sn 時，這個應該就不要再取了 (能中斷嗎？若不能，就是取完，但是存成 cache，但不顯示)
-    
+
     // 準備資料 - sn,N,book,chap,sec
     let book = ps.book_hover
     let chap = ps.chap_hover
-    let sec = ps.sec_hover                    
+    let sec = ps.sec_hover
     let one = { sn, N, book, chap, sec }
 
-    ps.xy_hover = {x: e.clientX, y: e.clientY }
+    ps.xy_hover = { x: e.clientX, y: e.clientY }
 
     class DOne {
         constructor(sn, N, book, chap, sec) {
@@ -1037,52 +1027,52 @@ function mouseenter_sn_dialog(e){
      * @param {DOne} one 
      * @returns 
      */
-    function get_parsing_async(one){
+    function get_parsing_async(one) {
         let result_from_cache = ParsingCache.try_get_clone(one)
-        if (result_from_cache != undefined ) {
+        if (result_from_cache != undefined) {
             let re = result_from_cache
             re.one = one
             return Promise.resolve(result_from_cache)
         }
-        
+
         return new Promise((res, rej) => {
 
-                let engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[one.book-1]
-                let chap = one.chap
-                let sec = one.sec
+            let engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[one.book - 1]
+            let chap = one.chap
+            let sec = one.sec
 
-                let endpoint = `/json/qp.php?engs=${engs}&chap=${chap}&sec=${sec}&gb=0`
-                let host = isRDLocation() ? 'https://bible.fhl.net' : ''
-                let url = host + endpoint
-            
-                $.ajax({
-                    url,
-                    /**
-                     * @param {IDParsingResult} a1 
-                     */
-                    success: a1 => {
-                        if (a1.status == "success" && a1.record.length > 0) {
-                            ParsingCache.add(one, a1)
+            let endpoint = `/json/qp.php?engs=${engs}&chap=${chap}&sec=${sec}&gb=0`
+            let host = isRDLocation() ? 'https://bible.fhl.net' : ''
+            let url = host + endpoint
 
-                            /** @type {IDParsingResult_Realtime} */
-                            let json = a1
-                            json.one = one
-                            res(json)
-                        } else {
-                            res("找不到資料 get_parsing_async a")
-                        }
-                    },
-                    error: er => {
-                        res("找不到資料 get_parsing_async b")
+            $.ajax({
+                url,
+                /**
+                 * @param {IDParsingResult} a1 
+                 */
+                success: a1 => {
+                    if (a1.status == "success" && a1.record.length > 0) {
+                        ParsingCache.add(one, a1)
+
+                        /** @type {IDParsingResult_Realtime} */
+                        let json = a1
+                        json.one = one
+                        res(json)
+                    } else {
+                        res("找不到資料 get_parsing_async a")
                     }
-                });
-                
-                                
+                },
+                error: er => {
+                    res("找不到資料 get_parsing_async b")
+                }
+            });
+
+
         })
     }
-    function get_dict_async(one){
+    function get_dict_async(one) {
         let result_from_cache = SnDictCache.try_get_clone(one)
-        if (result_from_cache != undefined ) {
+        if (result_from_cache != undefined) {
             let re = result_from_cache
             re.one = one
             return Promise.resolve(result_from_cache)
@@ -1094,14 +1084,14 @@ function mouseenter_sn_dialog(e){
         let host = isRDLocation() ? 'http://127.0.0.1:5600' : ''
         let url = host + endpoint
 
-        return new Promise((res, rej) => {                            
+        return new Promise((res, rej) => {
             $.ajax({
                 url,
                 success: a1 => {
                     if (a1.status == "success" && a1.record.length > 0) {
                         /** @type {DataOfDictOfFhl_Realtime} */
                         SnDictCache.add(one, a1)
-                        
+
                         let json = a1
                         json["one"] = one // 在 .then 才知道，當時是哪一組資料
                         json.src = "cbol"
@@ -1118,7 +1108,7 @@ function mouseenter_sn_dialog(e){
         })
     }
 
-    function get_parsing_and_dict_async(one){
+    function get_parsing_and_dict_async(one) {
         return Promise.all([get_parsing_async(one), get_dict_async(one)])
     }
     /**
@@ -1126,7 +1116,7 @@ function mouseenter_sn_dialog(e){
      * @param {IDParsingResult_Realtime} re_parsing 
      * @param {DataOfDictOfFhl_Realtime} re_dict 
      */
-    function show_dialog(re_parsing, re_dict){
+    function show_dialog(re_parsing, re_dict) {
         // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
         let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
         let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
@@ -1140,28 +1130,28 @@ function mouseenter_sn_dialog(e){
         // G3762
         let N = re_dict.one.N
         let sn = re_dict.one.sn
-        let sn_hg = (N==0?'G':'H') + sn // 2 處用到
-        let span_sn = $('<span>').text(`${sn_hg} `).addClass('sn').attr('sn',sn).attr('N',N)
+        let sn_hg = (N == 0 ? 'G' : 'H') + sn // 2 處用到
+        let span_sn = $('<span>').text(`${sn_hg} `).addClass('sn').attr('sn', sn).attr('N', N)
 
         // <span.fn-search-sn sn,isOld> 出現經文 </span>
-        const span_fn_sn_search = $('<span>').text(`出現經文`).addClass('fn-search-sn').attr('sn',sn).attr('tp',(N==0?'G':'H'))
+        const span_fn_sn_search = $('<span>').text(`出現經文`).addClass('fn-search-sn').attr('sn', sn).attr('tp', (N == 0 ? 'G' : 'H'))
 
         // 原文 簡義
         // 從 same 中找到自己那個
         let span_orig = $('<span>').addClass('orig')
         let span_mean = $('<span>').addClass('mean')
-        function get_this_from_same(sn){
+        function get_this_from_same(sn) {
             let same = re_dict.record[0].same
             for (let i = 0; i < same.length; i++) {
                 const element = same[i];
-                if (element.csn == sn){
+                if (element.csn == sn) {
                     return element
                 }
             }
             return undefined
         }
         let data_from_same = get_this_from_same(sn)
-        if (data_from_same != undefined){
+        if (data_from_same != undefined) {
             // console.log(data_from_same);
             span_orig.append($('<span>').text(data_from_same.word))
             span_mean.append($('<span>').text(data_from_same.cexp))
@@ -1170,78 +1160,78 @@ function mouseenter_sn_dialog(e){
         // 本章 n 次，本書 n 次，聖經 n 次。
         // 聖經出現次數
         let cnt_in_bible = get_sn_count_in_bible(sn, N)
-        let description_in_bible = `聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次`
+        let description_in_bible = `聖經 ${cnt_in_bible > -1 ? cnt_in_bible : '?'} 次`
         // 此書卷出現次數
         let cnt_in_book = get_sn_count_in_book(sn, re_dict.one.book)
-        let description_in_this_book = `本書 ${cnt_in_book > -1 ?cnt_in_book:'?'} 次`
+        let description_in_this_book = `本書 ${cnt_in_book > -1 ? cnt_in_book : '?'} 次`
         // 本章出現次數
         // 嘗試取得 sn 出數 (同一章，N一定是相同)
         let cnt_in_this_chap = ps.sn_stastic?.[sn] ?? -1;
-        let description_in_this_chap = `本章 ${cnt_in_this_chap > -1 ?cnt_in_this_chap:'?'} 次`
+        let description_in_this_chap = `本章 ${cnt_in_this_chap > -1 ? cnt_in_this_chap : '?'} 次`
 
         // 主要分佈於 7,5,1,2 章。為別次數為 5,4,3,2。 (排序後，前5個，如果第6、第7也與第5一樣，也列出來)
         let cnt_chap_in_book = get_sn_count_in_chap(sn, re_dict.one.book)
         let description_in_this_book_chap = undefined
-        if (cnt_chap_in_book != -1 && cnt_chap_in_book != -2){
+        if (cnt_chap_in_book != -1 && cnt_chap_in_book != -2) {
             let ar = []
             for (const key in cnt_chap_in_book) {
                 if (cnt_chap_in_book.hasOwnProperty(key)) {
                     const element = cnt_chap_in_book[key];
-                    ar.push({chap:key, cnt:element})
+                    ar.push({ chap: key, cnt: element })
                 }
             }
-            ar.sort((a,b)=>b.cnt-a.cnt)
+            ar.sort((a, b) => b.cnt - a.cnt)
             // 判斷有沒有超過5個
             const cnt_limit = 3
-            if (ar.length > cnt_limit){
+            if (ar.length > cnt_limit) {
                 // 看第6個，第7個，有沒有與第5個一樣的大小
-                let cnt5 = ar[cnt_limit-1].cnt
+                let cnt5 = ar[cnt_limit - 1].cnt
                 let idxslice = cnt_limit
                 for (let i = cnt_limit; i < ar.length; i++) {
                     const element = ar[i];
-                    if (element.cnt == cnt5){
+                    if (element.cnt == cnt5) {
                         idxslice++
                     } else {
                         break
                     }
                 }
-                ar = ar.slice(0,idxslice)
+                ar = ar.slice(0, idxslice)
 
-                const des_where = ar.map(a1=>`${a1.chap}`).join(',')
-                const count_each = ar.map(a1=>`${a1.cnt}`).join(',')
+                const des_where = ar.map(a1 => `${a1.chap}`).join(',')
+                const count_each = ar.map(a1 => `${a1.cnt}`).join(',')
 
                 description_in_this_book_chap = `本書主要於 ${des_where} 章。次數為 ${count_each}。`
             } else {
-                description_in_this_book_chap = `本書主要於 ${ar.map(a1=>`${a1.chap}`).join(',')} 章。次數為 ${ar.map(a1=>`${a1.cnt}`).join(',')}。`
+                description_in_this_book_chap = `本書主要於 ${ar.map(a1 => `${a1.chap}`).join(',')} 章。次數為 ${ar.map(a1 => `${a1.cnt}`).join(',')}。`
             }
 
-            
+
         } else {
             // console.log("沒有資料");
         }
 
-        
 
-        
+
+
 
         // let span_count = $('<span>').append($('<span>').text(`本章 ${cnt_in_this_chap > -1 ?cnt_in_this_chap:'?'} 次，聖經 ${cnt_in_bible > -1 ?cnt_in_bible:'?'} 次。`))
-        
+
         let span_count = $('<span>').append($('<span>').text(`${description_in_this_chap}，${description_in_this_book}，${description_in_bible}。`))
-        if (description_in_this_book_chap != undefined){
-            span_count.append($('<br>'),$('<span>').text(description_in_this_book_chap))
+        if (description_in_this_book_chap != undefined) {
+            span_count.append($('<br>'), $('<span>').text(description_in_this_book_chap))
         }
-        
+
         // 詞性分析 
         // 詞性: 形容詞 分析: 主格 單數 中性 (新約)
         // 分析: 介系詞 בְּ + 名詞，陰性單數 (舊約)
         // 詞性分析，從 parsing 找 SN，可能會有多個 SN 都符合，就2 個都要顯示，但若 2 個完全一樣，就只顯示一個。
         let span_parsing = $('<span>').addClass('parsing')
-        function find_sn_parsing(sn){
+        function find_sn_parsing(sn) {
             // 從 i=1 開始判斷，因為 parsing.record 的 [0] 不是每個 sn 分析
             let the_same_sn_parsing = []
             for (let i = 1; i < re_parsing.record.length; i++) {
                 const element = re_parsing.record[i];
-                if (element.sn == sn){
+                if (element.sn == sn) {
                     the_same_sn_parsing.push(element)
                 }
             }
@@ -1249,21 +1239,21 @@ function mouseenter_sn_dialog(e){
             // 判斷有相同的，則拿掉。從最後一個往前判斷到 1 判斷完，0不用
             for (let i = the_same_sn_parsing.length - 1; i > 0; i--) {
                 const element = the_same_sn_parsing[i];
-                if (element.wform == the_same_sn_parsing[0].wform){
+                if (element.wform == the_same_sn_parsing[0].wform) {
                     the_same_sn_parsing.splice(i, 1)
                     console.log("拿掉了 相同的");
                 }
             }
 
-            if ( the_same_sn_parsing.length == 0){
+            if (the_same_sn_parsing.length == 0) {
                 // 正常，像 <9002> 或是 (8804) 這一類，本來就沒有
                 // console.error("分析錯誤。", re_parsing.record );
             }
 
             return the_same_sn_parsing
-        }                        
+        }
         let the_same_sn_parsing = find_sn_parsing(sn)
-        if ( the_same_sn_parsing.length == 0){
+        if (the_same_sn_parsing.length == 0) {
             // 不太可能，顯示出錯誤
             // span_parsing.append('<span class="error">分析錯誤。</span>')
         } else {
@@ -1271,16 +1261,16 @@ function mouseenter_sn_dialog(e){
                 const element = the_same_sn_parsing[i];
                 // 若 詞性，分析，都是空字串，就跳過
                 if (element.pro == "" && element.wform == "") continue
-                
+
                 let span_one_parsing = $('<span>').addClass('one-parsing')
 
                 // 詞性
-                if ( element.pro != "" ){
+                if (element.pro != "") {
                     span_one_parsing.append($('<span>').addClass('item-title').text('詞性:')).append($('<span>').text(element.pro))
                 }
 
                 // 分析
-                if ( element.wform != "" ){
+                if (element.wform != "") {
                     span_one_parsing.append($('<span>').addClass('item-title').text('分析:')).append($('<span>').text(element.wform))
                 }
 
@@ -1293,29 +1283,29 @@ function mouseenter_sn_dialog(e){
          * @param {string} data 
          * @returns 
          */
-        function get_cbol_dict_part_data(data){
-            function get_ignore_data(){
+        function get_cbol_dict_part_data(data) {
+            function get_ignore_data() {
                 let re = data.split(/\r?\n\r?\n/)
-                if ( re.length < 4){
-                    return re.join('<br/>').replace(/\r?\n/g,'<br/>')
+                if (re.length < 4) {
+                    return re.join('<br/>').replace(/\r?\n/g, '<br/>')
                 } else {
                     // 將[4]之後，以 <br/> 合併起來
                     let re2 = re.slice(3).join('<br/>')
-                    return re2.replace(/\r?\n/g,'<br/>')
+                    return re2.replace(/\r?\n/g, '<br/>')
                 }
             }
             let re1 = get_ignore_data()
 
             // 嘗試發現 #提後 2:1| 之類的字
-            function get_reference_data(text){
+            function get_reference_data(text) {
                 const dtexts_ar = splitReference(re1)
-                
-                if (dtexts_ar==null || dtexts_ar.length == 1){
+
+                if (dtexts_ar == null || dtexts_ar.length == 1) {
                     return re1
                 } else {
                     let re2 = ""
                     for (const a2 of dtexts_ar) {
-                        if ( a2.refAddresses == undefined ){
+                        if (a2.refAddresses == undefined) {
                             re2 += a2.w
                         } else {
                             re2 += `<span class='ref' data-addrs='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
@@ -1328,15 +1318,15 @@ function mouseenter_sn_dialog(e){
         }
         let span_cbol_part = $('<span>').addClass('cbol')
         let cbol_part = get_cbol_dict_part_data(re_dict.record[0].dic_text)
-        
-        
+
+
         span_cbol_part.append($('<span>').html(cbol_part))
 
 
 
         // 同源字
         let span_same = $('<span>')
-        if (N==1) {
+        if (N == 1) {
             span_same.append('<span class="item-title">同源字：</span><span>舊約無資料。</span>')
         } else {
             span_same.append('<span class="item-title">同源字：</span>')
@@ -1344,32 +1334,32 @@ function mouseenter_sn_dialog(e){
             let same = re_dict.record[0].same
 
             // 是否只有一個值
-            if ( same.length < 2){
+            if (same.length < 2) {
                 span_same.append('<span>無</span>')
             } else {
                 // 首先，same 裡面應該會有一個自己，其次，我們按出現次數排序
                 // 呈現格式為 同源：G1234(142)意義；G1235(123)
 
                 // 排序，按次數
-                same.sort((a,b) => b.ccnt - a.ccnt)
+                same.sort((a, b) => b.ccnt - a.ccnt)
 
                 // filter .csn != sn 
                 let same2 = same.filter(a1 => a1.csn != sn)
-                
+
                 // 產生許多 <span class='one-same'>...</span>
                 for (let i1 = 0; i1 < same2.length; i1++) {
                     const onesame3 = same2[i1]
-                    let sn3 = (N==0?'G':'H') + onesame3.csn  // 2 處用到
+                    let sn3 = (N == 0 ? 'G' : 'H') + onesame3.csn  // 2 處用到
 
                     // 處理之前， cexp 可能會有 交互參照
-                    function get_cexp_with_ref(cexp){
+                    function get_cexp_with_ref(cexp) {
                         let re1 = splitReference(cexp)
-                        if (re1 == null || re1.length == 1){
+                        if (re1 == null || re1.length == 1) {
                             return cexp
                         } else {
                             let re2 = ""
                             for (const a2 of re1) {
-                                if ( a2.refAddresses == undefined ){
+                                if (a2.refAddresses == undefined) {
                                     re2 += a2.w
                                 } else {
                                     re2 += `<span class='ref' data-addrs='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
@@ -1381,14 +1371,14 @@ function mouseenter_sn_dialog(e){
                     const cexp_ref = get_cexp_with_ref(onesame3.cexp)
 
                     let span_one_same = $('<span>').addClass('one-same')
-                    .append($('<span>').text(sn3).addClass('sn').attr('sn',onesame3.csn).attr('N',N))
-                    .append($('<span>').text(`(${onesame3.ccnt})`))
-                    .append($('<span>').html(cexp_ref))
-                    .appendTo(span_same)
+                        .append($('<span>').text(sn3).addClass('sn').attr('sn', onesame3.csn).attr('N', N))
+                        .append($('<span>').text(`(${onesame3.ccnt})`))
+                        .append($('<span>').html(cexp_ref))
+                        .appendTo(span_same)
                 }
-            }                         
+            }
         }
-        
+
         // 分兩欄
         let div_content = $("<div>").addClass('column-parent')
         let div_right_column = $("<div>").addClass('right-column').addClass('column')
@@ -1399,7 +1389,7 @@ function mouseenter_sn_dialog(e){
         // 右欄_意義
         div_right_column.append(span_same)
         let html = div_content[0].outerHTML
-        
+
         // 設定 dlg 位置，是在上面，還是下面
         // 如果目前 cursor 在上半部 50 % 就下顯示
         const isCursorTop = TPPageState.s.xy_hover.y < window.innerHeight / 2
@@ -1423,31 +1413,31 @@ function mouseenter_sn_dialog(e){
              * 
              * @param {JQuery<HTMLElement>} dlg 
              */
-            registerEventWhenShowed: dlg => {                            
+            registerEventWhenShowed: dlg => {
                 // 改 title，因為 getTitle 的方式只能純文字，不能有 html tag ... dlg parent 才會包到 title 
                 dlg.parent().find('.ui-dialog-title').addClass('realtime-sn').html(
                     $('<span>')
-                    .append(span_sn)
-                    .append(span_fn_sn_search) // <span.fn-search-sn sn,isOld> 出現經文 </span>
-                    .append(span_orig)
-                    .append(span_mean)
-                    .append(span_parsing)
+                        .append(span_sn)
+                        .append(span_fn_sn_search) // <span.fn-search-sn sn,isOld> 出現經文 </span>
+                        .append(span_orig)
+                        .append(span_mean)
+                        .append(span_parsing)
                     [0].outerHTML
                 )
-                
 
-                
+
+
                 // 出現經文 搜尋 SN 出現經文
                 dlg.parent().on('click', '.fn-search-sn', a1 => {
                     let sn = $(a1.target).attr('sn')
                     let tp = $(a1.target).attr('tp')
                     const hgSn = `${tp}${sn}` // H3303 G4314
-                    
+
                     // 將 #searchTool 下的 <input> 它的 class 是 .search-input 的內容改設定為 G4314
                     $('#searchTool').find('.search-input').val(hgSn)
                     // 觸發 .searchBtn 的 click 事件, 開始搜尋
                     $('.searchBtn').trigger('click');
-                    
+
                     // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
                     // let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
                     const rr1 = $('.ui-dialog-title')
@@ -1457,7 +1447,7 @@ function mouseenter_sn_dialog(e){
 
                 dlg.on('click', '.ref', a1 => {
                     let addrs = JSON.parse($(a1.target).attr('data-addrs'))
-                    queryReferenceAndShowAtDialogAsync({addrs:addrs, event: a1})
+                    queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: a1 })
                 })
 
                 dlg.parent().off('click', '.sn').on({
@@ -1476,7 +1466,7 @@ function mouseenter_sn_dialog(e){
         })
     }
 
-    function when_data_ready([re_parsing, re_dict]){
+    function when_data_ready([re_parsing, re_dict]) {
         // console.log(one);
         /** @type {TPPageState} */
         let ps = TPPageState.s
@@ -1486,7 +1476,7 @@ function mouseenter_sn_dialog(e){
         // 檢查 re_parsing.one == re_dict.one
         let re_parsing_one = re_parsing.one
         let re_dict_one = re_dict.one
-        if (sn != re_dict_one.sn || sec != re_parsing_one.sec){
+        if (sn != re_dict_one.sn || sec != re_parsing_one.sec) {
             // console.log(" 不一樣 ", sn, re_dict_one.sn);
         } else {
             // 將 result 中的 sn 消一下 0，不然判斷會錯
@@ -1502,11 +1492,11 @@ function mouseenter_sn_dialog(e){
             }
 
             show_dialog(re_parsing, re_dict)
-            
+
         }
     }
 
-    get_parsing_and_dict_async(one).then(when_data_ready)                
+    get_parsing_and_dict_async(one).then(when_data_ready)
 }
 
 /**
@@ -1515,7 +1505,7 @@ function mouseenter_sn_dialog(e){
 class Dialog_Sn_Info_Summary {
     static _s = null
     /** @type {Dialog_Sn_Info_Summary} */
-    static get s() { 
+    static get s() {
         if (this._s == null) {
             this._s = new Dialog_Sn_Info_Summary()
         }
@@ -1524,29 +1514,29 @@ class Dialog_Sn_Info_Summary {
 
     /** @type {boolean} `暫時` 的英文是 ... `temporary` ... click 會使其它為 true, 2 秒後變回 false, 在 mouseenter 會被 read 使用*/
     is_pause_realtime_temporary_sn = false
-    constructor(){
+    constructor() {
         this.is_pause_realtime_temporary_sn = false
     }
     /**
      * @returns {TPPageState} 方便使用
      */
-    get ps() { return TPPageState.s}
+    get ps() { return TPPageState.s }
     /**
      * 於 FhlLecture 中的 init 中，定義事件中，會被呼叫 .sn click
      * @param {Event} e
      */
-    when_click_on_sn(e){
+    when_click_on_sn(e) {
         const ps = this.ps
         const currentTarget = e.currentTarget
         const $this = $(currentTarget)
         // currentTarget 是 span .sn-text 它的 parent 某一層，會有一個 .lec ， 要先判定它是不具有 .selected，如果沒有，則不處理
-        if ( $this.parents('.lec').hasClass('selected') == false ){
+        if ($this.parents('.lec').hasClass('selected') == false) {
             // 模擬，這個 .lec 被 click 一次
             $this.parents('.lec').trigger('click')
             return;
         }
-        
-        if ( ps.realTimePopUp ){
+
+        if (ps.realTimePopUp) {
             const N = $this.attr('N');
             const k = $this.attr('sn');
             if (this.is_pause_realtime_temporary_sn && (ps.snAct != k || ps.snActN != N)) {
@@ -1555,7 +1545,7 @@ class Dialog_Sn_Info_Summary {
                 mouseenter_sn_dialog(e)
             }
 
-            this.is_pause_realtime_temporary_sn = true 
+            this.is_pause_realtime_temporary_sn = true
 
             setTimeout(() => {
                 this.is_pause_realtime_temporary_sn = false
@@ -1566,9 +1556,9 @@ class Dialog_Sn_Info_Summary {
             ps.snAct = ""
             ps.snActN = -1
             SN_Act_Color.s.act_remove()
-            mouseenter_sn_set_snAct_and_Color_act(e)  
+            mouseenter_sn_set_snAct_and_Color_act(e)
             mouseenter_sn_dialog(e)
-            this.is_pause_realtime_temporary_sn = true 
+            this.is_pause_realtime_temporary_sn = true
             setTimeout(() => {
                 this.is_pause_realtime_temporary_sn = false
             }, 2000);
@@ -1580,17 +1570,17 @@ class Dialog_Sn_Info_Summary {
      * mouseleave: e => Dialog_Sn_Info_Summary.s.when_mouseenter_on_sn(e),
      * mouseleave: Dialog_Sn_Info_Summary.s.when_mouseenter_on_sn,
     */
-   when_mouseenter_on_sn(e){
+    when_mouseenter_on_sn(e) {
         /** @type {TPPageState} */
         const ps = this.ps
-        
-        if ( this.is_pause_realtime_temporary_sn == false ){
+
+        if (this.is_pause_realtime_temporary_sn == false) {
             mouseenter_sn_set_snAct_and_Color_act(e)
         }
 
-        if ( ps.realTimePopUp ){
+        if (ps.realTimePopUp) {
             if (this.is_pause_realtime_temporary_sn) return
-            
+
             mouseenter_sn_dialog(e)
         }
     }
@@ -1600,19 +1590,19 @@ class Dialog_Sn_Info_Summary {
      * mouseleave: e => Dialog_Sn_Info_Summary.s.when_mouseleave_on_sn(e),
      * mouseleave: Dialog_Sn_Info_Summary.s.when_mouseleave_on_sn,
      */
-    when_mouseleave_on_sn(e){
+    when_mouseleave_on_sn(e) {
         const ps = this.ps
-        if ( this.is_pause_realtime_temporary_sn == false ){
+        if (this.is_pause_realtime_temporary_sn == false) {
             ps.snAct = ""
             ps.snActN = -1
 
             SN_Act_Color.s.act_remove()
-            
+
             // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
             let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
             let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
             rr2.trigger('click')
-        }    
+        }
     }
 }
 
@@ -1621,7 +1611,7 @@ class Dialog_Sn_Info_Summary {
  * @param {Event} e
  * 可使用 呂振中譯本 開發測試
  */
-function when_click_on_ft(e){
+function when_click_on_ft(e) {
     const ps = TPPageState.s
     const currentTarget = e.currentTarget
     const $this = $(currentTarget)
@@ -1633,9 +1623,10 @@ function when_click_on_ft(e){
     ParsingPopUp.s.render(ps, ParsingPopUp.s.dom, offset, "ft");
 
     var ftid = $this.attr('ft');
-    var engs = $this.attr('engs');
+    const book = parseInt($this.attr('book'))    
     var chap = $this.attr('chap');
     var ver = $this.attr('ver');
+    const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[book - 1];
 
     var url = "rt.php?engs=" + engs + "&chap=" + chap + "&version=" + ver + "&id=" + ftid;
     if (ps.gb == 1)

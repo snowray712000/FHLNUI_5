@@ -1,4 +1,5 @@
-﻿var rfhlmap = null;
+﻿
+var rfhlmap = null;
 var layer = null;
 var fhlmap_engs_prev = ""; //防止同一章一直載入
 var fhlmap_chap_prev = -1; //防止同一章一直載入
@@ -47,8 +48,12 @@ function fhlmap_render(ps, dom) {
     fhlmap_chap_prev = -1; // 為了trigger 下面的 set 函式, 當「rfhlmap_titleId_prev != "fhlInfoMap"」時必須用到, 因為它重新create了
   }
 
-  if (fhlmap_chap_prev != ps.chap || fhlmap_engs_prev != ps.engs) {
-    fhl.json_api_text_post("sobj.php?engs=" + ps.engs + "&chap=" + ps.chap + "&gb="+ps.gb, null, function (jstr) {
+  if (fhlmap_chap_prev != ps.chap || fhlmap_engs_prev != ps.bookIndex) {
+    const bibleConstantHelper = BibleConstantHelperEs6Js()
+    const engss = bibleConstantHelper.getBookNameArrayEnglishNormal()
+    const engs = engss[ps.bookIndex - 1] // 轉成 engs
+    
+    fhl.json_api_text_post("sobj.php?engs=" + engs + "&chap=" + ps.chap + "&gb="+ps.gb, null, function (jstr) {
       var jr1 = JSON.parse(jstr);
 
       // remove 上次的結果
@@ -119,7 +124,7 @@ function fhlmap_render(ps, dom) {
         mymap.fitBounds(ptsAllForAutoZoom);
       // rfhlmap.set_data(jr1.record);
     }, function (er) {});
-    fhlmap_engs_prev = ps.engs;
+    fhlmap_engs_prev = ps.bookIndex
     fhlmap_chap_prev = ps.chap;
   }
 }

@@ -109,9 +109,11 @@ function generate_div_comment_content(res) {
 
         // 2017.12 詩篇 30 篇 #30| 按下去會變 undefined Bug
         eachFitDo(/#([0-9]+)\|/, t, function (m1) {
-            //var replaceTag = '<span class="commentJump" engs="Ps" chap="30" sec="1">30</span>';
+            const ps = TPPageState.s
+            const book = ps.bookIndex
+
             var chap = m1[1];
-            var replaceTag = '<span class="commentJump" engs="' + ps.engs + '" chap="' + chap + '" sec="1">' + chap + '</span>';
+            var replaceTag = '<span class="commentJump" book="' + book + '" chap="' + chap + '" sec="1">' + chap + '</span>';
             t = t.replace(m1[0], replaceTag);
         });
 

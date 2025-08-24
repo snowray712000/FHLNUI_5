@@ -39,9 +39,9 @@ export class BookSelectChapter {
         doms.off('click').on('click', function (e) {
             // ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[that.idx];
             // ps.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[that.idx];
+            ps.bookIndex = that.idx + 1; // 0-based轉1-based (book已經被注釋用掉了)
             ps.chap = parseInt($(this).attr('chap'));
             ps.sec = 1;
-            ps.bookIndex = that.idx + 1; // 0-based轉1-based (book已經被注釋用掉了)
 
             // 如果是看過的章，則跳到「那節」，而不要「第一節」
             change_sec_of_ps_if_address_exist_in_view_history();

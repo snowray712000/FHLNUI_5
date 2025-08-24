@@ -21,6 +21,8 @@ import { BookSelect } from './BookSelect.es2023.js'
 import { ai_render_tools } from './ai_render_tools_es2023.js'
 import { ParsingCache } from './ParsingCache_es2023.js'
 import { parsing_render_async } from './parsing_render_async_es2023.js'
+import { assert } from './assert_es2023.js'
+
 export class FhlInfoContent {
     static #s = null
     /** @returns {FhlInfoContent} */
@@ -214,7 +216,7 @@ export class FhlInfoContent {
                 var dom2 = document.getElementById("fhlInfoContent");
                 if (dom2 != null) {
                     var rProp = {
-                        ibook: getBookFunc("indexByEngs", ps.engs),
+                        ibook: ps.bookIndex - 1,
                         ichap: ps.chap,
                         isec: ps.sec,
                         isgb: ps.gb ? true : false,
@@ -228,20 +230,22 @@ export class FhlInfoContent {
 
                 // 有聲聖經 snow
                 {
+                    assert( ps?.bookIndex != null )
+
                     var pfn_callback = function fn_after_set(ibook, ichap) {
-                        ps.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[idx];
+
                         ps.chap = ichap + 1; //因為是0-based 與 1-based
                         ps.sec = 1;
-                        bookSelect.render(pageState, bookSelect.dom);
-                        fhlLecture.render(pageState, fhlLecture.dom);
-                        fhlInfo.render(pageState);
+                        BookSelect.s.render();
+                        FhlLecture.s.render();
+                        FhlInfo.s.render(pageState);
                     };
-                    var idx = getBookFunc("index", ps.chineses); // 0-based
+                    const book0based = ps?.bookIndex - 1
 
                     // add 2015.12.10(四) snow, 若是沒加這個條件, (前兩個, 點到節的時候會重播...但根本是同一章,不該重播), (第3個...若只加前2個條件, 不加第3個, 在從其它功能(例如典藏...切回來有聲...就不會render了)
-                    if (audiobible.g_audiobible.m_ibook != idx || audiobible.g_audiobible.m_ichap != ps.chap - 1 || ps.titleId != ps.titleIdold) {
+                    if (audiobible.g_audiobible.m_ibook != book0based || audiobible.g_audiobible.m_ichap != ps.chap - 1 || ps.titleId != ps.titleIdold) {
                         //ps.chap; // 1-based
-                        audiobible.g_audiobible.set_book_chap(idx, ps.chap - 1, dom[0]);
+                        audiobible.g_audiobible.set_book_chap(book0based, ps.chap - 1, dom[0]);
                         audiobible.g_audiobible.m_pfn_after_set = pfn_callback;
                     }
                 }

@@ -1,3 +1,4 @@
+import { TPPageState } from "./TPPageState.es2023.js";
 
 export function do_preach(ps, dom) {
     var rRender_Preach;
@@ -5,8 +6,12 @@ export function do_preach(ps, dom) {
 
     var dom2 = document.getElementById("fhlInfoContent");
     if (dom2 != null) {
+        const book = ps.bookIndex;
+        const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[book - 1];
+
         r_Preach = React.createElement(preach_api.R.frame, {
-            "engs": ps.engs,
+            "book": book,
+            "engs": engs,
             "chap": ps.chap,
             "sec": ps.sec,
             "onset": onset_Preach,

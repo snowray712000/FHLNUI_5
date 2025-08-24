@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "4.3.7",
+        "last": "4.3.9",
         "historys": [
             {
                 "na": "TODOs",
@@ -23,6 +23,12 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na":"4.3.9",
+                "na2":[
+                    "🐛 Bug: AI 工具，在特定操作後，會產生錯誤的經節的內容。",
+                    "📝 工程師筆記: .chineses 拿掉"
                 ]
             },{
                 "na": "4.3.7",

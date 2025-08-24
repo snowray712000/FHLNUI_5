@@ -27,12 +27,13 @@ export function registerEvents_doc(ps) {
         if (e.altKey && e.shiftKey) {
             var maps = {
                 'KeyS': () => {
-                    var idx = getBookFunc("index", ps.chineses);
+                    assert( ps?.bookIndex != null )
+                    const book = ps?.bookIndex
                     var position = $('#bookSelect').position();
                     position.left = '40%'; //$('#bookSelect').position().left;
                     position.top = '20%'; //$('#bookSelect').position().top+$('#bookSelect').height()+10;
                     
-                    BookSelectChapter.s.init(ps, $('#bookSelectChapter'), idx, position);
+                    BookSelectChapter.s.init(ps, $('#bookSelectChapter'), book, position);
                     BookSelectChapter.s.registerEvents(ps);
                     //isBookSelectChapterPopUp=true;
                     //bookselectchapter.dom.hide();
