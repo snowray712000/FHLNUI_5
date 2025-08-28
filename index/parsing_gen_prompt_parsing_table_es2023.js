@@ -1,3 +1,4 @@
+import { ai_get_bcvw } from "./ai_get_bcvw.js";
 
 function get_sn_shorter(sn) {
     // sn 有可能是 09003 就變 9003
@@ -7,7 +8,9 @@ function get_sn_shorter(sn) {
 
 const LRM = "\u200E"; // Left-to-Right Mark 
 const RLM = "\u200F"; // Right-to-Left Mark 
-function gen_for_greek(jsonObj, tp, jaWord, sec, exclude){
+
+
+function gen_for_greek(jsonObj, jaWord, tpAddress, address, exclude){
     // - sec，< 1，就是只使用 w1 w2，反之，使用 v2w1 v2w2
     // - 找出哪些 wid, 具有 w, 等等要被 continue 的
     const wu_w_wids = jaWord.filter( a1 => a1.wid != null && a1.wu == 'w').map( a1 => a1.wid)
@@ -33,9 +36,9 @@ function gen_for_greek(jsonObj, tp, jaWord, sec, exclude){
         if (remark == '') remark = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
         if (wform == '') wform = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
 
-        const vwid = sec < 1 ? `w${r.wid}` : `v${sec}w${r.wid}`
+        const bcvwid = ai_get_bcvw(address, r.wid, tpAddress)
         const msgs = [
-            `詞索引: \`${vwid}\``,
+            `詞索引: \`${bcvwid}\``,
             `SN: \`G${get_sn_shorter(r.sn)}\``,
             `原文字: \`${r.word}\``,
             `詞性: \`${pro}\``,
@@ -60,7 +63,8 @@ function fix_str_for_hebrew_parsing(s){
     s = s.replaceAll(RTL_RX, (match) => match + LRM)
     return s
 }
-function gen_for_hebrew(jsonObj, tp, jaWord, sec,exclude){
+
+function gen_for_hebrew(jsonObj, jaWord, tpAddress, address, exclude){
     // - sec，< 1，就是只使用 w1 w2，反之，使用 v2w1 v2w2
     // - 舊約沒 .pro 詞性
     
@@ -80,10 +84,10 @@ function gen_for_hebrew(jsonObj, tp, jaWord, sec,exclude){
         
         if (remark == '') remark = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
         if (wform == '') wform = ' ' // 因為 `` 連續 2 個會變成特殊字元，所以還是要有個空白，或是「無」
-        
-        const vwid = sec < 1 ? `w${r.wid}` : `v${sec}w${r.wid}`
+
+        const bcvwid = ai_get_bcvw(address, r.wid, tpAddress)
         const msgs = [
-            `詞索引: \`${vwid}\``,
+            `詞索引: \`${bcvwid}\``,
             `SN: \`H${get_sn_shorter(r.sn)}\``,
             `原文字: \`${r.word}\``,
             `字彙分析: \`${wform}\``,
@@ -99,17 +103,19 @@ function gen_for_hebrew(jsonObj, tp, jaWord, sec,exclude){
     }
     return msg.substring(1) // 去掉第1個 \n
 }
+
 /**
  * 
  * @param {*} jsonObj 
- * @param {*} tp 
  * @param {{w:string, wid?: number, wu?: 'w'|'u'}[]} jaWord 傳入此，協助判斷，韋式、聯式。目前版本，只顯示聯式，以後再開放設定
+ * @param {number} tpAddress 0: 只需要 w。1: 需要 v。2: 需要 c。3: 需要b。
+ * @param {number[]} address [book,chap,sec]
  * @param {{"SN"|"原文字"|"詞性"|"字彙分析"|"原型"|"原型簡義"|"備註"}[]} exclude 要排除的索引
  * @returns 
  */
-export function gen_prompt_parsing_table(jsonObj, tp, jaWord, sec = -1, exclude = ["SN", "原型"]) {
-    if (tp=='H'){
-        return gen_for_hebrew(jsonObj, tp, jaWord, sec, exclude)
+export function gen_prompt_parsing_table(jsonObj, jaWord, tpAddress, address, exclude = ["SN", "原型"]) {
+    if ( address[0] < 40 ){
+        return gen_for_hebrew(jsonObj, jaWord, tpAddress, address, exclude)
     }
-    return gen_for_greek(jsonObj, tp, jaWord, sec, exclude)
+    return gen_for_greek(jsonObj, jaWord, tpAddress, address, exclude)
 }

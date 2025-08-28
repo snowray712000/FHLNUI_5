@@ -90,6 +90,11 @@ export class TPPageState {
     /** @type {0|1|2} 0: 每次詢問，1: 直接方法1，2: 直接方法2*/
     this.reference_method = 0
 
+    /** @type {numver} 1 2 3 就是節數了，當 ai_is_auto_count_of_verse = 1 時，就無效 */
+    this.ai_count_of_verse = 3
+    /** @type {0|1} 自動，就會以「段落」自動判斷 */
+    this.ai_is_auto_count_of_verse = 0
+
     /** @type {Object.<string, number>} str 為 key ， 次數為 value。此變數不會真的需要存在 localstorage */
     this.sn_stastic = {}
   }

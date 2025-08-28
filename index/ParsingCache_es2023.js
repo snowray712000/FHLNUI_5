@@ -10,10 +10,21 @@ export class ParsingCache {
     // - 不是只有 record, 而是整個回傳值, {prev, next, record}
     // - 不是 api 最原始的，而是將 address 正規成 book chap sec 後的
     // - 不是 api 最原始的，若是舊約，會將 \r 拿掉，並且將 word 換行交換，使其與 exp 一致。
+    /** @type {{next: {book:number,chap:number,sec:number}, prev: {book:number,chap:number,sec:number}, record: any[]}} */
     _joResult = null
     // - 衍生屬性，對 render top 很有幫助，也對 ai 產生「具有 詞索引 的原文」有幫助。
     /** @type {{w:string, wid?: number, wu?: 'w'|'u'}[]} */
     _jaWord = null
+    
+    /**
+     * ### 從 record[0] 取出目前位置
+     * - 在產生多節資料時，要判定，需要用到「c」或「v」這個標記嗎，也就是需要知道有沒有跨章。
+     * @returns {number[]} [book,chap,sec]
+     */
+    get address() { 
+        const r1 = this._joResult.record[0]
+        return [r1.book, r1.chap, r1.sec]
+    }
 
 
     update_cache_and_normalize(jsonObj){        

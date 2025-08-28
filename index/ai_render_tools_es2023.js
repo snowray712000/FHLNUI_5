@@ -19,19 +19,24 @@ import { ai_translation_help_tp1a } from "./ai_translations_help_tp1a_es2023.js"
 import { ai_parsing_gen_tp1b } from "./ai_parsing_gen_tp1b_es2023.js";
 import { ai_translations_gen_tp1b } from "./ai_translations_gen_tp1b_es2023.js";
 import { ai_translation_help_tp1b } from "./ai_translations_help_tp1b_es2023.js";
+import { BibleConstant } from "./BibleConstant.es2023.js";
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
+import { ParagraphData } from "./ParagraphData_es2023.js";
+import { ai_translations_set_count_sec } from "./ai_translations_set_count_sec.js";
+import { ai_get_address_paragraph } from "./ai_get_address_paragraph.js";
+import { ai_get_limited_address_range } from "./ai_get_limited_address_range.js";
 function gen_prompt_exp(exp) {
     return exp.replace(/\n/g, "↩")
 }
 let isAlreadyRegistered = false
 
-function set_div_text_and_restor(event) {
+function set_div_text_and_restore(event) {
     // - 顯示訊息，並在 1 秒後恢復原狀
-    // - 1 秒內，不可再按 (移除 ai_parsing class)
     const text_ori = $(event.currentTarget).text()
-    $(event.currentTarget).removeClass("ai_parsing").text("已複製到剪貼簿")
+    $(event.currentTarget).text("已複製到剪貼簿")
     setTimeout(() => {
-        $(event.currentTarget).addClass("ai_parsing").text(text_ori)
-    }, 1000);
+        $(event.currentTarget).text(text_ori)
+    }, 300);
 }
 function registerEvents() {
     if (isAlreadyRegistered) {
@@ -44,24 +49,37 @@ function registerEvents() {
 
         const fn_get_basic = async () => {
             const ps = TPPageState.s;
-            const chap = ps.chap;
-            const sec = ps.sec;
-            const book = ps.bookIndex
-            const cache = await ai_parsing_get_data_async({ book, chap, sec });
-            return ai_parsing_gen_tp1(cache)
+            const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
+            const caches = await ai_parsing_get_data_async(addrs);
+            return ai_parsing_gen_tp1(caches)
+        }
+        const fn_get_multi = async () => {
+            const ps = TPPageState.s;
+            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
+            const caches = await ai_parsing_get_data_async(addrs);
+            return ai_parsing_gen_tp1(caches)
         }
 
         // - render 純文字供複製
         if (tp == "tp1") {
             await copy_text_to_clipboard(async () => await fn_get_basic())
             // - 按鈕文字變更「已複製」
-            set_div_text_and_restor(event)
+            set_div_text_and_restore(event)
         } else if (tp == "tp1a") {
             await copy_text_to_clipboard(async () => ai_parsing_gen_tp1a(await fn_get_basic()))
-            set_div_text_and_restor(event)
+            set_div_text_and_restore(event)
         } else if (tp == "tp1b") {
             await copy_text_to_clipboard(async () => ai_parsing_gen_tp1b(await fn_get_basic()))
-            set_div_text_and_restor(event)
+            set_div_text_and_restore(event)
+        } else if (tp == "tp2") {
+            await copy_text_to_clipboard(async () => await fn_get_multi())
+            set_div_text_and_restore(event)
+        } else if (tp == "tp2a"){
+            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1a(await fn_get_multi()))
+            set_div_text_and_restore(event)
+        } else if (tp == "tp2b"){
+            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1b(await fn_get_multi()))
+            set_div_text_and_restore(event)
         }
     })
 
@@ -91,23 +109,63 @@ function registerEvents() {
                 const text_copy = ai_translations_gen_tp1(a1)
                 return text_copy
             })
-            set_div_text_and_restor(event)
+            set_div_text_and_restore(event)
 
-            
+
         } else if (tp == "tp1a") {
             await copy_text_to_clipboard(async () => {
                 // - 抓譯本資料，並且轉換
-                const addrs = [[ps.bookIndex, ps.chap, ps.sec]]            
+                const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
                 const a1 = await ai_translations_get_data_async(addrs, translations)
                 const text_copy = ai_translations_gen_tp1(a1)
                 const text_copy2 = ai_translations_gen_tp1a(text_copy)
                 return text_copy2
             })
-            set_div_text_and_restor(event)
-        } else if (tp == "tp1b"){
+            set_div_text_and_restore(event)
+        } else if (tp == "tp1b") {
             await copy_text_to_clipboard(async () => {
                 const parsing_and_translations = await Promise.all([
-                    ai_parsing_get_data_async({ book: ps.bookIndex, chap: ps.chap, sec: ps.sec }),
+                    ai_parsing_get_data_async([[ps.bookIndex, ps.chap, ps.sec]]),
+                    ai_translations_get_data_async(addrs, translations)
+                ])
+                const parsing_standard_content = ai_parsing_gen_tp1(parsing_and_translations[0][0])
+                const translation_standard_content = ai_translations_gen_tp1(parsing_and_translations[1])
+                const text_copy = ai_translations_gen_tp1b(parsing_standard_content, translation_standard_content)
+                return text_copy
+            })
+            set_div_text_and_restore(event)
+        } else if (tp == "tp2") {
+            const ps = TPPageState.s;
+            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
+            
+            // - 按鈕文字變更「已複製」
+            await copy_text_to_clipboard(async () => {
+                // - 抓譯本資料，並且轉換
+                const a1 = await ai_translations_get_data_async(addrs, translations)
+                // - 產生 #譯本資料 標準內容
+                const text_copy = ai_translations_gen_tp1(a1)
+                return text_copy
+            })
+            set_div_text_and_restore(event)
+        } else if (tp == "tp2a") {
+            const ps = TPPageState.s;
+            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
+
+            await copy_text_to_clipboard(async () => {
+                // - 抓譯本資料，並且轉換
+                const a1 = await ai_translations_get_data_async(addrs, translations)
+                const text_copy = ai_translations_gen_tp1(a1)
+                const text_copy2 = ai_translations_gen_tp1a(text_copy)
+                return text_copy2
+            })
+            set_div_text_and_restore(event)
+        } else if (tp == "tp2b") {
+            const ps = TPPageState.s;
+            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
+
+            await copy_text_to_clipboard(async () => {
+                const parsing_and_translations = await Promise.all([
+                    ai_parsing_get_data_async(addrs),
                     ai_translations_get_data_async(addrs, translations)
                 ])
                 const parsing_standard_content = ai_parsing_gen_tp1(parsing_and_translations[0])
@@ -115,7 +173,7 @@ function registerEvents() {
                 const text_copy = ai_translations_gen_tp1b(parsing_standard_content, translation_standard_content)
                 return text_copy
             })
-            set_div_text_and_restor(event)
+            set_div_text_and_restore(event)
         }
     })
 
@@ -129,42 +187,89 @@ function registerEvents() {
             ai_translation_help_tp1b(event)
         }
     })
+    $("#fhlInfoContent").on("click", ".setting", function (event) {
+        const tp = $(event.currentTarget).attr("tp") || 'tp1';
+        if (tp == 'count_of_verse') {
+            ai_translations_set_count_sec(event)
+        }
+    })
+
+}
+/**
+ * tp2 要用
+ * @param {number[]} addr [book,chap,sec] 起始節
+ * @returns {number[][]}
+ */
+function get_addrs_multi_verse(addr) {
+    const ps = TPPageState.s
+    const addrs = ps.ai_is_auto_count_of_verse == 1 ? ai_get_address_paragraph(addr) : ai_get_limited_address_range(addr, ps.ai_count_of_verse)
+    return addrs;
+}
+function render_setting_about_multi_verse() {
+    return $("<span class='setting' tp='count_of_verse'> 🔧 </span>")
 }
 function render_ai_parsing_tp1_core(method) {
-    const tp_text_dict = { "tp1": "1:複製原文資料", "tp1a": "1a:結構分析", "tp1b": "1b:結構與對話" };
+    const tp_text_dict = { "tp1": "1:複製原文資料", "tp1a": "1a:結構分析", "tp1b": "1b:結構與對話", "tp2": "2: 多節", "tp2a": "2a:", "tp2b": "2b:" };
     const tp_text = tp_text_dict[method] ?? "unknown";
     const result = $("<div class='btn btn-outline-primary'></div>")
+
+    // 描述
     $("<span class='ai_parsing' method='" + method + "'>" + tp_text + "</span>").appendTo(result);
-    $("<span class='ai_parsing_help' method='" + method + "'>❓</span>").appendTo(result);
+    
+    // ❓
+    if ( ["tp1", "tp1a", "tp1b"].indexOf(method) >= 0 ) {
+        $("<span class='ai_parsing_help' method='" + method + "'>❓</span>").appendTo(result);
+    }
+
+    // 🔧
+    if (method == "tp2") {
+        render_setting_about_multi_verse().appendTo(result);
+    }
     return result;
 }
 function render_ai_translation_tp1_core(method) {
-    const tp_text_dict = { "tp1": "1:譯本資料", "tp1a": "1a:對齊後比較", "tp1b": "1b:加入原文分析" };
+    const tp_text_dict = { "tp1": "1:譯本資料", "tp1a": "1a:對齊後比較", "tp1b": "1b:加入原文分析", "tp2": "2:多節", "tp2a": "2a:", "tp2b": "2b:" };
     const tp_text = tp_text_dict[method] ?? "unknown";
     const result = $("<div class='btn btn-outline-primary'></div>")
     $("<span class='ai_translation' method='" + method + "'>" + tp_text + "</span>").appendTo(result);
-    $("<span class='ai_translation_help' method='" + method + "'>❓</span>").appendTo(result);
+    
+    // ❓
+    if ( ["tp1", "tp1a", "tp1b"].indexOf(method) >= 0 ) {
+        $("<span class='ai_translation_help' method='" + method + "'>❓</span>").appendTo(result);
+    }
+
+    // 🔧
+    if (method == "tp2") {
+        render_setting_about_multi_verse().appendTo(result);
+    }
     return result;
 }
+
 
 export function ai_render_tools() {
     // - 初期，以需求導向一個個開發，當變多時，再分類
     let fhlInfoContent = $("#fhlInfoContent");
     fhlInfoContent.html('')
 
-    // $("<div> 開發測試中... </div>").appendTo(fhlInfoContent);
+    // // $("<div> 開發測試中... </div>").appendTo(fhlInfoContent);
 
     fhlInfoContent.append("<h5>原文相關</h5>")
 
     render_ai_parsing_tp1_core('tp1').appendTo(fhlInfoContent);
     render_ai_parsing_tp1_core('tp1a').appendTo(fhlInfoContent);
     render_ai_parsing_tp1_core('tp1b').appendTo(fhlInfoContent);
+    render_ai_parsing_tp1_core('tp2').appendTo(fhlInfoContent);
+    render_ai_parsing_tp1_core('tp2a').appendTo(fhlInfoContent);
+    render_ai_parsing_tp1_core('tp2b').appendTo(fhlInfoContent);
 
     fhlInfoContent.append("<h5>譯本比較相關</h5>")
 
     render_ai_translation_tp1_core('tp1').appendTo(fhlInfoContent);
     render_ai_translation_tp1_core('tp1a').appendTo(fhlInfoContent);
     render_ai_translation_tp1_core('tp1b').appendTo(fhlInfoContent);
+    render_ai_translation_tp1_core('tp2').appendTo(fhlInfoContent);
+    render_ai_translation_tp1_core('tp2a').appendTo(fhlInfoContent);
+    render_ai_translation_tp1_core('tp2b').appendTo(fhlInfoContent);
 
     if (isAlreadyRegistered == false) {
         registerEvents();

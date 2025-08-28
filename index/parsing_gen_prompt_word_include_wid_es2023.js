@@ -1,3 +1,5 @@
+import { ai_get_bcvw } from "./ai_get_bcvw.js";
+
 const RTL_RX = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F]/; // 希伯來/阿拉伯等
 function is_hebrew(s) {
   return RTL_RX.test(s);
@@ -23,7 +25,13 @@ function isHebrew_jaWord(jaWord) {
   return false;
 }
 
-export function gen_prompt_word_include_wid(jaWord, sec = -1) {
+/**
+ * @param {any} jaWord 
+ * @param {number[]} address [book,chap,sec]
+ * @param {0|1|2|3} tpAddress 3 need b, 2 need c, 1 need v, 0 need w
+ * @returns 
+ */
+export function gen_prompt_word_include_wid(jaWord, address = [], tpAddress = 0) {
   // ### 產生 Parsing 上面那段 原文
   // - 先判定此是新約，還是舊約。
   const isHebrew = isHebrew_jaWord(jaWord);
@@ -48,13 +56,8 @@ export function gen_prompt_word_include_wid(jaWord, sec = -1) {
 
     // - 原文物件與非原文物件不用再加空白，因為符號的字串中，原本的空白都還存在
     if (item.wid) {
-      if (sec < 1) {
-        // w1 w2
-        text += `w${item.wid} \`${item.w}\``
-      } else {
-        // v1w1
-        text += `v${sec}w${item.wid} \`${item.w}\``
-      }
+      const bcvwid = ai_get_bcvw(address, item.wid, tpAddress)
+      text += `${bcvwid} \`${item.w}\``
     } else {
       // - 連字號，希伯來文會有的。前後要再加空白，使 ai 更易斷開單詞
       if (isHebrew && item.w.includes('־')) {
