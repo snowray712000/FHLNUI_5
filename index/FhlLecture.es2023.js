@@ -525,7 +525,7 @@ async function renderLectureHtml(that) {
             n.push($(e).attr('n'))
         })
         // 檢查: 理論上，所有 n 都是同個值
-        const isTheSame_n = true
+        let isTheSame_n = true
         for (let i = 1; i < n.length; i++) {
             if (n[i] !== n[0]) {
                 isTheSame_n = false
