@@ -38,6 +38,100 @@ function set_div_text_and_restore(event) {
         $(event.currentTarget).text(text_ori)
     }, 300);
 }
+async function reg_on_click_ai_parsing_async(event) {
+
+    const tp = $(event.currentTarget).attr("method") || 'tp0';
+
+    const fn_get_basic = async () => {
+        const ps = TPPageState.s;
+        const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
+        const caches = await ai_parsing_get_data_async(addrs);
+        return ai_parsing_gen_tp1(caches)
+    }
+    const fn_get_multi = async () => {
+        const ps = TPPageState.s;
+        const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
+        const caches = await ai_parsing_get_data_async(addrs);
+        return ai_parsing_gen_tp1(caches)
+    }
+
+    // - render 純文字供複製
+    if (tp == "tp1") {
+        await copy_text_to_clipboard(async () => await fn_get_basic())
+        // - 按鈕文字變更「已複製」
+        set_div_text_and_restore(event)
+    } else if (tp == "tp1a") {
+        await copy_text_to_clipboard(async () => ai_parsing_gen_tp1a(await fn_get_basic()))
+        set_div_text_and_restore(event)
+    } else if (tp == "tp1b") {
+        await copy_text_to_clipboard(async () => ai_parsing_gen_tp1b(await fn_get_basic()))
+        set_div_text_and_restore(event)
+    } else if (tp == "tp2") {
+        await copy_text_to_clipboard(async () => await fn_get_multi())
+        set_div_text_and_restore(event)
+    } else if (tp == "tp2a") {
+        await copy_text_to_clipboard(async () => ai_parsing_gen_tp1a(await fn_get_multi()))
+        set_div_text_and_restore(event)
+    } else if (tp == "tp2b") {
+        await copy_text_to_clipboard(async () => ai_parsing_gen_tp1b(await fn_get_multi()))
+        set_div_text_and_restore(event)
+    }
+}
+async function reg_on_click_ai_translation_async(event) {
+    const tp = $(event.currentTarget).attr("method") || 'tp1';
+
+    const fn_get_addresses = () => {
+        // tp1 開頭
+        if (/tp1/.test(tp)) {
+            const ps = TPPageState.s;
+            const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
+            return addrs
+        } else {
+            const ps = TPPageState.s;
+            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
+            return addrs
+        }
+    }
+
+    const addrs = fn_get_addresses()
+    const translations = ps.version
+
+    if (tp == "tp1" || tp == "tp2") {
+        await copy_text_to_clipboard(async () => {
+            // - 抓譯本資料，並且轉換
+            const a1 = await ai_translations_get_data_async(addrs, translations)
+            // - 產生 #譯本資料 標準內容
+            const text_copy = ai_translations_gen_tp1(a1)
+            return text_copy
+        })
+        // - 按鈕文字變更「已複製」
+        set_div_text_and_restore(event)
+    } else if (tp == "tp1a" || tp == "tp2a") {
+        await copy_text_to_clipboard(async () => {
+            // - 抓譯本資料，並且轉換
+            const a1 = await ai_translations_get_data_async(addrs, translations)
+            const text_copy = ai_translations_gen_tp1(a1)
+            const text_copy2 = ai_translations_gen_tp1a(text_copy)
+            return text_copy2
+        })
+        set_div_text_and_restore(event)
+    } else if (tp == "tp1b" || tp == "tp2b") {
+        await copy_text_to_clipboard(async () => {
+            const parsing_and_translations = await Promise.all([
+                ai_parsing_get_data_async(addrs),
+                ai_translations_get_data_async(addrs, translations)
+            ])
+            const parsing_caches = parsing_and_translations[0]
+            const translations_data = parsing_and_translations[1]
+
+            const parsing_standard_content = ai_parsing_gen_tp1(parsing_caches)
+            const translation_standard_content = ai_translations_gen_tp1(translations_data)
+            const text_copy = ai_translations_gen_tp1b(parsing_standard_content, translation_standard_content)
+            return text_copy
+        })
+        set_div_text_and_restore(event)
+    }
+}
 function registerEvents() {
     if (isAlreadyRegistered) {
         return
@@ -45,42 +139,7 @@ function registerEvents() {
     isAlreadyRegistered = true
 
     $("#fhlInfoContent").on("click", ".ai_parsing", async function (event) {
-        const tp = $(event.currentTarget).attr("method") || 'tp0';
-
-        const fn_get_basic = async () => {
-            const ps = TPPageState.s;
-            const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
-            const caches = await ai_parsing_get_data_async(addrs);
-            return ai_parsing_gen_tp1(caches)
-        }
-        const fn_get_multi = async () => {
-            const ps = TPPageState.s;
-            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
-            const caches = await ai_parsing_get_data_async(addrs);
-            return ai_parsing_gen_tp1(caches)
-        }
-
-        // - render 純文字供複製
-        if (tp == "tp1") {
-            await copy_text_to_clipboard(async () => await fn_get_basic())
-            // - 按鈕文字變更「已複製」
-            set_div_text_and_restore(event)
-        } else if (tp == "tp1a") {
-            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1a(await fn_get_basic()))
-            set_div_text_and_restore(event)
-        } else if (tp == "tp1b") {
-            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1b(await fn_get_basic()))
-            set_div_text_and_restore(event)
-        } else if (tp == "tp2") {
-            await copy_text_to_clipboard(async () => await fn_get_multi())
-            set_div_text_and_restore(event)
-        } else if (tp == "tp2a"){
-            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1a(await fn_get_multi()))
-            set_div_text_and_restore(event)
-        } else if (tp == "tp2b"){
-            await copy_text_to_clipboard(async () => ai_parsing_gen_tp1b(await fn_get_multi()))
-            set_div_text_and_restore(event)
-        }
+        await reg_on_click_ai_parsing_async(event)
     })
 
     $("#fhlInfoContent").on("click", ".ai_parsing_help", function (event) {
@@ -94,87 +153,7 @@ function registerEvents() {
         }
     })
     $("#fhlInfoContent").on("click", ".ai_translation", async function (event) {
-        const tp = $(event.currentTarget).attr("method") || 'tp1';
-
-        // - 準備參數，給 api 用
-        const ps = TPPageState.s;
-        const translations = ps.version
-        const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
-        if (tp == "tp1") {
-            // - 按鈕文字變更「已複製」
-            await copy_text_to_clipboard(async () => {
-                // - 抓譯本資料，並且轉換
-                const a1 = await ai_translations_get_data_async(addrs, translations)
-                // - 產生 #譯本資料 標準內容
-                const text_copy = ai_translations_gen_tp1(a1)
-                return text_copy
-            })
-            set_div_text_and_restore(event)
-
-
-        } else if (tp == "tp1a") {
-            await copy_text_to_clipboard(async () => {
-                // - 抓譯本資料，並且轉換
-                const addrs = [[ps.bookIndex, ps.chap, ps.sec]]
-                const a1 = await ai_translations_get_data_async(addrs, translations)
-                const text_copy = ai_translations_gen_tp1(a1)
-                const text_copy2 = ai_translations_gen_tp1a(text_copy)
-                return text_copy2
-            })
-            set_div_text_and_restore(event)
-        } else if (tp == "tp1b") {
-            await copy_text_to_clipboard(async () => {
-                const parsing_and_translations = await Promise.all([
-                    ai_parsing_get_data_async([[ps.bookIndex, ps.chap, ps.sec]]),
-                    ai_translations_get_data_async(addrs, translations)
-                ])
-                const parsing_standard_content = ai_parsing_gen_tp1(parsing_and_translations[0][0])
-                const translation_standard_content = ai_translations_gen_tp1(parsing_and_translations[1])
-                const text_copy = ai_translations_gen_tp1b(parsing_standard_content, translation_standard_content)
-                return text_copy
-            })
-            set_div_text_and_restore(event)
-        } else if (tp == "tp2") {
-            const ps = TPPageState.s;
-            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
-            
-            // - 按鈕文字變更「已複製」
-            await copy_text_to_clipboard(async () => {
-                // - 抓譯本資料，並且轉換
-                const a1 = await ai_translations_get_data_async(addrs, translations)
-                // - 產生 #譯本資料 標準內容
-                const text_copy = ai_translations_gen_tp1(a1)
-                return text_copy
-            })
-            set_div_text_and_restore(event)
-        } else if (tp == "tp2a") {
-            const ps = TPPageState.s;
-            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
-
-            await copy_text_to_clipboard(async () => {
-                // - 抓譯本資料，並且轉換
-                const a1 = await ai_translations_get_data_async(addrs, translations)
-                const text_copy = ai_translations_gen_tp1(a1)
-                const text_copy2 = ai_translations_gen_tp1a(text_copy)
-                return text_copy2
-            })
-            set_div_text_and_restore(event)
-        } else if (tp == "tp2b") {
-            const ps = TPPageState.s;
-            const addrs = get_addrs_multi_verse([ps.bookIndex, ps.chap, ps.sec])
-
-            await copy_text_to_clipboard(async () => {
-                const parsing_and_translations = await Promise.all([
-                    ai_parsing_get_data_async(addrs),
-                    ai_translations_get_data_async(addrs, translations)
-                ])
-                const parsing_standard_content = ai_parsing_gen_tp1(parsing_and_translations[0])
-                const translation_standard_content = ai_translations_gen_tp1(parsing_and_translations[1])
-                const text_copy = ai_translations_gen_tp1b(parsing_standard_content, translation_standard_content)
-                return text_copy
-            })
-            set_div_text_and_restore(event)
-        }
+        await reg_on_click_ai_translation_async(event)
     })
 
     $("#fhlInfoContent").on("click", ".ai_translation_help", function (event) {
@@ -215,9 +194,9 @@ function render_ai_parsing_tp1_core(method) {
 
     // 描述
     $("<span class='ai_parsing' method='" + method + "'>" + tp_text + "</span>").appendTo(result);
-    
+
     // ❓
-    if ( ["tp1", "tp1a", "tp1b"].indexOf(method) >= 0 ) {
+    if (["tp1", "tp1a", "tp1b"].indexOf(method) >= 0) {
         $("<span class='ai_parsing_help' method='" + method + "'>❓</span>").appendTo(result);
     }
 
@@ -232,9 +211,9 @@ function render_ai_translation_tp1_core(method) {
     const tp_text = tp_text_dict[method] ?? "unknown";
     const result = $("<div class='btn btn-outline-primary'></div>")
     $("<span class='ai_translation' method='" + method + "'>" + tp_text + "</span>").appendTo(result);
-    
+
     // ❓
-    if ( ["tp1", "tp1a", "tp1b"].indexOf(method) >= 0 ) {
+    if (["tp1", "tp1a", "tp1b"].indexOf(method) >= 0) {
         $("<span class='ai_translation_help' method='" + method + "'>❓</span>").appendTo(result);
     }
 
