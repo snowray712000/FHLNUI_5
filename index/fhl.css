@@ -2003,6 +2003,19 @@ nav#fhlTopMenu {
 .item-title {
     color: green;
 }
+.parsing-verb {
+    /* 鮮橘色 動作感強 */
+    color: #FF6600;
+}
+.parsing-conj {
+    /* 深紅色 結構轉折感*/
+    color: firebrick; 
+}
+.parsing-prep {
+    /* 赭紅棕色，穩重顯眼 */
+    color: sienna;
+}
+
 
 #parsingPopUpInside {
   white-space:nowrap;

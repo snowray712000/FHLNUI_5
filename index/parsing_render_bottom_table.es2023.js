@@ -50,7 +50,22 @@ function render_word_span(one_item, tpHG) {
 
     return result
 }
-
+function get_pro_class(pro){
+    // ### 為了 「動詞」「連接詞」「介系詞」這三個詞性，做特別的顏色
+    // - 但順便作其它的詞性
+    // - 新約才有 pro
+    
+    // 動詞 連接詞 介系詞
+    
+    if(/動詞/.test(pro)){
+        return 'parsing-verb'
+    } else if(/連接詞/.test(pro)){
+        return 'parsing-conj'
+    } else if(/介系詞/.test(pro)){
+        return 'parsing-prep'
+    }
+    return ''
+}
 /**
  * render parsing 工具，下半部的 table
  * 從 fhlInfoContent 中被提取的程式碼
@@ -112,7 +127,11 @@ export function parsing_render_bottom_table(jsonObj, tp) {
         // pro 詞性 (新約)
         if (tp == 'G') {
             divOne.append("<span class='item-title'>詞性: </span>")
-            divOne.append($("<span></span>").text(r.pro))
+
+            const pro_class = get_pro_class(r.pro)
+            let pro_span = $("<span></span>").addClass(pro_class).text(r.pro)
+
+            divOne.append(pro_span)
             divOne.append(white_char)
         }
 
