@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "4.4.7",
+        "last": "4.4.9",
         "historys": [
             {
                 "na": "TODOs",
@@ -25,6 +25,13 @@
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]
             },{
+                "na":"4.4.9",
+                "na2":[
+                    "🎦 Youtube說明: <a href='https://youtu.be/BuSAjY-bW7U' target='_blank'>NUI 4.4.9 新功能說明</a>",
+                    "🐛 Bug: 恩典，會因為 3588 冠詞的存在，沒被判定它是「恩典」，於是在「滑鼠移過去，同原文，或同源字，就不會觸發」。片斷資料: 的恩典{<3588>}<5485>(弗1:6)",
+                    "📈 優化: Parsing 詞性，「動詞」「連接詞」「介系詞」對結構分析過程重要，所以給它上色。"
+                ]
+            },{
                 "na":"4.4.7",
                 "na2":[
                     "🐛 Bug: AI 產生譯本比較，b功能無法使用。"
@@ -42,6 +49,7 @@
             },{
                 "na":"4.4.1",
                 "na2":[
+                    "🎦 Youtube說明: <a href='https://youtu.be/AuY48FVPOVg' target='_blank'>NUI 4.4.1 新功能說明</a>",
                     "🆕 新功能: AI 可產生「多節」資料。",
                     "📈 優化: 原文分析，改稱為「參考資料: 原文」，因為「譯本資料」也是參考資料，這樣才能一起用",
                     "📝 工程師筆記: 多節，要可跨章，因為結構可能跨章，但不該跨書卷。"
@@ -72,6 +80,7 @@
             },{
                 "na": "4.3.3",
                 "na2":[
+                    "🎦 Youtube說明: <a href='https://youtu.be/tBf0KJwqaNs' target='_blank'>NUI 4.3.1 - 4.3.3 新功能說明</a>",
                     "🆕 新功能: 產生「譯本資料」的 2 個範例。"
                 ]
             },{
