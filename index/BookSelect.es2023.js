@@ -66,7 +66,7 @@ export class BookSelect {
                         'color': '#FFFFFF'
                     });
 
-                    $(that).trigger('chapchanged');
+                    $(document).trigger('chapchanged');
                 })
                 
                 Ijnjs.BookChapDialog.s.show({ book: ps.bookIndex, chap: ps.chap, isGb: ps.gb == 1 })

@@ -65,8 +65,10 @@ import { Search_DataForGroupUi } from './Search_DataForGroupUi_es2023.js'
 import { Search_UiOfGroupRender } from './Search_UiOfGroupRender_es2023.js'
 import { Search_initializePreSearchEventHandlersAsync } from './Search_initializePreSearchEventHandlersAsync_es2023.js'
 import { Search_continue_search } from './Search_continue_search_es2023.js'
-import { Search_create_dialog_search_result } from './Search_create_dialog_search_result_es2023.js' 
+import { Search_create_dialog_search_result } from './Search_create_dialog_search_result_es2023.js'
 import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
+import { hash_change_on_initial } from './hash_change_on_initial.js'
+import { Hash_Changed } from './Hash_Changed.js'
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
     window.getBookFunc = getBookFunc
@@ -135,7 +137,7 @@ import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
         configurable: true, // 允許重新定義
         enumerable: true    // 允許列舉
     });
-    
+
 
     // 串珠也會用到，但串珠沒有這幾個函式定義
     // window.BibleConstantEs6Js = BibleConstantEs6Js 
@@ -146,7 +148,7 @@ import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
 
     load_json_gz_Async()
     ParagraphData.s.isReadyAndStartingIfNeed()
-    
+
     window.fhlLecture = FhlLecture.s
 
     if (AppVersion.s.testIsLastVersion() == true || false) {
@@ -192,7 +194,7 @@ import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
                     // 'renderTsk', //es 模式成功，讓這個被拿掉
                     // 'SnBranchRender', //es 模式成功，讓這個被拿掉
                     // 'fontSizeTool',
-                    
+
                     // 'versionSelect',
                     // 'docEvent',
                     // 'viewHistory',
@@ -219,7 +221,7 @@ import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
                 ]
 
 
-                Ijnjs.getCacheAsync(files, false, 'index').then(caches => {
+                Ijnjs.getCacheAsync(files, false, 'index').then(async caches => {
                     Ijnjs.cachesIndex = caches
                     testThenDoAsync({
                         cbTest: caches.getList().length == 0,
@@ -228,13 +230,15 @@ import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
                     }).then(a1 => {
                         delete Ijnjs.cachesIndex
                     })
-                    
+
                     doNoReadyStep1()
                     doNoReadyStep2() //廢棄                    
                     doNoReadyStep3()
 
                     // doNoReadyStep1 會載入這個全域變數
                     init_fontsize_css_variable_from_pagestate(TPPageState.s)
+
+                    await hash_change_on_initial()
 
                     doReadyStep1()
                     doReadyStep2()
@@ -283,14 +287,27 @@ import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
     }
 
 
-    $(()=>{
+    $(() => {
         setTimeout(() => {
-            $(window).off("hashchange").on("hashchange", ev =>{
-                console.log(ev);
-                console.log(window.location.hash); // #/bible/Ge/3/5 (舊版) #/bible/創1:1-41 (新版)
+            $(window).off("hashchange").on("hashchange", async ev => {
+
+                const hc = Hash_Changed.s
+                if (hc.is_setting_by_code() == true) {
+                    console.warn("ignore once hashchange event");
+                    hc.reset_is_setting_by_code()
+                    return
+                }
+
+                await hash_change_on_initial()
                 
+                const ps = TPPageState.s
+                $(document).trigger('go', { book: ps.bookIndex, chap: ps.chap, sec: ps.sec })
+
+                BookSelect.s.render();
+                FhlInfo.s.render(ps);
+                FhlLecture.s.render();
             })
-            
+
         }, 100);
     })
     // Ijnjs.loadJsSync('ijnjs-fhl/ijnjs-fhl.js')
@@ -308,7 +325,7 @@ import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
 
 })(this ?? window)
 
-function init_fontsize_css_variable_from_pagestate(ps){
+function init_fontsize_css_variable_from_pagestate(ps) {
     document.body.style.setProperty("--fontsize", ps.fontSize + "pt")
     document.body.style.setProperty("--fontsize-greek", ps.fontSizeGreek + "pt")
     document.body.style.setProperty("--fontsize-hebrew", ps.fontSizeHebrew + "pt")
@@ -434,7 +451,7 @@ function doReadyStep1() {
      * 用在 #lecMain fhl.css 樣式中的 padding-right
      */
     function calcScrollWidthAndSetToCssBodyVariable() {
-        $(()=>{
+        $(() => {
             $(document.body).css('overflow', 'scroll')
             // console.log(window.innerWidth)
             // console.log(document.body.clientWidth)
@@ -457,7 +474,7 @@ function doReadyStep2() {
         FhlLeftWindow.s.init(TPPageState.s);
         FhlMidWindow.s.init(TPPageState.s);
         FhlInfo.s.init(TPPageState.s);
-        registerEvents_doc(TPPageState.s);        
+        registerEvents_doc(TPPageState.s);
 
         $('#title')[0].firstChild.nodeValue = TPPageState.s.gb === 1 ? "信望爱圣经工具 " : "信望愛聖經工具 ";
         // console.log($('#title')[0].childNodes[1]);

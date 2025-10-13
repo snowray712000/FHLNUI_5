@@ -140,20 +140,15 @@ function doLast1() {
       }) // bible event
       $(window).trigger('hashchange')
 
-      $(fhlLecture).on('chapchanged', function () {
-        var bookEn = BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1]
-        history.pushState(null, null, '#/bible/' + bookEn + '/' + pageState.chap)
+      $(document).on('chapchanged', function () {
+        const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[pageState.bookIndex - 1]
+        history.pushState(null, null, `#/bible/${bookName}${pageState.chap}:${pageState.sec}`)
       });
-      $(fhlLecture).on('secchanged', function () {
-        var bookEn = BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1];
-        history.replaceState(null, null, '#/bible/' + bookEn + '/' + pageState.chap + '/' + pageState.sec)
+      $(document).on('secchanged', function () {        
+        const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[pageState.bookIndex - 1]
+        history.replaceState(null, null, `#/bible/${bookName}${pageState.chap}:${pageState.sec}`)
       });
-      $(fhlLecture).trigger('secchanged')
-
-      $(bookSelectChapter).on('chapchanged', function () {
-        var bookEn = BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS[pageState.bookIndex - 1]
-        history.pushState(null, null, '#/bible/' + bookEn + '/' + pageState.chap)
-      })
+      $(document).trigger('secchanged')
     });
   }
   // addViewHistoryEvents 重構至獨立檔案

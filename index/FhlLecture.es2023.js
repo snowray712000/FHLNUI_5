@@ -708,7 +708,7 @@ function when_click_chapback(e) {
 
     e.stopPropagation();
 
-    $('#fhlLecture').trigger('chapchanged'); // 變更 history.
+    $(document).trigger('chapchanged'); // 變更 history.
 }
 function when_click_chapnext(e) {
     /** @type {TPPageState} */
@@ -749,7 +749,7 @@ function when_click_chapnext(e) {
 
     e.stopPropagation();
 
-    $('#fhlLecture').trigger('chapchanged');
+    $(document).trigger('chapchanged');
 }
 /**
  * @param {Event} e 
@@ -804,7 +804,7 @@ function when_click_on_lec(e, $lecMain) {
     
     // 2017.08
     if (oldsec != ps.sec || oldchap != ps.chap)
-        $lecMain.trigger('secchanged')
+        $(document).trigger('secchanged')
 }
 /**
  * 更新 ps.book_hover, ps.chap_hover, ps.sec_hover

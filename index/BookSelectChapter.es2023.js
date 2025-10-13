@@ -56,7 +56,7 @@ export class BookSelectChapter {
             //bookselectchapter.dom.hide();
             BookSelect.s.dom.css({ 'color': '#FFFFFF' });
 
-            $(that).trigger('chapchanged');
+            $(document).trigger('chapchanged');
         })
     }
     render(ps, dom, idx) {
