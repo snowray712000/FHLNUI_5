@@ -131,7 +131,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         /** @type {DQsbParam} */
         let argsQsb = {
             qstr: addrsDescription,
-            version: version,
+            ver: version,
             bookDefault,
         }
         qsbAsync(argsQsb).then(a1 => {

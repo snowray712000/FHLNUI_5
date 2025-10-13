@@ -3,6 +3,7 @@ import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { getAjaxUrl } from "./getAjaxUrl.es2023.js";
 import { isRDLocation } from "./isRDLocation.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
+import { qsbAsync } from "./qsbAsync.es2023.js";
 
 // renderLectureHtml @ FhlLecture.js
 /**
@@ -18,7 +19,7 @@ export async function lecture_get_data_async() {
         if (ver == "fhlwh") {
             return get_fhlwh(book, chap)
         } else {
-            return get_from_qb_php(book, chap, gb, ver)
+            return get_from_qsb_php_async(book, chap, gb, ver)
         }
     })
 
@@ -33,6 +34,7 @@ export async function lecture_get_data_async() {
     if ( idx_bhs != -1){
         modify_bhs_bible_text(joResults[idx_bhs])
     }
+    
     return joResults
 }
 
@@ -149,14 +151,23 @@ async function get_fhlwh(book, chap) {
     }
     return joResult
 }
-async function get_from_qb_php(book, chap, gb, version) {
-    // "https://bible.fhl.net/json/qb.php?chineses=%E5%89%B5&chap=1&version=bhs&strong=1&gb=0"
-    // const domain = isRDLocation() ? "https://bible.fhl.net" : ""
-    const domain = isRDLocation() ? "http://127.0.0.1:5600" : ""
-    const endpoint = '/json/qb.php'
-    const chineses = BibleConstantHelper.getBookNameArrayChineseShort()[book - 1]
-    const params = `?chineses=${chineses}&chap=${chap}&version=${version}&strong=1&gb=${gb}`
-    const url = `${domain}${endpoint}${params}`
-    const response = await fetch(url)
-    return await response.json()
+
+async function get_from_qsb_php_async(book, chap, gb, version){
+    // - 產生 qstr
+    const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[book - 1]
+    const qstr = `${bookName}${chap}`
+    const qsbParams = { qstr: qstr, ver: version, isGb: gb }
+
+    const joResult = await qsbAsync(qsbParams)
+
+    // qb 會回傳 prev next, 但 qsb 不會，所以要自己產生
+    // joResult.prev = {book:1,chap:2,sec:1}
+    // joResult.next = {book:1,chap:4,sec:1}
+    const ps = TPPageState.s
+    const isgb = ps.gb == 1
+    const v_name = abvphp.get_cname_from_book(version, isgb)
+    joResult.v_name = v_name
+    joResult.version = version
+
+    return joResult
 }
