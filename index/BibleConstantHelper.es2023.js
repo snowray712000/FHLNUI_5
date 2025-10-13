@@ -151,6 +151,13 @@ export class BibleConstantHelper {
         }
         return BibleConstant.COUNT_OF_VERSE[book - 1][chap - 1];
     }
+    static getCountChapOfBook(book){
+        if ( book < 1 || book > 66 ){
+            console.error(`Invalid book number: ${book}. It should be between 1 and 66.`);
+            return 0
+        }
+        return BibleConstant.COUNT_OF_CHAP[book - 1];
+    }
 
     /**
      * 內部方法：產生名稱到 ID 的映射
