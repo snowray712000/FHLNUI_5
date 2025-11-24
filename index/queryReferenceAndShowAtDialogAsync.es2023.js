@@ -15,7 +15,9 @@ import { BookSelect } from "./BookSelect.es2023.js"
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js"
 
 import markdownit from 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
-
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
+import { cvt_others } from "./cvt_others.js"
+import { prepare_dtexts_for_html } from "./prepare_dtexts_for_html.js"
 /**
  * 開發給 原字Parsing時，點擊原文字，要跳出字典內容
  * 像串珠功能，就是直接有 addrsDescription, 而非 addrs[]
@@ -23,12 +25,12 @@ import markdownit from 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
  * @returns {Promise<void>}
  */
 export function queryReferenceAndShowAtDialogAsync(jo) {
-    if (jo.addrs == null && jo.addrsDescription == null ){
+    if (jo.addrs == null && jo.addrsDescription == null) {
         throw new Error("assert .addrs != null || .addrDescription != null")
     }
-    if (jo.event == null ){
+    if (jo.event == null) {
         show_in_dialog() // 原本程式碼
-        return 
+        return
     } else {
         const reference_method = TPPageState.s.reference_method
         if (reference_method == 0) {
@@ -41,9 +43,9 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
     }
 
     return
-    function show_dialog_choose_method(){
+    function show_dialog_choose_method() {
         // 取得滑鼠目前位置，或是「點擊位置(若是平板)」
-        if (jo.event != null ){
+        if (jo.event != null) {
             let position = { my: "right top", at: "right top", of: $(jo.event.target) }
 
             let dlg2 = new DialogHtml()
@@ -72,7 +74,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
             })
         }
     }
-    function show_help_dialog(ev){
+    function show_help_dialog(ev) {
         let ps = TPPageState.s
 
         let htmlContent = `<ul>
@@ -85,7 +87,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
             <option value="2">直接方法2️⃣</option>
         </select>`
         let position = { my: "right top", at: "right top", of: $(ev.target) }
-        
+
         let dlg = new DialogHtml()
         dlg.showDialog({
             html: `<div>${htmlContent}</div>`,
@@ -99,56 +101,84 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
                 dlg.on('change', '#reference_method', function () {
                     let ps = TPPageState.s
                     ps.reference_method = parseInt($(this).val());
-                    pageState.reference_method = ps.reference_method;                    
+                    pageState.reference_method = ps.reference_method;
                 });
-                
+
             }
         })
     }
-    function show_in_embed(){
+    function show_in_embed() {
         assert(jo.addrs != null, "assert jo.addrs != null")
         const addr = jo.addrs[0] // 用第1個位置
-        
+
         let ps = TPPageState.s
         ps.bookIndex = addr.book
         ps.chap = addr.chap
         ps.sec = addr.verse // 早期「節」沒有統一用 .sec 或 .verse
 
         triggerGoEventWhenPageStateAddressChange(ps);
-        
+
         BookSelect.s.render();
         FhlLecture.s.render();
         FhlInfo.s.render(ps);
         FhlLecture.s.selectLecture(null, null, ps.sec);
-        ViewHistory.s.render();   
+        ViewHistory.s.render();
     }
-    function show_in_dialog(){
-        let addrsDescription = jo.addrsDescription != null ? jo.addrsDescription : cvtAddrsToRef(jo.addrs, '羅') 
+    function show_in_dialog() {
+        let addrsDescription = jo.addrsDescription != null ? jo.addrsDescription : cvtAddrsToRef(jo.addrs, '羅')
         let version = jo.version == null ? "unv" : jo.version
         const bookDefaultId = jo.bookDefault ? jo.bookDefault : 45 // 羅, 1-based
-        let bookDefault = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[bookDefaultId-1]
-        
+        let bookDefault = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[bookDefaultId - 1]
+
         /** @type {DQsbParam} */
         let argsQsb = {
             qstr: addrsDescription,
             ver: version,
             bookDefault,
         }
-        qsbAsync(argsQsb).then(a1 => {
-            let dtexts = cvtQsbResultToDtexts(a1)
-            let html = cvtDTextsToHtmlForReference(dtexts)
+        qsbAsync(argsQsb).then(a1 => when_qsbAsync(a1))
+
+        /**
+         * @param {DQsbResult} a1 
+         */
+        function when_qsbAsync(a1) {
+            const ver = version
+            /**
+             * @typedef {[number, number, number, string]} RecordWithAddr // [book, chap, sec, text]
+             */
+            /** @type {RecordWithAddr[]} */
+            const records_with_addr = a1.record.map(a1 => {
+                const book = BibleConstantHelper.getBookId(a1.chineses)
+                const chap = a1.chap
+                const sec = a1.sec
+                return [book, chap, sec, a1.bible_text]
+            })
+
+            const dtexts_with_addr = cvt_others(ver, records_with_addr)
+
+            const dtexts_prepared = prepare_dtexts_for_html(dtexts_with_addr, 2);
+            
+            let html = cvtDTextsToHtmlForReference(dtexts_prepared)
+            
+            // html dialog, .sn 都加上 .sn-hidden，使用 jquery
+            // 將字串轉成暫時容器，修改後再取回 html 字串
+            const $container = $('<div>').append($(html));
+            $container.find('.sn').addClass('sn-hidden');
+            html = $container.html();
+            
             let dlg = new DialogHtml()
             dlg.showDialog({
                 html: html,
                 getTitle: () => addrsDescription,
                 registerEventWhenShowed: dlg => {
-                    dlg.on('click', '.ref', a1 => {    
+                    dlg.on('click', '.ref', a1 => {
                         let addrs = JSON.parse($(a1.target).attr('data-addrs'))
-                        queryReferenceAndShowAtDialogAsync({addrs:addrs, event: a1 })
+                        queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: a1 })
                     })
                 }
             })
-        })
+        }
+
     }
     /**
      * 

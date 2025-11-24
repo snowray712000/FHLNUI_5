@@ -5,6 +5,8 @@ export class BibleConstantHelper {
     static _mapName2Id;
 
     /**
+     * 所有名稱，對應到 book id。
+     * 所有，指的是繁體、簡體、英文，完整名稱、縮寫、短縮等，還有約一、約壹等別名。
      * @returns {Object.<string, number>}
      */
     static getMapName2Id() {
@@ -16,6 +18,8 @@ export class BibleConstantHelper {
 
     /**
      * 取得 1-based 的 book id.
+     * 
+     * BookNameAndId，在 .ts 中相關的功能。
      * @param {string} name 若是英文，要小寫
      * @returns 若不存在，回傳 -1
      */
@@ -106,8 +110,8 @@ export class BibleConstantHelper {
      * @param {boolean} isGb
      * @returns {string[]}
      */
-    static getBookNameArrayChineseShort(isGb=null) {
-        if ( isGb == null ){
+    static getBookNameArrayChineseShort(isGb = null) {
+        if (isGb == null) {
             isGb = TPPageState.s.gb == 1 ? true : false
         }
 
@@ -119,8 +123,8 @@ export class BibleConstantHelper {
      * @param {boolean} isGb
      * @returns {string[]}
      */
-    static getBookNameArrayChineseFull(isGb=null) {
-        if ( isGb == null ){
+    static getBookNameArrayChineseFull(isGb = null) {
+        if (isGb == null) {
             isGb = TPPageState.s.gb == 1 ? true : false
         }
         return isGb ? BibleConstant.CHINESE_BOOK_NAMES_GB : BibleConstant.CHINESE_BOOK_NAMES;
@@ -141,18 +145,18 @@ export class BibleConstantHelper {
      * @returns {number}
      */
     static getCountVerseOfChap(book, chap) {
-        if ( book < 1 || book > 66 ){
+        if (book < 1 || book > 66) {
             console.error(`Invalid book number: ${book}. It should be between 1 and 66.`);
             return 0
         }
-        if ( chap < 1 || chap > BibleConstant.COUNT_OF_VERSE[book - 1].length ){
+        if (chap < 1 || chap > BibleConstant.COUNT_OF_VERSE[book - 1].length) {
             console.error(`Invalid chapter number: ${chap}. It should be between 1 and ${BibleConstant.COUNT_OF_VERSE[book - 1].length}.`);
             return 0
         }
         return BibleConstant.COUNT_OF_VERSE[book - 1][chap - 1];
     }
-    static getCountChapOfBook(book){
-        if ( book < 1 || book > 66 ){
+    static getCountChapOfBook(book) {
+        if (book < 1 || book > 66) {
             console.error(`Invalid book number: ${book}. It should be between 1 and 66.`);
             return 0
         }
@@ -195,5 +199,13 @@ export class BibleConstantHelper {
         });
 
         return map;
+    }
+    /**
+     * 取得只有一章的書卷 ID 陣列
+     * @returns {number[]}
+     */
+    static getChapCountEqual1BookIds() {
+        const ref = BibleConstant.COUNT_OF_CHAP;
+        return ref.map((cnt, i) => (cnt === 1 ? i + 1 : null)).filter(id => id !== null);
     }
 }

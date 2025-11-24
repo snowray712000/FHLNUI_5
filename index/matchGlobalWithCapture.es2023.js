@@ -1,70 +1,46 @@
 /**
- * 用於執行全域正則表達式的捕獲，並返回所有匹配結果。
- * @param {RegExp} reg - 必須是 global 的正則表達式。(內部不能幫你變, 因為這是唯讀)
- * @param {string} str - 要匹配的字串。
- * @returns {RegExpExecArray[]} - 包含所有匹配結果的陣列。
- * @throws {Error} - 如果正則表達式不是 global，則拋出錯誤。
- * @deprecated - 此函數被新語法 const matches = [...str.matchAll(reg)]; 取代。了
+ * matchGlobalWithCapture(reg, str)
+ * - 目的：以 global 模式執行正規表達式，收集所有 RegExpExecArray（包含 index 與 capture groups）
+ * - 回傳：RegExpExecArray[] (每個元素為一次 exec 的結果)
+ *
+ * 注意事項：
+ * - 請傳入已經帶 global flag 的 RegExp (例如 /.../g)。若不是 global，會直接丟錯。
+ * - 函式在結束前會把 reg.lastIndex 還原為 0，避免影響外部使用同一個 RegExp 的情況。
+ * - 為了避免某些引擎或 pattern 在遇到空字串 match 時造成無窮迴圈，我在迴圈內做了空 match 的防護（若 match[0] === ''，會把 lastIndex 向前推進 1）。
  */
-export function matchGlobalWithCapture(reg, str) {
-    if (reg.global == false) {
-        throw "reg must global."
-    }
-
-    reg.lastIndex = 0 // reset
-
-    const re = []
-    /** @type {?RegExpExecArray} **/
-    let r1
-    while ((r1 = reg.exec(str)) !== null) {
-        {
-            re.push(r1)
-        }
-    }
-
-    reg.lastIndex = 0 // reset
-
-    return re
-}
 
 /**
-const reg = /a(b+)/g;
-const str = "ab abb abbb";
-const matches = [...str.matchAll(reg)];
-console.log(matches);
-[
-  ["ab", "b", index: 0, input: "ab abb abbb", groups: undefined],
-  ["abb", "bb", index: 3, input: "ab abb abbb", groups: undefined],
-  ["abbb", "bbb", index: 7, input: "ab abb abbb", groups: undefined]
-]
+ * Collect all RegExpExecArray results for a global RegExp on a string.
+ * @param {RegExp} reg - must have global flag (g)
+ * @param {string} str
+ * @returns {RegExpExecArray[]}
  */
+export function matchGlobalWithCapture(reg, str) {
+  if (!(reg instanceof RegExp)) {
+    throw new TypeError('matchGlobalWithCapture: first argument must be a RegExp');
+  }
+  if (!reg.global) {
+    throw new Error('matchGlobalWithCapture: RegExp must have the global (g) flag');
+  }
 
-// function matchGlobalWithCaptureEs6Js() {
-//     return matchGlobalWithCapture
-//     /** 
-//      * js global 的 exec 我覺得不直覺，所以寫一個 exec global 版的
-//      * @param {RegExp} reg reg 若非 global 會自動變為 global, 但我不能幫你變, 因為這是唯讀
-//      * @param {string} str
-//      * @returns {RegExpExecArray[]}
-//     */
-//     function matchGlobalWithCapture(reg, str) {
-//         if (reg.global == false) {
-//             throw "reg must global."
-//         }
+  const results = [];
+  // ensure start from beginning
+  reg.lastIndex = 0;
 
-//         reg.lastIndex = 0 // reset
+  let m;
+  // eslint-disable-next-line no-cond-assign
+  while ((m = reg.exec(str)) !== null) {
+    results.push(m);
 
-//         var re = []
-//         /** @type {?RegExpExecArray} **/
-//         var r1
-//         while ((r1 = reg.exec(str)) !== null) {
-//             {
-//                 re.push(r1)
-//             }
-//         }
+    // 防護：若 match 為空字串，避免停在同一位置造成無窮迴圈
+    // ECMAScript 規範會在某些情況自動前進 lastIndex，但為保險兼容性，這裡再檢查一次
+    if (m[0].length === 0) {
+      // 保證 lastIndex 至少 +1，不讓迴圈停住（但也不要超過字串長度）
+      reg.lastIndex = Math.min(reg.lastIndex + 1, str.length);
+    }
+  }
 
-//         reg.lastIndex = 0 // reset
-
-//         return re
-//     }
-// }
+  // reset lastIndex to original start (0) for caller convenience
+  reg.lastIndex = 0;
+  return results;
+}

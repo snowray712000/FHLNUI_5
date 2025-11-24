@@ -1,3 +1,6 @@
+/**
+ * @typedef {import("./DText.js").DText} DText
+ */
 //TODO: 未完整重構
 /**
 * 開發，是在 dict 的資料轉為 dtexts 後，第2步，要轉為 html 時
@@ -15,16 +18,23 @@ export function cvtDTextsToHtml(dtexts) {
 
         let re = ""
         for (let a1 of dtexts) {
-            if (a1.tpContainer != null) {
+            if (a1.tpContainer != null || a1.children != null) {
                 let re2 = cvtDTextsToHtmlRecursive(a1.children)
 
+                // .idt 是 浸宣字典格式;
+                // .bibtext 也是 浸宣字典格式
                 if (a1.tpContainer == '<div class="idt">') {
                     re += '<div class="idt">' + re2 + '</div>'
                 } else if (a1.tpContainer == '<span class="bibtext">') {
                     re += '<span class="bibtext">' + re2 + '</span>'
                 } else if (a1.tpContainer == '<span class="exp">') {
-                    re += '<span class="exp">' + re2 + '</span>'
-                } else {
+                    re += '<span class="exp">' + re2 + '</span>'                
+                } else if (a1.isParenthesesFW == 1){
+                    re += '<span class="isParenthesesFW">' + re2 + '</span>'
+                } else if (a1.isTitle1 == 1){
+                    re += '<div class="isTitle1">' + re2 + '</div>'
+                }
+                else {
                     re += '<div>' + re2 + '</div>'
                 }
             } else {
@@ -39,7 +49,17 @@ export function cvtDTextsToHtml(dtexts) {
                     })
                     tmp.attr('data-addrs', JSON.stringify(a1.refAddresses))
                     re += tmp[0].outerHTML
-                } else {
+                } else if (a1.sn != null){
+                    let tmp = $('<span>', {
+                        text: a1.w,
+                        class: 'sn',
+                    })
+                    tmp.attr('n', a1.tp == 'G' ? "0" : "1")
+                    tmp.attr('sn', a1.sn)
+
+                    re += tmp[0].outerHTML
+                } 
+                else {                    
                     re += "<span>" + a1.w + "</span>"
                 }
             }
@@ -47,57 +67,3 @@ export function cvtDTextsToHtml(dtexts) {
         return re
     }
 }
-
-// function cvtDTextsToHtmlEs6Js() {
-//     return cvtDTextsToHtml
-//     /**
-//  * 開發，是在 dict 的資料轉為 dtexts 後，第2步，要轉為 html 時
-//  * @param {DText[]} dtexts
-//  * @returns {string}
-//  */
-//     function cvtDTextsToHtml(dtexts) {
-//         return cvtDTextsToHtmlRecursive(dtexts)
-//         return
-//         /**
-//          *
-//          * @param {DText[]} dtexts
-//          * @returns {string}
-//          */
-//         function cvtDTextsToHtmlRecursive(dtexts) {
-//             if (dtexts.length == 0) { return "" }
-
-//             let re = ""
-//             for (let a1 of dtexts) {
-//                 if (a1.tpContainer != null) {
-//                     let re2 = cvtDTextsToHtmlRecursive(a1.children)
-
-//                     if (a1.tpContainer == '<div class="idt">') {
-//                         re += '<div class="idt">' + re2 + '</div>'
-//                     } else if (a1.tpContainer == '<span class="bibtext">') {
-//                         re += '<span class="bibtext">' + re2 + '</span>'
-//                     } else if (a1.tpContainer == '<span class="exp">') {
-//                         re += '<span class="exp">' + re2 + '</span>'
-//                     } else {
-//                         re += '<div>' + re2 + '</div>'
-//                     }
-//                 } else {
-//                     if (a1.isBr == 1) {
-//                         re += "<br/>"
-//                     } else if (a1.isHr == 1) {
-//                         re += "<hr/>"
-//                     } else if (a1.refAddresses != null) {
-//                         let tmp = $('<span>', {
-//                             text: a1.w,
-//                             class: 'ref',
-//                         })
-//                         tmp.attr('data-addrs', JSON.stringify(a1.refAddresses))
-//                         re += tmp[0].outerHTML
-//                     } else {
-//                         re += "<span>" + a1.w + "</span>"
-//                     }
-//                 }
-//             }
-//             return re
-//         }
-//     }
-// }
