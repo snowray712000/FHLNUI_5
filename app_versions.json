@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "4.4.9",
+        "last": "4.5.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -23,6 +23,14 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na":"4.5.1",
+                "na2":[                    
+                    "🐛 Bug: 講道不知道何時不見了，這次才發現，並且修正了。",
+                    "📈 優化: AI工具，多節設定，改在上面，說明改在下面，這樣手機才能點選得到",
+                    "📈 優化: 網址從只能單章，改為可複合型",
+                    "📈 優化: 核心改寫，在交互參照內容。(為了預備內文，可以非單獨一章)"
                 ]
             },{
                 "na":"4.4.9",
