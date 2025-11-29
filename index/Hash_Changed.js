@@ -8,16 +8,20 @@ export class Hash_Changed {
      * 在 index.js 裡面，監聽 hashchange 事件中，要用到的。
      * @returns {boolean}
      */
-    is_setting_by_code(){ return this._is_setting_by_code }
+    is_setting_by_code() { return this._is_setting_by_code }
     /**
      * 通常也是在 index.js 裡面用到
      */
-    reset_is_setting_by_code(){ this._is_setting_by_code = false }
+    reset_is_setting_by_code() {
+        console.warn("reset_is_setting_by_code");
+        this._is_setting_by_code = false
+    }
     /**
      * 在某處，要變更 location.hash 時，使用這個，才不會觸發 hashchange 事件。
      * @param {string} newhash 
      */
-    set_hash_by_code(newhash){
+    set_hash_by_code(newhash) {
+        console.warn("set_hash_by_code", newhash);
         this._is_setting_by_code = true
         location.hash = newhash
     }

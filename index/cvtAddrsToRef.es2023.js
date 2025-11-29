@@ -8,7 +8,11 @@ import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
  * @returns {string}
  */
 export function cvtAddrsToRef(addrs, tp) {
+    // console.warn("cvtAddrsToRef");
+    // console.log(JSON.stringify(addrs));
+    
     let r1 = Enumerable.from(addrs).groupBy(a1 => a1.book).select(a1 => getName(a1.key(), tp) + oneBookExcludeName(a1.toArray(), a1.key())).toArray()
+
     return r1.join(";")
 
     function getName(book) {

@@ -83,7 +83,7 @@ export function FhlLecture_render_mode3(rspApp) {
                     bibleText = "【併入上節】";
                 }
                 
-                bibleText = replace_newline_char(bibleText, version_of_record);
+                bibleText = replace_newline_char(bibleText, version_of_record, ps.show_mode);
 
                 // 2018.01 客語特殊字型(太1)
                 let className = 'verseContent ';

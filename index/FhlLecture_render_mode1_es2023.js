@@ -66,7 +66,7 @@ function generate_div_lec(one_record, ps, version_of_record) {
     } 
 
     // 換行處理 \n 變成 <br/> 或 ↩
-    bibleText = replace_newline_char(bibleText, version_of_record)
+    bibleText = replace_newline_char(bibleText, version_of_record, ps.show_mode)
 
     // 2018.01 客語特殊字型(太1)
     let className = 'verseContent ';

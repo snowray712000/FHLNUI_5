@@ -3,6 +3,7 @@
  */
 
 import { charHG } from "./charHG.es2023.js"
+import { TPPageState } from "./TPPageState.es2023.js";
 
 
 /**
@@ -59,11 +60,11 @@ export function isHebrewOrGeekVersion(ver) {
  * @param {string} version_of_record 
  * @returns 
  */
-export function replace_newline_char(bibleText, version_of_record) {
+export function replace_newline_char(bibleText, version_of_record, ps_show_mode) {
     const newline_symbol = version_of_record == "bhs" ? "↪" : "↩"; 
     
     // 只有 bhs 並且 mode 1 2 才是用 <br/> ， 因為 新方法真的很省空間，也漂亮。
-    const newlineMethod = ps.show_mode in [1, 2] && version_of_record == "bhs" ? "<br/>" : `<span class='nL'>${newline_symbol}</span>`;
+    const newlineMethod = ps_show_mode in [1, 2] && version_of_record == "bhs" ? "<br/>" : `<span class='nL'>${newline_symbol}</span>`;
     return bibleText.split(/\r?\n\r?/g).join(newlineMethod); 
 }
 export function generate_verse_number_jdom(sec, version_of_record){
@@ -74,7 +75,22 @@ export function generate_verse_number_jdom(sec, version_of_record){
     return $("<span>").addClass('verseNumber').text(text_of_verse)
 }
 
+/**
+ * 
+ * @param {string} text 
+ * @param {TPPageState | Object} ps 
+ * @param {boolean} isOld 
+ * @param {string} bibleVersion 
+ * @returns {string} html 內容字串
+ */
 export function parseBibleText(text, ps, isOld, bibleVersion) {
+    if ( !ps.hasOwnProperty('show_mode') ) {
+        console.warn('parseBibleText need ps.show_mode');
+    }
+    if (!ps.hasOwnProperty('strong')) {
+        console.warn('parseBibleText need ps.strong');
+    }
+    
     var ret;
 
     // <RF><Rf> 這個到 jQuery 就會錯了，所以要先轉換...小寫的 <Rf> 要變為 </Rf> <Fi> 要變 </Fi>
@@ -86,7 +102,7 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
 
     if (-1 != ["unv", "kjv", "rcuv", "fhlwh"].indexOf(bibleVersion)) {
-        text = replace_newline_char(text, bibleVersion);
+        text = replace_newline_char(text, bibleVersion, ps.show_mode);
         
         // 和合本 KJV 和合本2010 ... 原本的 <WTH412> 變 span.sn sn="412" N="1" 
         text = do_sn(text)

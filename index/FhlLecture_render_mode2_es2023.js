@@ -91,7 +91,7 @@ export function FhlLecture_render_mode2(rspArr) {
                 }
 
                 // 換行處理 \n 變成 <br/> 或 ↩
-                bibleText = replace_newline_char(bibleText, version_of_record);
+                bibleText = replace_newline_char(bibleText, version_of_record, ps.show_mode);
                 
                 var className = 'verseContent';
                 if (version_of_record == "thv12h" || version_of_record == 'ttvh') // 2018.01 客語特殊字型(太1)

@@ -8,7 +8,7 @@ export class ViewHistoryData {
     static get s() { if (this.#s == null) { this.#s = new ViewHistoryData(); } return this.#s; }
 
     constructor() {
-        /** @type {Array<{book:number;chap:number}>} */
+        /** @type {Array<{book:number;chap:number;sec:number}>} */
         this.datas = [];
         this.idx = -1;
     }
@@ -79,6 +79,14 @@ export class ViewHistoryData {
             // 沒有找到的話，回傳 null
             return null;
         }
+    }
+    get_first_valid_address_or_Rom1(){
+        for(const addr of this.datas){
+            if(addr.book >=1 && addr.book <=66 && addr.chap >=1){
+                return addr;
+            }
+        }
+        return {book: 45, chap: 1, sec: 1};
     }
 }
 
