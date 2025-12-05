@@ -4,7 +4,7 @@
 
 import { charHG } from "./charHG.es2023.js"
 import { TPPageState } from "./TPPageState.es2023.js";
-
+import { add_sn_text } from "./add_sn_text.js";
 
 /**
  * @typedef DAddress
@@ -61,17 +61,17 @@ export function isHebrewOrGeekVersion(ver) {
  * @returns 
  */
 export function replace_newline_char(bibleText, version_of_record, ps_show_mode) {
-    const newline_symbol = version_of_record == "bhs" ? "↪" : "↩"; 
-    
+    const newline_symbol = version_of_record == "bhs" ? "↪" : "↩";
+
     // 只有 bhs 並且 mode 1 2 才是用 <br/> ， 因為 新方法真的很省空間，也漂亮。
     const newlineMethod = ps_show_mode in [1, 2] && version_of_record == "bhs" ? "<br/>" : `<span class='nL'>${newline_symbol}</span>`;
-    return bibleText.split(/\r?\n\r?/g).join(newlineMethod); 
+    return bibleText.split(/\r?\n\r?/g).join(newlineMethod);
 }
-export function generate_verse_number_jdom(sec, version_of_record){
+export function generate_verse_number_jdom(sec, version_of_record) {
     // 阿拉伯數字，若是希伯來文，要有希伯來文字元「夾住它」，這阿拉伯數字，才會以希伯來字元一起排序 (從右至左)，而這字元就是使用 \u200F，稱為 Right-to-Left Mark (RTL)，這樣就可以讓阿拉伯數字在希伯來文中正確顯示。
 
     // 注意看程式碼，sec 後，還有一個空白。還要有一個空白，copy 時，才不會黏在一起    
-    const text_of_verse = version_of_record == 'bhs' ? `\u200F${sec} ` : `${sec} `; 
+    const text_of_verse = version_of_record == 'bhs' ? `\u200F${sec} ` : `${sec} `;
     return $("<span>").addClass('verseNumber').text(text_of_verse)
 }
 
@@ -84,13 +84,13 @@ export function generate_verse_number_jdom(sec, version_of_record){
  * @returns {string} html 內容字串
  */
 export function parseBibleText(text, ps, isOld, bibleVersion) {
-    if ( !ps.hasOwnProperty('show_mode') ) {
+    if (!ps.hasOwnProperty('show_mode')) {
         console.warn('parseBibleText need ps.show_mode');
     }
     if (!ps.hasOwnProperty('strong')) {
         console.warn('parseBibleText need ps.strong');
     }
-    
+
     var ret;
 
     // <RF><Rf> 這個到 jQuery 就會錯了，所以要先轉換...小寫的 <Rf> 要變為 </Rf> <Fi> 要變 </Fi>
@@ -103,7 +103,7 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
     if (-1 != ["unv", "kjv", "rcuv", "fhlwh"].indexOf(bibleVersion)) {
         text = replace_newline_char(text, bibleVersion, ps.show_mode);
-        
+
         // 和合本 KJV 和合本2010 ... 原本的 <WTH412> 變 span.sn sn="412" N="1" 
         text = do_sn(text)
 
@@ -111,7 +111,7 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
         let text_jq = $(`<span>${text}</span>`)
 
         // 將 sn 前面對應的文字，加上 sn-text class ... 取代純文字, 變 span.sn-text sn, N 
-        add_sn_text(text_jq)
+        add_sn_text(text_jq, bibleVersion)
 
         // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
         add_sn_hidden_if_need(text_jq, ps)
@@ -122,7 +122,7 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
     ret = text;
 
-    
+
     // if (bibleVersion == "bhs" || bibleVersion == "fhlwh") {
     //     // 舊約馬索拉原文, 新約WH原文
     //     // 新約原文，加上 SN 了，再加這兩行會錯誤 (但我不確定這會不會用到，所以還保留著)
@@ -133,181 +133,8 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
     // // console.log(ret);
     return ret;
 
-    /**
-     * 弗1:6 的 恩典{<3588>}<5485>，這類的，當 i-2 是 text, i-1 是 3588 時。
-     * - 並非所有 3588 都有花括號
-     * - 並非所有 3588 後面的 sn 都一定是沒有 花括號，例如 弗1:10 使{<3588>}{<1909>} 
-     * @param {HTMLElement[]} doms
-     * @param {number} i
-     */
-    function is_3588_sn(doms, i){
-        if(i<2) return false;
-
-        let dom_i_2 = doms[i-2];
-        let dom_i_1 = doms[i-1];
-        let dom_i = doms[i];
-
-        const is_text = dom_i_2.nodeType == 3; // text node
-        const is_i_1_sn = dom_i_1.nodeType != 3 && $(dom_i_1).hasClass("sn") ;
-        const is_i_sn = dom_i.nodeType != 3 && $(dom_i).hasClass("sn") ;
-        const sn_i_1 = parseInt($(dom_i_1).attr("sn"));
-        
-        // 使{<3588>}{<1909>} 這種，不能列入。
-        if (!is_i_sn){
-            return false;
-        }
-        const is_i_brace = dom_i.innerText[0] == '{';
-
-        return is_text && is_i_1_sn && is_i_sn && sn_i_1 == 3588 && !is_i_brace;
-    }
-
-    // 將 sn 前面對應的文字，加上 sn-text class
-    /**
-     * @param {JQuery<HTMLElement>} text_jq
-     * @returns {void}
-     * @description 開發 詩篇148
-     */
-    function add_sn_text(text_jq) {
-
-        // 不是使用 .children() 因為這樣取不到 文字，不只要取到 span 也要取到 文字，所以要用 .contents()
-        let textContents = text_jq.contents()
-
-        // 從最後一個到第一個，如果這個 i 是 .sn ，那麼 若 i-1 是文字 #text，那麼就把這段文字處理一下 ... 到 >= 1 就好，因為處理 i=0 的時候，前面就沒文字了呀
-        for (let i = textContents.length - 1; i >= 1; i--) {
-            /** @type {HTMLElement} */
-            let one_dom = textContents[i]
-            if ( is_3588_sn(textContents, i) ) {
-                // 分割文字，成2部分
-                let text_split = split_two_part(textContents[i - 2].data)
-                let text_prev1 = text_split[0] // , 等等的符號，不能被包在中文中，斷開了
-                let text_prev2 = text_split[1] // 真正的文字
-
-                // 若第二個字是 empty string 就不處理
-                if (text_prev2.trim() == '') {
-                    continue
-                } else {
-                    // 判斷，它的 sn 是什麼。 如果 [i] 的 sn 是超過 9000 ， 那麼就要用 i+1 的 sn，不會有連續2個超過 9000。
-                    let sn = $(one_dom).attr('sn')
-                    let n = $(one_dom).attr('n')
-                    if (parseInt(sn) > 9000) {
-                        sn = $(textContents[i + 1]).attr('sn')
-                        n = $(textContents[i + 1]).attr('n')
-                    }
-                    // console.log(sn);
 
 
-                    // 要把原本位置的 #text 刪掉，然後加上 2 個 span, text_prev1 是純文字， text_prev2 是 <span class="sn-text" sn=sn n=n>text_prev2</span>
-                    // let sn_text2 = `<span class="sn-text" sn=${sn} n=${n}>${text_prev2}&nbsp;</span>`
-                    const space_add = -1 == ['fhlwh', 'lxx', 'bhs', 'kjv'].indexOf(bibleVersion) ? '' : ' '; 
-                    let sn_text2 = space_add + `<span class="sn-text" sn=${sn} n=${n}>${text_prev2.trim()}</span>`
-                    
-                    // console.log(text_prev2)
-
-                    // 大部分 text_prev2 字，前面都有一個空白字元，但少數會沒有，例如換行符號之後的
-                    
-                    // console.log(text_prev1, text_prev2)
-                    $(textContents[i - 2]).remove()
-                    if (text_prev1.trim().length != 0) {
-                        $(textContents[i - 1]).before(text_prev1) 
-                    }
-                    $(textContents[i - 1]).before(sn_text2)
-                }                
-            } else if (one_dom.nodeType != 3 && $(one_dom).hasClass("sn") && textContents[i - 1].nodeType == 3) {
-
-                // 花括號，就 continue。因為花括號表示中文字沒有，原文有
-                if (one_dom.innerText[0] == '{') {
-                    // console.log($(one_dom))
-                    continue
-                }
-
-                // 分割文字，成2部分
-                let text_split = split_two_part(textContents[i - 1].data)
-                let text_prev1 = text_split[0] // , 等等的符號，不能被包在中文中，斷開了
-                let text_prev2 = text_split[1] // 真正的文字
-
-                // 若第二個字是 empty string 就不處理
-                if (text_prev2.trim() == '') {
-                    continue
-                } else {
-                    // 判斷，它的 sn 是什麼。 如果 [i] 的 sn 是超過 9000 ， 那麼就要用 i+1 的 sn，不會有連續2個超過 9000。
-                    let sn = $(one_dom).attr('sn')
-                    let n = $(one_dom).attr('n')
-                    if (parseInt(sn) > 9000) {
-                        sn = $(textContents[i + 1]).attr('sn')
-                        n = $(textContents[i + 1]).attr('n')
-                    }
-                    // console.log(sn);
-
-
-                    // 要把原本位置的 #text 刪掉，然後加上 2 個 span, text_prev1 是純文字， text_prev2 是 <span class="sn-text" sn=sn n=n>text_prev2</span>
-                    // let sn_text2 = `<span class="sn-text" sn=${sn} n=${n}>${text_prev2}&nbsp;</span>`
-                    const space_add = -1 == ['fhlwh', 'lxx', 'bhs', 'kjv'].indexOf(bibleVersion) ? '' : ' '; 
-                    let sn_text2 = space_add + `<span class="sn-text" sn=${sn} n=${n}>${text_prev2.trim()}</span>`
-                    
-                    // console.log(text_prev2)
-
-                    // 大部分 text_prev2 字，前面都有一個空白字元，但少數會沒有，例如換行符號之後的
-                    
-                    // console.log(text_prev1, text_prev2)
-                    $(textContents[i - 1]).remove()
-                    if (text_prev1.trim().length != 0) {
-                        $(textContents[i]).before(text_prev1) 
-                    }
-                    $(textContents[i]).before(sn_text2)
-                }
-
-            } else if (textContents[i - 1].nodeName == 'U') {
-                // 和合本2010 詩篇148
-                // console.log(textContents[i-1]);
-                // [i-1] 從 <u>以色列</u> 變 <u class="sn-text">以色列</u>
-                let sn_n = get_sn_text_sn_n(i, textContents)
-                let sn = sn_n[0]
-                let n = sn_n[1]
-                $(textContents[i - 1]).addClass('sn-text').attr('sn', sn).attr('n', n)
-            }
-        }
-
-        return // text_jq 是 input, output
-        function split_two_part(one_text) {
-            // 將文字分為 2 部分，切割位置，是從 尾端 找，第一個出現 `：「！，。；（）？、』『` 中任何一個符號的位置。`因此他（或譯：他使）一切` 此例應該斷在 ）而非 （
-
-            // let pos = text_prev.search(/[：「！，。；（）？、』『]/)
-            // let pos = text_prev.reverse().search(/[：「！，。；（）？、』『]/)
-            let istr = one_text.split('')
-            let pos = -1
-            for (let i = istr.length - 1; i >= 0; i--) {
-                if (istr[i].match(/[：「！，。；（）？、』『.:;,]/)) {
-                    pos = i
-                    break
-                }
-            }
-
-
-            // 將文字分為 2 部分，前面的文字，後面的文字
-            let text_prev1 = one_text.slice(0, pos + 1)
-            let text_prev2 = one_text.slice(pos + 1)
-            // console.log(text_prev1);
-            // console.log(text_prev2);
-
-            return [text_prev1, text_prev2]
-        }
-        /**
-         * 
-         * @param {number} i 
-         * @param {HTMLElement[]} textContents 
-         * @returns {[string, string]} sn, n
-         */
-        function get_sn_text_sn_n(i, textContents) {
-            // 判斷，它的 sn 是什麼。 如果 [i] 的 sn 是超過 9000 ， 那麼就要用 i+1 的 sn，不會有連續2個超過 9000。
-            let sn = $(textContents[i]).attr('sn')
-            let n = $(textContents[i]).attr('n')
-            if (parseInt(sn) > 9000) {
-                sn = $(textContents[i + 1]).attr('sn')
-                n = $(textContents[i + 1]).attr('n')
-            }
-            return [sn, n]
-        }
-    }
     function add_sn_hidden_if_need(text_jq, ps) {
         // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
         if (ps.strong == 0) {
