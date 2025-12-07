@@ -2,8 +2,11 @@
  * @typedef {import("./DText.js").DText} DText
  */
 
+import { BibleConstant } from "./BibleConstant.es2023.js";
+import { splitStringByRegex } from "./splitStringByRegex.es2023.js";
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { add_parenttheses_unv_ncv } from "./AddParenthesesUnvNcv.js";
-import { add_reference_in_comment_text} from './AddReferenceInCommentText.js'
+import { add_reference_in_comment_text } from './AddReferenceInCommentText.js'
 import { ReferenceNcv } from './ReferenceNcv.js'
 import { ReferenceOther } from './ReferenceOther.js'
 import { TPPageState } from './TPPageState.es2023.js';
@@ -117,9 +120,8 @@ function replaceOrigToPair(dtexts_with_addr) {
     function letOrigCanDOMParsed(str) {
         //let r3 = '<h2>真福<br/></h2>{<WH0834>}不從<WH01980><WTH8804>'
         // 曾經 Bug
-        
         const r3 = str
-            .replace(/{<(WA?T?(?:H|G)\d+[a-z]?)>}|<(WA?T?(?:H|G)\d+[a-z]?)>/gi,
+            .replace(/{<(WA?T?(?:H|G)\d+[a-z]?)>}|<(WA?T?(?:H|G)\d+[a-z]?I?)>/gi,
                 (a1, a2, a3) => {
                     if (a2 != null) {
                         return `<${a2}I></${a2}I>`; // 尾部加個 I 好了, ignore 的 i. 
@@ -143,7 +145,7 @@ function replaceKJVToPair(dtexts_with_addr) {
             it2.w = it2.w.replace(/(<Fi>)|(<Rf>)|(<CM>)|<Fo>/g, (a1, a2, a3, a4, a5) => {
                 if (a3 != null) return '</RF>';
                 if (a2 != null) return '</FI>';
-                if (a4 != null) return '<CM/>';
+                if (a4 != null) return '<CM></CM>'; // 不是成對的
                 if (a5 != null) return '</FO>';
                 return a1
             });
@@ -157,7 +159,7 @@ function replaceKJVToPair(dtexts_with_addr) {
 
 /** 
  * cnet 版本注釋。在 foot dialog 要用到的
- * 羅1:1 （詩89:3；撒下7:5, 8）
+ * 羅1:1 【2】（詩89:3；撒下7:5, 8）
  * 羅1:4 本處和馬太福音28:18同義：
  * 創3:1 例：參啟12:9）  舊約偽經《禧年書》(Jubilees) 3:28如此說：「 （假定是希伯來話，見12:26） 在《猶太古史》(Jewish Antiquities)1.1.4 (1.41)
 */
@@ -167,49 +169,56 @@ function replaceCnetFootReference(dtexts_with_addr) {
     for (const it2 of dtexts_with_addr[3]) {
         doText(it2);
     }
+    // console.log(JSON.stringify( dtexts_with_addr));
 
     return dtexts_with_addr;
     function doText(it2) {
-        if (it2.w === undefined) return;
+        if (it2.w == null) return
 
-        let r3 = new SplitStringByRegexVer2().main(it2.w, reg);
-        if (r3.length === 1) { return; }
+        let r3 = splitStringByRegex(it2.w, reg)
+        if (r3 == null) return
 
         /**
          * @type {DText[]}
          */
         const re = [];
-        for (let i3 = r3.length - 1; i3 > -1; i3--) {
+        for (let i3 = r3.length - 1; i3 > -1; i3--) { // 反向處理
             const it3 = r3[i3];
-            const r4 = deepCopy(it2);
+            const r4 = structuredClone(it2);
             r4.w = it3.w;
             if (it3.exec == null) { re.push(r4); continue; }
 
             // assert ( it3.exec != null )
             if (i3 !== 0 && r3[i3 - 1].exec != null) {
+                // 前一個也是 參考。那串在一起吧。(因此，這個 r4，並沒有被丟到 re 中)
                 r3[i3 - 1].w += it3.w;
             } else {
-                it3.w = it3.w.replace(/[( +)|(　+)|(；)]/g, (a1, a2, a3, a4) => {
-                    if (a2 != null) return '';
-                    if (a3 != null) return '';
-                    if (a4 != null) return ';';
-                    return a1
-                });
+                // 全型空白、空白，去掉
+                // 全型分號，變成 半型分號
+                it3.w = it3.w
+                    .replace(/( +|　+)/g, '')   // 去掉半形/全形空白
+                    .replace(/；/g, ';');       // 全形分號轉半形                
                 it3.w = '#' + it3.w + '|';
+
                 re.push(it3);
             }
         }
-        it2.w = Enumerable.from(re).select(a1 => a1.w)
-            .reverse().toArray().join('');
 
+        let re2 = re.map(a1 => a1.w)
+        re2.reverse()
+        it2.w = re2.join('')
     }
     function gRegExp() {
-        BookNameConstants.CHINESE_BOOK_NAMES
-        const str1 = Enumerable.from(BookNameConstants.CHINESE_BOOK_NAMES)
-            .concat(BookNameConstants.CHINESE_BOOK_ABBREVIATIONS)
-            .orderByDescending(a1 => a1.length).toArray().join('|');
+        const na1 = BibleConstantHelper.getBookNameArrayChineseShort()
+        const na2 = BibleConstantHelper.getBookNameArrayChineseFull()
+
+        // concat and order by length desc
+        // don't change original arrays
+        const bookNames = [...na1, ...na2];
+        bookNames.sort((a, b) => b.length - a.length);
+
+        const str1 = bookNames.join('|');
         const reg1 = new RegExp('(?:' + str1 + ')\\d+[\\d　 :；;,\\-]*', 'g');
-        // 不行 徒3 因為，奉
         return reg1;
     }
 }
@@ -235,8 +244,8 @@ function replaceCsbFootReference(dtexts_with_addr) {
     function doText(it2) {
         if (it2.w === undefined) return;
 
-        let r3 = new SplitStringByRegexVer2().main(it2.w, reg);
-        if (r3.length === 1) { return; }
+        let r3 = splitStringByRegex(it2.w, reg);
+        if (r3 == null) return;
 
         /**
          * @type {DText[]}
@@ -244,7 +253,7 @@ function replaceCsbFootReference(dtexts_with_addr) {
         const re = [];
         for (let i3 = r3.length - 1; i3 > -1; i3--) {
             const it3 = r3[i3];
-            const r4 = deepCopy(it2);
+            const r4 = structuredClone(it2);
             r4.w = it3.w;
             if (it3.exec == null) { re.push(r4); continue; }
 
@@ -265,16 +274,21 @@ function replaceCsbFootReference(dtexts_with_addr) {
                 re.push(it3);
             }
         }
-        it2.w = Enumerable.from(re).select(a1 => a1.w)
-            .reverse().toArray().join('');
 
+        let r1 = re.map(a1 => a1.w)
+        r1.reverse();
+        it2.w = r1.join('');
     }
     function gRegExp() {
-        BookNameConstants.CHINESE_BOOK_NAMES
-        const str1 = Enumerable.from(BookNameConstants.CHINESE_BOOK_NAMES)
-            .orderByDescending(a1 => a1.length).toArray().join('|');
+        const na1 = BibleConstantHelper.getBookNameArrayChineseShort()
+        const na2 = BibleConstantHelper.getBookNameArrayChineseFull()
+
+        // concat and order by length desc
+        // don't change original arrays
+        const bookNames = [...na1, ...na2];
+        bookNames.sort((a, b) => b.length - a.length);
+        const str1 = bookNames.join('|');
         const reg1 = new RegExp('《(' + str1 + ')》(\\d+[\\d　 :；;,\\-]*)', 'g');
-        // 不行 徒3 因為，奉
         return reg1;
     }
 }
@@ -373,20 +387,28 @@ function getAllDTextsFromAllChildrenNode(
                 let sn = rr1[3];
                 sn = sn.replace(/^0+/, '').toLocaleLowerCase(); // 讓 08521a 變為 8521a ... tagName 會自動變全大寫，所以造成 8521A 就會抓錯資料
                 rrr1.sn = sn
-                if (rr1[4].length !== 0) // I
+                if (rr1[4].length != 0) {
                     rrr1.isCurly = 1;
+                } // I
 
                 if (false) { // TODO: 註釋 原文匯編 都要強迫畫
                     rrr1.w = `${rrr1.tp}${rrr1.sn}`; // 需要 G2312，例如註釋
                 } else if (true) {
                     rrr1.w = `${rrr1.sn}`; // 不需要 'G' 2312
                 }
-                if (isT)
+
+                // < > or ( )
+                if (isT) {
                     rrr1.w = '(' + rrr1.w + ')';
-                else
+                }
+                else {
                     rrr1.w = '<' + rrr1.w + '>';
-                if (rrr1.isCurly === 1)
+                }
+
+                // { } or not
+                if (rrr1.isCurly == 1) {
                     rrr1.w = '{' + rrr1.w + '}';
+                }
             }
             else {
                 rrr1.w = it3.outerHTML;
