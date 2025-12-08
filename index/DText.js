@@ -37,6 +37,7 @@
  * @property {0 | 1} [isBold] 粗體。和合本2010、<b></b>
  * @property {0 | 1} [isGODSay] 紅字。耶穌說的話，會被標紅色。有些版本這麼作。
  * @property {0 | 1} [isOrigNotExist] 虛點點。和合本，原文不存在，為了句子通順加上的翻譯。
+ * @property {0 | 1} [ispun] punctuation 標點符號，分離出來的標點符號節點
  * @property {string} [cssColor] rgb(195,39,43) 中文標準譯本 csb ， 紅字，是用 span style css color rgb(x,x,x)
  * @property {DText[]} [children] 仿 ios 版本  title, FW, order list, 都可能用, 與 tpContain 使用
  * @property {string} [tpContain] 配合 children 的，容器當初的 tp 是什麼，是 h1 還是 h2 還是 h3，又或著是 ) 還是 全型 )，又或著是 Fi 之類的
