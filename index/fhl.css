@@ -2175,3 +2175,7 @@ nav#fhlTopMenu {
     font-weight: 800;
     color: #8b008b;
 }
+.copyright-text{
+    font-size: 10pt;
+    line-height: 10pt;
+}

@@ -32,6 +32,7 @@
             { na: 'recover', cna: '恢復本', yr: 2003, cds: ['yrnow', 'pr', 'officer'] },
             { na: 'tcv95', cna: '現代中文譯本1995版', yr: 1995, cds: ['yrnow', 'pr', 'officer'] },
             { na: 'ncv', cna: '新譯本', yr: 1992, cds: ['yrnow', 'pr', 'officer'] },
+            { na: 'wcb', cna: '環球譯本', yr: 2023, cds: ['yrnow', 'pr', 'officer'] },
             { na: 'lcc', cna: '呂振中譯本', yr: 1970, cds: ['yrnow', 'pr', 'officer', 'officer'] },
             { na: 'ofm', cna: '思高譯本', yr: 1968, cds: ['yrnow', 'cc', 'officer'] },
             { na: 'cwang', cna: '王元德官話譯本', yr: 1933, cds: ['pr', 'yr1960', 'officer'] },
@@ -323,7 +324,7 @@
             class: 'group ' + a1.na
           })
           re.data('lang', a1.na)
-
+          
           a1.vers.map(a2 => {
             var r3 = $('<span/>', {
               text: a2.cna,
