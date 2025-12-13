@@ -1,3 +1,6 @@
+/**
+ * @typedef {import("./DText.js").DText} DText
+ */
 import { charHG } from "./charHG.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js"
 

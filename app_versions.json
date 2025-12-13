@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "4.5.7",
+        "last": "4.5.9",
         "historys": [
             {
                 "na": "TODOs",
@@ -25,10 +25,17 @@
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
                 ]
             },{
+                "na": "4.5.9",
+                "na2":[
+                    "📈 優化: copyright 超連結以 blank 開啟",
+                    "📈 優化: copyright 的 hr 太佔空間了",
+                    "🐛 Bug: 移除印尼聖經、韓文聖經，其實沒成功移除，只是跑到其它去。"
+                ]
+            },{
                 "na": "4.5.7",
                 "na2":[
                     "🆕 新功能: 新增環球譯本",
-                    "📈 優化: 更新版權說明，新即本、環球譯本。"
+                    "📈 優化: 更新版權說明，新譯本、環球譯本。"
                 ]
             },{
                 "na": "4.5.5",

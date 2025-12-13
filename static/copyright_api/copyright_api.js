@@ -38,12 +38,12 @@ copyright_api.R = copyright_api.R || {
       $.each(this.props.ver, function () {
         if ( copyright_data[this] != null )
         {
-          var newelem = $('<hr/><span class="copyright-text">' + copyright_data[this] + '</span>');
+          var newelem = $('<hr/ style="margin:4px 0px;"><span class="copyright-text">' + copyright_data[this] + '</span>');
           $(divThis).append(newelem);
         }
       });
 
-      $(divThis).append('<hr/><span class="copyright-text">各聖經譯本著作權如<a href="https://www.fhl.net/main/fhl/fhl8.html" target="_blank">版權說明</a>。</span>');
+      $(divThis).append('<hr/ style="margin:4px 0px;"><span class="copyright-text">各聖經譯本著作權如<a href="https://www.fhl.net/main/fhl/fhl8.html" target="_blank">版權說明</a>。</span>');
     },
     componentWillReceiveProps: function (nextProp) {         },
     componentWillUpdate: function (nextProp, nextState) { },

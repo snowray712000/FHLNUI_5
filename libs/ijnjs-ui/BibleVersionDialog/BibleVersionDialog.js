@@ -186,24 +186,32 @@
           replaceItems()
           return
           function replaceItems() {
-            var others$ = vers$.children('.ot')
-            var dictNa2Dom$ = Enumerable.from(vers$.find('.book-item')).toDictionary(a1 => $(a1).data('data').na, a1 => $(a1));
+            const others$ = vers$.children('.ot')
+            const dictNa2Dom$ = Enumerable.from(vers$.find('.book-item')).toDictionary(a1 => $(a1).data('data').na, a1 => $(a1));
 
-            Enumerable.from(vers).forEach(ver => {
-              var r1 = dictNa2Dom$.get(ver.na)
+            // 強制不從 api更新 的譯本
+            const ignore_nas = ['baru','ind1958','korean','unv']; // 'baru' 印尼聖經因著作權問題先不開放選擇
+
+            // for each ver in vers
+            for(const ver of vers) {
+              if(ignore_nas.includes(ver.na)) {
+                continue; // skip
+              }
+
+              let r1 = dictNa2Dom$.get(ver.na);
               if (r1 != null) {
-                var dataori = r1.data('data') // 可能包含 cds 其它資料
-                dataori.cna = ver.cna
+                let dataori = r1.data('data'); // 可能包含 cds 其它資料
+                dataori.cna = ver.cna;
                 r1.data('data', dataori)
-                  .text(ver.cna)
+                  .text(ver.cna);
               } else {
                 $('<span>', {
                   text: ver.cna,
                   class: 'book-item btn btn-outline-success',
                 }).data('data', { na: ver.na, cna: ver.cna })
-                  .appendTo(others$)
+                  .appendTo(others$);
               }
-            })
+            }
           }
         })
     }
