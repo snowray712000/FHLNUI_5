@@ -93,11 +93,13 @@
             { na: 'vietnamese', od: 1, cna: '越南聖經' },
             { na: 'russian', od: 3, cna: '俄文聖經' },
             // 今日發現印尼的著作權保護年限與台灣不同。台灣是50年，印尼是70年。為了不侵犯著作權，所以立即將印尼聖經下架，並請同工去洽詢印尼聖經公會授權的可能。新介面正在處理下架中
-            // { na: 'korean', od: 5, cna: '韓文聖經' },
+            // 已購買 印尼、韓文 譯本的授權
+            { na: 'korean', od: 5, cna: '韓文聖經' },
             { na: 'jp', od: 7, cna: '日語聖經' },
-            // { na: 'baru', od: 9, cna: '印尼聖經' }, 
-            { na: 'cvul', od: 11, cna: '武加大譯本' },
-            { na: 'nvul', od: 13, cna: '新武加大譯本' },
+            { na: 'baru', od: 9, cna: '印尼聖經' }, 
+            { na: 'ind1958', od: 11, cna: '印尼聖經舊聖經' },
+            { na: 'cvul', od: 13, cna: '武加大譯本' },
+            { na: 'nvul', od: 15, cna: '新武加大譯本' },
           ]
         },
         {
@@ -190,7 +192,7 @@
             const dictNa2Dom$ = Enumerable.from(vers$.find('.book-item')).toDictionary(a1 => $(a1).data('data').na, a1 => $(a1));
 
             // 強制不從 api更新 的譯本
-            const ignore_nas = ['baru','ind1958','korean','unv']; // 'baru' 印尼聖經因著作權問題先不開放選擇
+            const ignore_nas = []; 
 
             // for each ver in vers
             for(const ver of vers) {
