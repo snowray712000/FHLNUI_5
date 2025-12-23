@@ -17,9 +17,9 @@ export async function rtAsync(args) {
 
     function makeSureArgsValid() {
         if (args == null) { args = {}; }
-        args.book = args.book != null ? args.book : 2;
-        args.chap = args.chap != null ? args.chap : 1;
-        args.ver = args.ver != null ? args.ver : 'lcc';
+        args.book = args.book != null ? args.book : 1;
+        args.chap = args.chap != null ? args.chap : 2;
+        args.ver = args.ver != null ? args.ver : 'lcc'; // 呂振中譯本，才有注腳，且是 創2
         args.id = args.id != null ? args.id : 1;
         args.gb = args.gb != null ? args.gb : TPPageState.s.gb;
     }

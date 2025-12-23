@@ -1,6 +1,7 @@
 /** w,sn,tp,tp2 */
 
 /**
+ * @typedef {import("./DFoot.js").DFoot} DFoot
  * @typedef {object} DText
  * @property {string} [w]
  * @property {string} [sn] 不含 H 或 G, 且數字若有零會去頭
@@ -32,7 +33,7 @@
  * @property {1 | 0} [isOrderEnd] 若出現這個, html 就要加 </ol> 或 </ul>
  * @property {number} [idxOrder] idxOrder, 有這個 html 繪圖可以更加漂亮, 交錯深度之類的
  * @property {string} [class] twcb orig dict 出現的, 它原本就是 html 格式, 若巢狀, 愈前面的 class 愈裡層
- * @property {import("./DFoot").DFoot} [foot] rt.php?engs=Gen&chap=4&version=cnet&id=182 真的缺一參數不可,試過只有id不行  和合本 2010 版, 是只有 text ([4.1]「該隱」意思是「得」。) csb: 中文標準譯本 cnet: NET聖經中譯本
+ * @property {import("./DFoot.js").DFoot} [foot] rt.php?engs=Gen&chap=4&version=cnet&id=182 真的缺一參數不可,試過只有id不行  和合本 2010 版, 是只有 text ([4.1]「該隱」意思是「得」。) csb: 中文標準譯本 cnet: NET聖經中譯本
  * @property {0 | 1} [isName] 私名號。底線
  * @property {0 | 1} [isBold] 粗體。和合本2010、<b></b>
  * @property {0 | 1} [isGODSay] 紅字。耶穌說的話，會被標紅色。有些版本這麼作。
