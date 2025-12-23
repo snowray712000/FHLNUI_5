@@ -32,6 +32,8 @@ import { testThenDoAsync } from './testThenDo.es2023.js'
 import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
 import { assert } from './assert_es2023.js'
 import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
+import { rtAsync } from './rtAsync.js'
+
 /* 
 若有 2 個譯本，並且是併排方式
 <div#fhlLecture>
@@ -800,8 +802,8 @@ function when_click_on_lec(e, $lecMain) {
     FhlInfo.s.render(ps);
 
     // 因為搜尋還沒有加事件, 這個是暫時用的 2017.09
-    assert( ps?.bookIndex != null)
-    
+    assert(ps?.bookIndex != null)
+
     // 2017.08
     if (oldsec != ps.sec || oldchap != ps.chap)
         $(document).trigger('secchanged')
@@ -1606,12 +1608,13 @@ class Dialog_Sn_Info_Summary {
     }
 }
 
+
 /**
  * 注腳資料顯示
  * @param {Event} e
  * 可使用 呂振中譯本 開發測試
  */
-function when_click_on_ft(e) {
+async function when_click_on_ft(e) {
     const ps = TPPageState.s
     const currentTarget = e.currentTarget
     const $this = $(currentTarget)
@@ -1623,16 +1626,13 @@ function when_click_on_ft(e) {
     ParsingPopUp.s.render(ps, ParsingPopUp.s.dom, offset, "ft");
 
     var ftid = $this.attr('ft');
-    const book = parseInt($this.attr('book'))    
+    const book = parseInt($this.attr('book'))
     var chap = $this.attr('chap');
     var ver = $this.attr('ver');
     const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[book - 1];
 
-    var url = "rt.php?engs=" + engs + "&chap=" + chap + "&version=" + ver + "&id=" + ftid;
-    if (ps.gb == 1)
-        url += "&gb=1";
-    fhl.json_api_text(url, function (a1, a2) {
-        var json = JSON.parse(a1);
+    try {
+        const json = await rtAsync({ book, chap, ver, id: ftid, gb: ps.gb });
         if (json.status == "success" && json.record.length > 0) {
             var txt = json.record[0].text;
             $('#parsingPopUpInside').text(txt);
@@ -1643,7 +1643,7 @@ function when_click_on_ft(e) {
         else {
             $('#parsingPopUpInside').text("錯誤:可回報下訊息- " + a1);
         }
-    }, function (a1, a2) {
+    } catch (error) {
         $('#parsingPopUpInside').text("錯誤:於" + url + "時發生");
-    }, null);
+    }
 }
