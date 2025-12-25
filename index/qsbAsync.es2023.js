@@ -13,11 +13,30 @@ import { BibleConstantHelper } from './BibleConstantHelper.es2023.js';
  */
 
 /**
+ * @typedef {Object} DQsbRecord
+ * @property {string} chineses - 中文經文
+ * @property {string} engs - 英文經文
+ * @property {number} book - 聖經書卷編號 1-based (api 本來沒有，是用 engs 取得的)
+ * @property {number} chap - 章
+ * @property {number} sec - 節
+ * @property {string} bible_text - 經文內容
+ */
+
+/**
+ * @typedef {Object} DQsbResult
+ * @property {"success"} [status] - 狀態，成功時為 "success"
+ * @property {number} record_count - 返回的記錄數量
+ * @property {0|1|2|3|4} [proc] - 需要特殊字型  0:不需要 1:希臘文 2:希伯來文 3:羅馬拼音 4:Open Han字形
+ * @property {DQsbRecord[]} record - 返回的經文記錄陣列  
+ */
+
+/**
  * qsb.php 取得交互參照經文
  * 
  * qstr 是唯一必填參數
  * ver 預設 'unv'； isGb 預設，依設定； isSn 預設 1，若譯本不是 unv kjv rcuv，則強制為 0； bookDefault 預設，依 ps 的 bookIndex
  * 錯誤處理會往上丟
+ * 取得的結果會加入 book 欄位，也就是會有 book, chap, sec, 不再需要用 engs 與 chineses
  * @param {DQsbParam} args
  * @returns {Promise<DQsbResult>}
  */
@@ -26,7 +45,16 @@ export async function qsbAsync(args) {
 
     const url = cvtArgsToUrl();
     const response = await fetch(url);
-    return await response.json();
+
+    /**
+     * @type {DQsbResult}
+     */
+    const result = await response.json();
+    if (result.status == 'success') {
+        qsbRecordToStd(result);
+    }
+    return result
+
 
     function makeSureArgsValid() {
         if (args == null) { args = {}; }
@@ -58,4 +86,26 @@ export async function qsbAsync(args) {
 function get_default_book_engs() {
     const ps = TPPageState.s
     return BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1]
+}
+
+/**
+ * 將 record 中的 engs, chineses 轉成 book
+ * in-place 修改 record
+ * @param {DQsbResult} result 
+ */
+function qsbRecordToStd(result) {
+    // map record.engs and unique
+    const uniqueEngs = [...new Set(result.record.map(r => r.engs))];
+
+    // engs to book
+    const engsToBook = {};
+    for (const engs of uniqueEngs) {
+        const book = BibleConstantHelper.getBookId(engs.toLowerCase())
+        engsToBook[engs] = book;
+    }
+
+    // map to standard format
+    for (const a1 of result.record) {
+        a1.book = engsToBook[a1.engs];
+    }
 }
