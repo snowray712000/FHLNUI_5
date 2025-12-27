@@ -89,6 +89,8 @@ export class TPPageState {
     this.show_mode = 1
     /** @type {0|1|2} 0: 每次詢問，1: 直接方法1，2: 直接方法2*/
     this.reference_method = 0
+    /** @type {0|1} 切換經文方法，0: 依視窗大小，1: 簡易 */
+    this.book_select_method = 0 // 0: 依視窗大小，1: 簡易
 
     /** @type {numver} 1 2 3 就是節數了，當 ai_is_auto_count_of_verse = 1 時，就無效 */
     this.ai_count_of_verse = 3

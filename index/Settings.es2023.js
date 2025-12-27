@@ -12,8 +12,8 @@ import { gbText } from "./gbText.es2023.js";
 
 function register_reference_method(ps){
     $('#reference_method').off('change').on('change', function () {
-        ps.reference_method = parseInt($(this).val());
-        pageState.reference_method = ps.reference_method;
+        const ps = TPPageState.s;
+        ps.reference_method = parseInt($(this).val() ?? 0);
         ps.saveToLocalStorage();
     });
 }
@@ -27,6 +27,23 @@ function render_reference_method(ps, dom){
 
     dom.html(html);
     $('#reference_method').val(ps.reference_method); // 初始化為當前狀態
+}
+function register_book_select_method(ps){
+    $('#book_select_method').off('change').on('change', function () {
+        const ps = TPPageState.s;
+        ps.book_select_method = parseInt($(this).val() ?? 0);
+        ps.saveToLocalStorage();
+    });
+}
+function render_book_select_method(ps, dom){
+        const html = `<div>${gbText("切換經文方法", ps.gb)}:</div>
+<select id="book_select_method">
+    <option value="0">依視窗大小</option>
+    <option value="1">簡易</option>
+</select>`
+
+    dom.html(html);
+    $('#book_select_method').val(ps.book_select_method); // 初始化為當前狀態
 }
 export class Settings {
     static #s = null
@@ -77,6 +94,11 @@ export class Settings {
         $('#settingsScrollDiv ul').append("<li><div id='reference_method_tool'></div></li>");
         render_reference_method(ps, $('#reference_method_tool'));
         register_reference_method(ps);
+
+        // book select method
+        $('#settingsScrollDiv ul').append("<li><div id='book_select_method_tool'></div></li>");
+        render_book_select_method(ps, $('#book_select_method_tool'));
+        register_book_select_method(ps);
 
     }
     registerEvents(ps) {

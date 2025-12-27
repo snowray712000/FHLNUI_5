@@ -39,7 +39,7 @@ export class BookSelect {
         $('#bookSelect').off().on('click', function(e) { 
             // 加上unbind() 讓創世記第二節之後的dropdown不會自動消失
             var cx = $(window).width()
-            if (cx < 1280) { // 那個視窗大概需1100，取個 1280 吧
+            if (cx < 1280 || (ps.book_select_method == 1)) { // 那個視窗大概需1100，取個 1280 吧
                 /**
                  * @type {Ijnjs.BookChapDialog}
                  */
