@@ -29,7 +29,7 @@ export class BibleConstantHelper {
     }
 
     /**
-     * 產生範圍內的經文地址
+     * 產生範圍內的經文地址，即 創1:4-7
      * @param {number} book
      * @param {number} chap
      * @param {number} verse1
@@ -38,13 +38,13 @@ export class BibleConstantHelper {
      */
     static generateAddressesTpE(book, chap, verse1, verse2) {
         const range = verse2 > verse1
-            ? Enumerable.range(verse1, verse2 - verse1 + 1)
-            : Enumerable.range(verse2, verse1 - verse2 + 1);
-        return range.select(v => ({ book, chap, verse: v })).toArray();
+            ? Array.from({ length: verse2 - verse1 + 1 }, (_, i) => verse1 + i)
+            : Array.from({ length: verse1 - verse2 + 1 }, (_, i) => verse2 + i);
+        return range.map(v => ({ book, chap, verse: v }));
     }
 
     /**
-     * 產生從指定節到章末的經文地址
+     * 產生從指定節到章末的經文地址，即 創1:5-end
      * @param {number} book
      * @param {number} chap
      * @param {number} verse
@@ -52,22 +52,22 @@ export class BibleConstantHelper {
      */
     static generateAddressesTpB(book, chap, verse) {
         const cnt = BibleConstant.COUNT_OF_VERSE[book - 1][chap - 1];
-        return Enumerable.range(verse, cnt - verse + 1).select(i => ({ book, chap, verse: i })).toArray();
+        return Array.from({ length: cnt - verse + 1 }, (_, i) => ({ book, chap, verse: verse + i }));
     }
 
     /**
-     * 產生整章的經文地址
+     * 產生整章的經文地址，即 創2
      * @param {number} book
      * @param {number} chap
      * @returns {DAddress[]}
      */
     static generateAddressesTpF(book, chap) {
         const cnt = BibleConstant.COUNT_OF_VERSE[book - 1][chap - 1];
-        return Enumerable.range(1, cnt).select(i => ({ book, chap, verse: i })).toArray();
+        return Array.from({ length: cnt }, (_, i) => ({ book, chap, verse: i + 1 }));
     }
 
     /**
-     * 產生跨章的經文地址
+     * 產生跨章的經文地址，即 創1:2-3:4
      * @param {number} book
      * @param {number} chap1
      * @param {number} verse1
@@ -79,9 +79,9 @@ export class BibleConstantHelper {
         const part1 = this.generateAddressesTpB(book, chap1, verse1);
         const part2 = [];
         if (chap2 - chap1 > 1) {
-            Enumerable.range(chap1 + 1, chap2 - chap1 - 1).forEach(ch => {
+            for (let ch = chap1 + 1; ch < chap2; ch++) {
                 part2.push(...this.generateAddressesTpF(book, ch));
-            });
+            }
         }
         const part3 = this.generateAddressesTpE(book, chap2, 1, verse2);
         return part1.concat(part2, part3);
@@ -186,11 +186,15 @@ export class BibleConstantHelper {
             });
         });
 
-        // 特殊名稱處理
+        // 特殊名稱處理 (註腳中，馬太5:41 cnet)
         const specialNames = [
             { id: 62, names: ['約壹', '约壹', '約翰壹書', '约翰壹书', '約翰一書', '约翰一书', '約一', '约一'] },
             { id: 63, names: ['約貳', '约贰', '約翰貳書', '约翰贰书', '約翰二書', '约翰二书', '約二', '约二'] },
-            { id: 64, names: ['約參', '约参', '約翰參書', '约翰参书', '約翰三書', '约翰三书', '约三', '約三'] }
+            { id: 64, names: ['約參', '约参', '約翰參書', '约翰参书', '約翰三書', '约翰三书', '约三', '約三'] },
+            { id: 40, names: ['馬太', '马太'] },
+            { id: 41, names: ['馬可', '马可'] },
+            { id: 42, names: ['路加', '路加'] },
+            { id: 43, names: ['約翰', '约翰'] },
         ];
         specialNames.forEach(({ id, names }) => {
             names.forEach(name => {

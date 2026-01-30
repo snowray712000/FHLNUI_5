@@ -68,7 +68,9 @@ export class TPPageState {
     /** @type {string} sn，例如 312，mouseenter 成為 activate，有 snAct 在 css 中對應。同源字是 snAct2 */
     this.snAct = ""
     /** @type {0|1|-1} sn是新約還舊約，mouseenter 成為 activate*/
-    this.snActN = -1
+    // this.snActN = -1
+    /** @type {"G"|"H"}  'G' or 'H' sn 是希伯來文還是希臘文，mouseenter 成為 activate */
+    this.snActTp = ""
     /** @type {0|1} 是否開啟 即時顯示，這個與左方開關同步 */
     this.realTimePopUp = 0
     /** @type {TPFhlTitleId} 原文 parsing 註釋 comment 講道 preach 串珠 tsk 典藏 ob 地圖 map 樹狀圖 sn branch */
@@ -91,10 +93,12 @@ export class TPPageState {
     this.reference_method = 0
     /** @type {0|1} 切換經文方法，0: 依視窗大小，1: 簡易 */
     this.book_select_method = 0 // 0: 依視窗大小，1: 簡易
+    /** @type {0|1|2} 0: 點擊顯示 1: 滑鼠移過顯示 2: 直接載入 */
+    this.foot_note_show_method = 0
 
     /** @type {numver} 1 2 3 就是節數了，當 ai_is_auto_count_of_verse = 1 時，就無效 */
     this.ai_count_of_verse = 3
-    /** @type {0|1} 自動，就會以「段落」自動判斷 */
+    /** @type {0|1|2|3} 1: 自動，就會以「段落」自動判斷 0: 節 2: 本章 3: 章數*/
     this.ai_is_auto_count_of_verse = 0
 
     /** @type {Object.<string, number>} str 為 key ， 次數為 value。此變數不會真的需要存在 localstorage */

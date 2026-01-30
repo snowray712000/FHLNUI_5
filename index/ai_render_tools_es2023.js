@@ -24,8 +24,11 @@ import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { ParagraphData } from "./ParagraphData_es2023.js";
 import { ai_translations_set_count_sec } from "./ai_translations_set_count_sec.js";
 import { ai_get_address_paragraph } from "./ai_get_address_paragraph.js";
+import { ai_get_address_chapter } from "./ai_get_address_chapter.js";
 import { ai_get_limited_address_range } from "./ai_get_limited_address_range.js";
 import { gen_prompt_parsing_table } from "./parsing_gen_prompt_parsing_table_es2023.js";
+
+
 function gen_prompt_exp(exp) {
     return exp.replace(/\n/g, "↩")
 }
@@ -207,7 +210,6 @@ function gen_dev(){
     ai_parsing_gen_tp1
 }
 
-
 /**
  * tp2 要用
  * @param {number[]} addr [book,chap,sec] 起始節
@@ -215,8 +217,20 @@ function gen_dev(){
  */
 function get_addrs_multi_verse(addr) {
     const ps = TPPageState.s
-    const addrs = ps.ai_is_auto_count_of_verse == 1 ? ai_get_address_paragraph(addr) : ai_get_limited_address_range(addr, ps.ai_count_of_verse)
-    return addrs;
+    const flag_query_data = ps.ai_is_auto_count_of_verse; // 1: 自動，0: 節，2: 本章，3: 章數
+    if ( flag_query_data == 0 ){
+        return ai_get_limited_address_range(addr, ps.ai_count_of_verse)
+    }
+    if ( flag_query_data == 1 ){
+        return ai_get_address_paragraph(addr)
+    }
+    if ( flag_query_data == 2 ){
+        return ai_get_address_chapter(addr)
+    }
+    if ( flag_query_data == 3 ){
+        return ai_get_address_chapter(addr, ps.ai_count_of_verse)
+    }
+    return [addr]
 }
 function render_setting_about_multi_verse() {
     return $("<span class='setting' tp='count_of_verse'> 🔧 </span>")
