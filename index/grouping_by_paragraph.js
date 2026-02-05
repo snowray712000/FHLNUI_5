@@ -6,10 +6,14 @@ import { Hash_DAddress } from "./Hash_DAddress_es2023.js";
  */
 
 /**
+ * @typedef {[number[], number]} GroupedParagraph // [recordIndices, paragraphIndex]，例如 [[0,1,2], 0] 表示 record[0,1,2] 都屬於 paragraphData[0]。注意，段落若沒找到，則是用  -1
+ */
+
+/**
  * 原本用在 FhlLecture_render_mode3 裡面
  * @param {TpOneRecordBibleText[]} record 
  * @param {Array<number|string>} paragraphData [book, chap, sec, title]
- * @returns {Array} [[0,1,2], 0] 表示 record[0,1,2] 都屬於 paragraphData[0]。注意，段落若沒找到，則是用  -1
+ * @returns {GroupedParagraph[]} [[0,1,2], 0] 表示 record[0,1,2] 都屬於 paragraphData[0]。注意，段落若沒找到，則是用  -1
  */
 export function grouping_by_paragraph(record, paragraphData) {
     if (record.length == 0) {

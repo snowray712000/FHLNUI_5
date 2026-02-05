@@ -85,6 +85,9 @@ function render_dtexts_only(dtexts, version, addr){
         if (dtext.isName) {
             span.addClass('isName');
         }
+        if (dtext.isBold){
+            span.addClass('isBold')
+        }
         // 其他屬性處理...
         if (dtext.foot != null){
             span.text('') // 清掉

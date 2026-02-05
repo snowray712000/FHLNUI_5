@@ -132,6 +132,26 @@ export class FhlLecture {
         $lecMain.on({
             click: e => when_click_on_ft(e)
         }, '.ft');
+        // .ft 注腳 click
+        $lecMain.on({
+            click: function (e) {
+                const target = e.target;
+                // 取得 ver。往 parent 方向找，它會有一個 span.lec 的父元素，並且會擁有 attr.ver。
+                const ver = $(target).closest('span.lec').attr('ver');
+                
+                // 試取 addr-desc
+                const addrDesc = $(target).attr('addr-desc');
+                if (addrDesc == null || addrDesc.trim().length == 0) {
+                    // 試取 data-addrs
+                    const addrs = JSON.parse($(target).attr('data-addrs'))
+                    if (addrs != null && addrs.length > 0) {
+                        queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: e, version: "unv"})
+                    }
+                } else {
+                    queryReferenceAndShowAtDialogAsync({ addrsDescription: addrDesc, event: e, version: "unv" })
+                }
+            }
+        }, '.ref');
 
         // 地圖(綠色那個)click時, 發出sobj_pos訊息給地圖那邊接受
         $lecMain.on({
@@ -257,7 +277,7 @@ async function renderLectureHtml(that) {
      * @param {FhlLecture} that 
      * @param {TpOneRecordBibleText[]} rspArr 
      */
-    function when_query_bibletext_complete(that, rspArr) {
+    async function when_query_bibletext_complete(that, rspArr) {
         /** @type {TPPageState} */
         let ps = TPPageState.s
 
@@ -278,11 +298,11 @@ async function renderLectureHtml(that) {
         var mode = ps.show_mode;
         let $htmlContent = "";
         if (mode == 3) {
-            $htmlContent = render_mode3(rspArr, isOld);
+            $htmlContent = await render_mode3(rspArr, isOld);
         } else if (mode == 2) {
-            $htmlContent = render_mode2(rspArr, isOld);
+            $htmlContent = await render_mode2(rspArr, isOld);
         } else {
-            $htmlContent = render_mode1(rspArr, isOld);
+            $htmlContent = await render_mode1(rspArr, isOld);
         }
 
         ps.sn_stastic = get_sn_stastic(rspArr, $htmlContent)
@@ -382,24 +402,24 @@ async function renderLectureHtml(that) {
             dtitle.append($(`<div class=lecContent><div class=versionName>${o.v_name}<span class='closeButton' cname='${cname}'>x</span></div></div>`));
         }
     }
-    function render_mode2(rspArr, isOld) {
-        return FhlLecture_render_mode2(rspArr);
+    async function render_mode2(rspArr, isOld) {
+        return await FhlLecture_render_mode2(rspArr);
     }
     /**
      * @param {TpResultBibleText[]} rspArr 
      * @param {boolean} isOld 
      * @returns 
      */
-    function render_mode1(rspArr, isOld) {
-        return FhlLecture_render_mode1(rspArr);
+    async function render_mode1(rspArr, isOld) {
+        return await FhlLecture_render_mode1(rspArr);
     }
     /**
      * @param {TpResultBibleText[]} rspArr 
      * @param {boolean} isOld 
      * @returns 
      */
-    function render_mode3(rspArr, isOld) {
-        return FhlLecture_render_mode3(rspArr)
+    async function render_mode3(rspArr, isOld) {
+        return await FhlLecture_render_mode3(rspArr)
     }
     function render_pos_and_pho($htmlContent) {
         let htmlContent = ""
@@ -831,13 +851,13 @@ function when_mouseenter_on_lec(e) {
 /**
  * 
  * @param {string} sn 
- * @param {0|1} N 
+ * @param {"G"|"H"} tp 
  * @returns {number} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt 
  */
-function get_sn_count_in_bible(sn, N) {
+function get_sn_count_in_bible(sn, tp) {
     if (Sd_cnt_json.s.filecontent == null) return -2
 
-    let hg = N == 0 ? "greek" : "hebrew"
+    let hg = tp == "G" ? "greek" : "hebrew"
     let cnt = Sd_cnt_json.s.filecontent[hg][sn]
     if (cnt != undefined) {
         return cnt
@@ -882,13 +902,13 @@ function mouseenter_sn_set_snAct_and_Color_act(e) {
     let ps = TPPageState.s
     const dom = e.currentTarget
 
-    let N = $(dom).attr('N') // 1: 舊約 0: 新約
+    const tp = $(dom).attr('tp') // 'G' or 'H'
     let sn = $(dom).attr('sn')
     ps.snAct = sn
-    ps.snActN = N
+    ps.snActTp = tp
 
     // Activate sn，標記為紅色
-    SN_Act_Color.s.act_add(sn, N)
+    SN_Act_Color.s.act_add(sn, tp)
 }
 class ParsingCache {
     /**
@@ -992,13 +1012,13 @@ function mouseenter_sn_dialog(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     const dom = e.currentTarget
-    let N = $(dom).attr('N') // 1: 舊約 0: 新約
+    const tp = $(dom).attr('tp') // 'G' or 'H'
     let sn = $(dom).attr('sn')
     ps.snAct = sn
-    ps.snActN = N
+    ps.snActTp = tp
 
     // Activate sn，標記為紅色
-    // SN_Act_Color.s.act_add(sn, N)
+    // SN_Act_Color.s.act_add(sn, tp)
 
     // 取得資料 async 
     // 若取得資料完成時，滑鼠還在同一個 sn 上，就繼續顯示，若非，就不顯示
@@ -1009,14 +1029,14 @@ function mouseenter_sn_dialog(e) {
     let book = ps.book_hover
     let chap = ps.chap_hover
     let sec = ps.sec_hover
-    let one = { sn, N, book, chap, sec }
+    let one = { sn, tp, book, chap, sec }
 
     ps.xy_hover = { x: e.clientX, y: e.clientY }
 
     class DOne {
-        constructor(sn, N, book, chap, sec) {
+        constructor(sn, tp, book, chap, sec) {
             this.sn = sn
-            this.N = N
+            this.tp = tp
             this.book = book
             this.chap = chap
             this.sec = sec
@@ -1081,7 +1101,8 @@ function mouseenter_sn_dialog(e) {
         }
         // GET	http://127.0.0.1:5600/json/sd.php?N=0&k=2424&gb=0
         let sn = one.sn
-        let N = one.N
+        let tp = one.tp
+        let N = tp == 'G' ? 0 : 1        
         let endpoint = `/json/sd.php?k=${sn}&N=${N}&gb=0`
         let host = isRDLocation() ? 'http://127.0.0.1:5600' : ''
         let url = host + endpoint
@@ -1097,7 +1118,7 @@ function mouseenter_sn_dialog(e) {
                         let json = a1
                         json["one"] = one // 在 .then 才知道，當時是哪一組資料
                         json.src = "cbol"
-                        json.isOld = N == 1 ? 1 : 0
+                        json.isOld = tp == 'H' ? 1 : 0
                         res(json)
                     } else {
                         res("找不到資料 get_dict_async a")
@@ -1130,13 +1151,14 @@ function mouseenter_sn_dialog(e) {
         let dlg = new DialogHtml()
 
         // G3762
-        let N = re_dict.one.N
+        // let N = re_dict.one.N
+        const tp =re_dict.one.tp // 'G' or 'H'
         let sn = re_dict.one.sn
-        let sn_hg = (N == 0 ? 'G' : 'H') + sn // 2 處用到
-        let span_sn = $('<span>').text(`${sn_hg} `).addClass('sn').attr('sn', sn).attr('N', N)
+        let sn_hg = tp + sn // 2 處用到
+        let span_sn = $('<span>').text(`${sn_hg} `).addClass('sn').attr('sn', sn).attr('tp', tp)
 
         // <span.fn-search-sn sn,isOld> 出現經文 </span>
-        const span_fn_sn_search = $('<span>').text(`出現經文`).addClass('fn-search-sn').attr('sn', sn).attr('tp', (N == 0 ? 'G' : 'H'))
+        const span_fn_sn_search = $('<span>').text(`出現經文`).addClass('fn-search-sn').attr('sn', sn).attr('tp', tp)
 
         // 原文 簡義
         // 從 same 中找到自己那個
@@ -1161,7 +1183,7 @@ function mouseenter_sn_dialog(e) {
 
         // 本章 n 次，本書 n 次，聖經 n 次。
         // 聖經出現次數
-        let cnt_in_bible = get_sn_count_in_bible(sn, N)
+        let cnt_in_bible = get_sn_count_in_bible(sn, tp)
         let description_in_bible = `聖經 ${cnt_in_bible > -1 ? cnt_in_bible : '?'} 次`
         // 此書卷出現次數
         let cnt_in_book = get_sn_count_in_book(sn, re_dict.one.book)
@@ -1328,7 +1350,7 @@ function mouseenter_sn_dialog(e) {
 
         // 同源字
         let span_same = $('<span>')
-        if (N == 1) {
+        if (tp == 'H') {
             span_same.append('<span class="item-title">同源字：</span><span>舊約無資料。</span>')
         } else {
             span_same.append('<span class="item-title">同源字：</span>')
@@ -1351,7 +1373,7 @@ function mouseenter_sn_dialog(e) {
                 // 產生許多 <span class='one-same'>...</span>
                 for (let i1 = 0; i1 < same2.length; i1++) {
                     const onesame3 = same2[i1]
-                    let sn3 = (N == 0 ? 'G' : 'H') + onesame3.csn  // 2 處用到
+                    let sn3 = tp + onesame3.csn  // 2 處用到
 
                     // 處理之前， cexp 可能會有 交互參照
                     function get_cexp_with_ref(cexp) {
@@ -1373,7 +1395,7 @@ function mouseenter_sn_dialog(e) {
                     const cexp_ref = get_cexp_with_ref(onesame3.cexp)
 
                     let span_one_same = $('<span>').addClass('one-same')
-                        .append($('<span>').text(sn3).addClass('sn').attr('sn', onesame3.csn).attr('N', N))
+                        .append($('<span>').text(sn3).addClass('sn').attr('sn', onesame3.csn).attr('tp', tp))
                         .append($('<span>').text(`(${onesame3.ccnt})`))
                         .append($('<span>').html(cexp_ref))
                         .appendTo(span_same)
@@ -1448,6 +1470,8 @@ function mouseenter_sn_dialog(e) {
                 })
 
                 dlg.on('click', '.ref', a1 => {
+                    console.log($(a1.target));
+
                     let addrs = JSON.parse($(a1.target).attr('data-addrs'))
                     queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: a1 })
                 })
@@ -1455,9 +1479,11 @@ function mouseenter_sn_dialog(e) {
                 dlg.parent().off('click', '.sn').on({
                     "click": function () {
                         var r2 = $(this)
+                        const tp = r2.attr('tp') // 'G' or 'H'
+                        const isOld = tp == 'H' ? 1 : 0
                         var jo = {
                             sn: r2.attr('sn'),
-                            isOld: parseInt(r2.attr('n')),
+                            isOld: isOld,
                         }
 
                         // BUG:
@@ -1539,9 +1565,9 @@ class Dialog_Sn_Info_Summary {
         }
 
         if (ps.realTimePopUp) {
-            const N = $this.attr('N');
-            const k = $this.attr('sn');
-            if (this.is_pause_realtime_temporary_sn && (ps.snAct != k || ps.snActN != N)) {
+            const tp = $this.attr('tp') // 'G' or 'H'
+            const sn = $this.attr('sn');
+            if (this.is_pause_realtime_temporary_sn && (ps.snAct != sn || ps.snActTp != tp)) {
                 // 在 pause 時 ， 又點擊某個，此時不該等 2 秒
                 mouseenter_sn_set_snAct_and_Color_act(e)
                 mouseenter_sn_dialog(e)
@@ -1556,7 +1582,7 @@ class Dialog_Sn_Info_Summary {
         } else {
             // 非即時模式，直接顯示即可
             ps.snAct = ""
-            ps.snActN = -1
+            ps.snActTp = ""
             SN_Act_Color.s.act_remove()
             mouseenter_sn_set_snAct_and_Color_act(e)
             mouseenter_sn_dialog(e)
@@ -1596,7 +1622,8 @@ class Dialog_Sn_Info_Summary {
         const ps = this.ps
         if (this.is_pause_realtime_temporary_sn == false) {
             ps.snAct = ""
-            ps.snActN = -1
+            // ps.snActN = -1
+            ps.snActTp = ""
 
             SN_Act_Color.s.act_remove()
 

@@ -2183,3 +2183,9 @@ nav#fhlTopMenu {
 .foot {
     color: #ff00c1;
 }
+.isBold {
+    font-weight: bold;
+}
+.isName {
+    text-decoration: underline;     
+}

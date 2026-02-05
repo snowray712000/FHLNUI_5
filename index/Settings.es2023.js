@@ -45,6 +45,27 @@ function render_book_select_method(ps, dom){
     dom.html(html);
     $('#book_select_method').val(ps.book_select_method); // 初始化為當前狀態
 }
+
+function register_foot_note_show_method(ps){
+    $('#foot_note_show_method').off('change').on('change', function () {
+        const ps = TPPageState.s;
+        ps.foot_note_show_method = parseInt($(this).val() ?? 0);
+        ps.saveToLocalStorage();
+    });
+}
+function render_foot_note_show_method(ps, dom){
+        const html = `<div>${gbText("註腳", ps.gb)}:</div>
+<select id="foot_note_show_method">
+    <option value="0">點擊顯示</option>
+    <!-- <option value="1">滑鼠移過</option> -->
+    <option value="2">直接載入</option>
+</select>`
+
+dom.html(html);
+    $('#foot_note_show_method').val(ps.foot_note_show_method); // 初始化為當前狀態
+}
+
+
 export class Settings {
     static #s = null
     /** @returns {Settings} */
@@ -99,6 +120,11 @@ export class Settings {
         $('#settingsScrollDiv ul').append("<li><div id='book_select_method_tool'></div></li>");
         render_book_select_method(ps, $('#book_select_method_tool'));
         register_book_select_method(ps);
+
+        // foot note show method
+        $('#settingsScrollDiv ul').append("<li><div id='foot_note_show_method_tool'></div></li>");
+        render_foot_note_show_method(ps, $('#foot_note_show_method_tool'));
+        register_foot_note_show_method(ps);
 
     }
     registerEvents(ps) {
