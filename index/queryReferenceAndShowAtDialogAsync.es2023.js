@@ -18,6 +18,7 @@ import markdownit from 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
 import { cvt_others } from "./cvt_others.js"
 import { prepare_dtexts_for_html } from "./prepare_dtexts_for_html.js"
+import { queryFootsAsync } from "./queryFootsAsync.js"
 /**
  * 開發給 原字Parsing時，點擊原文字，要跳出字典內容
  * 像串珠功能，就是直接有 addrsDescription, 而非 addrs[]
@@ -126,6 +127,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
     }
     function show_in_dialog() {
         let addrsDescription = jo.addrsDescription != null ? jo.addrsDescription : cvtAddrsToRef(jo.addrs, '羅')
+        
         let version = jo.version == null ? "unv" : jo.version
         const bookDefaultId = jo.bookDefault ? jo.bookDefault : 45 // 羅, 1-based
         let bookDefault = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[bookDefaultId - 1]
@@ -141,7 +143,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         /**
          * @param {DQsbResult} a1 
          */
-        function when_qsbAsync(a1) {
+        async function when_qsbAsync(a1) {
             const ver = version
             /**
              * @typedef {[number, number, number, string]} RecordWithAddr // [book, chap, sec, text]
@@ -155,17 +157,22 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
             })
 
             const dtexts_with_addr = cvt_others(ver, records_with_addr)
-
+            // foot 注腳 csb 中文標準譯本 cnet NET聖經中譯本 lcc 呂振中譯本
+            if (ps.foot_note_show_method == 2) {
+                await queryFootsAsync(dtexts_with_addr, ver)
+            }
+            
             const dtexts_prepared = prepare_dtexts_for_html(dtexts_with_addr, 2);
-            
+
             let html = cvtDTextsToHtmlForReference(dtexts_prepared)
-            
+
             // html dialog, .sn 都加上 .sn-hidden，使用 jquery
             // 將字串轉成暫時容器，修改後再取回 html 字串
             const $container = $('<div>').append($(html));
+
             $container.find('.sn').addClass('sn-hidden');
             html = $container.html();
-            
+
             let dlg = new DialogHtml()
             dlg.showDialog({
                 html: html,
@@ -218,5 +225,14 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
      */
     function cvtDTextsToHtmlForReference(dtexts) {
         return cvtDTextsToHtml(dtexts)
+    }
+}
+
+function add_sn_hidden_if_need(text_jq) {
+    // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
+    const ps = TPPageState.s;
+    if (ps.strong == 0) {
+        // 將 text 轉為 jQuery，然後將 .sn 的 span 加入 .hidden
+        text_jq.find('.sn').addClass('sn-hidden')
     }
 }

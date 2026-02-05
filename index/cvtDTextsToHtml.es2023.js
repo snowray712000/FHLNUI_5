@@ -52,8 +52,14 @@ export function cvtDTextsToHtml(dtexts) {
                 } else if (a1.sn != null){
                     let tmp = $('<span>', {
                         text: a1.w,
-                        class: 'sn',
                     })
+
+                    // 若有 sn 且有 tp2 才是真正的 .sn, 不然就是 .sn-text
+                    if ( a1. tp2 != null ){
+                        tmp.addClass('sn')
+                    } else {
+                        tmp.addClass('sn-text')
+                    }
                     tmp.attr('n', a1.tp == 'G' ? "0" : "1")
                     tmp.attr('sn', a1.sn)
 

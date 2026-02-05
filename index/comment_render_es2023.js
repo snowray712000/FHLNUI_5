@@ -143,7 +143,7 @@ function generate_div_comment_content(res) {
             let sn = `${parseInt(s[2])}${s[3] || ""}`;
 
             let span = $('<span></span>')
-            span.addClass('sn').attr('sn', sn).attr('tp', tp).attr('N', tp == 'H' ? 1 : 0)
+            span.addClass('sn').attr('sn', sn).attr('tp', tp)
             span.text(`${tp.toUpperCase()}${sn}`)
             return span[0].outerHTML
         }

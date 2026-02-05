@@ -29,16 +29,19 @@ export function comment_register_events() {
 
         var r2 = $(target)
         var sn = r2.attr('sn')
-        var N = r2.attr('tp') == 'H' ? 1 : 0
+        const tp = r2.attr('tp') // 'G' or 'H'
+        // var N = r2.attr('tp') == 'H' ? 1 : 0
         ps.snAct = sn
-        ps.snActN = N
+        // ps.snActN = N
+        ps.snActTp = tp
 
-        SN_Act_Color.s.act_add(sn, N)
+        SN_Act_Color.s.act_add(sn, tp)
     })
     $('#fhlInfoContent').off('mouseleave', '.sn').on('mouseleave', '.sn', function () {
         const ps = TPPageState.s;
         ps.snAct = ""
-        ps.snActN = -1
+        // ps.snActN = -1
+        ps.snActTp = ""
         SN_Act_Color.s.act_remove()
     })
 
@@ -59,10 +62,13 @@ export function comment_register_events() {
             dtexts = splitReference(refstr, defaultAddress)
         }
 
-        queryReferenceAndShowAtDialogAsync({
+        const paramsForDialog = {
+            addrsDescription: dtexts[0].w,
             addrs: dtexts[0].refAddresses,
             event: ev
-        })
+        }
+
+        queryReferenceAndShowAtDialogAsync(paramsForDialog)
     })
 
     // 註解: 下一處，上一處 的按鈕
