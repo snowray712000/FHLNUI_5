@@ -11,6 +11,8 @@ import { ReferenceNcv } from './ReferenceNcv.js'
 import { ReferenceOther } from './ReferenceOther.js'
 import { TPPageState } from './TPPageState.es2023.js';
 import { runAddFoot } from "./cvt_others_addFoot.js";
+import { attach_sn_text } from "./attach_sn_text.js";
+import { text_like_foot } from "./cvt_other_text_like_foot.js";
 /**
  * @typedef {[number, number, number, string]} RecordWithAddr // [book, chap, sec, text]
  */
@@ -30,6 +32,7 @@ export function cvt_others(version, bible_text_with_addr) {
     })
 }
 
+
 /**
  * @param {RecordWithAddr} record_with_addr 
  * @param {string} version
@@ -46,15 +49,33 @@ function cvt_one(record_with_addr, version) {
     // - 將原文標記改成成對的標記，避免 DOMParser 失敗
     replaceOrigToPair(dtexts_with_addr)
 
+    // - 和合本 2010，rcuv...它的內文就有像 foot 的內容了，像是 ( [ 2.8] 「世上粗淺的學說」或譯「宇宙的星宿」；20-21節同。)
+    if (['rcuv'].includes(version)) {
+        text_like_foot(dtexts_with_addr, version);
+    }
+
     if (version === 'kjv') replaceKJVToPair(dtexts_with_addr);
     if (version === 'cnet_foot') replaceCnetFootReference(dtexts_with_addr);
     if (version === 'csb_foot') replaceCsbFootReference(dtexts_with_addr);
     doUsingDOMParsor(dtexts_with_addr);
+
+    if (['unv', 'kjv', 'rcuv', 'fhlwh', 'bhs'].indexOf(version) != -1) {
+        add_sn_text(dtexts_with_addr, version);
+    }
+
     addParentheses(dtexts_with_addr);
     addReference(dtexts_with_addr, version);
-    runAddFoot(dtexts_with_addr, version);
+    if (!['rcuv','unv'].includes(version)){
+        runAddFoot(dtexts_with_addr, version);
+    }
 
     return dtexts_with_addr
+}
+
+function add_sn_text(dtexts_with_addr, version) {
+    const dtexts = dtexts_with_addr[3];
+    const dtexts2 = attach_sn_text(dtexts, version)
+    dtexts_with_addr[3] = dtexts2;
 }
 
 /**
@@ -381,13 +402,14 @@ function getAllDTextsFromAllChildrenNode(
                 rrr1.isBold = 1; rrr1.w = it3.textContent; // ESV 詩篇101 未知
             } else if (/WA?(T?)(H|G)(\d+[aA]?)(I?)/.test(it3.tagName)) {
                 // /{<(WA?T?(?:H|G)\d+[a-z]?)>}|<(WA?T?(?:H|G)\d+[a-z]?)>/gi
-                let rr1 = /WA?(T?)(H|G)(\d+[aA]?)(I?)/.exec(it3.tagName);
-                const isT = rr1[1].length !== 0;
-                rrr1.tp = rr1[2] // as 'G' | 'H';
-                let sn = rr1[3];
+                //let rr1 = /WA?(T?)(H|G)(\d+[aA]?)(I?)/.exec(it3.tagName);
+                let rr1 = /(WA?(T?)(H|G))(\d+[aA]?)(I?)/.exec(it3.tagName);
+                const isT = rr1[2].length !== 0;
+                rrr1.tp = rr1[3] // as 'G' | 'H';
+                let sn = rr1[4];
                 sn = sn.replace(/^0+/, '').toLocaleLowerCase(); // 讓 08521a 變為 8521a ... tagName 會自動變全大寫，所以造成 8521A 就會抓錯資料
                 rrr1.sn = sn
-                if (rr1[4].length != 0) {
+                if (rr1[5].length != 0) {
                     rrr1.isCurly = 1;
                 } // I
 
@@ -409,6 +431,9 @@ function getAllDTextsFromAllChildrenNode(
                 if (rrr1.isCurly == 1) {
                     rrr1.w = '{' + rrr1.w + '}';
                 }
+
+                // tp2 WTG, WAG, WTH, WH
+                rrr1.tp2 = rr1[1]
             }
             else {
                 rrr1.w = it3.outerHTML;
