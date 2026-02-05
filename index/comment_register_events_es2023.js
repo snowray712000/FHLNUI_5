@@ -11,6 +11,34 @@ import { ViewHistory } from "./ViewHistory.es2023.js";
 import { TPPageState } from './TPPageState.es2023.js'
 import { SN_Act_Color } from "./SN_Act_Color.es2023.js";
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
+
+function fix_addr_description(addrDescription, defaultAddr){
+    // - 若只有 1:20，就要加書卷名
+    // - 若是只有 30，並且是詩篇，就是整章
+    // - 若有 30:5-10，也要加書卷名
+    // - 詩篇 143 篇，很好測試
+    
+    // - 方法: 若是數字開始，就加書卷名。若沒有「:」符號，就加上章，但詩篇除外。
+    if (/^\s*[0-9]/.test(addrDescription)){
+        // - 若沒有「:」符號，就加上章，但詩篇除外。
+        const book = defaultAddr.book
+        const bookname = BibleConstantHelper.getBookNameArrayChineseShort()[book - 1]
+
+        if (!addrDescription.includes(":")){
+            if (book == 19){ // 詩篇
+                return bookname + " " + addrDescription
+            } else {
+                const chap = defaultAddr.chap != 0 ? defaultAddr.chap : 1
+                return bookname + " " + chap + " " + addrDescription;
+            }
+        }
+
+        return bookname + " " + addrDescription;
+    } else {
+        return addrDescription; // 不是數字開頭，就不處理
+    }
+}
+
 /**
  * ### fhlInfoContent 重構過來的
  */
@@ -62,8 +90,11 @@ export function comment_register_events() {
             dtexts = splitReference(refstr, defaultAddress)
         }
 
+        const fixedDescription = fix_addr_description(dtexts[0].w, defaultAddress)
+
         const paramsForDialog = {
-            addrsDescription: dtexts[0].w,
+            // addrsDescription: dtexts[0].w, // 會在詩篇 143 篇產生 Bug。
+            addrsDescription: fixedDescription,
             addrs: dtexts[0].refAddresses,
             event: ev
         }
