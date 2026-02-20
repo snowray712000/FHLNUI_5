@@ -137,6 +137,7 @@ body {
     margin: 0px;
     overflow: hidden;
     background-color: #A0A0A0;
+    font-family: 'Zen Maru Gothic','GenSenRounded' !important;
 }
 #mainWindow {
     position: absolute;
@@ -1549,6 +1550,7 @@ nav#fhlTopMenu {
     border-width: 1px 1px 0px;
 }
 #lecMain {
+    font-family: 'Zen Maru Gothic','GenSenRounded' !important;
     position: absolute;
     top: 30px;
     left: 0px;
@@ -1913,13 +1915,14 @@ nav#fhlTopMenu {
 .commentJump {
     color: blue;
     cursor: pointer;
-    display: inline-block;
+    /* display: inline-block; */
 }
 .commentJump:hover {
     color: red;
     text-decoration: underline;
 }
 #commentContent {
+    font-family: 'Zen Maru Gothic';
     position: absolute; 
     top: 0px; 
     left: 0px; 

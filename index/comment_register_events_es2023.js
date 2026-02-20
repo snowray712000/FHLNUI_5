@@ -12,7 +12,7 @@ import { TPPageState } from './TPPageState.es2023.js'
 import { SN_Act_Color } from "./SN_Act_Color.es2023.js";
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 
-function fix_addr_description(addrDescription, defaultAddr){
+export function fix_addr_description(addrDescription, defaultAddr){
     // - 若只有 1:20，就要加書卷名
     // - 若是只有 30，並且是詩篇，就是整章
     // - 若有 30:5-10，也要加書卷名

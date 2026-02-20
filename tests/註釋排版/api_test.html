@@ -1,0 +1,187 @@
+<!-- 超簡易 測試工具  -->
+<!-- 目標
+  註釋的 api 取得回傳後，直接用資料測試
+
+  方法
+  1. ui 提供 「書卷」「章」「節」的輸入框，還有一個「測試」按鈕
+  2. 一個顯示 render 結果的區域
+  3. ui 提供一個 listbox，選擇常用 書卷，章，節。例如「創 1:1」「約3:16」
+  4. 有對應的 api_test.js 
+ -->
+
+<!doctype html>
+<html lang="zh-Hant-TW">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>註釋 API 超簡易測試工具</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+            margin: 16px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 12px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        label {
+            display: grid;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        input,
+        select,
+        button,
+        textarea {
+            font: inherit;
+            padding: 6px 8px;
+        }
+
+        input {
+            width: 90px;
+        }
+
+        select {
+            min-width: 180px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .panel {
+            border: 1px solid rgba(127, 127, 127, .35);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .panel h2 {
+            font-size: 13px;
+            margin: 0 0 8px;
+            opacity: .85;
+        }
+
+        #render {
+            min-height: 220px;
+            padding: 10px;
+            background: rgba(127, 127, 127, .08);
+            border-radius: 6px;
+            overflow: auto;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 220px;
+            resize: vertical;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            opacity: .8;
+        }
+
+        .hint {
+            font-size: 12px;
+            opacity: .75;
+            margin: 8px 0 0;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>註釋 API 測試工具</h1>
+
+    <div class="row" aria-label="controls">
+        <label>
+            常用經文
+            <select id="preset" title="選擇常用：書卷 章:節">
+                <option value="">（選擇一個範例）</option>
+                <option value="創,1,1">創 1:1</option>
+                <option value="約,0,0">約 0:0</option>
+                <!-- table 1 -->
+                <option value="約,1,6">約 1:6</option>
+                <option value="斯,0,0">斯 0:0</option>
+                <option value="代上,0,0">代上 0:0</option>
+                <option value="王上,0,0">王上 0:0</option>
+                <option value="賽,0,0">賽 0:0</option>
+                <option value="賽,7,10">賽 7:10</option>
+
+            </select>
+        </label>
+
+        <label>
+            書卷
+            <input id="book" inputmode="text" autocomplete="off" placeholder="例如：創" value="賽" />
+        </label>
+
+        <label>
+            章
+            <input id="chap" inputmode="numeric" autocomplete="off" placeholder="例如：1" value="7" />
+        </label>
+
+        <label>
+            節
+            <input id="sec" inputmode="numeric" autocomplete="off" placeholder="例如：1" value="10" />
+        </label>
+
+        <button id="btnTest" type="button">測試</button>
+
+        <button id="btnPrev" type="button" book="0" chap="0" sec="0">前</button>
+        <button id="btnNext" type="button" book="0" chap="0" sec="0">後</button>
+    </div>
+
+    <p class="hint">
+        目的：呼叫「註釋 API」取得回傳後，直接用資料測試 render 結果。<br />
+        需搭配同資料夾的 <code>api_test.js</code>（使用 ES2023、<code>type="module"</code>）。
+    </p>
+
+    <div class="grid">
+        <section class="panel">
+            <h2>Render 結果</h2>
+            <div id="render" role="region" aria-label="render result"></div>
+        </section>
+
+        <section class="panel" style="overflow-x: scroll;">
+            <h2>Raw 回傳（JSON / Text）</h2>
+            <pre id="raw" spellcheck="false" placeholder="按下「測試」後顯示 API 回傳內容"></pre>
+        </section>
+    </div>
+
+    <div id="status" class="status" aria-live="polite"></div>
+
+    <!-- jQuery Slim（不含 ajax / effects；若 api_test.js 需要 $.ajax，請改用完整版 jQuery） -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+    <!-- ES2023 module -->
+    <script type="module" src="./api_test.js"></script>
+</body>
+
+</html>

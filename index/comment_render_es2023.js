@@ -8,6 +8,12 @@ import { BibleConstant } from "./BibleConstant.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { sc_api_async } from "./sc_api_es2023.js";
 import { ScAddress } from "./ScResult_es2023.js";
+import { splitStringByRegex } from "./splitStringByRegex.es2023.js";
+
+import { parseComment } from "./comments/parseComment.js"
+import { convertDocToDText } from "./comments/convertDocToDText.js"
+import { renderCommentDTexts } from "./comments/render_comments_in_dtexts.js"
+
 /**
  * 
  * @param {ScAddress} address 
@@ -56,102 +62,9 @@ function generate_div_background() {
         .attr({ book, chap, sec })
         .text(text);
 }
-function generate_div_comment_content(res) {
-    // 2024.12 移除注釋原本的換行與空白，但卻不要移除●◎(1)等。
-
-    let html = do_com_text(res.record[0].com_text);
-    html = parseComment(html);
-
-    return $("<div id='commentScrollDiv'></div>").html(html);
-
-    function do_com_text(text) {
-        let reg_tp1 = /[零壹貳參肆伍陸柒捌玖拾]+、/g // 壹、
-        let reg_tp2 = /[零一二三四五六七八九十百]+、/g // 一、
-        let reg_tp3 = /（[零一二三四五六七八九十百]+）/g // （一）
-        let reg_tp4 = /\d+\./g // 1.
-        let reg_tp5 = /\(\d+\)/g // (1)
-        let reg_tp6 = /[a-zA-Z]+\./g // a.
-        let reg_tp7 = /[●◎⓪☆○※]/g
-        let reg_tp8 = /\r?\n/g
-        let reg_tp9 = /SNG|SNH/g // 創1:1
 
 
-        // 組成字串, 以 | 分隔，為了製作組合的正規表達式
-        let reg_tps = [reg_tp1, reg_tp2, reg_tp3, reg_tp4, reg_tp5, reg_tp6, reg_tp7, reg_tp8, reg_tp9]
 
-
-        // 簡單實例 /\r?\n\s*(●|◎|a.|b.|c.|[零壹]、|\S)
-        // 就是將上面的 用 `|` 組起來，最後加上 \S，前面加上 \r\n\s*
-        let reg_pre = /\r?\n\s*/g
-        let reg_tp_str = reg_tps.map(reg => reg.source).join("|")
-        let reg_combile_str = "(" + reg_pre.source + ")" + "(" + reg_tp_str + "|\\S)"
-        let reg_combile = new RegExp(reg_combile_str, "g")
-
-        // 結果字串
-        let text_result = text.replace(reg_combile, (match, p1, p2) => {
-            reg_tps.forEach(reg => reg.lastIndex = 0) // reset 正規化表達式，不然第2次會失效。
-            if (reg_tps.some(reg => reg.test(p2))) {
-                return p1 + p2
-            } else {
-                return p2
-            }
-        })
-        
-        return text_result + "\r\n\r\n\r\n" // 為了不要被遮到最下面
-    }
-    function parseComment(t) {
-        t = t.replace(/\n/g, "</br>");
-        t = t.replace(/ /g, "&nbsp;");
-        var pt, pt1;
-        var tok, tok_str;
-        var span_str;
-        var i = 0;
-
-        // 2017.12 詩篇 30 篇 #30| 按下去會變 undefined Bug
-        eachFitDo(/#([0-9]+)\|/, t, function (m1) {
-            const ps = TPPageState.s
-            const book = ps.bookIndex
-
-            var chap = m1[1];
-            var replaceTag = '<span class="commentJump" book="' + book + '" chap="' + chap + '" sec="1">' + chap + '</span>';
-            t = t.replace(m1[0], replaceTag);
-        });
-
-        while (true) {
-            // t 是所有文字，它會被不斷的修改，#...| 的文字會被 span_str 取代
-            // console.log(t);
-            
-            pt = t.indexOf("#");
-            pt1 = t.indexOf("|");
-            if (pt < 0 || pt1 < 0 || pt1 <= pt)
-                break;
-
-            // #民&nbsp21:1-24:25;民&nbsp31:16|
-            // #2:1-3|
-            // #太&nbsp7:15-20|
-            // #猶&nbsp1:4-7|
-            tok_str = t.substring(pt + 1, pt1);
-
-            let span_comment_jump = $("<span class='commentJump'></span>").text(tok_str.replace(/&nbsp;/g, " "))
-            t = t.substring(0, pt) + " " + span_comment_jump[0].outerHTML + " " + t.substring(pt1 + 1);
-
-        }
-
-        function sn_replace(...s) {
-            let tp = s[1]
-            //  parseInt 把前面的 0 去掉，||"" 若沒有 a, 才不會出現 
-            let sn = `${parseInt(s[2])}${s[3] || ""}`;
-
-            let span = $('<span></span>')
-            span.addClass('sn').attr('sn', sn).attr('tp', tp)
-            span.text(`${tp.toUpperCase()}${sn}`)
-            return span[0].outerHTML
-        }
-        t = t.replace(/SN([HG])([0-9]+)(a?)/gi, sn_replace)
-
-        return t;
-    }
-}
 
 /**
  * ### fhlInfoContent 重構過來的
@@ -187,7 +100,15 @@ export async function comment_render_async() {
             generate_div_comment_back_next(new ScAddress(res.next), "next").appendTo(jcommentContent);
         }
 
-        generate_div_comment_content(res).appendTo(jcommentContent);
+        // render comment content
+        let jcommentScrollDiv = $("<div id='commentScrollDiv'></div>").appendTo(jcommentContent);
+        const ps = TPPageState.s;
+        const address = [ps.bookIndex, ps.chap, ps.sec]
+        const doc = parseComment(res.record[0].com_text, address)
+        const dtexts = convertDocToDText(doc)
+        renderCommentDTexts(dtexts, jcommentScrollDiv)
+        jcommentContent.append($("<br/><br/><br/><br/>")) // 為了不要被遮到最下面
+        // generate_div_comment_content(res).appendTo(jcommentContent);
 
         $("#fhlInfoContent").html(jtop);
         comment_register_events();
@@ -197,4 +118,6 @@ export async function comment_render_async() {
         comment_register_events();
     }
 }
+
+
 

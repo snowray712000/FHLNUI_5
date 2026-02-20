@@ -3,7 +3,7 @@ import { DFoot } from "./DFoot";
 
 /** w,sn,tp,tp2 */
 
-export interface DText {
+export interface DTextAAA {
   w?: string;
   /** 不含 H 或 G, 且數字若有零會去頭 */
   sn?: string;

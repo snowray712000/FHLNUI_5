@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="utf-8" />
+  <title>DText 測試渲染</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script type="module" src="./dtext_comment_render_test.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css">
+  <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+  <!-- <link rel="stylesheet" href="./../../index/fhl.css" /> -->
+</head>
+
+<body>
+  <h1>DText 渲染測試</h1>
+
+  <section>
+    <h2>手動案例</h2>
+    <label>案例：
+      <select id="presetCase">
+        <option value="A">Case A（eg2）</option>
+        <option value="B">Case B（eg3）</option>
+        <option value="C">Case C（eg5）</option>
+      </select>
+    </label>
+    <button id="btnPreset">套用案例</button>
+    <div id="casePreset"></div>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>API 取資料</h2>
+    <label>Book：
+      <input id="book" placeholder="例如 isa / 賽 / Gen" />
+    </label>
+    <label>Chap：
+      <input id="chap" type="number" value="7" />
+    </label>
+    <label>Sec：
+      <input id="sec" type="number" value="10" />
+    </label>
+    <button id="btnFetch">取得並渲染</button>
+
+    <!-- 新增：前一個 / 後一個 -->
+    <button id="btnPrev" type="button" disabled>前一個</button>
+    <button id="btnNext" type="button" disabled>後一個</button>
+
+    <div id="renderApi"></div>
+  </section>
+</body>
+
+</html>
