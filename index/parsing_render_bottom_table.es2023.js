@@ -31,8 +31,6 @@ function render_sn_span(one_item, tpHG) {
     let sn = get_sn_shorter(one_item.sn)
     let snSpan = $("<span></span>")
     snSpan.addClass('parsingTableSn sn')
-    snSpan.attr('N', tpHG=='H' ? 1 : 0) // N = 1 for Hebrew, 0 for Greek
-    // snSpan.attr('k', sn)
     snSpan.attr('sn', sn)
     snSpan.attr('tp', tpHG)
     snSpan.text(sn)

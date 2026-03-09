@@ -121,6 +121,7 @@ function parse_sn_in_Comment(dtexts) {
                         dtext_clone.w = `${tp}${sn}`
                         dtext_clone.sn = sn
                         dtext_clone.tp = tp
+                        dtext_clone.tp2 = 'W' + tp // 有 tp2, 才不會被斷定成 .sn-text ... WG 或 WH
                         results.push(dtext_clone)
                     }
                 }

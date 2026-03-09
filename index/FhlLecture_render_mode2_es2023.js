@@ -21,7 +21,7 @@ import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVe
  * @param {import("./FhlLecture_render_mode_common.es2023").TpResultBibleText[]} rspArr 
  * @returns 
  */
-export function FhlLecture_render_mode2(rspArr) {
+export async function FhlLecture_render_mode2(rspArr) {
     const ps = TPPageState.s
 
     // get maxRecordCnt maxRecordIdx 

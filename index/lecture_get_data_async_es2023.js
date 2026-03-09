@@ -3,7 +3,7 @@ import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { getAjaxUrl } from "./getAjaxUrl.es2023.js";
 import { isRDLocation } from "./isRDLocation.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
-import { qsbAsync } from "./qsbAsync.es2023.js";
+import { qsb } from "./api/qsb.js";
 
 // renderLectureHtml @ FhlLecture.js
 /**
@@ -158,7 +158,7 @@ async function get_from_qsb_php_async(book, chap, gb, version){
     const qstr = `${bookName}${chap}`
     const qsbParams = { qstr: qstr, ver: version, isGb: gb }
 
-    const joResult = await qsbAsync(qsbParams)
+    const joResult = await qsb(qsbParams)
 
     // qb 會回傳 prev next, 但 qsb 不會，所以要自己產生
     // joResult.prev = {book:1,chap:2,sec:1}

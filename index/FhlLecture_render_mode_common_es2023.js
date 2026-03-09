@@ -169,13 +169,11 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
             const isUseParentheses = sAT == 'T'
             // sn 去掉多餘的0 (轉成數字，再轉回文字) + a (若有)
             let sn = parseInt(sSN).toString() + (sA == 'a' ? sA : '')
-            // N=1 舊約, N=0 新約
-            let N = sHG == 'H' ? 1 : 0
 
             // 新增一個 span tag, 使用 jquery
             let span = $("<span></span>")
-            // 加上 class, sn, N
-            span.addClass('sn').attr('sn', sn).attr('N', N)
+            // 加上 class, sn, tp
+            span.addClass('sn').attr('sn', sn).attr('tp', sHG)
             // 顯示內容
             var text = isUseParentheses ? `(${sn})` : `<${sn}>`
             // 如果有 { } 就加上

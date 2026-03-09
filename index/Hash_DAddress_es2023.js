@@ -5,6 +5,7 @@
 export class Hash_DAddress {
     /**
      * # hash 值，可用在 Set 也可以作為 Operator < 使用，也可以轉回 Address。
+     * input 可以是 [book, chap, sec, ...] 這種, 也可以傳統 {book,chap,sec} 這種, 也可以是傳 3 個參數 (book, chap, sec) 。 寫的真好
      * 
      * @param {numer|object|Array<number>} bookOrObjOrArray 如果是數字，表示是 book；也可傳入 {book, chap, sec}；也可傳入 [book, chap, sec] 。
      * @param {number} [chap] 章

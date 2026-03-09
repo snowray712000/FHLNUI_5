@@ -21,11 +21,11 @@ export class TPPageState {
     this.chap = 1;
     /** @type {number} 1based 第幾節 */
     this.sec = 1;
-    /** @type {number} 滑鼠移過去的，而上面的 chap sec 是，滑鼠按下去 activate 的節 */    
+    /** @type {number} 滑鼠移過去的，而上面的 chap sec 是，滑鼠按下去 activate 的節 */
     this.book_hover = -1;
-    /** @type {number} 滑鼠移過去的，而上面的 chap sec 是，滑鼠按下去 activate 的節 */ 
+    /** @type {number} 滑鼠移過去的，而上面的 chap sec 是，滑鼠按下去 activate 的節 */
     this.chap_hover = -1;
-    /** @type {number} 滑鼠移過去的，而上面的 chap sec 是，滑鼠按下去 activate 的節 */ 
+    /** @type {number} 滑鼠移過去的，而上面的 chap sec 是，滑鼠按下去 activate 的節 */
     this.sec_hover = -1;
     /** @type {{ x: number, y: number }} 滑鼠 x y。即時訊息要用到的值。 .sn mouseenter 更新 */
     this.xy_hover = { x: -1, y: -1 };
@@ -103,6 +103,9 @@ export class TPPageState {
 
     /** @type {Object.<string, number>} str 為 key ， 次數為 value。此變數不會真的需要存在 localstorage */
     this.sn_stastic = {}
+
+    /** @type {0|1|2} 0: 原本(英文) 1: 中文縮寫 2: 中文全名*/
+    this.tsk_show_mode = 1; // 0: 原本(英文) 1: 中文縮寫 2: 中文全名
   }
 
   /**
@@ -110,7 +113,7 @@ export class TPPageState {
    * @param {Object} dict - 包含要更新的屬性和值的物件。
    */
   updateFromDict(dict) {
-    if (dict != null ){
+    if (dict != null) {
       updateInstanceFromDict(dict, () => this);
     }
   }
@@ -118,16 +121,16 @@ export class TPPageState {
   /**
    * 將當前 TPPageState 實例儲存到 localStorage。
    */
-  saveToLocalStorage(){    
+  saveToLocalStorage() {
     localStorage.setItem("fhlPageState", JSON.stringify(TPPageState.s));
   }
   /**
    * 
    * @returns {TPPageState|null} 如果成功載入，則返回 TPPageState 實例，否則返回 null。
    */
-  loadFromLocalStorage(){
+  loadFromLocalStorage() {
     const res = localStorage.getItem("fhlPageState");
-    if ( res == null ){
+    if (res == null) {
       return null
     } else {
       const ps = JSON.parse(res);
@@ -135,20 +138,20 @@ export class TPPageState {
       return TPPageState.s;
     }
   }
-  makesure_bookIndex_exist(){
-    if (this.bookIndex == null ){
-      if (this.chineses != null ){
+  makesure_bookIndex_exist() {
+    if (this.bookIndex == null) {
+      if (this.chineses != null) {
         let idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(this.chineses)
-        if ( idx == -1 ){
+        if (idx == -1) {
           idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB.indexOf(this.chineses)
         }
-        if ( idx != -1 ){
+        if (idx != -1) {
           this.bookIndex = idx + 1; // 1based
           return
         }
-      } else if ( this.engs != null ){
+      } else if (this.engs != null) {
         let idx = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS.indexOf(this.engs)
-        if ( idx != -1 ){
+        if (idx != -1) {
           this.bookIndex = idx + 1; // 1based
           return
         }

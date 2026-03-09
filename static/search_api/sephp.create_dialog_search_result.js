@@ -22,11 +22,10 @@ sephp.sn_click = function sn_click(pdata) {
   let span = $(elem)
   // 取得 attr sn N
   let sn = span.attr('sn')
-  let N = span.attr('N')
-  console.log(sn, N);
+  const tp = span.attr('tp') // 'G' or 'H'
 
-  queryDictionaryAndShowAtDialogAsync({ sn, isOld: N == 1 })
-  
+  queryDictionaryAndShowAtDialogAsync({ sn, isOld: tp == 'H' })
+
   // 點擊 sn 時，不要切換 active 節
   pdata.stopPropagation()
 };
@@ -50,7 +49,7 @@ sephp.copy_text = function copy_text(event) {
 
 sephp.create_dialog_search_result = function create_dialog_search_result(jrecords) {
   Search_create_dialog_search_result(jrecords);
-}; 
+};
 
 /**
  * 

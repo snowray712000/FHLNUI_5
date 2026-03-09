@@ -83,13 +83,13 @@
  * @property {0 | 1} [ispun] punctuation 標點符號，分離出來的標點符號節點
  * @property {string} [cssColor] rgb(195,39,43) 中文標準譯本 csb ， 紅字，是用 span style css color rgb(x,x,x)
  * 
- * @property {DText[]} [children] 仿 ios 版本  title, FW, order list, 都可能用, 與 tpContain 使用 ... inline children ... 想像一下，繪圖時，文字內容是「請看 #創1:1| 的資料」。這一行，但是裡面的有交互參照，也就是可以理解，一段文字，基本是由 DText[] 所組成的。所以這個 children 不是與「清單」的那種「children」是同樣的。所以會有另一個 children，專門用來放 inline children 的，這樣在「註釋」資料才能夠表達出來。(通常有 children 就不會有 w 了)
- * @property {string} [tpContain] 配合 children 的，容器當初的 tp 是什麼，是 h1 還是 h2 還是 h3，又或著是 ) 還是 全型 )，又或著是 Fi 之類的
+ * @property {DText[]} [children] 仿 ios 版本  title, FW, order list, 都可能用, 與 tpContainer 使用 ... inline children ... 想像一下，繪圖時，文字內容是「請看 #創1:1| 的資料」。這一行，但是裡面的有交互參照，也就是可以理解，一段文字，基本是由 DText[] 所組成的。所以這個 children 不是與「清單」的那種「children」是同樣的。所以會有另一個 children，專門用來放 inline children 的，這樣在「註釋」資料才能夠表達出來。(通常有 children 就不會有 w 了)
+ * @property {string} [tpContainer] 配合 children 的，容器當初的 tp 是什麼，是 h1 還是 h2 還是 h3，又或著是 ) 還是 全型 )，又或著是 Fi 之類的
  * 
- * @property {DText[]?} childrenlist - 這是要作「ol ul li」相關用的。
+ * @property {DText[]} [childrenlist] - 這是要作「ol ul li」相關用的。
  * @property {string} [rawTable] - 若有資料是 table，但又不是 joTable 則是用這個。
  * @property {DTable} [joTable] 若有表格資料，則會放在這裡
- * @property {string?} marker - 這是用在 ordered list 的，像是「1. 2. (一) (二)」等等。
+ * @property {string} [marker] - 這是用在 ordered list 的，像是「1. 2. (一) (二)」等等。
  */
 
 export { };

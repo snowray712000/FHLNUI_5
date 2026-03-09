@@ -1,5 +1,10 @@
 import { BibleConstant } from "./BibleConstant.es2023.js"
 import { TPPageState } from "./TPPageState.es2023.js";
+
+/**
+ * @typedef {import('./DText.js').DAddress} DAddress
+ */
+
 export class BibleConstantHelper {
     /** @type {Object.<string, number>} */
     static _mapName2Id;
@@ -137,6 +142,13 @@ export class BibleConstantHelper {
     static getBookNameArrayEnglishNormal() {
         return BibleConstant.ENGLISH_BOOK_ABBREVIATIONS;
     }
+    /**
+     * 取得英文短書卷名稱 'Ge', 'Ex', 'Le', 'Nu'... 像 TSK 就是用這種格式
+     * @returns {string[]}
+     */
+    static getBookNameArrayEnglishShort(){
+        return BibleConstant.ENGLISH_BOOK_SHORT_ABBREVIATIONS;
+    }
 
     /**
      * 取得章節的節數
@@ -162,7 +174,36 @@ export class BibleConstantHelper {
         }
         return BibleConstant.COUNT_OF_CHAP[book - 1];
     }
+    /**
+     * @param {DAddress} address 
+     * @param {boolean} isStopAtBookEnd 
+     * @returns {DAddress|null}
+     */
+    static getNextAddress(address, isStopAtBookEnd = false) {
+        if ( false == Array.isArray(address)){
+            address = [address.book ?? 1, address.chap ?? 1, address?.verse ?? address?.sec ?? 1]
+        }
+        let [book, chap, verse] = address;
 
+        const countVerse = this.getCountVerseOfChap(book, chap);
+        if (verse < countVerse) {
+            verse++;
+        } else {
+            verse = 1;
+            const countChap = this.getCountChapOfBook(book);
+            if (chap < countChap) {
+                chap++;
+            } else {
+                if (isStopAtBookEnd) {
+                    return null; // 已經到書卷末尾，返回 null
+                } else {
+                    book++;
+                    chap = 1;
+                }
+            }
+        }
+        return [book, chap, verse];
+    }
     /**
      * 內部方法：產生名稱到 ID 的映射
      * @returns {Object.<string, number>}

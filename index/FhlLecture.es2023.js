@@ -1,5 +1,5 @@
 import { isRDLocation } from './isRDLocation.es2023.js'
-import { qsbAsync } from './qsbAsync.es2023.js'
+import { qsb } from './api/qsb.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
 import { splitReference } from './splitReference.es2023.js'

@@ -63,7 +63,7 @@ class TPPageState {
     /** @type {string} sn，例如 312，mouseenter 成為 activate，有 snAct 在 css 中對應。同源字是 snAct2 */
     this.snAct = ""
     /** @type {0|1|-1} sn是新約還舊約，mouseenter 成為 activate*/
-    this.snActN = -1
+    // this.snActN = -1
     /** @type {0|1} 是否開啟 即時顯示，這個與左方開關同步 */
     this.realTimePopUp = 0
     /** @type {TPFhlTitleId} 原文 parsing 註釋 comment 講道 preach 串珠 tsk 典藏 ob 地圖 map 樹狀圖 sn branch */

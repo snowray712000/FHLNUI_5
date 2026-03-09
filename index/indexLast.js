@@ -20,15 +20,15 @@
 function let_sn_color_change_in_search_result() {
   $('#fhlMidBottomWindow').on('mouseenter', '.sn', function () {
     var sn = $(this).attr('sn')
-    var N = $(this).attr('N')
+    const tp = $(this).attr('tp') // 'G' or 'H'
     pageState.snAct = sn
-    pageState.snActN = N
+    pageState.snActTp = tp
 
-    SN_Act_Color.s.act_add(sn, N)
+    SN_Act_Color.s.act_add(sn, tp)
   }).on('mouseleave', '.sn', function () {
     SN_Act_Color.s.act_remove()
     pageState.snAct = ''
-    pageState.snActN = -1
+    pageState.snActTp = ''
   })
 }
 
@@ -144,7 +144,7 @@ function doLast1() {
         const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[pageState.bookIndex - 1]
         history.pushState(null, null, `#/bible/${bookName}${pageState.chap}:${pageState.sec}`)
       });
-      $(document).on('secchanged', function () {        
+      $(document).on('secchanged', function () {
         const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[pageState.bookIndex - 1]
         history.replaceState(null, null, `#/bible/${bookName}${pageState.chap}:${pageState.sec}`)
       });
@@ -249,7 +249,7 @@ function doLast1() {
                         return '<li>' + a1 + '</li>';
                       }).join('');
                       const re = '<span><ul>' + r4a + '</ul></span>';
-                      return re 
+                      return re
                     } else {
                       return undefined;
                     }

@@ -41,9 +41,29 @@ import { BibleConstantHelper } from './BibleConstantHelper.es2023.js';
  * @returns {Promise<DQsbResult>}
  */
 export async function qsbAsync(args) {
-    makeSureArgsValid();
 
-    const url = cvtArgsToUrl();
+    const isUsingPost = 1
+    const payload = gen_payload_qsb(args)
+    const domain = isRDLocation() ? "http://127.0.0.1:5600" : ""
+    const endpoint = '/json/qsb.php'
+
+    if (isUsingPost) {
+        const url = `${domain}${endpoint}`
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+            body: payload,
+        });
+        const result = await response.json();
+        if (result.status == 'success') {
+            qsbRecordToStd(result);
+        }
+    }
+    else {
+
+    }
+
+
     const response = await fetch(url);
 
     /**
@@ -69,6 +89,7 @@ export async function qsbAsync(args) {
         }
     }
 
+
     function cvtArgsToUrl() {
         const gb = `gb=${(args.isGb == 0 ? '0' : '1')}`;
         const ver = `version=${args.ver}`;
@@ -79,7 +100,19 @@ export async function qsbAsync(args) {
         // const domain = isRDLocation() ? "https://bible.fhl.net" : ""
         const domain = isRDLocation() ? "http://127.0.0.1:5600" : ""
         const endpoint = '/json/qsb.php'
-        return domain + endpoint + params;
+
+        const url = domain + endpoint + params;
+        const encodedUrl = encodeURI(url); // 保留 ;:,- 等, 中文與空白會被編碼
+
+        //     const params = new URLSearchParams({
+        //         qstr: encodeURI(qstr),
+        //         engs,
+        //         version,
+        //         strong: isSn ? "1" : "0",
+        //         gb: isGb ? "1" : "0",
+        //     });
+
+        return encodedUrl
     }
 }
 

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="utf-8" />
+    <title>TSK 測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 12px;
+        }
+
+        .row {
+            margin-bottom: 8px;
+        }
+
+        .panel {
+            border: 1px solid #ccc;
+            padding: 8px;
+            margin-top: 8px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+
+<body style="font-family: 'Zen Maru Gothic','GenSenRounded' !important;">
+    <div class="row">
+        <label>Book: <input id="inpBook" type="number" value="1" min="1"></label>
+        <label>Chap: <input id="inpChap" type="number" value="1" min="1"></label>
+        <label>Sec: <input id="inpSec" type="number" value="1" min="1"></label>
+
+    <label>書卷名稱:
+        <select id="selBookNameMode">
+            <option value="none" selected>不轉換</option>
+            <option value="abbr">中文縮寫</option>
+            <option value="full">中文</option>
+        </select>
+    </label>
+    
+        <button id="btnGet">get</button>
+        <button id="btnPrev">prev</button>
+        <button id="btnNext">next</button>
+    </div>
+
+    <div class="panel">
+        <h3>原始內容</h3>
+        <pre id="rawContent"></pre>
+    </div>
+
+    <div class="panel">
+        <h3>解析後內容</h3>
+        <pre id="parsedContent">(尚未處理)</pre>
+    </div>
+
+    <script type="module" src="./tsk1_test.js"></script>
+</body>
+
+</html>

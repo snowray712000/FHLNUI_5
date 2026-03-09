@@ -65,7 +65,32 @@ dom.html(html);
     $('#foot_note_show_method').val(ps.foot_note_show_method); // 初始化為當前狀態
 }
 
-
+/**
+ * @param {TPPageState} ps 
+ */
+function render_tsk_show_mode(ps, dom){
+    // 0: TSK 原始資料，英文
+    // 1: 以中文顯示, 縮寫中文
+    // 2: 以中文顯示, 全名中文
+    const html = `<div>${gbText("TSK顯示模式", ps.gb)}:</div>
+<select id="tsk_show_mode">
+    <option value="0">英文</option>
+    <option value="1">中文(縮寫)</option>
+    <option value="2">中文(全名)</option>
+</select>`
+    dom.html(html);
+    $('#tsk_show_mode').val(ps?.tsk_show_mode || 2); // 初始化為當前狀態  
+}
+function register_tsk_show_mode(ps){
+    $('#tsk_show_mode').off('change').on('change', function () {
+        const ps = TPPageState.s;
+        console.log($(this));
+        console.log($(this).val());
+        
+        ps.tsk_show_mode = parseInt($(this).val() ?? 0);
+        ps.saveToLocalStorage();
+    });
+}
 export class Settings {
     static #s = null
     /** @returns {Settings} */
@@ -125,6 +150,11 @@ export class Settings {
         $('#settingsScrollDiv ul').append("<li><div id='foot_note_show_method_tool'></div></li>");
         render_foot_note_show_method(ps, $('#foot_note_show_method_tool'));
         register_foot_note_show_method(ps);
+
+        // tsk show mode
+        $('#settingsScrollDiv ul').append("<li><div id='tsk_show_mode_tool'></div></li>");
+        render_tsk_show_mode(ps, $('#tsk_show_mode_tool'));
+        register_tsk_show_mode(ps);
 
     }
     registerEvents(ps) {

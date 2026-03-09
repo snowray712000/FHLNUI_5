@@ -39,7 +39,7 @@ qsbphp.create_color_span_from_bible_text = function create_color_span_from_bible
       let str2 = isBrace ? `{${str1}}` : str1
       span.text(str2)
       span.attr('sn', sn)
-      span.attr('N', sHG == 'H' ? 1 : 0)
+      span.attr('tp', sHG)
 
       // 關鍵字嗎
       if (keySn == sn){

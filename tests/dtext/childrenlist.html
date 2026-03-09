@@ -1,0 +1,166 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="./../../index/fhl.css">
+</head>
+
+<body>
+    <!-- 非巢狀，無任何 清單 title 時 -->
+    非巢狀 無任何 清單 title 時 <br/>
+    <ul>
+        <li>項目1</li>
+        <li>項目2</li>
+    </ul>
+
+    <!-- 非巢狀，是 w 時 -->
+    非巢狀，是 w 時 無修飾 <br/>
+
+    <ul> <span>清單</span>
+        <li>項目1</li>
+        <li>項目2</li>
+    </ul>
+    <!-- 非巢狀，是 w 且卻有其它修飾, 例如 .isTitle1 -->
+     非巢狀，是 w 時 ... 並且可能有其它修飾 <br/>
+
+    <ul> <span class="isTitle1">清單</span>
+        <li>項目1</li>
+        <li>項目2</li>
+    </ul>
+
+    <hr />
+
+    <!-- 巢狀1，是 w 時 (五種可能) -->
+    <ul>
+        <li><span>項目1</span>
+            <ul>
+                <li>子項目1</li>
+                <li>子項目2</li>
+            </ul>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+    <!-- 巢狀1，是 w 時, 且又有 isTitle1 那一類 (五種可能) -->
+    <ul>
+        <li><span class="isTitle1">項目1</span>
+            <ul>
+                <li>子項目1</li>
+                <li>子項目2</li>
+            </ul>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+    <hr />
+
+    <!-- 巢狀2, 是 children 時 (五種可能) -->
+    <ul>
+        <li>
+            <span>
+                <span>aaa</span>
+                <span class="sn" sn="1234" tp="H">H1234</span>
+                <span>bbbb</span>
+            </span>
+            <ul>
+                <li>子項目1</li>
+                <li>子項目2</li>
+            </ul>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+    <!-- 巢狀2b, 是 children 時, 並且還有 tpContainer (五種可能) -->
+    <ul>
+        <li>
+            <div class="idt">
+                <span>aaa</span>
+                <span class="sn" sn="1234" tp="H">H1234</span>
+                <span>bbbb</span>
+            </div>
+            <ul>
+                <li>子項目1</li>
+                <li>子項目2</li>
+            </ul>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+    <hr />
+
+
+    <!-- 巢狀3, 是 joTable 時 (五種可能) -->
+    <ul>
+        <li>
+            <table>
+                <thead>
+                    <tr>
+                        <th>c00 </th>
+                        <th>c01</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>r00c00</td>
+                        <td>r00c01</td>
+                    </tr>
+                    <tr>
+                        <td>r01c00</td>
+                        <td>r01c01</td>
+                    </tr>
+                </tbody>
+            </table>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+    <!-- 巢狀3b, 有 joTable 又有 w 時 -->
+    <ul>
+        <li><span>項目1</span>
+            <table>
+                <thead>
+                    <tr>
+                        <th>c00 </th>
+                        <th>c01</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>r00c00</td>
+                        <td>r00c01</td>
+                    </tr>
+                    <tr>
+                        <td>r01c00</td>
+                        <td>r01c01</td>
+                    </tr>
+                </tbody>
+            </table>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+    <hr />
+
+    <!-- 巢狀4, 是 raw-table 時 (五種可能) -->
+    <ul>
+        <li><span>項目1</span>
+            <pre class="raw-table"> raw_string_content </pre>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+    <hr />
+
+    <!-- 巢狀5, 沒有任何字在中間那層 時 (五種可能) -->
+    <ul>
+        <li>
+            <ul>
+                <li><span>子項目1</span></li>
+                <li><span>子項目2</span></li>
+            </ul>
+        </li>
+        <li><span>項目2</span></li>
+    </ul>
+
+</body>
+
+</html>

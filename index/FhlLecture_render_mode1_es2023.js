@@ -23,7 +23,7 @@ import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVe
  * @param {TpResultBibleText[]} rspApp 
  * @returns {JQuery<HTMLElement>} htmlContent
  */
-export function FhlLecture_render_mode1(rspApp) {
+export async function FhlLecture_render_mode1(rspApp) {
     const ps = TPPageState.s
 
 

@@ -22,6 +22,7 @@ import { ai_render_tools } from './ai_render_tools_es2023.js'
 import { ParsingCache } from './ParsingCache_es2023.js'
 import { parsing_render_async } from './parsing_render_async_es2023.js'
 import { assert } from './assert_es2023.js'
+import { renderTsk } from './tsks/renderTsk.js'
 
 export class FhlInfoContent {
     static #s = null
@@ -30,7 +31,7 @@ export class FhlInfoContent {
 
     /** @type {HTMLElement} #fhlInfoContent */
     dom = null
-    init(ps, dom){
+    init(ps, dom) {
         if (ps == null) ps = TPPageState.s
 
         this.dom = dom
@@ -39,14 +40,14 @@ export class FhlInfoContent {
     /**
      * @param {TPPageState} ps 
      */
-    registerEvents(ps){
+    registerEvents(ps) {
         if (ps == null) ps = TPPageState.s
 
         var that = this;
         switch (ps.titleId) {
             case "fhlInfoParsing":
                 {
-                    function close_snbtn_result_dialog(){
+                    function close_snbtn_result_dialog() {
                         let rr1 = $('.ui-dialog-title').filter((i, e) => e.innerText == "Parsing")
                         let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
                         rr2.trigger('click')
@@ -55,7 +56,7 @@ export class FhlInfoContent {
                     /**
                      * @param {HTMLElement} dom 
                      */
-                    function show_snbtn_result_dialog(dom){                            
+                    function show_snbtn_result_dialog(dom) {
                         let wid = $(dom).attr('wid')
 
                         // 找出 #parsingTable 中，wid 為 wid 的 div
@@ -63,7 +64,7 @@ export class FhlInfoContent {
 
                         // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
                         close_snbtn_result_dialog()
-                        
+
                         // dialog
                         const DialogHtml = DialogHtmlEs6Js()
                         let dlg = new DialogHtml()
@@ -79,8 +80,8 @@ export class FhlInfoContent {
                              * @param {JQuery<HTMLElement>} dlg 
                              */
                             registerEventWhenShowed: dlg => {
-                                dlg.off('click','.sn').on({
-                                    "click": function(){
+                                dlg.off('click', '.sn').on({
+                                    "click": function () {
                                         let r2 = $(this)
                                         let jo = {
                                             sn: r2.attr('sn'),
@@ -91,13 +92,13 @@ export class FhlInfoContent {
                                     }
                                 }, ".sn")
                             }
-                        })   
+                        })
                     }
 
                     // `暫時` 的英文是 ... `temporary`
                     let is_pause_realtime_temporary = false
-                    function pause_temporary(){
-                        if (ps.realTimePopUp == 1){
+                    function pause_temporary() {
+                        if (ps.realTimePopUp == 1) {
                             is_pause_realtime_temporary = true
                             setTimeout(() => {
                                 is_pause_realtime_temporary = false
@@ -118,9 +119,9 @@ export class FhlInfoContent {
 
                         // 跳出對應的那格 wid
                         if (ps.realTimePopUp == 1 && !is_pause_realtime_temporary) {
-                            show_snbtn_result_dialog(this)                                   
-                            ev.stopPropagation()                          
-                        }                        
+                            show_snbtn_result_dialog(this)
+                            ev.stopPropagation()
+                        }
                     }).on('mouseleave', function (ev) {
                         // 把 sn 去掉
                         SN_Act_Color.s.act_remove()
@@ -130,10 +131,10 @@ export class FhlInfoContent {
                             ev.stopPropagation()
                         }
                     })
-                    
-                    
+
+
                     $('.sn-btn').on('click', function (ev) {
-                        
+
                         // 如果有開啟 即時顯示，就暫停 2 秒
                         pause_temporary()
 
@@ -166,7 +167,7 @@ export class FhlInfoContent {
                     const bookLast = ps.bookIndex
                     const chapLast = ps.chap
 
-                    const target = $(event.currentTarget)                    
+                    const target = $(event.currentTarget)
                     const book = target.attr('book')
                     const chap = target.attr('chap')
                     const sec = target.attr('sec')
@@ -177,7 +178,7 @@ export class FhlInfoContent {
 
                     triggerGoEventWhenPageStateAddressChange(ps)
                     BookSelect.s.render()
-                    if ( bookLast != ps.bookIndex || chapLast != ps.chap ) {
+                    if (bookLast != ps.bookIndex || chapLast != ps.chap) {
                         FhlLecture.s.render(ps)
                     }
                     FhlInfo.s.render(ps)
@@ -192,7 +193,7 @@ export class FhlInfoContent {
                 break;
         }
     }
-    render(ps = null, dom = null){
+    render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
 
@@ -230,7 +231,7 @@ export class FhlInfoContent {
 
                 // 有聲聖經 snow
                 {
-                    assert( ps?.bookIndex != null )
+                    assert(ps?.bookIndex != null)
 
                     var pfn_callback = function fn_after_set(ibook, ichap) {
 
@@ -265,3 +266,30 @@ export class FhlInfoContent {
         fhlmap_titleId_prev = ps.titleId; //地圖 map 會用到, 因為切換走分頁, 再切換回來要 re-create render object. see also: fhlmap_render
     }
 }
+
+// tsk comment 都可以用到
+$(function () {
+    testThenDoAsync({
+        cbTest: () => $('#fhlInfoContent').length > 0,
+        ms: 300,
+        cntMax: 1000,
+    }).then(() => {
+        $('#fhlInfoContent').off('click', '.ref').on('click', '.ref', function (ev) {
+            const target = ev.currentTarget
+            const addr_data = $(target).attr('data-addrs')
+            const addr_desc = $(target).attr("data-desc")
+
+            const jaAddrs = addr_data ? JSON.parse(addr_data) : null
+
+            const ps = TPPageState.s
+            const ver = ps.version[0]
+            queryReferenceAndShowAtDialogAsync({
+                addrs: jaAddrs,
+                addrsDescription: addr_desc,
+                version: ver,
+                bookDefault: ps.bookIndex,
+                event: ev
+            })
+        })
+    });
+})

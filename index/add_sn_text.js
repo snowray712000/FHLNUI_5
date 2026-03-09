@@ -26,11 +26,11 @@ export function add_sn_text(text_jq, bibleVersion) {
             } else {
                 // 判斷，它的 sn 是什麼。 如果 [i] 的 sn 是超過 9000 ， 那麼就要用 i+1 的 sn，不會有連續2個超過 9000。
                 let sn = $(one_dom).attr('sn')
-                let n = $(one_dom).attr('n')
+                let tp = $(one_dom).attr('tp')
 
                 if (parseInt(sn) > 9000) {
                     sn = $(textContents[i + 1]).attr('sn')
-                    n = $(textContents[i + 1]).attr('n')
+                    tp = $(textContents[i + 1]).attr('tp')
                 }
                 // console.log(sn);
 
@@ -38,7 +38,7 @@ export function add_sn_text(text_jq, bibleVersion) {
                 // 要把原本位置的 #text 刪掉，然後加上 2 個 span, text_prev1 是純文字， text_prev2 是 <span class="sn-text" sn=sn n=n>text_prev2</span>
                 // let sn_text2 = `<span class="sn-text" sn=${sn} n=${n}>${text_prev2}&nbsp;</span>`
                 const space_add = -1 == ['fhlwh', 'lxx', 'bhs', 'kjv'].indexOf(bibleVersion) ? '' : ' ';
-                let sn_text2 = space_add + `<span class="sn-text" sn=${sn} n=${n}>${text_prev2.trim()}</span>`
+                let sn_text2 = space_add + `<span class="sn-text" sn=${sn} tp=${tp}>${text_prev2.trim()}</span>`
 
                 // console.log(text_prev2)
 
@@ -76,10 +76,10 @@ export function add_sn_text(text_jq, bibleVersion) {
             } else {
                 // 判斷，它的 sn 是什麼。 如果 [i] 的 sn 是超過 9000 ， 那麼就要用 i+1 的 sn，不會有連續2個超過 9000。
                 let sn = $(one_dom).attr('sn')
-                let n = $(one_dom).attr('n')
+                let tp = $(one_dom).attr('tp')
                 if (parseInt(sn) > 9000) {
                     sn = $(textContents[i + 1]).attr('sn')
-                    n = $(textContents[i + 1]).attr('n')
+                    tp = $(textContents[i + 1]).attr('tp')
                 }
                 // console.log(sn);
 
@@ -87,7 +87,7 @@ export function add_sn_text(text_jq, bibleVersion) {
                 // 要把原本位置的 #text 刪掉，然後加上 2 個 span, text_prev1 是純文字， text_prev2 是 <span class="sn-text" sn=sn n=n>text_prev2</span>
                 // let sn_text2 = `<span class="sn-text" sn=${sn} n=${n}>${text_prev2}&nbsp;</span>`
                 const space_add = -1 == ['fhlwh', 'lxx', 'bhs', 'kjv'].indexOf(bibleVersion) ? '' : ' ';
-                let sn_text2 = space_add + `<span class="sn-text" sn=${sn} n=${n}>${text_prev2.trim()}</span>`
+                let sn_text2 = space_add + `<span class="sn-text" sn=${sn} tp=${tp}>${text_prev2.trim()}</span>`
 
                 // console.log(text_prev2)
 
@@ -105,10 +105,10 @@ export function add_sn_text(text_jq, bibleVersion) {
             // 和合本2010 詩篇148
             // console.log(textContents[i-1]);
             // [i-1] 從 <u>以色列</u> 變 <u class="sn-text">以色列</u>
-            let sn_n = get_sn_text_sn_n(i, textContents)
-            let sn = sn_n[0]
-            let n = sn_n[1]
-            $(textContents[i - 1]).addClass('sn-text').attr('sn', sn).attr('n', n)
+            let sn_tp = get_sn_text_sn_tp(i, textContents)
+            let sn = sn_tp[0]
+            let tp = sn_tp[1]
+            $(textContents[i - 1]).addClass('sn-text').attr('sn', sn).attr('tp', tp)
         }
     }
 
@@ -140,17 +140,17 @@ export function add_sn_text(text_jq, bibleVersion) {
      * 
      * @param {number} i 
      * @param {HTMLElement[]} textContents 
-     * @returns {[string, string]} sn, n
+     * @returns {[string, string]} sn, tp
      */
-    function get_sn_text_sn_n(i, textContents) {
+    function get_sn_text_sn_tp(i, textContents) {
         // 判斷，它的 sn 是什麼。 如果 [i] 的 sn 是超過 9000 ， 那麼就要用 i+1 的 sn，不會有連續2個超過 9000。
         let sn = $(textContents[i]).attr('sn')
-        let n = $(textContents[i]).attr('n')
+        let tp = $(textContents[i]).attr('tp')
         if (parseInt(sn) > 9000) {
             sn = $(textContents[i + 1]).attr('sn')
-            n = $(textContents[i + 1]).attr('n')
+            tp = $(textContents[i + 1]).attr('tp')
         }
-        return [sn, n]
+        return [sn, tp]
     }
 }
 

@@ -1,7 +1,7 @@
 // TODO: 還沒完全重構
 
 import { splitReference } from "./splitReference.es2023.js" // 經文章節，成為ref
-import { qsbAsync } from "./qsbAsync.es2023.js"
+import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml } from "./DialogHtml.es2023.js"
 import { cvtDTextsToHtml } from "./cvtDTextsToHtml.es2023.js"
 import { cvtAddrsToRef } from "./cvtAddrsToRef.es2023.js"
@@ -19,21 +19,34 @@ import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
 import { cvt_others } from "./cvt_others.js"
 import { prepare_dtexts_for_html } from "./prepare_dtexts_for_html.js"
 import { queryFootsAsync } from "./queryFootsAsync.js"
+
+/**
+ * @typedef {Object} DQueryReferenceParam
+ * @prop {DAddress[]} [addrs] - 經文位置陣列，優先使用
+ * @prop {string} [addrsDescription] - 經文位置描述，若沒有 addrs，則使用這個字串去 qsb 查詢
+ * @prop {string} [version] - 經文版本，預設 "unv"
+ * @prop {number} [bookDefault] - 預設書卷，1-based，預設 45 (羅馬書)，用於 addrsDescription 的查詢
+ * @prop {MouseEvent} [event] - 點擊事件，若有，則會根據 TPPageState.s.reference_method 的設定來決定顯示方式
+ * @prop {number} [method] - 顯示方式，0: 每次詢問, 1: 直接方法1, 2: 直接方法2
+ */
+
 /**
  * 開發給 原字Parsing時，點擊原文字，要跳出字典內容
  * 像串珠功能，就是直接有 addrsDescription, 而非 addrs[]
- * @param {{addrs?:DAddress[];addrsDescription?:string;version?:string;bookDefault?:number;event?:MouseEvent}} jo 
+ * @param {DQueryReferenceParam} jo 
  * @returns {Promise<void>}
  */
 export function queryReferenceAndShowAtDialogAsync(jo) {
     if (jo.addrs == null && jo.addrsDescription == null) {
         throw new Error("assert .addrs != null || .addrDescription != null")
     }
+    get_first_addr(jo)
+
     if (jo.event == null) {
         show_in_dialog() // 原本程式碼
         return
     } else {
-        const reference_method = TPPageState.s.reference_method
+        const reference_method = jo.method ?? TPPageState.s.reference_method
         if (reference_method == 0) {
             show_dialog_choose_method()
         } else if (reference_method == 1) {
@@ -109,8 +122,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         })
     }
     function show_in_embed() {
-        assert(jo.addrs != null, "assert jo.addrs != null")
-        const addr = jo.addrs[0] // 用第1個位置
+        const addr = get_first_addr(jo)
 
         let ps = TPPageState.s
         ps.bookIndex = addr.book
@@ -127,7 +139,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
     }
     function show_in_dialog() {
         let addrsDescription = jo.addrsDescription != null ? jo.addrsDescription : cvtAddrsToRef(jo.addrs, '羅')
-        
+
         let version = jo.version == null ? "unv" : jo.version
         const bookDefaultId = jo.bookDefault ? jo.bookDefault : 45 // 羅, 1-based
         let bookDefault = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[bookDefaultId - 1]
@@ -138,7 +150,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
             ver: version,
             bookDefault,
         }
-        qsbAsync(argsQsb).then(a1 => when_qsbAsync(a1))
+        qsb(argsQsb).then(a1 => when_qsbAsync(a1))
 
         /**
          * @param {DQsbResult} a1 
@@ -161,7 +173,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
             if (ps.foot_note_show_method == 2) {
                 await queryFootsAsync(dtexts_with_addr, ver)
             }
-            
+
             const dtexts_prepared = prepare_dtexts_for_html(dtexts_with_addr, 2);
 
             let html = cvtDTextsToHtmlForReference(dtexts_prepared)
@@ -235,4 +247,25 @@ function add_sn_hidden_if_need(text_jq) {
         // 將 text 轉為 jQuery，然後將 .sn 的 span 加入 .hidden
         text_jq.find('.sn').addClass('sn-hidden')
     }
+}
+
+/**
+ * @param {DQueryReferenceParam} jo 
+ */
+function get_first_addr(jo) {
+    if (jo.addrs == null && jo.addrsDescription == null) {
+        throw new Error("assert .addrs != null || .addrDescription != null")
+    }
+
+    // 先 jo.addrs
+    if (jo.addrs != null && jo.addrs.length > 0) {
+        return jo.addrs[0]
+    }
+
+    // 若沒有 jo.addrs, 用 jo.addrsDescription 
+    const desc = jo.addrsDescription
+    const splitResult = splitReference(desc)
+    
+    // console.log(JSON.stringify(splitResult));    
+    return splitResult?.[0]?.refAddresses?.[0]
 }

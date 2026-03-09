@@ -339,7 +339,7 @@
             var r3 = $('<span/>', {
               text: a2.cna,
               class: 'book-item btn btn-outline-success',
-            }).data('data', a2)
+            }).data('data', a2).attr('na', a2.na)
             return r3
           }).forEach(a2 => {
             re.append(a2)

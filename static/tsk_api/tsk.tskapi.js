@@ -19,8 +19,8 @@ tsk.tskapi = function (engs, chap, sec, gb) {
   // 預設參數
   const BibleConstantHelper = BibleConstantHelperEs6Js()
   const BibleConstant = BibleConstantEs6Js()
-  const ibook = BibleConstantHelper.getBookId (engs.toLocaleLowerCase()) - 1
-  if (ibook < 0){
+  const ibook = BibleConstantHelper.getBookId(engs.toLocaleLowerCase()) - 1
+  if (ibook < 0) {
     throw new Error("engs=" + engs + " 是不合規定的")
   }
 

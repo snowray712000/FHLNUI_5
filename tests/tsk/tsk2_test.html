@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="utf-8" />
+    <title>TSK 2 測試</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: #f2eedc;
+            font-family: Arial, sans-serif;
+            padding: 12px;
+        }
+
+        .phone-frame {
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        .toolbar {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        .toolbar .btn {
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .section {
+            padding: 10px 0;
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 1.25em;
+            margin-bottom: 10px;
+        }
+
+        .section-divider {
+            border: 0;
+            border-top: 4px solid #e5c972;
+            margin: 14px 0;
+        }
+
+        .ref-link {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 4px;
+        }
+
+        .ref-link:hover {
+            text-decoration: underline;
+        }
+
+        .note-text {
+            color: #6c757d;
+            margin: 6px 0;
+        }
+
+        .summary-list {
+            padding-left: 24px;
+            margin: 0;
+        }
+
+        .summary-list li {
+            margin-bottom: 4px;
+            color: #607d8b;
+        }
+    </style>
+</head>
+
+<body>
+        <div class="toolbar">
+            
+            <button id="btnPrev" class="btn btn-sm btn-outline-secondary">前</button>
+            <button id="btnNext" class="btn btn-sm btn-outline-secondary">後</button>
+            <button id="btnCreate" class="btn btn-sm btn-outline-secondary">創1:1</button>
+            <button id="btnSettings" class="btn btn-sm btn-outline-secondary">設定</button>
+            <button id="btnExplain" class="btn btn-sm btn-outline-secondary">說明</button>
+            
+            <button id="btnGet" class="btn btn-sm btn-primary">取得</button>
+
+            <input id="inpBook" type="number" value="1" min="1" style="width:66px;">
+            <input id="inpChap" type="number" value="1" min="1" style="width:66px;">
+            <input id="inpSec" type="number" value="1" min="1" style="width:66px;">
+        </div>
+
+        <div id="parsedContent">(尚未處理)</div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script type="module" src="./tsk2_test.js"></script>
+</body>
+
+</html>

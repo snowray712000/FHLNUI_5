@@ -12,7 +12,7 @@ import { BibleConstant } from './BibleConstant.es2023.js'
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 import { DialogHtml } from './DialogHtml.es2023.js'
 import { isRDLocation } from './isRDLocation.es2023.js'
-import { qsbAsync } from './qsbAsync.es2023.js'
+import { qsb } from './api/qsb.js'
 import { cvtDTextsToHtml } from './cvtDTextsToHtml.es2023.js'
 import { cvtAddrsToRef } from './cvtAddrsToRef.es2023.js'
 import { splitReference } from './splitReference.es2023.js'
@@ -85,7 +85,7 @@ import { Hash_Changed } from './Hash_Changed.js'
     window.matchGlobalWithCaptureEs6Js = () => matchGlobalWithCapture
     window.DialogHtmlEs6Js = () => DialogHtml
     window.isRDLocationEs6Js = () => isRDLocation
-    window.qsbAsyncEs6Js = () => qsbAsync
+    window.qsbAsyncEs6Js = () => qsb
     window.cvtDTextsToHtmlEs6Js = () => cvtDTextsToHtml
     window.cvtAddrsToRefEs6Js = () => cvtAddrsToRef
     window.splitReferenceEs6Js = () => splitReference

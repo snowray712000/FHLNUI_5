@@ -5,18 +5,18 @@
 const QUnit = /** @type {TpQUnit} */ (window.QUnit);
 
 /**
- * @typedef {import('../index/qsbAsync.es2023.js').DQsbResult} DQsbResult
- * @typedef {import('../index/qsbAsync.es2023.js').DQsbParam} DQsbParam
- * @typedef {import('../index/qsbAsync.es2023.js').DQsbRecord} DQsbRecord
  * @typedef {import('../index/cvt_others.js').DTextsWithAddr} DTextsWithAddr
  * @typedef {import('../index/DText.js').DText} DText
  * @typedef {import('../index/DFoot.js').DFoot} DFoot
+ * @typedef {import('../index/api/qsb.js').DQsbResult} DQsbResult
+ * @typedef {import('../index/api/qsb.js').DQsbParam} DQsbParam
+ * @typedef {import('../index/api/qsb.js').DQsbRecord} DQsbRecord
  */
 
 
 
 QUnit.module('foots_query_test');
-import { qsbAsync } from './../index/qsbAsync.es2023.js'
+import { qsb } from './../index/api/qsb.js'
 import { cvt_others } from '../index/cvt_others.js';
 import { queryFootsAsync } from '../index/queryFootsAsync.js';
 
@@ -24,7 +24,7 @@ QUnit.test('基本流程', async assert => {
     const done = assert.async();
 
     /** @type {DQsbResult} */
-    const re1 = await qsbAsync({ qstr: '創2:1', ver: 'lcc' });
+    const re1 = await qsb({ qstr: '創2:1', ver: 'lcc' });
 
     const re1a = re1.record.map(a1 => {
         return [a1.book, a1.chap, a1.sec, a1.bible_text]
@@ -49,7 +49,7 @@ QUnit.test('優化，同步', async assert => {
 
     // 7:24 兩個都是同樣用 [1]，不是每個都一定是下一個 id，有可能多處用同一個 id
     /** @type {DQsbResult} */
-    const re1 = await qsbAsync({ qstr: '創2:6-7;出7:24', ver: 'lcc' });
+    const re1 = await qsb({ qstr: '創2:6-7;出7:24', ver: 'lcc' });
 
     const re1a = re1.record.map(a1 => {
         return [a1.book, a1.chap, a1.sec, a1.bible_text]

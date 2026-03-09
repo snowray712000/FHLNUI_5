@@ -1,10 +1,10 @@
 $(function () {
     const css = `
-        .hanging-indent { padding-left: 1rem; text-indent: -1rem; }
-        .c-list { list-style: none; margin: 0; padding-left: 1rem; }
+        .hanging-indent { padding-left: 0.5rem; text-indent: -0.5rem; }
+        .c-list { list-style: none; margin: 0; padding-left: 0.5rem; }
         .c-li { margin: .15em 0; }
-        .c-marker { display: inline-block; min-width: 0.5rem; }
-        .c-lex .c-marker { min-width: 0.5rem; }
+        .c-marker { display: inline-block; min-width: 0.125rem; }
+        .c-lex .c-marker { min-width: 0.125rem; }
 
         /* joTable/table 顯示 */
         .c-joTable { padding-left: 0; text-indent: 0; }
