@@ -47,7 +47,7 @@ export function cvtDTextsToHtml(dtexts) {
                         text: a1.w,
                         class: 'ref',
                     })
-                    tmp.attr('data-addrs', JSON.stringify(a1.refAddresses))
+                    tmp.attr('addr-data', JSON.stringify(a1.refAddresses))
                     re += tmp[0].outerHTML
                 } else if (a1.sn != null){
                     let tmp = $('<span>', {

@@ -191,7 +191,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
                 getTitle: () => addrsDescription,
                 registerEventWhenShowed: dlg => {
                     dlg.on('click', '.ref', a1 => {
-                        let addrs = JSON.parse($(a1.target).attr('data-addrs'))
+                        let addrs = JSON.parse($(a1.target).attr('addr-data'))
                         queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: a1 })
                     })
                 }

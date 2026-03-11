@@ -120,7 +120,7 @@ function render_dtexts_only(dtexts, version, addr){
             if ( dtext.refDescription != null ){
                 span.attr('addr-desc', dtext.refDescription)
             } else if (dtext.refAddresses != null ){
-                span.attr('data-addrs', dtext.refAddresses)
+                span.attr('addr-data', dtext.refAddresses)
             }
         }
 

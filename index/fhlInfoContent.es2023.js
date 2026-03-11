@@ -276,8 +276,8 @@ $(function () {
     }).then(() => {
         $('#fhlInfoContent').off('click', '.ref').on('click', '.ref', function (ev) {
             const target = ev.currentTarget
-            const addr_data = $(target).attr('data-addrs')
-            const addr_desc = $(target).attr("data-desc")
+            const addr_data = $(target).attr('addr-data')
+            const addr_desc = $(target).attr("addr-desc")
 
             const jaAddrs = addr_data ? JSON.parse(addr_data) : null
 

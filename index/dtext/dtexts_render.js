@@ -57,6 +57,11 @@ function dtext_render(dtext) {
         return render_children(dtext);
     }
 
+    // foot 註腳
+    if (dtext?.foot) {
+        return render_foot(dtext);
+    }
+
     // Ref (交互參照)
     if (dtext?.isRef) {
         return render_ref(dtext);
@@ -140,16 +145,52 @@ function render_ref(refData) {
     const text = refData?.w ?? refData?.refDescription ?? '';
     $span.text(text);
 
-    // Add data-desc attribute
+    // Keep both attributes for compatibility with old/new event handlers.
     if (refData?.refDescription) {
-        $span.attr('data-desc', refData.refDescription);
+        $span.attr('addr-desc', refData.refDescription);
+        $span.attr('addr-desc', refData.refDescription);
     }
 
-    // Add data-addrs attribute
+    // Add addr-data attribute
     if (refData?.refAddresses) {
-        $span.attr('data-addrs', JSON.stringify(refData.refAddresses));
+        $span.attr('addr-data', JSON.stringify(refData.refAddresses));
     }
 
+    return $span;
+}
+
+/**
+ * @param {any} footData
+ * @returns {JQuery<HTMLElement>}
+ */
+function render_foot(footData) {
+    const $span = $('<span></span>').addClass('foot');
+    const foot = footData?.foot || {};
+    const footId = foot?.id;
+
+    $span.append('【註');
+
+    // 和合本2010 會用 -1 表示沒有 id
+    if (footId != null && footId !== -1) {
+        $span.append($('<span></span>').text(String(footId)));
+    }
+
+    if (Array.isArray(foot?.footContent)) {
+        $span.append('：');
+        for (const one of foot.footContent) {
+            $span.append(dtext_render(one));
+        }
+    } else if (footId != null && footId !== -1) {
+        // 只有 id，沿用舊行為可點擊查詢 rt
+        $span.addClass('ft');
+        $span.attr('ft', footId);
+        if (foot?.book != null) $span.attr('book', foot.book);
+        if (foot?.chap != null) $span.attr('chap', foot.chap);
+        if (foot?.sec != null) $span.attr('sec', foot.sec);
+        if (foot?.version != null) $span.attr('ver', foot.version);
+    }
+
+    $span.append('】');
     return $span;
 }
 
@@ -374,3 +415,4 @@ function render_joTable(tableData) {
 
     return $div;
 }
+

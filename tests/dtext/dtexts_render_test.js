@@ -81,8 +81,8 @@ QUnit.test("1 基本 文字 ", assert => {
 // dtext ref 交互參照 規則
 // - html 相關的 class 是 .ref
 // - 使用的是 attr ( 'addr-desc' ) 
-// - 或是使用 attr ( 'data-addrs' ) ... 但回傳值會被 JSON.parse( ) ... 內容應該是 jaArray, 是 [{book,chap,verse},... ] 的集合
-// - 若能使用 addr-desc 較好，因為 data-addrs 最終也會被轉去 addr-desc 方式，再配合 qsb.php 來取得資料
+// - 或是使用 attr ( 'addr-data' ) ... 但回傳值會被 JSON.parse( ) ... 內容應該是 jaArray, 是 [{book,chap,verse},... ] 的集合
+// - 若能使用 addr-desc 較好，因為 addr-data 最終也會被轉去 addr-desc 方式，再配合 qsb.php 來取得資料
 // - 若缺 w 時，先嘗試用 refDesc 來當 w 的內容
 
 QUnit.test("2 交互參照 ref case 1", assert => {
@@ -92,7 +92,7 @@ QUnit.test("2 交互參照 ref case 1", assert => {
       { w: "# 1, 5;2:1-3;Joh 3:1 |", isRef: 1, refDescription: "創 1:1, 5;2:1-3;約 3:1" },
     ]
 
-  except = $('<span class="ref" data-desc="創 1:1, 5;2:1-3;約 3:1"># 1, 5;2:1-3;Joh 3:1 |</span>');
+  except = $('<span class="ref" addr-desc="創 1:1, 5;2:1-3;約 3:1" addr-desc="創 1:1, 5;2:1-3;約 3:1"># 1, 5;2:1-3;Joh 3:1 |</span>');
 
   result = dtexts_render(input);
 
@@ -108,7 +108,7 @@ QUnit.test("2 交互參照 ref case 2", assert => {
       { w: "# 1, 5;2:1-3;Joh 3:1 |", isRef: 1, refAddresses: ja },
     ]
 
-  except = $('<span class="ref" data-addrs=\'[{"book":1,"chap":1,"verse":1},{"book":1,"chap":1,"verse":5},{"book":1,"chap":2,"verse":1},{"book":1,"chap":2,"verse":2},{"book":1,"chap":2,"verse":3},{"book":43,"chap":3,"verse":1}]\'># 1, 5;2:1-3;Joh 3:1 |</span>');
+  except = $('<span class="ref" addr-data=\'[{"book":1,"chap":1,"verse":1},{"book":1,"chap":1,"verse":5},{"book":1,"chap":2,"verse":1},{"book":1,"chap":2,"verse":2},{"book":1,"chap":2,"verse":3},{"book":43,"chap":3,"verse":1}]\'># 1, 5;2:1-3;Joh 3:1 |</span>');
 
   result = dtexts_render(input);
 
@@ -126,7 +126,7 @@ QUnit.test("2 交互參照 ref case 3", assert => {
     ]
 
 
-  except = $('<span class="ref" data-desc="創 1:1, 5;2:1-3;約 3:1" data-addrs=\'[{"book":1,"chap":1,"verse":1},{"book":1,"chap":1,"verse":5},{"book":1,"chap":2,"verse":1},{"book":1,"chap":2,"verse":2},{"book":1,"chap":2,"verse":3},{"book":43,"chap":3,"verse":1}]\'># 1, 5;2:1-3;Joh 3:1 |</span>');
+  except = $('<span class="ref" addr-desc="創 1:1, 5;2:1-3;約 3:1" addr-desc="創 1:1, 5;2:1-3;約 3:1" addr-data=\'[{"book":1,"chap":1,"verse":1},{"book":1,"chap":1,"verse":5},{"book":1,"chap":2,"verse":1},{"book":1,"chap":2,"verse":2},{"book":1,"chap":2,"verse":3},{"book":43,"chap":3,"verse":1}]\'># 1, 5;2:1-3;Joh 3:1 |</span>');
 
   result = dtexts_render(input);
 
@@ -144,7 +144,7 @@ QUnit.test("2 交互參照 ref case 4 缺 w 時用 refDesc", assert => {
       { isRef: 1, refDescription: "創 1:1, 5;2:1-3;約 3:1" },
     ]
 
-  except = $('<span class="ref" data-desc="創 1:1, 5;2:1-3;約 3:1">創 1:1, 5;2:1-3;約 3:1</span>');
+  except = $('<span class="ref" addr-desc="創 1:1, 5;2:1-3;約 3:1" addr-desc="創 1:1, 5;2:1-3;約 3:1">創 1:1, 5;2:1-3;約 3:1</span>');
 
   result = dtexts_render(input);
 
@@ -818,7 +818,7 @@ QUnit.test("6 joTable case 4 cell content 為 DText[]（含 ref/sn）", assert =
       }
     ]
 
-  except = $('<div class="joTable"><table><tbody><tr><td><span>經文</span></td><td><span>Strong Number</span></td></tr><tr><td><span class="ref" data-desc="創 1:1" data-addrs=\'[{"book":1,"chap":1,"verse":1}]\'> Gen 1:1 </span></td><td><span class="sn" tp="H" sn="430">H430</span></td></tr></tbody></table></div>')
+  except = $('<div class="joTable"><table><tbody><tr><td><span>經文</span></td><td><span>Strong Number</span></td></tr><tr><td><span class="ref" addr-desc="創 1:1" addr-desc="創 1:1" addr-data=\'[{"book":1,"chap":1,"verse":1}]\'> Gen 1:1 </span></td><td><span class="sn" tp="H" sn="430">H430</span></td></tr></tbody></table></div>')
 
   result = dtexts_render(input);
 
@@ -897,5 +897,80 @@ QUnit.test("6 joTable case 7 複雜表格 rowSpan colSpan 混合", assert => {
 
   equalJQueryHtml(assert, result, except);
 
+})
+
+// --- case 7 foot
+// 先以既有 render_dtexts 的行為為準，鎖定 foot 的輸出規格
+
+QUnit.test("7 foot case 1 僅 id，應輸出 .foot .ft 與 ft attrs", assert => {
+  input =
+    [
+      {
+        w: "【1】",
+        foot: {
+          id: 1,
+          book: 40,
+          chap: 1,
+          sec: 1,
+          version: "unv"
+        }
+      }
+    ]
+
+  except = $('<span class="foot ft" ft="1" book="40" chap="1" sec="1" ver="unv">【註<span>1</span>】</span>')
+
+  result = dtexts_render(input)
+
+  equalJQueryHtml(assert, result, except)
+})
+
+QUnit.test("7 foot case 2 id=-1 且有 footContent，不應有 .ft", assert => {
+  input =
+    [
+      {
+        w: "",
+        foot: {
+          id: -1,
+          book: 40,
+          chap: 1,
+          sec: 1,
+          version: "rcuv",
+          footContent: [{ w: "這是註腳內容" }]
+        }
+      }
+    ]
+
+  except = $('<span class="foot">【註：<span>這是註腳內容</span>】</span>')
+
+  result = dtexts_render(input)
+
+  equalJQueryHtml(assert, result, except)
+  assert.equal(result.hasClass('ft'), false)
+})
+
+QUnit.test("7 foot case 3 有 footContent 時可遞迴渲染 ref", assert => {
+  input =
+    [
+      {
+        w: "",
+        foot: {
+          id: 3,
+          book: 40,
+          chap: 2,
+          sec: 4,
+          version: "csb",
+          footContent: [
+            { w: "參 " },
+            { w: "創1:1", isRef: 1, refDescription: "創 1:1" }
+          ]
+        }
+      }
+    ]
+
+  except = $('<span class="foot">【註<span>3</span>：<span>參 </span><span class="ref" addr-desc="創 1:1">創1:1</span>】</span>')
+
+  result = dtexts_render(input)
+
+  equalJQueryHtml(assert, result, except)
 })
 

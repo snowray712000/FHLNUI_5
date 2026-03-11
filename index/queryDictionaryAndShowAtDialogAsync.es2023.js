@@ -61,8 +61,8 @@ export function queryDictionaryAndShowAtDialogAsync(jo) {
 
                 dlg.on('click', '.ref', a1 => {
                     
-                    // queryDictionaryAndShowAtDialogAsync({ sn: $(a1.target).attr('data-addrs'), isOld: false })
-                    let addrs = JSON.parse($(a1.target).attr('data-addrs'))
+                    // queryDictionaryAndShowAtDialogAsync({ sn: $(a1.target).attr('addr-data'), isOld: false })
+                    let addrs = JSON.parse($(a1.target).attr('addr-data'))
                     queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: a1})
 
                 })

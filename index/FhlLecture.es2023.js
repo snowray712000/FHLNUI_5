@@ -143,8 +143,8 @@ export class FhlLecture {
                 // 試取 addr-desc
                 const addrDesc = $(target).attr('addr-desc');
                 if (addrDesc == null || addrDesc.trim().length == 0) {
-                    // 試取 data-addrs
-                    const addrs = JSON.parse($(target).attr('data-addrs'))
+                    // 試取 addr-data
+                    const addrs = JSON.parse($(target).attr('addr-data'))
                     if (addrs != null && addrs.length > 0) {
                         queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: e, version: "unv"})
                     }
@@ -1335,7 +1335,7 @@ function mouseenter_sn_dialog(e) {
                         if (a2.refAddresses == undefined) {
                             re2 += a2.w
                         } else {
-                            re2 += `<span class='ref' data-addrs='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
+                            re2 += `<span class='ref' addr-data='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
                         }
                     }
                     return re2
@@ -1389,7 +1389,7 @@ function mouseenter_sn_dialog(e) {
                                 if (a2.refAddresses == undefined) {
                                     re2 += a2.w
                                 } else {
-                                    re2 += `<span class='ref' data-addrs='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
+                                    re2 += `<span class='ref' addr-data='${JSON.stringify(a2.refAddresses)}'>${a2.w}</span>`
                                 }
                             }
                             return re2
@@ -1475,7 +1475,7 @@ function mouseenter_sn_dialog(e) {
                 dlg.on('click', '.ref', a1 => {
                     console.log($(a1.target));
 
-                    let addrs = JSON.parse($(a1.target).attr('data-addrs'))
+                    let addrs = JSON.parse($(a1.target).attr('addr-data'))
                     queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: a1 })
                 })
 

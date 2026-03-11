@@ -44,7 +44,7 @@ function cvtDTextsToHtmlEs6Js() {
                             text: a1.w,
                             class: 'ref',
                         })
-                        tmp.attr('data-addrs', JSON.stringify(a1.refAddresses))
+                        tmp.attr('addr-data', JSON.stringify(a1.refAddresses))
                         re += tmp[0].outerHTML
                     } else {
                         re += "<span>" + a1.w + "</span>"

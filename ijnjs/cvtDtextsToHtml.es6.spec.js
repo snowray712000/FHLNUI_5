@@ -80,9 +80,9 @@ QUnit.test("cvtDTextsToHtml 交互參照", assert => {
         text: '#伯26:6|',
         class: 'ref'
     })
-    re2.attr('data-addrs',JSON.stringify([{book:18,chap:26,verse:6}]))
+    re2.attr('addr-data',JSON.stringify([{book:18,chap:26,verse:6}]))
 
     assert.equal(re, re2[0].outerHTML)
-    assert.deepEqual(JSON.parse($(re).attr('data-addrs')), [{book:18,chap:26,verse:6}],re2[0].outerHTML)
+    assert.deepEqual(JSON.parse($(re).attr('addr-data')), [{book:18,chap:26,verse:6}],re2[0].outerHTML)
     return
 })
