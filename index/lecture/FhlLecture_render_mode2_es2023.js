@@ -1,4 +1,4 @@
-import { TPPageState } from "./TPPageState.es2023.js";
+import { TPPageState } from "../TPPageState.es2023.js";
 import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVersion, parseBibleText, replace_newline_char } from "./FhlLecture_render_mode_common_es2023.js";
 
 {/* <div id="lecMain">

@@ -1,6 +1,6 @@
 // ...existing code...
 /**
- * @typedef {import("./FhlLecture_render_mode_common_es2023.js").TpOneRecordBibleText} TpOneRecordBibleText
+ * @typedef {import("./lecture/FhlLecture_render_mode_common_es2023.js").TpOneRecordBibleText} TpOneRecordBibleText
  * @typedef {[number, number, number, import("./DText.js").DText[]]} DTextsWithAddr
  * @typedef {import("./grouping_by_paragraph.js").GroupedParagraph} GroupedParagraph
  */

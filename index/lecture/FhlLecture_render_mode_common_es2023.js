@@ -2,9 +2,9 @@
  * - 開發 render mode 3 時，從 mode 1 的程式碼修改，然後將 mode 1 mode 2 mode 3 都重構。而 3 個共通的部分，就放在這個 common (共通) 檔案中。
  */
 
-import { charHG } from "./charHG.es2023.js"
-import { TPPageState } from "./TPPageState.es2023.js";
-import { add_sn_text } from "./add_sn_text.js";
+import { charHG } from "../charHG.es2023.js"
+import { TPPageState } from "../TPPageState.es2023.js";
+import { add_sn_text } from "../add_sn_text.js";
 
 /**
  * @typedef DAddress

@@ -1,8 +1,8 @@
 import { Hash_DAddress } from "./Hash_DAddress_es2023.js";
 
 /**
- * @typedef {import("./FhlLecture_render_mode_common_es2023.js").DAddress} DAddress
- * @typedef {import("./FhlLecture_render_mode_common_es2023.js").TpOneRecordBibleText} TpOneRecordBibleText
+ * @typedef {import("./lecture/FhlLecture_render_mode_common_es2023.js").DAddress} DAddress
+ * @typedef {import("./lecture/FhlLecture_render_mode_common_es2023.js").TpOneRecordBibleText} TpOneRecordBibleText
  */
 
 /**

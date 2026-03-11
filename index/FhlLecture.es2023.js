@@ -25,9 +25,10 @@ import { charHG } from './charHG.es2023.js'
 import { getAjaxUrl } from './getAjaxUrl.es2023.js'
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 
-import { FhlLecture_render_mode1 } from './FhlLecture_render_mode1_es2023.js'
-import { FhlLecture_render_mode2 } from './FhlLecture_render_mode2_es2023.js'
-import { FhlLecture_render_mode3 } from './FhlLecture_render_mode3_es2023.js'
+import { FhlLecture_render_mode1 } from './lecture/FhlLecture_render_mode1_es2023.js'
+import { FhlLecture_render_mode2 } from './lecture/FhlLecture_render_mode2_es2023.js'
+import { FhlLecture_render_mode3 } from './lecture/FhlLecture_render_mode3_es2023.js'
+
 import { testThenDoAsync } from './testThenDo.es2023.js'
 import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
 import { assert } from './assert_es2023.js'
@@ -302,6 +303,8 @@ async function renderLectureHtml(that) {
         } else if (mode == 2) {
             $htmlContent = await render_mode2(rspArr, isOld);
         } else {
+            console.log(rspArr);
+            
             $htmlContent = await render_mode1(rspArr, isOld);
         }
 

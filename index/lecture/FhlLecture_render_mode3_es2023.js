@@ -1,15 +1,15 @@
 /**
- * @typedef {import("./DText.js").DText} DText
+ * @typedef {import("../DText.js").DText} DText
  */
-import { charHG } from "./charHG.es2023.js";
-import { TPPageState } from "./TPPageState.es2023.js"
+import { charHG } from "../charHG.es2023.js";
+import { TPPageState } from "../TPPageState.es2023.js"
 
 import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVersion, parseBibleText, replace_newline_char } from "./FhlLecture_render_mode_common_es2023.js";
-import { Hash_DAddress } from "./Hash_DAddress_es2023.js";
-import { ParagraphData } from './ParagraphData_es2023.js'
-import { grouping_by_paragraph } from "./grouping_by_paragraph.js";
-import { cvt_others } from "./cvt_others.js";
-import { grouping_by_paragraph_for_dtexts_with_addr } from './grouping_by_paragraph_for_dtexts_with_addr.js'
+import { Hash_DAddress } from "../Hash_DAddress_es2023.js";
+import { ParagraphData } from '../ParagraphData_es2023.js'
+import { grouping_by_paragraph } from "../grouping_by_paragraph.js";
+import { cvt_others } from "../cvt_others.js";
+import { grouping_by_paragraph_for_dtexts_with_addr } from '../grouping_by_paragraph_for_dtexts_with_addr.js'
 // vercol 本來是併排用的，但交錯時，它其實裡面的內容就不是同一譯本了。
 // 新增「段落功能後」，.lec 原本是「單節」的設計，現在多一層 grouped 的概念，新增 .paragraph 的 div 好了。
 // 也就是說 以後 模式4，交錯的話，應該是 <div.paragraph ver='ver1'> </div> <div.paragraph ver='ver2'> </div> 也就是說, 真正確定同個譯本的, 會是 .paragraph，也不是 .vercol。
@@ -34,8 +34,8 @@ import { grouping_by_paragraph_for_dtexts_with_addr } from './grouping_by_paragr
  * @typedef {import("./FhlLecture_render_mode_common_es2023.js").DAddress} DAddress
  */
 
-import { queryFootsAsync } from "./queryFootsAsync.js"
-import { render_dtexts } from "./render_dtexts.js";
+import { queryFootsAsync } from "../queryFootsAsync.js"
+import { render_dtexts } from "../render_dtexts.js";
 function add_sn_hidden_if_need(text_jq) {
         // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
         const ps = TPPageState.s;
