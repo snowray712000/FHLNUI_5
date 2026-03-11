@@ -27,7 +27,7 @@ import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 
 import { FhlLecture_render_mode1 } from './lecture/FhlLecture_render_mode1_es2023.js'
 import { FhlLecture_render_mode2 } from './lecture/FhlLecture_render_mode2_es2023.js'
-import { FhlLecture_render_mode3 } from './lecture/FhlLecture_render_mode3_es2023.js'
+import { FhlLecture_render_mode3 } from './lecture/FhlLecture_render_mode3.js'
 
 import { testThenDoAsync } from './testThenDo.es2023.js'
 import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
