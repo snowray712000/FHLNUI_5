@@ -1,5 +1,30 @@
 {
+    "markdown.marp.themes": [
+        "./.vscode/snowtheme.css",
+        "./.vscode/snowtheme2.css"
+    ],
     "markdown.copyFiles.destination": {
         "**/*": "${documentBaseName}/"
-    }
+    },
+    "markdown.styles": [
+        "./.vscode/mpe/style-template.css",
+        "./.vscode/mpe/preview.css",
+        "./.vscode/mpe/preview_theme/solarized-light.css",
+        "./.vscode/mpe/prism_theme/solarized-light.css",
+        "./.vscode/mpe/markdown-it-admonition.css",
+        "./.vscode/mpe/twemoji.css",
+        "./.vscode/markdown.css",
+        "./.vscode/markdown-print.css",
+
+    ],
+    "markdown-pdf.styles": [
+        "./.vscode/mpe/style-template.css",
+        "./.vscode/mpe/preview.css",
+        "./.vscode/mpe/preview_theme/solarized-light.css",
+        "./.vscode/mpe/prism_theme/solarized-light.css",
+        "./.vscode/mpe/markdown-it-admonition.css",
+        "./.vscode/mpe/twemoji.css",
+        "./.vscode/markdown.css",
+        "./.vscode/markdown-print.css",
+    ],
 }

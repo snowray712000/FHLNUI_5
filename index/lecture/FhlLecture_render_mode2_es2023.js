@@ -15,6 +15,7 @@ import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVe
     </div>
 </div> */}
 
+import {FhlLecture_render_mode1_and_mode3 } from './FhlLecture_render_mode3_1.js'
 
 /**
  * 
@@ -22,6 +23,7 @@ import { addHebrewOrGreekCharClass, generate_verse_number_jdom, isHebrewOrGeekVe
  * @returns 
  */
 export async function FhlLecture_render_mode2(rspArr) {
+    return FhlLecture_render_mode1_and_mode3(rspArr, 2)
     const ps = TPPageState.s
 
     // get maxRecordCnt maxRecordIdx 

@@ -53,28 +53,7 @@ function is_merge_with_prev_verse(dtexts_with_addr2) {
 
     return false;
 }
-function gen_fake_groups_for_mode1(dtexts_with_addrs) {
-    // 原本是 [book, chap, sec, dtexts[]]
-    // 現在 map 產生 [book, chap, sec, ""] 即可
-    return dtexts_with_addrs.map(a1 => {
-        return [a1[0], a1[1], a1[2], ""]
-    })
-}
-function get_all_address_need(rspApp) {
-    // 每一個 rspApp 的 record 的每一個 record 的 book, chap, sec 可以 toHash
-    let allhashs = rspApp.map(a1 => a1.record.map(a2 => Hash_DAddress.toHash(a2)))
-    allhashs = allhashs.flat()
 
-    // unique
-    allhashs = [...new Set(allhashs)]
-
-    // order
-    allhashs.sort((a, b) => a - b)
-
-    // return
-    const addrs = allhashs.map(a1 => Hash_DAddress.toAddress(a1))
-    return addrs
-}
 
 /**
  * 
@@ -82,12 +61,19 @@ function get_all_address_need(rspApp) {
  * @returns {JQuery<HTMLElement>} htmlContent
  */
 export async function FhlLecture_render_mode1_and_mode3(rspApp, mode) {
-    // 我先作好 mode 3，然後意識到 mode1 其實就是 mode 3 的每一節為一段的特例, 就作這個假的分段, 就可以用同一個程式碼了
-    const paragraphDataFake = mode == 1 ? gen_fake_groups_for_mode1(get_all_address_need(rspApp)) : null
+
+    // mode = 4
+    const contentVm = await build_view_model(rspApp, mode)
+    const layoutVm = build_layout_vm(contentVm, mode, "col")
+    console.log(layoutVm);
+    
+
+    return 
+
 
     const ps = TPPageState.s
-    // 先假設，內容一定是同一章，同卷書
-    const paragraphData = ParagraphData.s.isReadyAndStartingIfNeed() ? ParagraphData.s.data : [[1, 1, 1, "上帝的創造"], [1, 2, 4, "創造的另一記載"], [1, 3, 1, "人違背命令"], [1, 3, 14, "上帝的宣判"], [1, 3, 22, "亞當和夏娃被趕出伊甸園"]]
+
+    const paragraphDataUsed = get_paragraphs(mode, rspApp)
 
     let htmlContent = generate_htmlContent_with_VersionColumns(rspApp, ps.fontSize);
 
@@ -107,9 +93,7 @@ export async function FhlLecture_render_mode1_and_mode3(rspApp, mode) {
             await queryFootsAsync(dtexts_with_addrs, version_of_record)
         }
 
-        const paragraphDataUsed = mode == 1 ? paragraphDataFake : paragraphData;
         const grouped2 = grouping_by_paragraph_for_dtexts_with_addr(dtexts_with_addrs, paragraphDataUsed)
-        // console.log(grouped2);
 
         // 每一段落
         for (let iGrouped = 0; iGrouped < grouped2.length; iGrouped++) {
@@ -184,13 +168,278 @@ export async function FhlLecture_render_mode1_and_mode3(rspApp, mode) {
 
             // const htmlContentOfParagraph = render_dtexts(dtexts_with_addr2, version_of_record);
             // div_grouped.append(htmlContentOfParagraph);
-            htmlContent.children().eq(iver).append(div_grouped)
+
+            const i_child = (mode == 1 || mode == 3) ? iver : 0
+
+            htmlContent.children().eq(i_child).append(div_grouped)
         }
         continue
     }
 
     return htmlContent;
 }
+/**
+ * @typedef {{
+ *   book:number,
+ *   chap:number,
+ *   sec:number,
+ *   dtexts:import("../DText.js").DText[],
+ *   verseLabel:string,
+ *   mergedSecs:number[],
+ *   isMergePlaceholder:boolean, // 這節是 "a" 併入上節
+ *   hideVerseNumber:boolean,    // 對應 UI 上 verseNumber 要不要顯示
+ *   hideVerseContent:boolean    // 對應 UI 上 verseContent 要不要顯示
+ * }} VmVerse
+ *
+ * @typedef {{
+ *   paragraphIndex:number,
+ *   title:string,
+ *   recordIndices:number[],
+ *   verses:VmVerse[]
+ * }} VmParagraph
+ *
+ * @typedef {{
+ *   version:string,
+ *   isRtl:boolean,
+ *   paragraphs:VmParagraph[]
+ * }} VmVersion
+ */
+
+/**
+ * @typedef {{
+ *   paragraphDataUsed:any[],
+ *   versions:VmVersion[]
+ * }} ContentVm
+ */
+
+/**
+ * 只做資料整理，不做畫面 render。
+ * 規則：
+ * - "a" 併入上節時，上一節 verseLabel 變成 20-21
+ * - 同時保留本節 placeholder（便於 mode1/2/row 對齊）
+ * @param {TpResultBibleText[]} rspArr
+ * @param {number} mode
+ * @returns {Promise<ContentVm>}
+ */
+async function build_view_model(rspArr, mode) {
+    const ps = TPPageState.s;
+    const paragraphDataUsed = get_paragraphs(mode, rspArr);
+
+    /** @type {VmVersion[]} */
+    const versions = [];
+
+    for (let iver = 0; iver < rspArr.length; iver++) {
+        const version = rspArr[iver].version;
+        const one_result = rspArr[iver];
+
+        let dtexts_with_addrs = cvt_others(
+            version,
+            one_result.record.map(a1 => [a1.book, a1.chap, a1.sec, a1.bible_text])
+        );
+
+        if (ps.foot_note_show_method == 2) {
+            await queryFootsAsync(dtexts_with_addrs, version);
+        }
+
+        const grouped = grouping_by_paragraph_for_dtexts_with_addr(dtexts_with_addrs, paragraphDataUsed);
+
+        /** @type {VmParagraph[]} */
+        const paragraphs = [];
+
+        for (let iGrouped = 0; iGrouped < grouped.length; iGrouped++) {
+            const one_group = grouped[iGrouped];
+            const recordIndices = one_group[0];
+            const paragraphIndex = one_group[1];
+            const title = paragraphIndex != -1 ? paragraphDataUsed[paragraphIndex][3] : "";
+
+            /** @type {VmVerse[]} */
+            const verses = [];
+
+            for (const idx of recordIndices) {
+                const dtexts_with_addr2 = dtexts_with_addrs[idx];
+                const book = dtexts_with_addr2[0];
+                const chap = dtexts_with_addr2[1];
+                const sec = dtexts_with_addr2[2];
+                const dtexts = dtexts_with_addr2[3];
+
+                if (is_merge_with_prev_verse(dtexts_with_addr2)) {
+                    // 先更新上一節 label
+                    const last = verses[verses.length - 1];
+                    if (last != null) {
+                        const start = String(last.verseLabel).split("-")[0];
+                        last.verseLabel = `${start}-${sec}`;
+                        last.mergedSecs.push(sec);
+                    }
+
+                    // 再保留本節 placeholder（你剛決定要保留）
+                    verses.push({
+                        book,
+                        chap,
+                        sec,
+                        dtexts,
+                        verseLabel: "",
+                        mergedSecs: [],
+                        isMergePlaceholder: true,
+                        hideVerseNumber: true,
+                        hideVerseContent: true
+                    });
+                    continue;
+                }
+
+                verses.push({
+                    book,
+                    chap,
+                    sec,
+                    dtexts,
+                    verseLabel: String(sec),
+                    mergedSecs: [],
+                    isMergePlaceholder: false,
+                    hideVerseNumber: false,
+                    hideVerseContent: false
+                });
+            }
+
+            paragraphs.push({
+                paragraphIndex,
+                title,
+                recordIndices,
+                verses
+            });
+        }
+
+        versions.push({
+            version,
+            isRtl: version === "bhs",
+            paragraphs
+        });
+    }
+
+    return { paragraphDataUsed, versions };
+}
+/**
+ * @typedef {{ version:string, isRtl:boolean, paragraph:VmParagraph }} VercolItem
+ * @typedef {{ mode:number, copyDir:"col"|"row", vercols:VercolItem[] }} LayoutVm
+ */
+
+/**
+ * 所有 mode 都產生 .vercol 陣列
+ * @param {ContentVm} contentVm
+ * @param {number} mode
+ * @param {"col"|"row"} copyDir
+ * @returns {LayoutVm}
+ */
+function build_layout_vm(contentVm, mode, copyDir) {
+    const versions = contentVm.versions;
+
+    /** @type {VercolItem[]} */
+    const vercols = [];
+
+    // mode1: fake paragraph（每段通常一節）
+    if (mode === 1) {
+        if (copyDir === "col") {
+            for (const v of versions) {
+                for (const p of v.paragraphs) {
+                    // 每個譯本同一個 .vercol 承載多 paragraph，render 時可按 version 聚合
+                    // 若你偏好先 layout 就聚合，可改成另一種結構
+                    vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
+                }
+            }
+        } else {
+            // row: 以 paragraph index 交錯，仍然每格是 .vercol
+            const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
+            for (let pi = 0; pi < maxP; pi++) {
+                for (const v of versions) {
+                    const p = v.paragraphs[pi];
+                    if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
+                }
+            }
+        }
+        return { mode, copyDir, vercols };
+    }
+
+    // mode2: 單欄交錯（每節一段），但容器仍是 .vercol
+    if (mode === 2) {
+        const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
+        for (let pi = 0; pi < maxP; pi++) {
+            for (const v of versions) {
+                const p = v.paragraphs[pi];
+                if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
+            }
+        }
+        return { mode, copyDir: "col", vercols };
+    }
+
+    // mode3: 真段落
+    if (mode === 3) {
+        if (copyDir === "col") {
+            for (const v of versions) {
+                for (const p of v.paragraphs) {
+                    vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
+                }
+            }
+        } else {
+            const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
+            for (let pi = 0; pi < maxP; pi++) {
+                for (const v of versions) {
+                    const p = v.paragraphs[pi];
+                    if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
+                }
+            }
+        }
+        return { mode, copyDir, vercols };
+    }
+
+    // mode4: 單欄交錯（每段）
+    if (mode === 4) {
+        const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
+        for (let pi = 0; pi < maxP; pi++) {
+            for (const v of versions) {
+                const p = v.paragraphs[pi];
+                if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
+            }
+        }
+        return { mode, copyDir: "col", vercols };
+    }
+
+    return { mode, copyDir, vercols };
+}
+function get_paragraphs(mode, rspApp) {
+    // 先假設，內容一定是同一章，同卷書
+    if (mode == 3 || mode == 4) {
+        const paragraphData = ParagraphData.s.isReadyAndStartingIfNeed() ? ParagraphData.s.data : [[1, 1, 1, "上帝的創造"], [1, 2, 4, "創造的另一記載"], [1, 3, 1, "人違背命令"], [1, 3, 14, "上帝的宣判"], [1, 3, 22, "亞當和夏娃被趕出伊甸園"]]
+        return paragraphData
+
+    } else {
+        // 我先作好 mode 3，然後意識到 mode1 其實就是 mode 3 的每一節為一段的特例, 就作這個假的分段, 就可以用同一個程式碼了
+        const paragraphDataFake = (mode == 1 || mode == 2) ? gen_fake_groups_for_mode1(get_all_address_need(rspApp)) : null
+        return paragraphDataFake
+    }
+    return null
+
+    function gen_fake_groups_for_mode1(dtexts_with_addrs) {
+        // 原本是 [book, chap, sec, dtexts[]]
+        // 現在 map 產生 [book, chap, sec, ""] 即可
+        return dtexts_with_addrs.map(a1 => {
+            return [a1[0], a1[1], a1[2], ""]
+        })
+    }
+    function get_all_address_need(rspApp) {
+        // 每一個 rspApp 的 record 的每一個 record 的 book, chap, sec 可以 toHash
+        let allhashs = rspApp.map(a1 => a1.record.map(a2 => Hash_DAddress.toHash(a2)))
+        allhashs = allhashs.flat()
+
+        // unique
+        allhashs = [...new Set(allhashs)]
+
+        // order
+        allhashs.sort((a, b) => a - b)
+
+        // return
+        const addrs = allhashs.map(a1 => Hash_DAddress.toAddress(a1))
+        return addrs
+    }
+}
+
 
 /**
  * 
@@ -198,14 +447,15 @@ export async function FhlLecture_render_mode1_and_mode3(rspApp, mode) {
  * @param {number} fontSizeOfPs ps.fontSize
  * @returns 
  */
-function generate_htmlContent_with_VersionColumns(rspArr, fontSizeOfPs) {
+function generate_htmlContent_with_VersionColumns(rspArr, fontSizeOfPs, mode = 1) {
     // case1: 不同版本，併排顯示；case2，不同版本，交錯顯示
     // 注意, 這個變數, 只是暫存的, 它輽出的結果是 html 文字, 不包含自己, 所以lecMain屬性是在另種設定, 不是在這
     // 不要再從這裡改 <div style=padding:10px 50px></div>, 不會有效果的.
     let $htmlContent = $("<div id='lecMain'></div>");
 
-    let cx1 = 100 / rspArr.length;
-    for (let j = 0; j < rspArr.length; j++) {
+    const cnt_version = (mode == 1 || mode == 3) ? rspArr.length : 1;
+    let cx1 = 100 / cnt_version;
+    for (let j = 0; j < cnt_version; j++) {
         // 分3欄
         let onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top; margin-top: " + (fontSizeOfPs * 1.25 - 15) + "px'></div>");
 

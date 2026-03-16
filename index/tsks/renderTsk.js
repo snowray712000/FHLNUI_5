@@ -83,7 +83,7 @@ async function api_tsk() {
 }
 
 function gen_toolbar_jqhtml() {
-    const $topToolbar = $('<div>').addClass('toolbar tsk1').html(`
+    const $topToolbar = $('<div>').addClass('toolbar tsk').html(`
         <button class="btnPrev btn btn-sm btn-outline-secondary">前</button>
         <button class="btnNext btn btn-sm btn-outline-secondary">後</button>
         <button class="btnTitle btn btn-sm btn-outline-secondary">創1:1</button>
@@ -93,8 +93,8 @@ function gen_toolbar_jqhtml() {
     //     <button class="btnPrev btn btn-sm btn-outline-secondary">前</button>
     //     <button class="btnNext btn btn-sm btn-outline-secondary">後</button>
     //     <button class="btnTitle btn btn-sm btn-outline-secondary">創1:1</button>
-    //     <button class="btnSettings btn btn-sm btn-outline-secondary">設定</button>
     //     <button class="btnExplain btn btn-sm btn-outline-secondary">說明</button>
+    //     <button class="btnSettings btn btn-sm btn-outline-secondary">設定</button>
     // `)
     return $topToolbar
 }
