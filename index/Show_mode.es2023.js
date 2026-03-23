@@ -37,7 +37,7 @@ export class ShowMode {
                 <option value="1">${gbText("併排（單節）", ps.gb)}</option>
                 <option value="2">${gbText("交錯（單節）", ps.gb)}</option>
                 <option value="3">${gbText("併排（段落）", ps.gb)}</option>
-                <option value="4">${gbText("交錯（段落）... 還沒寫好", ps.gb)}</option>
+                <option value="4">${gbText("交錯（段落）", ps.gb)}</option>
             </select>
         `;
         dom.html(html);

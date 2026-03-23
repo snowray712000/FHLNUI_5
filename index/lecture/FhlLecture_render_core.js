@@ -359,7 +359,6 @@ function build_layout_vm(contentVm, mode, copyDir) {
 }
 function get_paragraphs(mode, rspApp) {
     // 先假設，內容一定是同一章，同卷書
-    console.error(mode);
     if (mode == 3 || mode == 4) {
         
         const paragraphData = ParagraphData.s.isReadyAndStartingIfNeed() ? ParagraphData.s.data : [[1, 1, 1, "上帝的創造"], [1, 2, 4, "創造的另一記載"], [1, 3, 1, "人違背命令"], [1, 3, 14, "上帝的宣判"], [1, 3, 22, "亞當和夏娃被趕出伊甸園"]]
