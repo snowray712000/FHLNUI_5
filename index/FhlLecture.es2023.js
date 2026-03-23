@@ -25,9 +25,7 @@ import { charHG } from './charHG.es2023.js'
 import { getAjaxUrl } from './getAjaxUrl.es2023.js'
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 
-import { FhlLecture_render_mode1 } from './lecture/FhlLecture_render_mode1_es2023.js'
-import { FhlLecture_render_mode2 } from './lecture/FhlLecture_render_mode2_es2023.js'
-import { FhlLecture_render_mode3 } from './lecture/FhlLecture_render_mode3.js'
+import { FhlLecture_render_core } from './lecture/FhlLecture_render_core.js'
 
 import { testThenDoAsync } from './testThenDo.es2023.js'
 import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
@@ -139,14 +137,14 @@ export class FhlLecture {
                 const target = e.target;
                 // 取得 ver。往 parent 方向找，它會有一個 span.lec 的父元素，並且會擁有 attr.ver。
                 const ver = $(target).closest('span.lec').attr('ver');
-                
+
                 // 試取 addr-desc
                 const addrDesc = $(target).attr('addr-desc');
                 if (addrDesc == null || addrDesc.trim().length == 0) {
                     // 試取 addr-data
                     const addrs = JSON.parse($(target).attr('addr-data'))
                     if (addrs != null && addrs.length > 0) {
-                        queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: e, version: "unv"})
+                        queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: e, version: "unv" })
                     }
                 } else {
                     queryReferenceAndShowAtDialogAsync({ addrsDescription: addrDesc, event: e, version: "unv" })
@@ -298,15 +296,7 @@ async function renderLectureHtml(that) {
         //var mode = 1;// 原本的. 就切回0
         var mode = ps.show_mode;
         let $htmlContent = "";
-        if (mode == 3) {
-            $htmlContent = await render_mode3(rspArr, isOld);
-        } else if (mode == 2) {
-            $htmlContent = await render_mode2(rspArr, isOld);
-        } else {
-            console.log(rspArr);
-            
-            $htmlContent = await render_mode1(rspArr, isOld);
-        }
+        $htmlContent = await FhlLecture_render_core(rspArr, mode);
 
         ps.sn_stastic = get_sn_stastic(rspArr, $htmlContent)
 
@@ -404,25 +394,6 @@ async function renderLectureHtml(that) {
             // 目前 closeButton 已經沒用，但在重構階段，保持原本
             dtitle.append($(`<div class=lecContent><div class=versionName>${o.v_name}<span class='closeButton' cname='${cname}'>x</span></div></div>`));
         }
-    }
-    async function render_mode2(rspArr, isOld) {
-        return await FhlLecture_render_mode2(rspArr);
-    }
-    /**
-     * @param {TpResultBibleText[]} rspArr 
-     * @param {boolean} isOld 
-     * @returns 
-     */
-    async function render_mode1(rspArr, isOld) {
-        return await FhlLecture_render_mode1(rspArr);
-    }
-    /**
-     * @param {TpResultBibleText[]} rspArr 
-     * @param {boolean} isOld 
-     * @returns 
-     */
-    async function render_mode3(rspArr, isOld) {
-        return await FhlLecture_render_mode3(rspArr)
     }
     function render_pos_and_pho($htmlContent) {
         let htmlContent = ""
@@ -1105,7 +1076,7 @@ function mouseenter_sn_dialog(e) {
         // GET	http://127.0.0.1:5600/json/sd.php?N=0&k=2424&gb=0
         let sn = one.sn
         let tp = one.tp
-        let N = tp == 'G' ? 0 : 1        
+        let N = tp == 'G' ? 0 : 1
         let endpoint = `/json/sd.php?k=${sn}&N=${N}&gb=0`
         let host = isRDLocation() ? 'http://127.0.0.1:5600' : ''
         let url = host + endpoint
@@ -1155,7 +1126,7 @@ function mouseenter_sn_dialog(e) {
 
         // G3762
         // let N = re_dict.one.N
-        const tp =re_dict.one.tp // 'G' or 'H'
+        const tp = re_dict.one.tp // 'G' or 'H'
         let sn = re_dict.one.sn
         let sn_hg = tp + sn // 2 處用到
         let span_sn = $('<span>').text(`${sn_hg} `).addClass('sn').attr('sn', sn).attr('tp', tp)

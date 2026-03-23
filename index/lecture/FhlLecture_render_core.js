@@ -60,123 +60,77 @@ function is_merge_with_prev_verse(dtexts_with_addr2) {
  * @param {TpResultBibleText[]} rspApp 
  * @returns {JQuery<HTMLElement>} htmlContent
  */
-export async function FhlLecture_render_mode1_and_mode3(rspApp, mode) {
-
-    // mode = 4
-    const contentVm = await build_view_model(rspApp, mode)
-    const layoutVm = build_layout_vm(contentVm, mode, "col")
-    console.log(layoutVm);
-    
-
-    return 
-
-
+export async function FhlLecture_render_core(rspApp, mode) {
     const ps = TPPageState.s
 
-    const paragraphDataUsed = get_paragraphs(mode, rspApp)
+    const contentVm = await build_view_model(rspApp, mode)
+    const copyDir = (mode === 1 || mode === 3) ? "col" : "row"
+    const layoutVm = build_layout_vm(contentVm, mode, copyDir)
 
-    let htmlContent = generate_htmlContent_with_VersionColumns(rspApp, ps.fontSize);
+    const htmlContent = generate_htmlContent_with_VersionColumns(rspApp, ps.fontSize, mode)
 
-    // 逐版本處理
-    for (let iver = 0; iver < rspApp.length; iver++) {
-        const version_of_record = rspApp[iver].version;
-        const one_result_of_version = rspApp[iver]
+    for (const item of layoutVm.vercols) {
+        const div_grouped = render_paragraph_div(item)
 
-        // prepare data
-        let dtexts_with_addrs = cvt_others(version_of_record, one_result_of_version.record.map(a1 => {
-            return [a1.book, a1.chap, a1.sec, a1.bible_text]
-        }));
-        // console.log(dtexts_with_addrs);
+        // col 模式：每個譯本對應自己的欄；row 模式：全部放第 0 欄
+        const col_index = (mode === 1 || mode === 3)
+            ? rspApp.findIndex(r => r.version === item.version)
+            : 0
 
-        // foot 注腳 csb 中文標準譯本 cnet NET聖經中譯本 lcc 呂振中譯本
-        if (ps.foot_note_show_method == 2) {
-            await queryFootsAsync(dtexts_with_addrs, version_of_record)
-        }
-
-        const grouped2 = grouping_by_paragraph_for_dtexts_with_addr(dtexts_with_addrs, paragraphDataUsed)
-
-        // 每一段落
-        for (let iGrouped = 0; iGrouped < grouped2.length; iGrouped++) {
-            const one_group = grouped2[iGrouped];
-            const paragraphIndex = one_group[1]; // 段落索引
-            const recordIndices = one_group[0]; // 段落內的 record 索引
-            const titleOfParagraph = paragraphIndex != -1 ? paragraphDataUsed[paragraphIndex][3] : ""; // TODO: 還沒用到
-
-            let div_grouped = $("<div>").css({
-                margin: '0px 0.25rem 0px 0.25rem',
-                padding: '7px 0px',
-                height: '100%',
-            }).addClass('paragraph').attr('ver', version_of_record)
-
-            if (version_of_record == "bhs") {
-                div_grouped.css({
-                    'text-align': 'right',
-                    'direction': 'rtl', // 右至左
-                });
-            }
-
-            // for each recordIndices
-            for (const idx of recordIndices) {
-                const dtexts_with_addr2 = dtexts_with_addrs[idx];
-
-                const book = dtexts_with_addr2[0]
-                const chap = dtexts_with_addr2[1]
-                const sec = dtexts_with_addr2[2]
-
-                // a (併入上節) 的處理，例如歌羅西書2:21節
-                if (is_merge_with_prev_verse(dtexts_with_addr2)) {
-                    // 取得 last in span_lec，它原本可能是 <span.verseNumber>20</span> 讓它變 <span.verseNumber>20-21</span> 。若原本就有存在 - 符號，例如 20-21, 就讓它變成 20-{sec}
-                    const last_lec = div_grouped.children().last();
-                    const verseNumberSpan = last_lec.find('.verseNumber').first();
-                    const currentVerseNumberText = verseNumberSpan.text().trim();
-                    const currentVerseNumber = parseInt(currentVerseNumberText);
-
-                    if (currentVerseNumberText.includes('-')) {
-                        // 已經有 - 符號了，讓它變成 20-{sec}
-                        const newVerseNumberText = currentVerseNumberText.split('-')[0] + '-' + sec;
-                        verseNumberSpan.text(newVerseNumberText);
-                    } else {
-                        // 沒有 - 符號，讓它變成 20-21
-                        const newVerseNumberText = currentVerseNumber + '-' + sec;
-                        verseNumberSpan.text(newVerseNumberText);
-                    }
-
-                    continue
-                }
-
-                // <span class="lec" ver="unv" chap="2" sec="1" book="40">
-                const span_lec = $("<span>").addClass('lec').attr('ver', version_of_record).attr('chap', chap).attr('sec', sec).attr('book', book)
-
-                // <span class="verseNumber">1 </span>
-                span_lec.append(generate_verse_number_jdom(sec, version_of_record))
-
-                // <span class="verseContent">
-                const span_verseContent = $("<span>").addClass('verseContent');
-
-                const htmlContentOfParagraph = render_dtexts([dtexts_with_addr2], version_of_record);
-                add_sn_hidden_if_need(htmlContentOfParagraph);
-
-                span_verseContent.append(htmlContentOfParagraph);
-
-                span_lec.append(span_verseContent);
-
-                div_grouped.append(span_lec);
-
-            }
-
-            // const dtexts_with_addr2 = recordIndices.map( idx => dtexts_with_addrs[idx] )
-
-            // const htmlContentOfParagraph = render_dtexts(dtexts_with_addr2, version_of_record);
-            // div_grouped.append(htmlContentOfParagraph);
-
-            const i_child = (mode == 1 || mode == 3) ? iver : 0
-
-            htmlContent.children().eq(i_child).append(div_grouped)
-        }
-        continue
+        htmlContent.children().eq(col_index).append(div_grouped)
     }
 
     return htmlContent;
+}
+
+/**
+ * 將一個 VercolItem（版本 + 段落 vm）render 成 div.paragraph
+ * @param {VercolItem} item
+ * @returns {JQuery<HTMLElement>}
+ */
+function render_paragraph_div(item) {
+    const { version, isRtl, paragraph } = item
+
+    const div_grouped = $("<div>").css({
+        margin: '0px 0.25rem 0px 0.25rem',
+        padding: '7px 0px',
+        height: '100%',
+    }).addClass('paragraph').attr('ver', version)
+
+    if (isRtl) {
+        div_grouped.css({ 'text-align': 'right', 'direction': 'rtl' })
+    }
+
+    for (const verse of paragraph.verses) {
+        if (verse.hideVerseContent) continue
+
+        const span_lec = $("<span>")
+            .addClass('lec')
+            .attr('ver', version)
+            .attr('chap', verse.chap)
+            .attr('sec', verse.sec)
+            .attr('book', verse.book)
+
+        if (!verse.hideVerseNumber) {
+            const numSpan = generate_verse_number_jdom(verse.sec, version)
+            if (verse.verseLabel !== String(verse.sec)) {
+                numSpan.text(verse.verseLabel + ' ')
+            }
+            span_lec.append(numSpan)
+        }
+
+        const span_verseContent = $("<span>").addClass('verseContent')
+        // render_dtexts 需要原始 dtexts_with_addr 格式 [book, chap, sec, dtexts[]]
+        const dtexts_with_addr2 = [verse.book, verse.chap, verse.sec, verse.dtexts]
+        const htmlContentOfVerse = render_dtexts([dtexts_with_addr2], version)
+        add_sn_hidden_if_need(htmlContentOfVerse)
+
+        span_verseContent.append(htmlContentOfVerse)
+        span_lec.append(span_verseContent)
+        div_grouped.append(span_lec)
+    }
+
+    return div_grouped
 }
 /**
  * @typedef {{
@@ -405,7 +359,9 @@ function build_layout_vm(contentVm, mode, copyDir) {
 }
 function get_paragraphs(mode, rspApp) {
     // 先假設，內容一定是同一章，同卷書
+    console.error(mode);
     if (mode == 3 || mode == 4) {
+        
         const paragraphData = ParagraphData.s.isReadyAndStartingIfNeed() ? ParagraphData.s.data : [[1, 1, 1, "上帝的創造"], [1, 2, 4, "創造的另一記載"], [1, 3, 1, "人違背命令"], [1, 3, 14, "上帝的宣判"], [1, 3, 22, "亞當和夏娃被趕出伊甸園"]]
         return paragraphData
 

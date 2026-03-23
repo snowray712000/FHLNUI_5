@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>Mode 1–4 HTML 結構規格範例</title>
+  <style>
+    body { font-family: monospace; font-size: 13px; background: #1e1e1e; color: #d4d4d4; padding: 20px; }
+    h1 { color: #9cdcfe; border-bottom: 1px solid #444; padding-bottom: 8px; }
+    h2 { color: #4ec9b0; margin-top: 40px; }
+    h3 { color: #dcdcaa; margin-top: 20px; margin-bottom: 4px; }
+    .spec-block { background: #252526; border: 1px solid #3c3c3c; border-radius: 4px; padding: 16px; margin: 12px 0; }
+    .note { background: #2d2d00; border-left: 3px solid #dcdcaa; padding: 6px 10px; margin: 8px 0; color: #e0e0a0; }
+    .layout-diagram { background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 12px; margin: 8px 0; white-space: pre; color: #8b949e; font-size: 12px; }
+    .tag  { color: #4ec9b0; }
+    .attr { color: #9cdcfe; }
+    .val  { color: #ce9178; }
+    .comment { color: #6a9955; }
+    .indent1 { padding-left: 20px; }
+    .indent2 { padding-left: 40px; }
+    .indent3 { padding-left: 60px; }
+    .indent4 { padding-left: 80px; }
+    .dim { color: #666; }
+    table { border-collapse: collapse; margin: 10px 0; }
+    th, td { border: 1px solid #444; padding: 6px 14px; text-align: center; }
+    th { background: #333; color: #9cdcfe; }
+    td { color: #d4d4d4; }
+  </style>
+</head>
+<body>
+
+<h1>Mode 1–4 HTML 結構規格範例</h1>
+
+<div class="note">
+  <b>資料說明</b>：範例使用 2 個譯本 (rcuv, csb)，西2:20–22，故意含有合併上節（20-21 合為一節）的情況。<br>
+  <b>書卷</b>：book="51"（歌羅西書）、chap="2"、sec = 節次
+</div>
+
+<table>
+  <tr><th>Mode</th><th>layout</th><th>copy_dir</th><th>段落結構</th></tr>
+  <tr><td>1</td><td>逐節 (verse-by-verse)</td><td>col / row</td><td>每節一個 .paragraph，每譯本一個 .vercol</td></tr>
+  <tr><td>2</td><td>逐節 交錯</td><td>col only</td><td>所有譯本在同一 .vercol，節次交錯排列</td></tr>
+  <tr><td>3</td><td>段落 (paragraph)</td><td>col / row</td><td>同一段落的所有節在同一 .paragraph，每譯本一個 .vercol</td></tr>
+  <tr><td>4</td><td>段落 交錯</td><td>col only</td><td>所有譯本在同一 .vercol，段落交錯排列</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Mode 1 — 逐節並排 (copy_dir="col"，每譯本獨立直欄)</h2>
+
+<div class="layout-diagram">
+  ┌─────── vercol (rcuv) ───────┐   ┌─────── vercol (csb) ────────┐
+  │ paragraph: sec=20 (20-21)   │   │ paragraph: sec=20           │
+  │ paragraph: sec=21 (空)      │   │ paragraph: sec=21           │
+  │ paragraph: sec=22           │   │ paragraph: sec=22           │
+  └─────────────────────────────┘   └─────────────────────────────┘
+</div>
+
+<div class="note">
+  每個節次各自一個 .paragraph。rcuv 的 20-21 合節，所以 sec=21 的 paragraph 內容為空。<br>
+  copy_dir="col" → 複製時以「整欄（同一譯本）」為單位，讓使用者能反白複製同一譯本的完整經文。
+</div>
+
+<div class="spec-block">
+<div><span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="val">"lecMain"</span> <span class="attr">mode</span>=<span class="val">"1"</span> <span class="attr">copy_dir</span>=<span class="val">"col"</span><span class="tag">&gt;</span></div>
+
+<div class="indent1"><span class="comment">&lt;!-- 譯本1 rcuv --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20-21 <span class="tag">&lt;/span&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 既然你們與基督同死...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span> <span class="comment">&lt;!-- sec=21 在 rcuv 已合入上節，故內容為空 --&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;&lt;/span&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 這些都是根據人的命令...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;/div&gt;</span></div>
+
+<div class="indent1"><span class="comment">&lt;!-- 譯本2 csb --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20 <span class="tag">&lt;/span&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 你們如果已經和基督一同死了...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>21 <span class="tag">&lt;/span&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 「不可碰，不可嘗，不可摸」...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;</span></div>
+<div class="indent4"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 這些東西都是一經使用就要衰朽的...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;/div&gt;</span></div>
+
+<div><span class="tag">&lt;/div&gt;</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Mode 1 — 逐節並排 (copy_dir="row"，以「節次 row」為複製單位)</h2>
+
+<div class="layout-diagram">
+  ┌── vercol ─┐  ┌── vercol ─┐  ┌── vercol ─┐  ┌── vercol ─┐  ┌── vercol ─┐  ┌── vercol ─┐
+  │rcuv sec=20│  │csb sec=20 │  │rcuv sec=21│  │csb sec=21 │  │rcuv sec=22│  │csb sec=22 │
+  └───────────┘  └───────────┘  └───────────┘  └───────────┘  └───────────┘  └───────────┘
+   ←──────────────────── 節次 row: sec=20 ──────────────────→ ...（以此類推）
+</div>
+
+<div class="note">
+  copy_dir="row" → 同一節次的所有譯本各自放在獨立的 .vercol，<br>
+  排列順序為：[rcuv:20, csb:20, rcuv:21, csb:21, rcuv:22, csb:22]，<br>
+  CSS 負責以 row 方式對齊，讓同節並排。
+</div>
+
+<div class="spec-block">
+<div><span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="val">"lecMain"</span> <span class="attr">mode</span>=<span class="val">"1"</span> <span class="attr">copy_dir</span>=<span class="val">"row"</span><span class="tag">&gt;</span></div>
+<div class="indent1"><span class="comment">&lt;!-- sec=20：先 rcuv 後 csb --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</span></div>
+<div class="indent1"><span class="comment">&lt;!-- sec=21 --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;</span><span class="dim">(空)</span><span class="tag">&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</span></div>
+<div class="indent1"><span class="comment">&lt;!-- sec=22 --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</span></div>
+<div><span class="tag">&lt;/div&gt;</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Mode 2 — 逐節交錯 (copy_dir="col" only)</h2>
+
+<div class="layout-diagram">
+  ┌─────────────────── vercol (唯一) ───────────────────────┐
+  │ paragraph: rcuv sec=20  (20-21 合節)                    │
+  │ paragraph: csb  sec=20                                  │
+  │ paragraph: rcuv sec=21  (空)                            │
+  │ paragraph: csb  sec=21                                  │
+  │ paragraph: rcuv sec=22                                  │
+  │ paragraph: csb  sec=22                                  │
+  └─────────────────────────────────────────────────────────┘
+</div>
+
+<div class="note">
+  mode 2 只有一個 .vercol；同節次的各譯本「交錯」排列（rcuv → csb → rcuv → csb…）。<br>
+  copy_dir 固定為 "col"，沒有 row 模式。
+</div>
+
+<div class="spec-block">
+<div><span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="val">"lecMain"</span> <span class="attr">mode</span>=<span class="val">"2"</span> <span class="attr">copy_dir</span>=<span class="val">"col"</span><span class="tag">&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;</span></div>
+
+<div class="indent2"><span class="comment">&lt;!-- sec=20 --&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20-21 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 既然你們與基督同死...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/span&gt;&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 你們如果已經和基督一同死了...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/span&gt;&lt;/div&gt;</span></div>
+
+<div class="indent2"><span class="comment">&lt;!-- sec=21（rcuv 空節） --&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/span&gt;&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>21 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 「不可碰，不可嘗，不可摸」...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/span&gt;&lt;/div&gt;</span></div>
+
+<div class="indent2"><span class="comment">&lt;!-- sec=22 --&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 這些都是根據人的命令...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/span&gt;&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span> 這些東西都是一經使用就要衰朽的...<span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/span&gt;&lt;/div&gt;</span></div>
+
+<div class="indent1"><span class="tag">&lt;/div&gt;</span></div>
+<div><span class="tag">&lt;/div&gt;</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Mode 3 — 段落並排 (copy_dir="col"，每譯本獨立直欄)</h2>
+
+<div class="layout-diagram">
+  ┌─────────── vercol (rcuv) ───────────┐   ┌─────────── vercol (csb) ────────────┐
+  │ paragraph A:                        │   │ paragraph A:                        │
+  │   lec sec=20  (verseNumber: 20-21)  │   │   lec sec=20  (verseNumber: 20)     │
+  │   lec sec=21  (verseNumber: 空)     │   │   lec sec=21  (verseNumber: 21)     │
+  │   lec sec=22  (verseNumber: 22)     │   │   lec sec=22  (verseNumber: 22)     │
+  │ paragraph B: ...                    │   │ paragraph B: ...                    │
+  └─────────────────────────────────────┘   └─────────────────────────────────────┘
+</div>
+
+<div class="note">
+  與 mode 1 最大的差異：同一段落的「所有節」都放在同一個 .paragraph 內（多個 .lec span 並排），<br>
+  而 mode 1 是每節各自一個 .paragraph。<br>
+  .vercol 結構與 mode 1 相同。
+</div>
+
+<div class="spec-block">
+<div><span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="val">"lecMain"</span> <span class="attr">mode</span>=<span class="val">"3"</span> <span class="attr">copy_dir</span>=<span class="val">"col"</span><span class="tag">&gt;</span></div>
+
+<div class="indent1"><span class="comment">&lt;!-- 譯本1 rcuv --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span> <span class="comment">&lt;!-- 段落 A：sec 20–22 合在同一 paragraph --&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20-21 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;&lt;/span&gt;&lt;/span&gt;</span> <span class="comment">&lt;!-- 空 --&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/div&gt;</span> <span class="comment">&lt;!-- 段落 B, C... --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;/div&gt;</span></div>
+
+<div class="indent1"><span class="comment">&lt;!-- 譯本2 csb --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>21 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;/div&gt;</span></div>
+
+<div><span class="tag">&lt;/div&gt;</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Mode 3 — 段落並排 (copy_dir="row"，以「段落 row」為複製單位)</h2>
+
+<div class="layout-diagram">
+  ┌── vercol ──┐  ┌── vercol ──┐  ┌── vercol ──┐  ┌── vercol ──┐  ┌── vercol ──┐  ┌── vercol ──┐
+  │rcuv para A │  │csb  para A │  │rcuv para B │  │csb  para B │  │rcuv para C │  │csb  para C │
+  └────────────┘  └────────────┘  └────────────┘  └────────────┘  └────────────┘  └────────────┘
+   ←───── 段落 row A ──────────→  ←───── 段落 row B ──────────→
+</div>
+
+<div class="note">
+  與 mode 1 copy_dir="row" 邏輯相同，但改以「段落」為單位切分 .vercol，<br>
+  每個 .vercol 的 .paragraph 內包含該段落所有節的 .lec span。
+</div>
+
+<div class="spec-block">
+<div><span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="val">"lecMain"</span> <span class="attr">mode</span>=<span class="val">"3"</span> <span class="attr">copy_dir</span>=<span class="val">"row"</span><span class="tag">&gt;</span></div>
+<div class="indent1"><span class="comment">&lt;!-- 段落 A row：先 rcuv 後 csb --&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">sec</span>=<span class="val">"20"</span> <span class="dim">...</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">sec</span>=<span class="val">"21"</span> <span class="dim">...</span><span class="tag">&gt;</span><span class="dim">(空)</span><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">sec</span>=<span class="val">"22"</span> <span class="dim">...</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;/div&gt;&lt;/div&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">sec</span>=<span class="val">"20"</span> <span class="dim">...</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">sec</span>=<span class="val">"21"</span> <span class="dim">...</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">sec</span>=<span class="val">"22"</span> <span class="dim">...</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/span&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;/div&gt;&lt;/div&gt;</span></div>
+<div class="indent1"><span class="comment">&lt;!-- 段落 B, C ... 依此類推 --&gt;</span></div>
+<div><span class="tag">&lt;/div&gt;</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>Mode 4 — 段落交錯 (copy_dir="col" only)</h2>
+
+<div class="layout-diagram">
+  ┌──────────────────── vercol (唯一) ──────────────────────────┐
+  │ paragraph A (rcuv):  lec:20  lec:21(空)  lec:22            │
+  │ paragraph A (csb):   lec:20  lec:21      lec:22            │
+  │ paragraph B (rcuv): ...                                     │
+  │ paragraph B (csb):  ...                                     │
+  └─────────────────────────────────────────────────────────────┘
+</div>
+
+<div class="note">
+  mode 4 是 mode 2（交錯）的「段落版」：只有一個 .vercol，<br>
+  同一段落的各譯本交錯排列，且每個 .paragraph 內含多個 .lec span（整段）。<br>
+  copy_dir 固定為 "col"。
+</div>
+
+<div class="spec-block">
+<div><span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="val">"lecMain"</span> <span class="attr">mode</span>=<span class="val">"4"</span> <span class="attr">copy_dir</span>=<span class="val">"col"</span><span class="tag">&gt;</span></div>
+<div class="indent1"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"vercol"</span><span class="tag">&gt;</span></div>
+
+<div class="indent2"><span class="comment">&lt;!-- 段落 A --&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span> <span class="comment">&lt;!-- rcuv --&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20-21 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;&lt;/span&gt;&lt;/span&gt;</span> <span class="comment">&lt;!-- 空 --&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"rcuv"</span> <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span> <span class="comment">&lt;!-- csb --&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"20"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>20 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"21"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>21 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent3"><span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="val">"lec"</span> <span class="attr">ver</span>=<span class="val">"csb"</span>  <span class="attr">book</span>=<span class="val">"51"</span> <span class="attr">chap</span>=<span class="val">"2"</span> <span class="attr">sec</span>=<span class="val">"22"</span><span class="tag">&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseNumber"</span><span class="tag">&gt;</span>22 <span class="tag">&lt;/span&gt;&lt;span</span> <span class="attr">class</span>=<span class="val">"verseContent"</span><span class="tag">&gt;</span><span class="dim">{render_dtexts}</span><span class="tag">&lt;/span&gt;&lt;/span&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;/div&gt;</span></div>
+
+<div class="indent2"><span class="comment">&lt;!-- 段落 B, C ... 依此類推（rcuv 後接 csb 交錯）--&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/div&gt;</span></div>
+<div class="indent2"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"paragraph"</span><span class="tag">&gt;</span><span class="dim">...</span><span class="tag">&lt;/div&gt;</span></div>
+
+<div class="indent1"><span class="tag">&lt;/div&gt;</span></div>
+<div><span class="tag">&lt;/div&gt;</span></div>
+</div>
+
+</body>
+</html>
