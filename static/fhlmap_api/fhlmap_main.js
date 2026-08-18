@@ -1,6 +1,8 @@
 ﻿
 var rfhlmap = null;
 var layer = null;
+var streetLayer = null;
+var humanitarianLayer = null;
 var fhlmap_engs_prev = ""; //防止同一章一直載入
 var fhlmap_chap_prev = -1; //防止同一章一直載入
 var fhlmap_titleId_prev = ""; //當切換成地圖以外功能,又切換回來的時候.要切換章才會顯示
@@ -11,15 +13,35 @@ function generateMap(idMapDiv) {
   var ptJerusalem = [31.786235, 35.202731]; //耶路撒冷
   var map = L.map(idMapDiv).setView(ptJerusalem, 8);
   if (layer == null) {
-    layer =
-      L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=REMOVED_MAPBOX_TOKEN', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 18,
-        id: 'mapbox.satellite', //mapbox.satellite  apbox.streets
-        accessToken: 'your.mapbox.access.token'
-      });
+    // 預設使用地形圖，較適合聖經地理中的山地、河谷與高低差。
+    layer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17,
+      attribution:
+        'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+        '<a href="https://opentopomap.org/">OpenTopoMap</a> (CC-BY-SA)'
+    });
   }
+  if (streetLayer == null) {
+    streetLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+  }
+  if (humanitarianLayer == null) {
+    humanitarianLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+        '&copy; <a href="https://www.hotosm.org/">Humanitarian OpenStreetMap Team</a>'
+    });
+  }
+
   layer.addTo(map);
+  L.control.layers({
+    '地形圖': layer,
+    '一般地圖': streetLayer,
+    'Humanitarian 高對比圖': humanitarianLayer
+  }).addTo(map);
 
   return map;
 }
@@ -39,7 +61,7 @@ function objpath2coordinate(objpathStr) {
 
 function fhlmap_render(ps, dom) {
   /// <summary> 整合到 index 的 code 放在這裡, 可以集中上面的全域變數. 比較好理解 </summary>
-  
+
   var dom2 = document.getElementById("fhlInfoContent");
   if (dom2 != null && rfhlmap == null || fhlmap_titleId_prev != "fhlInfoMap") {
     if (rfhlmap != null) // 切完功能回來, 若沒先 remove 掉原本的 map container 會出現錯誤
@@ -52,7 +74,7 @@ function fhlmap_render(ps, dom) {
     const bibleConstantHelper = BibleConstantHelperEs6Js()
     const engss = bibleConstantHelper.getBookNameArrayEnglishNormal()
     const engs = engss[ps.bookIndex - 1] // 轉成 engs
-    
+
     fhl.json_api_text_post("sobj.php?engs=" + engs + "&chap=" + ps.chap + "&gb="+ps.gb, null, function (jstr) {
       var jr1 = JSON.parse(jstr);
 
