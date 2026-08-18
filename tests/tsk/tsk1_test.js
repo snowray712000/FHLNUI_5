@@ -90,7 +90,7 @@ async function fetchAndRender(address) {
 function gen_tsk_url(address, gb) {
     const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[address[0] - 1];
     const endpoint = `sc.php?book=4&engs=${engs}&chap=${address[1]}&sec=${address[2]}&gb=${gb}`;
-    const domain = isRDLocation() ? "http://127.0.0.1:5600/json" : "/json";
+    const domain = isRDLocation() ? "http://127.0.0.1:15600/json" : "/json";
     return `${domain}/${endpoint}`;
 }
 
@@ -102,7 +102,7 @@ async function api_tsk({ book, chap, sec }) {
 }
 
 function updatePrevNextButtons(joApiResult) {
-    // next 
+    // next
     const joNext = joApiResult.next;
     if (joNext) {
         const book = BibleConstantHelper.getBookId(joNext.engs.toLowerCase());

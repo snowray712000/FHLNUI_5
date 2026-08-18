@@ -14,9 +14,9 @@ import { splitReference } from './../../index/splitReference.es2023.js'
 import { renderCommentDTexts } from './../../index/comments/render_comments_in_dtexts.js' // renderCommentDTexts
 import { fix_addr_description } from './../../index/comment_register_events_es2023.js' // fix_addr_description
 /**
- * @param {string} comment_text 
- * @param {DAddress} address 
- * @param {JQuery<HTMLElement>} $container 
+ * @param {string} comment_text
+ * @param {DAddress} address
+ * @param {JQuery<HTMLElement>} $container
  */
 function main_process(comment_text, address, $container) {
     const docNode = parseComment(comment_text, address);
@@ -159,9 +159,9 @@ $(function () {
         let book= ps?.bookIndex
         let chap = ps?.chap
         let sec = ps?.sec
-        
+
         const current_target = ev.currentTarget
-        
+
         // try attr book/chap from current_target
         if ($(current_target)?.attr("book")){
             book = $(current_target).attr("book")
@@ -174,7 +174,7 @@ $(function () {
         }
 
         const defaultAddress = { book, chap, verse: sec };
-        
+
         let dtexts = splitReference($(current_target).text(), defaultAddress)
 
         // - 詩篇 30，與 一般的 31:4 之類的不一樣
@@ -188,7 +188,7 @@ $(function () {
         }
 
         console.log(dtexts);
-        
+
 
         const fixedDescription = fix_addr_description(dtexts[0].w, defaultAddress)
 
@@ -242,9 +242,9 @@ async function fetchData(url) {
 
 /**
  * 取得 註釋 資料的 url
- * @param {string} book_name 
- * @param {number} chap 
- * @param {number} sec 
+ * @param {string} book_name
+ * @param {number} chap
+ * @param {number} sec
  * @return {string} url
  */
 function genUrl(book_name, chap, sec) {
@@ -264,5 +264,5 @@ function genUrl(book_name, chap, sec) {
     TPPageState.s.sec = sec
 
     const url = `sc.php?engs=${engs}&chap=${chap}&sec=${sec}&book=3&gb=0`;
-    return "http://127.0.0.1:5600/json/" + url;
+    return "http://127.0.0.1:15600/json/" + url;
 }

@@ -24,7 +24,7 @@ QUnit.test("qsb1", async assert =>{
     args.ver = "unv"
     args.bookDefault = 1
 
-    const payload = gen_payload_qsb(args)    
+    const payload = gen_payload_qsb(args)
     const domain = "https://bible.fhl.net"
     const endpoint = '/json/qsb.php'
     const url = `${domain}${endpoint}?${payload}`
@@ -33,7 +33,7 @@ QUnit.test("qsb1", async assert =>{
     const result = await response.json();
 
     const txt1 = result.record[0].bible_text
-    
+
     const txt_except = "起初<WAH09002><WH07225>，　神<WH0430>創造<WH01254><WTH8804>{<WH0853>}天<WH08064>{<WH0853>}地<WH0776>。"
 
     assert.equal(txt1, txt_except)
@@ -53,7 +53,7 @@ QUnit.test("qsb1_post", async assert =>{
     args.ver = "unv"
     args.bookDefault = 1
 
-    const payload = gen_payload_qsb(args)    
+    const payload = gen_payload_qsb(args)
     const domain = "https://bible.fhl.net"
     const endpoint = '/json/qsb.php'
     const url = `${domain}${endpoint}`
@@ -67,7 +67,7 @@ QUnit.test("qsb1_post", async assert =>{
     const result = await response.json();
 
     const txt1 = result.record[0].bible_text
-    
+
     const txt_except = "起初<WAH09002><WH07225>，　神<WH0430>創造<WH01254><WTH8804>{<WH0853>}天<WH08064>{<WH0853>}地<WH0776>。"
 
     assert.equal(txt1, txt_except)
@@ -86,11 +86,11 @@ QUnit.test("qsb1_post_127001", async assert =>{
     args.ver = "unv"
     args.bookDefault = 1
 
-    const result = await qsb_using_POST(args, "http://127.0.0.1:5600")
+    const result = await qsb_using_POST(args, "http://127.0.0.1:15600")
     const txt1 = result.record[0].bible_text
-    
+
     const txt_except = "起初<WAH09002><WH07225>，　神<WH0430>創造<WH01254><WTH8804>{<WH0853>}天<WH08064>{<WH0853>}地<WH0776>。"
-    
+
     assert.equal(txt1, txt_except)
 
     done()
@@ -110,8 +110,8 @@ QUnit.test("qsb2", async assert =>{
     const joResult = await qsb(args)
 
     const txt1 = joResult?.record?.[0]?.bible_text
-    
-    const txt_except = "起初<WAH09002><WH07225>，　神<WH0430>創造<WH01254><WTH8804>{<WH0853>}天<WH08064>{<WH0853>}地<WH0776>。" 
+
+    const txt_except = "起初<WAH09002><WH07225>，　神<WH0430>創造<WH01254><WTH8804>{<WH0853>}天<WH08064>{<WH0853>}地<WH0776>。"
     assert.equal(txt1, txt_except)
 
     done()
@@ -141,13 +141,13 @@ QUnit.test("qsb2", async assert =>{
  * @property {"success"} [status] - 狀態，成功時為 "success"
  * @property {number} record_count - 返回的記錄數量
  * @property {0|1|2|3|4} [proc] - 需要特殊字型  0:不需要 1:希臘文 2:希伯來文 3:羅馬拼音 4:Open Han字形
- * @property {DQsbRecord[]} record - 返回的經文記錄陣列  
+ * @property {DQsbRecord[]} record - 返回的經文記錄陣列
  */
 
 
 /**
  * 生成 QSB 查詢的 payload
- * @param {DQsbParam} args 
+ * @param {DQsbParam} args
  */
 function gen_payload_qsb(args){
     const gb = args.isGb || 0
@@ -169,12 +169,12 @@ function gen_payload_qsb(args){
     return params.toString()
 }
 /**
- * @param {DQsbParam} args 
+ * @param {DQsbParam} args
  * @param {string} [domain] - 可選的自訂域名，預設為 "https://bible.fhl.net"
  * @returns {Promise<DQsbResult>}
  */
 async function qsb_using_GET(args, domain) {
-    const payload = gen_payload_qsb(args)    
+    const payload = gen_payload_qsb(args)
     domain = domain || "https://bible.fhl.net"
     const endpoint = '/json/qsb.php'
     const url = `${domain}${endpoint}?${payload}`
@@ -184,12 +184,12 @@ async function qsb_using_GET(args, domain) {
 }
 
 /**
- * @param {DQsbParam} args 
+ * @param {DQsbParam} args
  * @param {string} [domain] - 可選的自訂域名，預設為 "https://bible.fhl.net"
  * @returns {Promise<DQsbResult>}
  */
 async function qsb_using_POST(args, domain) {
-    const payload = gen_payload_qsb(args)    
+    const payload = gen_payload_qsb(args)
     domain = domain || "https://bible.fhl.net"
     const endpoint = '/json/qsb.php'
     const url = `${domain}${endpoint}`

@@ -284,7 +284,7 @@ function escapeHtml(s) {
 function gen_tsk_url([book, chap, sec], gb) {
     const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[book - 1];
     const endpoint = `sc.php?book=4&engs=${engs}&chap=${chap}&sec=${sec}&gb=${gb}`;
-    const domain = isRDLocation() ? "http://127.0.0.1:5600/json" : "/json";
+    const domain = isRDLocation() ? "http://127.0.0.1:15600/json" : "/json";
     return `${domain}/${endpoint}`;
 }
 

@@ -1,1 +1,10 @@
+node_modules/
+**/*
+*.ts
+*.js
 docs/
+.vscode/
+images/z2.4.1_sn_table.png
+images/z2.5.1_parsing.png
+images/z*.png
+call_auto_dir_time.bat

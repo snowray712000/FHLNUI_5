@@ -77,16 +77,16 @@ async function fetchAndRender(address) {
 
     const tskBlocks = parseTsk(tskContent, address);
     console.log(JSON.stringify(tskBlocks));
-    
+
     console.log(tskBlocks);
-    
+
 
     // 預設：中文簡稱
     applyBookNameMode(tskBlocks, "abbr", false);
 
     const dtextsForDisplay = cvt_tsk_blocks_to_dtexts(tskBlocks, address);
     console.log(dtextsForDisplay);
-    
+
     const $html1 = dtexts_render(dtextsForDisplay)
 
     $("#parsedContent").innerHTML = "";
@@ -147,7 +147,7 @@ function applyBookNameMode(tskBlocks, mode, isgb) {
 function gen_tsk_url([book, chap, sec], gb) {
     const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[book - 1];
     const endpoint = `sc.php?book=4&engs=${engs}&chap=${chap}&sec=${sec}&gb=${gb}`;
-    const domain = isRDLocation() ? "http://127.0.0.1:5600/json" : "/json";
+    const domain = isRDLocation() ? "http://127.0.0.1:15600/json" : "/json";
     return `${domain}/${endpoint}`;
 }
 

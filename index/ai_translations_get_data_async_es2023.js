@@ -30,8 +30,8 @@ async function get_data_async(translation_name, qstr) {
     const ps = TPPageState.s;
     const gb = `gb=${(ps.gb === 0 ? '0' : '1')}`;
     const ver = `version=${translation_name}`;
-    const strong = `strong=0` 
-    
+    const strong = `strong=0`
+
     const book = ps.bookDefault || 45
     const books = BibleConstantHelper.getBookNameArrayChineseShort()
     const ch = books[book-1] // 0-based
@@ -39,7 +39,7 @@ async function get_data_async(translation_name, qstr) {
 
     const url_param = `?qstr=${qstr}&${engs}&${strong}&${gb}&${ver}`;
     // const url_domain = isRDLocation() ? 'https://bible.fhl.net' : ''
-    const url_domain = isRDLocation() ? 'http://127.0.0.1:5600' : ''
+    const url_domain = isRDLocation() ? 'http://127.0.0.1:15600' : ''
     const api_url = url_domain + '/json/qsb.php' + url_param;
 
     const result_url = await fetch(api_url);
@@ -70,7 +70,7 @@ async function get_data_async(translation_name, qstr) {
         item["translation_name"] = translation_name;
         item["cname"] = cname;
     }
-    
+
     return result;
 }
 function get_addrs(addr){
@@ -78,9 +78,9 @@ function get_addrs(addr){
     return `${na} ${addr[1]}:${addr[2]}` // e.g. 太 2:1
 }
 /**
- * 
- * @param {Array<{record: Array<{addr, bible_text, translation_name, cname}>}>} response_all 
- * @param {Array<string>} translations 
+ *
+ * @param {Array<{record: Array<{addr, bible_text, translation_name, cname}>}>} response_all
+ * @param {Array<string>} translations
  * @returns {{addr: number[], addrs: string, texts:{na:string,cna:string,text: string}[]}[]}
  */
 function merge_data(response_all, translations){
@@ -94,7 +94,7 @@ function merge_data(response_all, translations){
     //   - 將 each record 的 addr 加一個 addr_hash
     records.map(a1=>a1.addr_hash = a1.addr[2] + a1.addr[1] * 1000 + a1.addr[0] * 1000000)
     // console.log(all_record);
-    
+
     const records_by_addr = linq_group_by(records, a1 => a1.addr_hash)
     // console.log(Array.from(records_by_addr.entries()));
 
@@ -107,11 +107,11 @@ function merge_data(response_all, translations){
         // - 按 translations 排序
         // - ["unv","csv",...]
         // - [1, 0, 999...]
-        
+
         /** @type {string[]} */
         const names = records.map(a1=>a1.translation_name)
         const idxs = names.map( a1 => translations.indexOf(a1) ).map( a1 => a1 == -1 ? 999 : a1)
-        
+
         // - 將 records 與 idxs 綁在一起, 像 zip 一樣
         // - 如此，可以用 [0] 排序
         // - 再取出 [1]，就是排序後的 records
@@ -172,4 +172,3 @@ export async function ai_translations_get_data_async(addresses, translations) {
     //   - 有的譯本會有注解，但注解要另外 api 取得。
     // - translations 多個可能，所以用 [ ]
 }
-

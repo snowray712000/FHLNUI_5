@@ -15,7 +15,6 @@
         "./.vscode/mpe/twemoji.css",
         "./.vscode/markdown.css",
         "./.vscode/markdown-print.css",
-
     ],
     "markdown-pdf.styles": [
         "./.vscode/mpe/style-template.css",
@@ -27,4 +26,7 @@
         "./.vscode/markdown.css",
         "./.vscode/markdown-print.css",
     ],
+    "plantuml.render": "PlantUMLServer",
+    "plantuml.server": "https://www.plantuml.com/plantuml",
+    "liveServer.settings.port": 5501
 }

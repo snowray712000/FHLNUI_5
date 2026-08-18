@@ -27,12 +27,12 @@ import { BibleConstantHelper } from './BibleConstantHelper.es2023.js';
  * @property {"success"} [status] - 狀態，成功時為 "success"
  * @property {number} record_count - 返回的記錄數量
  * @property {0|1|2|3|4} [proc] - 需要特殊字型  0:不需要 1:希臘文 2:希伯來文 3:羅馬拼音 4:Open Han字形
- * @property {DQsbRecord[]} record - 返回的經文記錄陣列  
+ * @property {DQsbRecord[]} record - 返回的經文記錄陣列
  */
 
 /**
  * qsb.php 取得交互參照經文
- * 
+ *
  * qstr 是唯一必填參數
  * ver 預設 'unv'； isGb 預設，依設定； isSn 預設 1，若譯本不是 unv kjv rcuv，則強制為 0； bookDefault 預設，依 ps 的 bookIndex
  * 錯誤處理會往上丟
@@ -44,7 +44,7 @@ export async function qsbAsync(args) {
 
     const isUsingPost = 1
     const payload = gen_payload_qsb(args)
-    const domain = isRDLocation() ? "http://127.0.0.1:5600" : ""
+    const domain = isRDLocation() ? "http://127.0.0.1:15600" : ""
     const endpoint = '/json/qsb.php'
 
     if (isUsingPost) {
@@ -98,7 +98,7 @@ export async function qsbAsync(args) {
         const params = `?qstr=${args.qstr}&${engs}&${strong}&${gb}&${ver}`;
 
         // const domain = isRDLocation() ? "https://bible.fhl.net" : ""
-        const domain = isRDLocation() ? "http://127.0.0.1:5600" : ""
+        const domain = isRDLocation() ? "http://127.0.0.1:15600" : ""
         const endpoint = '/json/qsb.php'
 
         const url = domain + endpoint + params;
@@ -124,7 +124,7 @@ function get_default_book_engs() {
 /**
  * 將 record 中的 engs, chineses 轉成 book
  * in-place 修改 record
- * @param {DQsbResult} result 
+ * @param {DQsbResult} result
  */
 function qsbRecordToStd(result) {
     // map record.engs and unique

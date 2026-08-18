@@ -23,8 +23,8 @@ async function test_start_count(assert, book, chap, sec, countMax) {
     let count = 0
 
     while (count < countMax) {
-        // 127.0.0.1:5600/gcode2/swift_test.php?book=40&chap=1&sec=1
-        const url = `http://127.0.0.1:5600/gcode2/swift_test.php?book=${book}&chap=${chap}&sec=${sec}`;
+        // 127.0.0.1:15600/gcode2/swift_test.php?book=40&chap=1&sec=1
+        const url = `http://127.0.0.1:15600/gcode2/swift_test.php?book=${book}&chap=${chap}&sec=${sec}`;
         const response = await fetch(url);
         const apiResult = await response.text();
         const joResult = JSON.parse(apiResult);
@@ -54,13 +54,13 @@ async function test_start_count(assert, book, chap, sec, countMax) {
 
 
 /**
- * @param {number} book 
- * @param {number} chap 
- * @param {number} sec 
+ * @param {number} book
+ * @param {number} chap
+ * @param {number} sec
  * @returns {Promise<{api: string, sqlite: string, gcode2: string}>}
  */
 async function fetch_api_result(book, chap, sec) {
-    const url = `http://127.0.0.1:5600/gcode2/swift_test.php?book=${book}&chap=${chap}&sec=${sec}`;
+    const url = `http://127.0.0.1:15600/gcode2/swift_test.php?book=${book}&chap=${chap}&sec=${sec}`;
     const response = await fetch(url);
     const apiResult = await response.text();
     return JSON.parse(apiResult);
@@ -80,14 +80,14 @@ function gen_success_msg(book, chap, sec) {
     return `book: ${book} chap: ${chap} sec: ${sec} okay`
 }
 /**
- * 
- * @param {TpAssert} assert 
- * @param {string} input 
- * @param {string} expected 
- * @param {string} result 
- * @param {number} book 
- * @param {number} chap 
- * @param {number} sec 
+ *
+ * @param {TpAssert} assert
+ * @param {string} input
+ * @param {string} expected
+ * @param {string} result
+ * @param {number} book
+ * @param {number} chap
+ * @param {number} sec
  */
 function assert_equal_no_space(assert, input, expected, result, book, chap, sec) {
     const no_space = a => a.replace(/\s/g, '');

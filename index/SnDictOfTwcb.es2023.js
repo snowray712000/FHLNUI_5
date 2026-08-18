@@ -1,4 +1,4 @@
-// interface 
+// interface
 import { ISnDictionary } from './ISnDictionary.es2023.js';
 // 轉換。從 api 取得的資料後，要轉成 DText 格式
 import { twcbflow } from './twcbflow.es2023.js';
@@ -10,7 +10,7 @@ export class SnDictOfTwcb extends ISnDictionary {
         super()
     }
     /**
-     * @param {{sn:string,isOld:boolean}} param 
+     * @param {{sn:string,isOld:boolean}} param
      * @returns {Promise<DataOfDictOfFhl>}
      */
     queryAsync(param) {
@@ -33,10 +33,10 @@ export class SnDictOfTwcb extends ISnDictionary {
                 })
             })
 
-        } else { // 先嘗試 127.0.0.1:5600 proxy，失敗再用 虛擬資料(開發用)
+        } else { // 先嘗試 127.0.0.1:15600 proxy，失敗再用 虛擬資料(開發用)
             return new Promise((res, rej) => {
                 $.ajax({
-                    url: `http://127.0.0.1:5600${url}`,
+                    url: `http://127.0.0.1:15600${url}`,
                     timeout: 1000,
                     error: er => {
                         console.warn("可以開啟 python flask 作的 proxy.");
@@ -54,7 +54,7 @@ export class SnDictOfTwcb extends ISnDictionary {
                     },
                 });
             })
-            
+
             function virtualNewOld(sn, isOld){
                 let json_file = isOld ? './index/sd_virtual_old_twcb.json' : './index/sd_virtual_new_twcb.json'
                 return new Promise((res, rej) => {
@@ -70,10 +70,10 @@ export class SnDictOfTwcb extends ISnDictionary {
                     })
                 })
             }
-        }        
+        }
     }
     /**
-     * @param {DataOfDictOfFhl} dataOfFhl 
+     * @param {DataOfDictOfFhl} dataOfFhl
      * @returns {DText[]}
      */
     cvtToDTexts(dataOfFhl) {
@@ -93,7 +93,7 @@ export class SnDictOfTwcb extends ISnDictionary {
 
 //     function SnDictOfTwcb() {
 //         /**
-//          * @param {{sn:string,isOld:boolean}} param 
+//          * @param {{sn:string,isOld:boolean}} param
 //          * @returns {Promise<DataOfDictOfFhl>}
 //          */
 //         this.queryAsync = function (param) {
@@ -116,10 +116,10 @@ export class SnDictOfTwcb extends ISnDictionary {
 //                     })
 //                 })
 
-//             } else { // 先嘗試 127.0.0.1:5600 proxy，失敗再用 虛擬資料(開發用)
+//             } else { // 先嘗試 127.0.0.1:15600 proxy，失敗再用 虛擬資料(開發用)
 //                 return new Promise((res, rej) => {
 //                     $.ajax({
-//                         url: `http://127.0.0.1:5600${url}`,
+//                         url: `http://127.0.0.1:15600${url}`,
 //                         timeout: 1000,
 //                         error: er => {
 //                             console.warn("可以開啟 python flask 作的 proxy.");
@@ -137,7 +137,7 @@ export class SnDictOfTwcb extends ISnDictionary {
 //                         },
 //                     });
 //                 })
-                
+
 //                 function virtualNewOld(sn, isOld){
 //                     let json_file = isOld ? './index/sd_virtual_old_twcb.json' : './index/sd_virtual_new_twcb.json'
 //                     return new Promise((res, rej) => {
@@ -156,7 +156,7 @@ export class SnDictOfTwcb extends ISnDictionary {
 //             }
 //         }
 //         /**
-//          * @param {DataOfDictOfFhl} dataOfFhl 
+//          * @param {DataOfDictOfFhl} dataOfFhl
 //          * @returns {DText[]}
 //          */
 //         this.cvtToDTexts = function (dataOfFhl) {

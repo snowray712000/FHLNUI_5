@@ -9,9 +9,9 @@ export class SnDictOfCbol extends ISnDictionary {
     }
     /**
      * TODO:
-     * @param {{sn:string,isOld:boolean}} param 
+     * @param {{sn:string,isOld:boolean}} param
      * @returns {Promise<DataOfDictOfFhl>}
-     */    
+     */
     queryAsync(param) {
         const isRD = isRDLocation()
         // /json/sd.php?N=1&k=0128&gb=1
@@ -28,25 +28,25 @@ export class SnDictOfCbol extends ISnDictionary {
                         rej(er)
                     },
                     success: reStr => {
-                        
+
                         res(reStr) // sd.php 回傳本來就是一個 json 物件，所以不要再用 JSON.parse
                     },
                 })
             })
         } else {
-            // 如果 127.0.0.1:5600 有開著，就使用這個作為 proxy
+            // 如果 127.0.0.1:15600 有開著，就使用這個作為 proxy
             return new Promise((res, rej) =>{
                 $.ajax({
-                    url: `http://127.0.0.1:5600/json/sd.php${val}`,
+                    url: `http://127.0.0.1:15600/json/sd.php${val}`,
                     timeout: 1000,
                     error: er => {
                         console.warn("可以開啟 python flask 作的 proxy.");
                         try {
                             // 嘗試使用 virtual data
-                            gVirtualData().then(re => res(re))                               
+                            gVirtualData().then(re => res(re))
                         } catch (error) {
                             rej(er);
-                            
+
                         }
                     },
                     success: reStr => {
@@ -58,7 +58,7 @@ export class SnDictOfCbol extends ISnDictionary {
         }
 
         /**
-         * 
+         *
          * @returns {Promise<DataOfDictOfFhl>}
          */
         function gVirtualData() {
@@ -70,13 +70,13 @@ export class SnDictOfCbol extends ISnDictionary {
                     error: er => rej(er)
                 })
             })
-        }         
+        }
     }
     /**
      * TODO:
-     * @param {DataOfDictOfFhl} dataOfFhl 
+     * @param {DataOfDictOfFhl} dataOfFhl
      * @returns {DText[]}
-     */    
+     */
     cvtToDTexts(dataOfFhl) {
         let strCht = dataOfFhl.record[0].dic_text
         let strEn = dataOfFhl.record[0].edic_text
@@ -102,7 +102,7 @@ export class SnDictOfCbol extends ISnDictionary {
 //     function SnDictOfCbol() {
 //         /**
 //          * TODO:
-//          * @param {{sn:string,isOld:boolean}} param 
+//          * @param {{sn:string,isOld:boolean}} param
 //          * @returns {Promise<DataOfDictOfFhl>}
 //          */
 //         this.queryAsync = function (param) {
@@ -121,25 +121,25 @@ export class SnDictOfCbol extends ISnDictionary {
 //                             rej(er)
 //                         },
 //                         success: reStr => {
-                            
+
 //                             res(reStr) // sd.php 回傳本來就是一個 json 物件，所以不要再用 JSON.parse
 //                         },
 //                     })
 //                 })
 //             } else {
-//                 // 如果 127.0.0.1:5600 有開著，就使用這個作為 proxy
+//                 // 如果 127.0.0.1:15600 有開著，就使用這個作為 proxy
 //                 return new Promise((res, rej) =>{
 //                     $.ajax({
-//                         url: `http://127.0.0.1:5600/json/sd.php${val}`,
+//                         url: `http://127.0.0.1:15600/json/sd.php${val}`,
 //                         timeout: 1000,
 //                         error: er => {
 //                             console.warn("可以開啟 python flask 作的 proxy.");
 //                             try {
 //                                 // 嘗試使用 virtual data
-//                                 gVirtualData().then(re => res(re))                               
+//                                 gVirtualData().then(re => res(re))
 //                             } catch (error) {
 //                                 rej(er);
-                                
+
 //                             }
 //                         },
 //                         success: reStr => {
@@ -151,7 +151,7 @@ export class SnDictOfCbol extends ISnDictionary {
 //             }
 
 //             /**
-//              * 
+//              *
 //              * @returns {Promise<DataOfDictOfFhl>}
 //              */
 //             function gVirtualData() {
@@ -163,11 +163,11 @@ export class SnDictOfCbol extends ISnDictionary {
 //                         error: er => rej(er)
 //                     })
 //                 })
-//             }            
+//             }
 //         }
 //         /**
 //          * TODO:
-//          * @param {DataOfDictOfFhl} dataOfFhl 
+//          * @param {DataOfDictOfFhl} dataOfFhl
 //          * @returns {DText[]}
 //          */
 //         this.cvtToDTexts = function (dataOfFhl) {

@@ -6,7 +6,7 @@ import { TPPageState } from "./TPPageState.es2023.js";
 
 /**
  * 取得資料，正規化 address，並存入 cache
- * @param {number[][]} addresses 
+ * @param {number[][]} addresses
  * @returns {Promise<ParsingCache[]>}
  */
 export async function ai_parsing_get_data_async(addresses) {
@@ -21,7 +21,7 @@ async function fetch_one_async(addr) {
     const engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[book - 1];
 
     let endpoint = `/json/qp.php?engs=${engs}&chap=${chap}&sec=${sec}&gb=${gb}`;
-    let host = isRDLocation() ? 'http://127.0.0.1:5600' : '';
+    let host = isRDLocation() ? 'http://127.0.0.1:15600' : '';
     let url = host + endpoint;
 
     try {

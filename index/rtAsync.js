@@ -3,7 +3,7 @@ import { TPPageState } from './TPPageState.es2023.js';
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js';
 
 /**
- * @param {DRtParam} args 
+ * @param {DRtParam} args
  * @returns {Promise<DRtResult>}
  */
 export async function rtAsync(args) {
@@ -12,7 +12,7 @@ export async function rtAsync(args) {
     const url = cvtArgsToUrl();
     const response = await fetch(url);
     const joResult = await response.json();
-    
+
     return joResult;
 
     function makeSureArgsValid() {
@@ -34,7 +34,7 @@ export async function rtAsync(args) {
         const params = `?${engs}&${chap}&${ver}&${id}&${gb}`;
 
         // const domain = isRDLocation() ? "https://bible.fhl.net" : ""
-        const domain = isRDLocation() ? "http://127.0.0.1:5600" : ""
+        const domain = isRDLocation() ? "http://127.0.0.1:15600" : ""
         const endpoint = '/json/rt.php'
         return domain + endpoint + params;
     }

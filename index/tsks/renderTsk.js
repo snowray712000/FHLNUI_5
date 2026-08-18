@@ -37,7 +37,7 @@ function update_next_prev_address_in_toolbar(jqtoolbar, joResultNorm) {
 }
 function update_title_in_toolbar(jqtoolbar, joResultNorm) {
     let title = joResultNorm?.record?.[0]?.title ?? ''
-    // split 空白 的 [1] 
+    // split 空白 的 [1]
     const titleParts = title.split(' ')
     if (titleParts.length > 1) {
         title = titleParts[1]
@@ -46,7 +46,7 @@ function update_title_in_toolbar(jqtoolbar, joResultNorm) {
 }
 /**
  * sc.php?book=4&engs=Mark&gb=0&chap=1&sec=1
- * @param {DAddress} address 
+ * @param {DAddress} address
  */
 function gen_tsk_url(address, gb) {
     if (Array.isArray(address) == false) {
@@ -57,7 +57,7 @@ function gen_tsk_url(address, gb) {
 
     const endpoint = `sc.php?book=4&engs=${engs}&chap=${address[1]}&sec=${address[2]}&gb=${gb}`;
 
-    const domain = isRDLocation() ? 'http://127.0.0.1:5600/json' : '/json';
+    const domain = isRDLocation() ? 'http://127.0.0.1:15600/json' : '/json';
 
     return `${domain}/${endpoint}`
 }
@@ -101,7 +101,7 @@ function gen_toolbar_jqhtml() {
 
 
 /**
- * @param {DText} dtext 
+ * @param {DText} dtext
  */
 function cvt_ref_to_chinese_in_dtext(dtext, isgb, show_mode) {
     // children or childrenlist

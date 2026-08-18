@@ -33,7 +33,7 @@ import { assert } from './assert_es2023.js'
 import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
 import { rtAsync } from './rtAsync.js'
 
-/* 
+/*
 若有 2 個譯本，並且是併排方式
 <div#fhlLecture>
 <div.chapBack></div>
@@ -110,7 +110,7 @@ export class FhlLecture {
 
 
 
-        // 關於 滑鼠移過 sn      
+        // 關於 滑鼠移過 sn
         $lecMain.on({
             /**
              * @param {Event} e .sn, .sn-text
@@ -164,10 +164,10 @@ export class FhlLecture {
         }, 'img.pos');
     }
     /**
-     * 
-     * @param {TPPageState} ps 
-     * @param {HTMLElement} dom 
-     * @returns 
+     *
+     * @param {TPPageState} ps
+     * @param {HTMLElement} dom
+     * @returns
      */
     render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
@@ -214,8 +214,8 @@ export class FhlLecture {
     }
     /**
      * 真正被使用，是在 indexLast 時呼叫一次。應該是有順序關系
-     * @param {*} fnb 
-     * @param {*} fnn 
+     * @param {*} fnb
+     * @param {*} fnn
      */
     when_bclick_or_nclick(fnb, fnn) {
         /// <summary> fhlLecture 提供的 event </summary>
@@ -233,9 +233,9 @@ export class FhlLecture {
     }
     /**
      * 要提供給 render 使用，也可能會在 doSearch 中、InfoContent 中使用。
-     * @param {number} book 
-     * @param {number} chap 
-     * @param {number} sec 
+     * @param {number} book
+     * @param {number} chap
+     * @param {number} sec
      */
     selectLecture(book, chap, sec) {
         var that = this.dom;
@@ -273,8 +273,8 @@ async function renderLectureHtml(that) {
     return
 
     /**
-     * @param {FhlLecture} that 
-     * @param {TpOneRecordBibleText[]} rspArr 
+     * @param {FhlLecture} that
+     * @param {TpOneRecordBibleText[]} rspArr
      */
     async function when_query_bibletext_complete(that, rspArr) {
         /** @type {TPPageState} */
@@ -455,7 +455,7 @@ async function renderLectureHtml(that) {
                         const isExistPos = ps.ispos && issite
                         if (isExistPos) {
                             // $1 就是「本都」這字眼
-                            // 要產生 聖光地理 搜尋的網址 
+                            // 要產生 聖光地理 搜尋的網址
                             // https://www.google.com/search?q=本都+site://biblegeography.holylight.org.tw
                             str = str.replace(b2, `<span class='sobj' sid=${b1}><span>$1</span><a target='_blank' href='https://www.google.com/search?q=$1+site://biblegeography.holylight.org.tw'><img class='pos'></img></a>${strpho}</span>`);
                         } else {
@@ -471,7 +471,7 @@ async function renderLectureHtml(that) {
             htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
         }, function (aa1, aa2) {
             console.error(aa1);
-        }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題   
+        }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題
 
         return htmlContent
     }
@@ -479,8 +479,8 @@ async function renderLectureHtml(that) {
     function get_sn_stastic(rspArr, $htmlContent) {
         /**
          * 如果是具有 sn 的譯本 "unv", "kjv", "rcuv"，統計數量 (挑一個譯本來統計)
-         * @param {{version: str}[]} rspArr 
-         * @returns 
+         * @param {{version: str}[]} rspArr
+         * @returns
          */
         function get_preferredVersion_for_sn_stastic(rspArr) {
             let j = -1;
@@ -553,8 +553,8 @@ async function renderLectureHtml(that) {
         $('.lxx').addClass('greek');
     }
     /**
-     * 
-     * @param {TPPageState} ps 
+     *
+     * @param {TPPageState} ps
      * @returns 0 old testment 1 new testment
      */
     function checkOldNew(ps) {
@@ -579,14 +579,14 @@ async function renderLectureHtml(that) {
         $('.lecContent').css('width', (totalWidth / col) + "%");
         $('.lecVersion').css('width', (totalWidth / col) + "%");
     }
-    /** 
+    /**
     * bhs 馬索拉原文 (希伯來文)
     * @param {string} ver - fhlwh lxx bhs
     */
     function isHebrewVersion(ver) {
         return ['bhs'].indexOf(ver) != -1
     }
-    /** 
+    /**
     * fhlwh 新約原文 lxx 七十士譯本(舊約用希臘文)
     * @param {string} ver - fhlwh lxx bhs
     */
@@ -748,7 +748,7 @@ function when_click_chapnext(e) {
     $(document).trigger('chapchanged');
 }
 /**
- * @param {Event} e 
+ * @param {Event} e
  */
 function when_scroll(e) {
     // 滾動時，較漂亮， scrolling .css 中有定義 。
@@ -766,7 +766,7 @@ function show_dialog_pick_bible_version() {
 }
 /**
  * 深黃色，目前選取章節，供 info 使用
- * @param {Event} e 
+ * @param {Event} e
  * @param {JQuery<HTMLElement>} $lecMain
  */
 function when_click_on_lec(e, $lecMain) {
@@ -823,10 +823,10 @@ function when_mouseenter_on_lec(e) {
 }
 
 /**
- * 
- * @param {string} sn 
- * @param {"G"|"H"} tp 
- * @returns {number} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt 
+ *
+ * @param {string} sn
+ * @param {"G"|"H"} tp
+ * @returns {number} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt
  */
 function get_sn_count_in_bible(sn, tp) {
     if (Sd_cnt_json.s.filecontent == null) return -2
@@ -849,7 +849,7 @@ function get_sn_count_in_book(sn, book) {
     return -1
 }
 /**
- * 
+ *
  * @param {string} sn 168a
  * @param {number} book 1based book id 1-66
  * @returns {Object<number,number>} -1 表示沒有，這不正常。你可以顯示 ?。-2 表示還沒有 sd_cnt
@@ -869,7 +869,7 @@ function get_sn_count_in_chap(sn, book) {
 }
 
 /**
- * @param {Event} e 
+ * @param {Event} e
  */
 function mouseenter_sn_set_snAct_and_Color_act(e) {
     /** @type {TPPageState} */
@@ -886,7 +886,7 @@ function mouseenter_sn_set_snAct_and_Color_act(e) {
 }
 class ParsingCache {
     /**
-     * @param {DAddress_Realtime} address 
+     * @param {DAddress_Realtime} address
      * @returns {IDParsingResult|undefined}
      */
     static try_get(address) {
@@ -902,8 +902,8 @@ class ParsingCache {
     }
     /**
      * 若取得後，會作修改，就要用這個
-     * 例如會加上 .one = xxxx 
-     * @param {DAddress_Realtime} address 
+     * 例如會加上 .one = xxxx
+     * @param {DAddress_Realtime} address
      * @returns {IDParsingResult|undefined}
      */
     static try_get_clone(address) {
@@ -912,8 +912,8 @@ class ParsingCache {
         return this._json_clone(r1)
     }
     /**
-     * @param {DAddress_Realtime} address 
-     * @param {IDParsingResult} value 
+     * @param {DAddress_Realtime} address
+     * @param {IDParsingResult} value
      */
     static add(address, value) {
         let { book, chap, sec } = address
@@ -926,7 +926,7 @@ class ParsingCache {
 
         // 這裡要 clone, 不然我們 add 後，以為順序對了，就是存了原始的
         // 但 add 後，若被更改，例如 jo.one = xxx ， 因為是指向同個記憶體，仍然會被改變
-        // 所以保險的方法，是這裡要 clone 
+        // 所以保險的方法，是這裡要 clone
         this._data[book][chap][sec] = this._json_clone(value);
 
     }
@@ -942,7 +942,7 @@ class ParsingCache {
  */
 class SnDictCache {
     /**
-     * @param {{N: 0|1, sn: string}} sn_N 
+     * @param {{N: 0|1, sn: string}} sn_N
      * @returns {DataOfDictOfFhl|undefined}
      */
     static try_get(sn_N) {
@@ -954,7 +954,7 @@ class SnDictCache {
         return r1[sn]
     }
     /**
-     * @param {{N: 0|1, sn: string}} sn_N 
+     * @param {{N: 0|1, sn: string}} sn_N
      * @returns {DataOfDictOfFhl|undefined}
      */
     static try_get_clone(sn_N) {
@@ -963,8 +963,8 @@ class SnDictCache {
         return this._json_clone(r1)
     }
     /**
-     * @param {{N: 0|1, sn: string}} sn_N 
-     * @param {DataOfDictOfFhl} value 
+     * @param {{N: 0|1, sn: string}} sn_N
+     * @param {DataOfDictOfFhl} value
      */
     static add(sn_N, value) {
         let { sn, N } = sn_N
@@ -980,7 +980,7 @@ class SnDictCache {
     static _json_clone(jo) { return JSON.parse(JSON.stringify(jo)) }
 }
 /**
- * @param {Event} e 
+ * @param {Event} e
  */
 function mouseenter_sn_dialog(e) {
     /** @type {TPPageState} */
@@ -994,7 +994,7 @@ function mouseenter_sn_dialog(e) {
     // Activate sn，標記為紅色
     // SN_Act_Color.s.act_add(sn, tp)
 
-    // 取得資料 async 
+    // 取得資料 async
     // 若取得資料完成時，滑鼠還在同一個 sn 上，就繼續顯示，若非，就不顯示
     // 可以有 cache 資料
     // 若還沒取得，就變成下一個 sn 時，這個應該就不要再取了 (能中斷嗎？若不能，就是取完，但是存成 cache，但不顯示)
@@ -1019,9 +1019,9 @@ function mouseenter_sn_dialog(e) {
 
 
     /**
-     * 
-     * @param {DOne} one 
-     * @returns 
+     *
+     * @param {DOne} one
+     * @returns
      */
     function get_parsing_async(one) {
         let result_from_cache = ParsingCache.try_get_clone(one)
@@ -1044,7 +1044,7 @@ function mouseenter_sn_dialog(e) {
             $.ajax({
                 url,
                 /**
-                 * @param {IDParsingResult} a1 
+                 * @param {IDParsingResult} a1
                  */
                 success: a1 => {
                     if (a1.status == "success" && a1.record.length > 0) {
@@ -1073,12 +1073,12 @@ function mouseenter_sn_dialog(e) {
             re.one = one
             return Promise.resolve(result_from_cache)
         }
-        // GET	http://127.0.0.1:5600/json/sd.php?N=0&k=2424&gb=0
+        // GET	http://127.0.0.1:15600/json/sd.php?N=0&k=2424&gb=0
         let sn = one.sn
         let tp = one.tp
         let N = tp == 'G' ? 0 : 1
         let endpoint = `/json/sd.php?k=${sn}&N=${N}&gb=0`
-        let host = isRDLocation() ? 'http://127.0.0.1:5600' : ''
+        let host = isRDLocation() ? 'http://127.0.0.1:15600' : ''
         let url = host + endpoint
 
         return new Promise((res, rej) => {
@@ -1109,9 +1109,9 @@ function mouseenter_sn_dialog(e) {
         return Promise.all([get_parsing_async(one), get_dict_async(one)])
     }
     /**
-     * 
-     * @param {IDParsingResult_Realtime} re_parsing 
-     * @param {DataOfDictOfFhl_Realtime} re_dict 
+     *
+     * @param {IDParsingResult_Realtime} re_parsing
+     * @param {DataOfDictOfFhl_Realtime} re_dict
      */
     function show_dialog(re_parsing, re_dict) {
         // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
@@ -1219,7 +1219,7 @@ function mouseenter_sn_dialog(e) {
             span_count.append($('<br>'), $('<span>').text(description_in_this_book_chap))
         }
 
-        // 詞性分析 
+        // 詞性分析
         // 詞性: 形容詞 分析: 主格 單數 中性 (新約)
         // 分析: 介系詞 בְּ + 名詞，陰性單數 (舊約)
         // 詞性分析，從 parsing 找 SN，可能會有多個 SN 都符合，就2 個都要顯示，但若 2 個完全一樣，就只顯示一個。
@@ -1278,8 +1278,8 @@ function mouseenter_sn_dialog(e) {
         // cbol字典字義
         // cbol字典，中文部分。並且前半部要略過，\n\n第3次出現才開始取得
         /**
-         * @param {string} data 
-         * @returns 
+         * @param {string} data
+         * @returns
          */
         function get_cbol_dict_part_data(data) {
             function get_ignore_data() {
@@ -1341,7 +1341,7 @@ function mouseenter_sn_dialog(e) {
                 // 排序，按次數
                 same.sort((a, b) => b.ccnt - a.ccnt)
 
-                // filter .csn != sn 
+                // filter .csn != sn
                 let same2 = same.filter(a1 => a1.csn != sn)
 
                 // 產生許多 <span class='one-same'>...</span>
@@ -1408,11 +1408,11 @@ function mouseenter_sn_dialog(e) {
             width: width_dlg,
 
             /**
-             * 
-             * @param {JQuery<HTMLElement>} dlg 
+             *
+             * @param {JQuery<HTMLElement>} dlg
              */
             registerEventWhenShowed: dlg => {
-                // 改 title，因為 getTitle 的方式只能純文字，不能有 html tag ... dlg parent 才會包到 title 
+                // 改 title，因為 getTitle 的方式只能純文字，不能有 html tag ... dlg parent 才會包到 title
                 dlg.parent().find('.ui-dialog-title').addClass('realtime-sn').html(
                     $('<span>')
                         .append(span_sn)
@@ -1502,7 +1502,7 @@ function mouseenter_sn_dialog(e) {
 }
 
 /**
- * 
+ *
  */
 class Dialog_Sn_Info_Summary {
     static _s = null
@@ -1587,7 +1587,7 @@ class Dialog_Sn_Info_Summary {
         }
     }
     /**
-     * @param {Event} e 
+     * @param {Event} e
      * 注意: 使用時, 下面2種方式, 看似一樣, 但 this 的值會不同. 第1種才符合直覺, this 才會是這個 class
      * mouseleave: e => Dialog_Sn_Info_Summary.s.when_mouseleave_on_sn(e),
      * mouseleave: Dialog_Sn_Info_Summary.s.when_mouseleave_on_sn,

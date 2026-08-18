@@ -32,11 +32,11 @@ $(function () {
         // 顯示在 #raw , 它是 pre
         $("#raw").text(textComment);
 
-        // 
+        //
         const bookid = BibleConstantHelper.getBookId(book_name.toLowerCase());
         const address = [bookid, chap, sec]
         console.error(address);
-        
+
         const jqueryHtml = processComment(apiResult, address);
         $("#processed").html(jqueryHtml);
     })
@@ -93,7 +93,7 @@ function updatePrevNextButtons(joApiResult) {
     //     {book: '3', engs: 'Gen', chap: 1, sec: 3}
     // {book: '3', engs: 'Gen', chap: 0, sec: 0}
 
-    // next 
+    // next
     const joNext = joApiResult.next;
     if (joNext) {
         const book = BibleConstantHelper.getBookId(joNext.engs.toLowerCase())
@@ -146,9 +146,9 @@ async function fetchData(url) {
 
 /**
  * 取得 註釋 資料的 url
- * @param {string} book_name 
- * @param {string} chap 
- * @param {string} sec 
+ * @param {string} book_name
+ * @param {string} chap
+ * @param {string} sec
  * @return {string} url
  */
 function genUrl(book_name, chap, sec) {
@@ -163,7 +163,7 @@ function genUrl(book_name, chap, sec) {
     // url (注意! book 不是 bookId，3 就是註釋資料)
     const url = `sc.php?engs=${engs}&chap=${chap}&sec=${sec}&book=3&gb=0`;
 
-    const full_url = "http://127.0.0.1:5600/json/" + url;
+    const full_url = "http://127.0.0.1:15600/json/" + url;
 
     return full_url;
 }
