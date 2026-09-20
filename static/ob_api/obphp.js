@@ -355,13 +355,13 @@ obphp.R = obphp.R || {
                   if (re_record.bchap != 0) {
                     res += re_record.bchap.toString() + "章";
                     if (re_record.bsec != 0)
-                      res += re_record.bsec.toString() + this.props.isgb? "节": "節";
+                      res += re_record.bsec.toString() + (this.props.isgb ? "节" : "節");
                     res += "至";
                   }
                   if (re_record.echap != 0) {
                     res += re_record.echap.toString() + "章";
                     if (re_record.esec != 0)
-                      res += re_record.esec.toString() + this.props.isgb ? "节" : "節";
+                      res += re_record.esec.toString() + (this.props.isgb ? "节" : "節");
                   }
                 }
                 rtitle4 = React.createElement("span", { className: "read_span" }, res);
@@ -464,6 +464,7 @@ obphp.R = obphp.R || {
       oRet.idxbook = 257; //香港聖經公會 新舊約全書 1959
       oRet.page = -1;
       oRet.sobdata = [];
+      oRet.obreqSeq = 0; // sob.php 系列查詢的請求序號,避免舊回應覆蓋新選擇
 
       return oRet;
     },
@@ -477,6 +478,12 @@ obphp.R = obphp.R || {
 
     },
     componentWillReceiveProps: function (nextProps) {
+      if (nextProps.ibook === this.props.ibook &&
+          nextProps.ichap === this.props.ichap &&
+          nextProps.isec === this.props.isec &&
+          nextProps.isgb === this.props.isgb) {
+        return; // 經節與語系都沒變,不重新查詢
+      }
       this._query_sob_from_ajax_book_chap_sec(nextProps.ibook, nextProps.ichap, nextProps.isec);
     },
     componentWillUpdate: function () {
@@ -543,7 +550,13 @@ obphp.R = obphp.R || {
 
       var pthis = this;
       fhl.json_api_text(url, function (jstr, pthis) {
-        var juc = JSON.parse(jstr);
+        var juc;
+        try {
+          juc = JSON.parse(jstr);
+        } catch (e) {
+          pthis.setState({ err_msg: "ob.php錯誤" });
+          return;
+        }
         if (juc.status == "success") {
           //console.log(juc.record);
 
@@ -559,7 +572,13 @@ obphp.R = obphp.R || {
             url2 += "&chap=" + pthis.props.ichap;
             fhl.json_api_text(url2, function (jstr2, pthis) {
               //console.log(jstr2);
-              var juc2 = JSON.parse(jstr2);
+              var juc2;
+              try {
+                juc2 = JSON.parse(jstr2);
+              } catch (e) {
+                pthis.setState({ err_msg: "sob.php book=all 錯誤" });
+                return;
+              }
               if (juc2.status == "success") {
                 var books2 = Enumerable.from(juc2.record).select(function (a1) { return a1.book; });
                 // console.log(books2.ToArray()); // [0, 4, 8, 12, 13, 14, 15, 16, 17, 19, 21, 22, 23, 24, 25, 37, 45, 48, 54, 61, 67, 68, 69, 70, 71, 75, 76, 77, 78, 79, 81, 90, 96, 101, 113, 114, 124, 128, 131, 133, 134, 136, 145, 154, 160, 167, 168, 179, 180, 182, 183, 184, 187, 188, 189, 190, 193, 194, 195, 197, 198, 199, 200, 201, 209, 211, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 232, 233, 234, 235, 236, 237, 238, 240, 248, 249, 250, 257, 264, 265, 266, 269, 281…]
@@ -668,9 +687,17 @@ obphp.R = obphp.R || {
       //var sec = this.props.isec;
       url += "&book=" + idxbook + "&engs=" + engs + "&chap=" + chap + "&sec=" + sec;
 
+      var mySeq = ++this.state.obreqSeq;
       var pthis = this;
       fhl.json_api_text(url, function (jstr, pthis) {
-        var juc = JSON.parse(jstr);
+        if (pthis.state.obreqSeq !== mySeq) return; // 過期回應,忽略
+        var juc;
+        try {
+          juc = JSON.parse(jstr);
+        } catch (e) {
+          pthis.setState({ err_msg: "sob.php 回應格式錯誤" });
+          return;
+        }
         if (juc.status == "success") {
           //console.log(juc.record);
 
@@ -681,6 +708,7 @@ obphp.R = obphp.R || {
         }
 
       }, function (msg, pthis) {
+        if (pthis.state.obreqSeq !== mySeq) return;
         pthis.setState({ err_msg: "sob.php錯誤" });
       }, this, true);
     },
@@ -701,20 +729,29 @@ obphp.R = obphp.R || {
       var sec = this.props.isec;
       url += "&book=" + idxbook + "&engs=" + engs + "&chap=" + chap + "&sec=" + sec;
 
+      var mySeq = ++this.state.obreqSeq;
       var pthis = this;
       fhl.json_api_text(url, function (jstr, pthis) {
-        var juc = JSON.parse(jstr);
+        if (pthis.state.obreqSeq !== mySeq) return; // 過期回應,忽略
+        var juc;
+        try {
+          juc = JSON.parse(jstr);
+        } catch (e) {
+          pthis.setState({ err_msg: "sob.php 回應格式錯誤" });
+          return;
+        }
         if (juc.status == "success") {
           //console.log(juc.record);
 
           pthis.setState({
-            idxbook, idxbook1,
+            idxbook,
               sobdata: juc.record,
               err_msg: ""
             });
             }
 
             }, function (msg, pthis) {
+        if (pthis.state.obreqSeq !== mySeq) return;
         pthis.setState({ err_msg: "sob.php錯誤" });
             }, this, true);
             },
@@ -732,9 +769,17 @@ obphp.R = obphp.R || {
 
       //console.log(url);
 
+      var mySeq = ++this.state.obreqSeq;
       var pthis = this;
       fhl.json_api_text(url, function (jstr, pthis) {
-        var juc = JSON.parse(jstr);
+        if (pthis.state.obreqSeq !== mySeq) return; // 過期回應,忽略
+        var juc;
+        try {
+          juc = JSON.parse(jstr);
+        } catch (e) {
+          pthis.setState({ err_msg: "sob.php 回應格式錯誤" });
+          return;
+        }
         if (juc.status == "success") {
           //console.log(juc.record);
 
@@ -745,6 +790,7 @@ obphp.R = obphp.R || {
         }
 
       }, function (msg, pthis) {
+        if (pthis.state.obreqSeq !== mySeq) return;
         pthis.setState({ err_msg: "sob.php錯誤" });
       }, this, true);
               }
