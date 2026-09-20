@@ -407,7 +407,7 @@ function getAllDTextsFromAllChildrenNode(
                 const isT = rr1[2].length !== 0;
                 rrr1.tp = rr1[3] // as 'G' | 'H';
                 let sn = rr1[4];
-                sn = sn.replace(/^0+/, '').toLocaleLowerCase(); // 讓 08521a 變為 8521a ... tagName 會自動變全大寫，所以造成 8521A 就會抓錯資料
+                sn = (sn.replace(/^0+/, '') || "0").toLocaleLowerCase(); // 讓 08521a 變為 8521a ... tagName 會自動變全大寫，所以造成 8521A 就會抓錯資料 ; "00" 這類全 0 要變成 "0" 而非空字串
                 rrr1.sn = sn
                 if (rr1[5].length != 0) {
                     rrr1.isCurly = 1;

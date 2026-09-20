@@ -3,7 +3,8 @@ import { ai_get_bcvw } from "./ai_get_bcvw.js";
 function get_sn_shorter(sn) {
     // sn 有可能是 09003 就變 9003
     // sn 也有可能有 09003a 就變 9003a
-    return sn.replace(/^0+/, '')
+    // sn 也有可能全部是 0 ，例如 00，此時要變成 "0" 而非空字串
+    return sn.replace(/^0+/, '') || "0"
 }
 
 const LRM = "\u200E"; // Left-to-Right Mark 

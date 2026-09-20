@@ -185,7 +185,8 @@ export function parsing_render_bottom_table(jsonObj, tp) {
 function get_sn_shorter(sn) {
     // sn 有可能是 09003 就變 9003
     // sn 也有可能有 09003a 就變 9003a
-    return sn.replace(/^0+/, '')
+    // sn 也有可能全部是 0 ，例如 00，此時要變成 "0" 而非空字串
+    return sn.replace(/^0+/, '') || "0"
 }
 function charHebrew_Inline_Block(remark) {
     // <span class='hebrew-char'>אֶל</span> 用長基本型 <span class='hebrew-char'>אֱלֵי</span>
