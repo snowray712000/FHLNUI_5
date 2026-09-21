@@ -22,8 +22,31 @@
       cursor:pointer;
       border:0px double #ede0e0;
     }
-    .ob_divimg{
-      overflow-x:auto;
+    /* 局部縮放圖片檢視器:.ob_divimg 與 .ob_divimg__img 的樣式一律由 FhlInfoOb.es2023.js 寫成
+       inline(見該檔 #html_read 的說明),這裡只留 inline 做不到的虛擬類別,寫在這裡的一般宣告
+       會被 inline 蓋掉、永遠不會生效,不要往這兩個 selector 加。 */
+    .ob_divimg:focus-visible{
+      box-shadow: 0 0 0 2px #0969da;
+    }
+    .ob_divimg:active{
+      cursor:grabbing;
+    }
+    .ob_viewer_toolbar{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      margin:4px 0;
+    }
+    .ob_zoom_readout{
+      min-width:44px;
+      text-align:center;
+      font-variant-numeric: tabular-nums;
+      font: 12pt/30px bold ,Microsoft JhengHei;
+    }
+    .ob_res_badge{
+      font: 10pt/30px bold ,Microsoft JhengHei;
+      color:#57606a;
+      margin-left:4px;
     }
     .read_span{
        font: 12pt/30px bold ,Microsoft JhengHei;

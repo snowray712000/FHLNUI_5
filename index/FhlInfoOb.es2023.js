@@ -25,6 +25,12 @@ const OB_STYLE_SELS_GB = [
     { t: "少数民族及各地方言" }, { t: "外文" }, { t: "双语" },
 ]
 
+// 局部縮放圖片檢視器的縮放範圍,以及顯示寬度超過小圖原始寬度多少倍才自動換上原圖。
+// 取自 FHLNUI_6/src/ob/demo/ui-pv-image-zoom.ts 的雛型設計。
+const OB_VIEWER_MIN_SCALE = 1
+const OB_VIEWER_MAX_SCALE = 6
+const OB_VIEWER_SWAP_THRESHOLD_FACTOR = 1.15
+
 // re_record.vid==0 表示封面,chap/sec 屬性不值得參考,回傳空字串(比照原 obphp.js content.render 行為)
 export function formatObPageRange(rec, isgb) {
     if (rec == null || rec.vid == 0) return ""
@@ -65,6 +71,15 @@ export class FhlInfoOb {
     // 進站期間只要抓過一次就可以一直沿用,不必每次切回典藏分頁都重新打。
     #obListCache = new Map()
 
+    // 局部縮放圖片檢視器的執行期狀態(縮放倍率/位移/是否已換原圖等)。不屬於 state/props,
+    // 每次全量重繪都會重建 <img> 節點,靠比對 key(=rec.small)決定要沿用還是重置為「符合視窗」。
+    #viewer = null
+    // 目前檢視器可用的操作(縮小/放大/符合視窗/實際大小),供 registerEvents() 的工具列按鈕呼叫。
+    #viewerActions = null
+    // 綁在 window 上的 pointermove/up/cancel(見 #initViewer 的說明);每次重新初始化檢視器都要
+    // 先移除上一輪的,否則每次全量重繪(換頁)都會在 window 上疊加新的一份,永遠不會釋放。
+    #viewerWindowHandlers = null
+
     render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
@@ -83,6 +98,7 @@ export class FhlInfoOb {
             // 等同 React 重新 mount(容器內容已被別的分頁蓋掉,或第一次進來)
             this.state = this.#getInitialState()
             this.props = next
+            this.#teardownViewer()
             this.#set_obdata_from_ajax()
             this.#paintNow(true)
             return
@@ -115,6 +131,11 @@ export class FhlInfoOb {
             const act = $(ev.currentTarget).attr('data-act')
             if (act === 'menu') { this.#set_content_type("list"); return }
             if (act === 'firstpage') { this.#set_read_page(1); return }
+            if (act === 'origlink') return // 讓 <a target=_blank> 走預設行為(開新分頁看原圖)
+            if (act === 'zoomin') { this.#viewerActions?.zoomIn(); return }
+            if (act === 'zoomout') { this.#viewerActions?.zoomOut(); return }
+            if (act === 'fit') { this.#viewerActions?.fit(); return }
+            if (act === 'actualsize') { this.#viewerActions?.actualSize(); return }
             const r = this.state.sobdata?.[0]
             if (r == null) return
             this.#set_read_page(act === 'prev' ? r.prev : r.next)
@@ -164,6 +185,27 @@ export class FhlInfoOb {
         if (!force && !this.#hasRootMarker()) return
         this.dom.html(this.#html())
         this.registerEvents()
+
+        const rec = this.state.content_type === "read" ? this.state.sobdata?.[0] : null
+        if (rec != null) {
+            this.#initViewer(rec)
+        } else {
+            this.#teardownViewer()
+        }
+    }
+
+    // 離開閱讀畫面(回清單/重新 mount)時清掉檢視器狀態,包含綁在 window 上的 pointermove/up/cancel,
+    // 否則使用者切走後這些 handler 仍會留著白跑(activePointers 是空的,不會有副作用,但終究是洩漏)。
+    #teardownViewer() {
+        this.#viewer = null
+        this.#viewerActions = null
+        if (this.#viewerWindowHandlers != null) {
+            const { move, up, cancel } = this.#viewerWindowHandlers
+            window.removeEventListener('pointermove', move)
+            window.removeEventListener('pointerup', up)
+            window.removeEventListener('pointercancel', cancel)
+            this.#viewerWindowHandlers = null
+        }
     }
 
     #esc(s) {
@@ -237,13 +279,238 @@ export class FhlInfoOb {
         const top = `<span class="read_button" data-act="menu">${menuLabel}</span>` +
             `<span class="read_button" data-act="prev">${prevLabel}</span>` +
             `<span class="read_button" data-act="next">${nextLabel}</span>` +
+            `<a class="read_button" data-act="origlink" href="${this.#esc(rec.orig)}" target="_blank" rel="noopener">${isgb ? "开新分页看原图" : "開新分頁看原圖"}</a>` +
             `<span class="read_span">${this.#esc(rec.name)}</span>` +
             `<span class="read_span">${this.#esc(bookTitle)}</span>` +
             `<span class="read_span">page:${this.#esc(rec.page)}</span>` +
             `<span class="read_span">${this.#esc(rangeText)}</span>`
-        const img = `<div class="ob_divimg"><a href="${this.#esc(rec.orig)}" target="_blank"><img src="${this.#esc(rec.small)}"></a></div>`
 
-        return `<div data-ob-root="1"><div>${top}</div>${img}</div>`
+        // 局部縮放圖片檢視器的工具列與畫布;實際的 src/縮放/位移由 #initViewer() 用 JS 接手,
+        // 樣板這裡不放 src,避免和 #initViewer() 的還原/重置邏輯打架。
+        const toolbar = `<div class="ob_viewer_toolbar">` +
+            `<span class="read_button" data-act="zoomout">－</span>` +
+            `<span class="ob_zoom_readout">100%</span>` +
+            `<span class="read_button" data-act="zoomin">＋</span>` +
+            `<span class="read_button" data-act="fit">${isgb ? "符合视窗" : "符合視窗"}</span>` +
+            `<span class="read_button" data-act="actualsize">100%${isgb ? "实际大小" : "實際大小"}</span>` +
+            `<span class="ob_res_badge">低解析度</span>` +
+            `</div>`
+        // 檢視器的樣式全部寫成 inline,不放 ob_api.css:那是個沒有版號的 <link>,加上本站自己的
+        // 快取層,使用者端很容易還在吃舊版 CSS,而這裡有幾項是「沒有就整個壞掉」的:
+        // 容器要 position:relative + overflow:hidden;<img> 要 position:absolute +
+        // transform-origin:0 0(縮放才會錨在游標)+ pointer-events:none(否則按住左鍵會被瀏覽器
+        // 原生的拖曳圖片接管,平移失效)。棋盤格背景在圖片載入前/邊界外可見,標示出畫布範圍。
+        const viewerHeight = Math.max(240, this.props.cy - 90)
+        const boxStyle = `position:relative;overflow:hidden;height:${viewerHeight}px;touch-action:none;cursor:grab;outline:none` +
+            `;border:1px solid #d0d7de;border-radius:4px` +
+            `;background:repeating-conic-gradient(#f6f8fa 0% 25%, #ffffff 0% 50%) 50% / 20px 20px`
+        const imgStyle = `position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none;-webkit-user-drag:none;user-select:none`
+        const img = `<div class="ob_divimg" style="${boxStyle}" tabindex="0">` +
+            `<img class="ob_divimg__img" style="${imgStyle}" draggable="false" alt="${this.#esc(rec.name)}">` +
+            `</div>`
+
+        return `<div data-ob-root="1"><div>${top}</div>${toolbar}${img}</div>`
+    }
+
+    // 依目前 read 記錄初始化/還原局部縮放圖片檢視器(滾輪縮放/拖曳平移/雙指縮放/雙擊/方向鍵,
+    // 放大到一定倍率自動換上原圖)。若還是同一張圖(比對 rec.small)就沿用先前的縮放/位移,
+    // 否則視為換了新頁面,重置為「符合視窗」。移植自 FHLNUI_6/src/ob/demo/ui-pv-image-zoom.ts。
+    #initViewer(rec) {
+        const container = this.dom.find('.ob_divimg')
+        if (container.length === 0) return
+
+        if (this.#viewerWindowHandlers != null) {
+            const { move, up, cancel } = this.#viewerWindowHandlers
+            window.removeEventListener('pointermove', move)
+            window.removeEventListener('pointerup', up)
+            window.removeEventListener('pointercancel', cancel)
+            this.#viewerWindowHandlers = null
+        }
+
+        const containerEl = container[0]
+        const imgEl = container.find('.ob_divimg__img')[0]
+        const toolbar = this.dom.find('.ob_viewer_toolbar')
+        const readoutEl = toolbar.find('.ob_zoom_readout')[0]
+        const badgeEl = toolbar.find('.ob_res_badge')[0]
+
+        const key = rec.small
+        const sameImage = this.#viewer != null && this.#viewer.key === key
+        const v = sameImage ? this.#viewer : {
+            key, scale: 1, tx: 0, ty: 0, fitWidth: 0, fitHeight: 0,
+            naturalOrig: null, resolution: "small", loadToken: 0,
+        }
+        this.#viewer = v
+
+        const applyTransform = () => {
+            imgEl.style.transform = `translate(${v.tx}px, ${v.ty}px) scale(${v.scale})`
+            if (readoutEl != null) readoutEl.textContent = `${Math.round(v.scale * 100)}%`
+        }
+        const computeFitAndCenter = () => {
+            const cw = containerEl.clientWidth
+            const ch = containerEl.clientHeight
+            const natW = imgEl.naturalWidth
+            const natH = imgEl.naturalHeight
+            if (natW === 0 || natH === 0) return
+            const ratio = Math.min(cw / natW, ch / natH)
+            v.fitWidth = natW * ratio
+            v.fitHeight = natH * ratio
+            imgEl.style.width = `${v.fitWidth}px`
+            imgEl.style.height = `${v.fitHeight}px`
+            v.scale = 1
+            v.tx = (cw - v.fitWidth) / 2
+            v.ty = (ch - v.fitHeight) / 2
+            applyTransform()
+        }
+        const maybeSwapResolution = () => {
+            if (v.resolution === "orig" || v.naturalOrig == null) return
+            const displayedWidth = v.fitWidth * v.scale
+            if (displayedWidth <= imgEl.naturalWidth * OB_VIEWER_SWAP_THRESHOLD_FACTOR) return
+            v.resolution = "orig"
+            if (badgeEl != null) badgeEl.textContent = "高解析度"
+
+            // small/orig 長寬比不一定完全相同,換圖時以容器中心對應的圖片相對位置為錨點
+            // 重新計算 fitHeight,避免拉伸變形或畫面跳動。
+            const cw = containerEl.clientWidth
+            const ch = containerEl.clientHeight
+            const anchorX = cw / 2
+            const anchorY = ch / 2
+            const relX = (anchorX - v.tx) / (v.scale * v.fitWidth)
+            const relY = (anchorY - v.ty) / (v.scale * v.fitHeight)
+
+            v.fitHeight = v.fitWidth * (v.naturalOrig.h / v.naturalOrig.w)
+            imgEl.style.height = `${v.fitHeight}px`
+            imgEl.src = rec.orig
+
+            v.tx = anchorX - relX * v.scale * v.fitWidth
+            v.ty = anchorY - relY * v.scale * v.fitHeight
+            applyTransform()
+        }
+        const zoomAt = (px, py, factor) => {
+            const newScale = Math.min(OB_VIEWER_MAX_SCALE, Math.max(OB_VIEWER_MIN_SCALE, v.scale * factor))
+            if (newScale === v.scale) return
+            const imgX = (px - v.tx) / v.scale
+            const imgY = (py - v.ty) / v.scale
+            v.scale = newScale
+            v.tx = px - imgX * v.scale
+            v.ty = py - imgY * v.scale
+            applyTransform()
+            maybeSwapResolution()
+        }
+
+        if (sameImage) {
+            imgEl.style.width = `${v.fitWidth}px`
+            imgEl.style.height = `${v.fitHeight}px`
+            imgEl.src = v.resolution === "orig" ? rec.orig : rec.small
+            applyTransform()
+            if (badgeEl != null) badgeEl.textContent = v.resolution === "orig" ? "高解析度" : "低解析度"
+        } else {
+            const token = ++v.loadToken
+            imgEl.onload = () => {
+                if (v.loadToken !== token) return
+                computeFitAndCenter()
+            }
+            imgEl.src = rec.small
+            if (rec.orig && rec.orig !== rec.small) {
+                const probe = new Image()
+                probe.onload = () => {
+                    if (v.loadToken !== token) return
+                    v.naturalOrig = { w: probe.naturalWidth, h: probe.naturalHeight }
+                    maybeSwapResolution()
+                }
+                probe.src = rec.orig
+            }
+        }
+
+        // ---- 手勢事件;容器每次全量重繪都是新節點,不需要 off() ----
+        containerEl.addEventListener('wheel', ev => {
+            ev.preventDefault()
+            const rect = containerEl.getBoundingClientRect()
+            const factor = ev.deltaY < 0 ? 1.15 : 1 / 1.15
+            zoomAt(ev.clientX - rect.left, ev.clientY - rect.top, factor)
+        }, { passive: false })
+
+        const activePointers = new Map()
+        let dragLast = null
+        let pinchLastDist = null
+        const pointerDistance = () => {
+            const pts = [...activePointers.values()]
+            return pts.length < 2 ? null : Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
+        }
+        const pointerMidpoint = () => {
+            const pts = [...activePointers.values()]
+            return pts.length < 2 ? null : { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+        }
+        // pointermove/up 綁在 window 而非容器本身:滑鼠拖曳速度快時,游標中途離開容器範圍是常態,
+        // 若只綁容器,一旦游標移出容器邊界就再也收不到 pointermove,拖曳會卡住;setPointerCapture
+        // 只當作 best-effort(部分環境呼叫可能失敗),不依賴它才能保證拖曳能一路追蹤到 pointerup。
+        containerEl.addEventListener('pointerdown', ev => {
+            try { containerEl.setPointerCapture(ev.pointerId) } catch (e) { /* best-effort */ }
+            activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
+            if (activePointers.size === 1) dragLast = { x: ev.clientX, y: ev.clientY }
+            else if (activePointers.size === 2) { dragLast = null; pinchLastDist = pointerDistance() }
+        })
+        const onWindowPointerMove = ev => {
+            if (!activePointers.has(ev.pointerId)) return
+            activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
+
+            if (activePointers.size === 2) {
+                const dist = pointerDistance()
+                const mid = pointerMidpoint()
+                const rect = containerEl.getBoundingClientRect()
+                if (pinchLastDist != null && dist != null && mid != null)
+                    zoomAt(mid.x - rect.left, mid.y - rect.top, dist / pinchLastDist)
+                pinchLastDist = dist
+                return
+            }
+            if (activePointers.size === 1 && dragLast != null) {
+                v.tx += ev.clientX - dragLast.x
+                v.ty += ev.clientY - dragLast.y
+                dragLast = { x: ev.clientX, y: ev.clientY }
+                applyTransform()
+            }
+        }
+        const onWindowPointerEnd = ev => {
+            if (!activePointers.has(ev.pointerId)) return
+            activePointers.delete(ev.pointerId)
+            if (activePointers.size < 2) pinchLastDist = null
+            if (activePointers.size === 1) dragLast = [...activePointers.values()][0] ?? null
+            else if (activePointers.size === 0) dragLast = null
+        }
+        window.addEventListener('pointermove', onWindowPointerMove)
+        window.addEventListener('pointerup', onWindowPointerEnd)
+        window.addEventListener('pointercancel', onWindowPointerEnd)
+        this.#viewerWindowHandlers = { move: onWindowPointerMove, up: onWindowPointerEnd, cancel: onWindowPointerEnd }
+        containerEl.addEventListener('dblclick', ev => {
+            const rect = containerEl.getBoundingClientRect()
+            const px = ev.clientX - rect.left
+            const py = ev.clientY - rect.top
+            if (v.scale < 1.5) zoomAt(px, py, 2.5 / v.scale)
+            else computeFitAndCenter()
+        })
+        containerEl.addEventListener('keydown', ev => {
+            const cw = containerEl.clientWidth
+            const ch = containerEl.clientHeight
+            const step = 40
+            switch (ev.key) {
+                case '+': case '=': zoomAt(cw / 2, ch / 2, 1.2); ev.preventDefault(); break
+                case '-': zoomAt(cw / 2, ch / 2, 1 / 1.2); ev.preventDefault(); break
+                case 'ArrowLeft': v.tx += step; applyTransform(); ev.preventDefault(); break
+                case 'ArrowRight': v.tx -= step; applyTransform(); ev.preventDefault(); break
+                case 'ArrowUp': v.ty += step; applyTransform(); ev.preventDefault(); break
+                case 'ArrowDown': v.ty -= step; applyTransform(); ev.preventDefault(); break
+            }
+        })
+
+        this.#viewerActions = {
+            zoomIn: () => zoomAt(containerEl.clientWidth / 2, containerEl.clientHeight / 2, 1.3),
+            zoomOut: () => zoomAt(containerEl.clientWidth / 2, containerEl.clientHeight / 2, 1 / 1.3),
+            fit: () => computeFitAndCenter(),
+            actualSize: () => {
+                const targetNatural = v.naturalOrig ?? { w: imgEl.naturalWidth, h: imgEl.naturalHeight }
+                const targetScale = targetNatural.w / v.fitWidth
+                zoomAt(containerEl.clientWidth / 2, containerEl.clientHeight / 2, targetScale / v.scale)
+            },
+        }
     }
 
     // 目前的 activate address(this.props)在典藏沒有對應的掃描書影時的畫面。
