@@ -110,6 +110,7 @@ export class FhlInfoOb {
         d.off('click', '.read_button').on('click', '.read_button', ev => {
             const act = $(ev.currentTarget).attr('data-act')
             if (act === 'menu') { this.#set_content_type("list"); return }
+            if (act === 'firstpage') { this.#set_read_page(1); return }
             const r = this.state.sobdata?.[0]
             if (r == null) return
             this.#set_read_page(act === 'prev' ? r.prev : r.next)
@@ -126,6 +127,7 @@ export class FhlInfoOb {
             idxbook: 257, // 香港聖經公會 新舊約全書 1959
             page: -1,
             sobdata: [],
+            sobLoading: false, // sob.php 查詢進行中;避免查詢完成前誤判為「無對應內容」
         }
     }
 
@@ -219,7 +221,7 @@ export class FhlInfoOb {
         const isgb = this.props.isgb
         const records = this.state.sobdata
         if (records == null || records.length === 0)
-            return `<div data-ob-root="1"></div>`
+            return this.state.sobLoading ? `<div data-ob-root="1"></div>` : this.#html_read_empty()
 
         const rec = records[0]
         const menuLabel = isgb ? "回清单" : "回清單"
@@ -238,6 +240,22 @@ export class FhlInfoOb {
         const img = `<div class="ob_divimg"><a href="${this.#esc(rec.orig)}" target="_blank"><img src="${this.#esc(rec.small)}"></a></div>`
 
         return `<div data-ob-root="1"><div>${top}</div>${img}</div>`
+    }
+
+    // 目前的 activate address(this.props)在典藏沒有對應的掃描書影時的畫面。
+    // 例如 sob.php?gb=0&book=26&engs=James&chap=5&sec=1 這種地址就查不到資料。
+    #html_read_empty() {
+        const isgb = this.props.isgb
+        const menuLabel = isgb ? "回清单" : "回清單"
+        const firstPageLabel = isgb ? "跳至第一页" : "跳至第一頁"
+        const bookName = fhl.g_book_allAuto(isgb)[this.props.ibook][3]
+        const addr = `${bookName}${this.props.ichap}章${this.props.isec}${isgb ? "节" : "節"}`
+        const msg = (isgb ? "于 " : "於 ") + addr + (isgb ? " 无对应内容" : " 無對應內容")
+
+        const top = `<span class="read_button" data-act="menu">${menuLabel}</span>` +
+            `<span class="read_button" data-act="firstpage">${firstPageLabel}</span>` +
+            `<span class="read_span">${this.#esc(msg)}</span>`
+        return `<div data-ob-root="1"><div>${top}</div></div>`
     }
 
     #set_year_range(years) {
@@ -325,6 +343,7 @@ export class FhlInfoOb {
         const engs = fhl.g_book_all[book1][0]
         url += "&book=" + idxbook + "&engs=" + engs + "&chap=" + chap1 + "&sec=" + sec1
 
+        this.state.sobLoading = true
         const mySeq = ++this.#reqSeq
         fhl.json_api_text(url, (jstr) => {
             if (this.#reqSeq !== mySeq) return // 過期回應,忽略
@@ -332,14 +351,16 @@ export class FhlInfoOb {
             try {
                 juc = JSON.parse(jstr)
             } catch (e) {
-                this.#setState({ err_msg: "sob.php 回應格式錯誤" })
+                this.#setState({ err_msg: "sob.php 回應格式錯誤", sobLoading: false })
                 return
             }
             if (juc.status == "success")
-                this.#setState({ sobdata: juc.record, err_msg: "" })
+                this.#setState({ sobdata: juc.record, err_msg: "", sobLoading: false })
+            else
+                this.#setState({ sobLoading: false })
         }, (msg) => {
             if (this.#reqSeq !== mySeq) return
-            this.#setState({ err_msg: "sob.php錯誤" })
+            this.#setState({ err_msg: "sob.php錯誤", sobLoading: false })
         }, null, true)
     }
 
@@ -350,6 +371,7 @@ export class FhlInfoOb {
         const sec = this.props.isec
         url += "&book=" + idxbook1 + "&engs=" + engs + "&chap=" + chap + "&sec=" + sec
 
+        this.state.sobLoading = true
         const mySeq = ++this.#reqSeq
         fhl.json_api_text(url, (jstr) => {
             if (this.#reqSeq !== mySeq) return // 過期回應,忽略
@@ -357,14 +379,16 @@ export class FhlInfoOb {
             try {
                 juc = JSON.parse(jstr)
             } catch (e) {
-                this.#setState({ err_msg: "sob.php 回應格式錯誤" })
+                this.#setState({ err_msg: "sob.php 回應格式錯誤", sobLoading: false })
                 return
             }
             if (juc.status == "success")
-                this.#setState({ idxbook: idxbook1, sobdata: juc.record, err_msg: "" })
+                this.#setState({ idxbook: idxbook1, sobdata: juc.record, err_msg: "", sobLoading: false })
+            else
+                this.#setState({ sobLoading: false })
         }, (msg) => {
             if (this.#reqSeq !== mySeq) return
-            this.#setState({ err_msg: "sob.php錯誤" })
+            this.#setState({ err_msg: "sob.php錯誤", sobLoading: false })
         }, null, true)
     }
 
@@ -373,6 +397,7 @@ export class FhlInfoOb {
         const idxbook = this.state.idxbook
         url += "&book=" + idxbook + "&page=" + page1
 
+        this.state.sobLoading = true
         const mySeq = ++this.#reqSeq
         fhl.json_api_text(url, (jstr) => {
             if (this.#reqSeq !== mySeq) return // 過期回應,忽略
@@ -380,14 +405,16 @@ export class FhlInfoOb {
             try {
                 juc = JSON.parse(jstr)
             } catch (e) {
-                this.#setState({ err_msg: "sob.php 回應格式錯誤" })
+                this.#setState({ err_msg: "sob.php 回應格式錯誤", sobLoading: false })
                 return
             }
             if (juc.status == "success")
-                this.#setState({ sobdata: juc.record, err_msg: "" })
+                this.#setState({ sobdata: juc.record, err_msg: "", sobLoading: false })
+            else
+                this.#setState({ sobLoading: false })
         }, (msg) => {
             if (this.#reqSeq !== mySeq) return
-            this.#setState({ err_msg: "sob.php錯誤" })
+            this.#setState({ err_msg: "sob.php錯誤", sobLoading: false })
         }, null, true)
     }
 }
