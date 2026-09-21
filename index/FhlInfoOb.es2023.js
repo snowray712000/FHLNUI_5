@@ -94,17 +94,20 @@ export class FhlInfoOb {
             cy: dom.height()
         }
 
-        if (!this.#isMounted()) {
-            // 等同 React 重新 mount(容器內容已被別的分頁蓋掉,或第一次進來)
+        if (this.state == null) {
+            // 真正的第一次進來(singleton 剛建立,從沒 render 過)才重置為初始狀態。
             this.state = this.#getInitialState()
             this.props = next
-            this.#teardownViewer()
             this.#set_obdata_from_ajax()
             this.#paintNow(true)
             return
         }
 
-        // 等同 componentWillReceiveProps;此時 this.props 仍是舊值,故意在查詢「之後」才換新值
+        // 等同 componentWillReceiveProps;此時 this.props 仍是舊值,故意在查詢「之後」才換新值。
+        // 注意:容器目前有沒有 data-ob-root 標記(切到別的分頁再切回來,容器內容會被蓋掉過)
+        // 不代表使用者換了經節,不能拿來當作「要重置」的依據 —— 只要地址沒變,切回來就要原樣
+        // 還原,包含 content_type、sobdata,以及 #viewer 記著的局部縮放檢視器縮放/位移
+        // (#viewer 是獨立於 state 的欄位,本來就不會被這裡動到)。
         const changed = next.ibook !== this.props.ibook || next.ichap !== this.props.ichap
             || next.isec !== this.props.isec || next.isgb !== this.props.isgb
         if (changed) {
@@ -154,10 +157,6 @@ export class FhlInfoOb {
             sobdata: [],
             sobLoading: false, // sob.php 查詢進行中;避免查詢完成前誤判為「無對應內容」
         }
-    }
-
-    #isMounted() {
-        return this.state != null && this.#hasRootMarker()
     }
 
     #hasRootMarker() {
