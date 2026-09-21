@@ -61,6 +61,10 @@ export class FhlInfoOb {
     #reqSeq = 0
     #paintQueued = false
 
+    // ob.php 回傳的是與目前經節無關的全域書目清單,只跟語系(isgb)有關,
+    // 進站期間只要抓過一次就可以一直沿用,不必每次切回典藏分頁都重新打。
+    #obListCache = new Map()
+
     render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
@@ -284,8 +288,14 @@ export class FhlInfoOb {
     }
 
     #set_obdata_from_ajax() {
-        const url = "ob.php" + (this.props.isgb ? "?gb=1" : "?gb=0")
+        const isgb = this.props.isgb
+        const cached = this.#obListCache.get(isgb)
+        if (cached != null) {
+            this.#query_book_all_and_set_obdata(cached)
+            return
+        }
 
+        const url = "ob.php" + (isgb ? "?gb=1" : "?gb=0")
         fhl.json_api_text(url, (jstr) => {
             let juc
             try {
@@ -299,42 +309,48 @@ export class FhlInfoOb {
                 return
             }
 
-            // 加入目前經節才有的書卷
-            let url2 = "sob.php" + (this.props.isgb ? "?gb=1" : "?gb=0")
-            url2 += "&book=all"
-            url2 += "&engs=" + fhl.g_book_all[this.props.ibook][0]
-            url2 += "&chap=" + this.props.ichap
-            fhl.json_api_text(url2, (jstr2) => {
-                let juc2
-                try {
-                    juc2 = JSON.parse(jstr2)
-                } catch (e) {
-                    this.#setState({ err_msg: "sob.php book=all 錯誤" })
-                    return
-                }
-                if (juc2.status != "success") {
-                    this.#setState({ err_msg: "sob.php book=all 錯誤" })
-                    return
-                }
-
-                const books2 = juc2.record.map(a1 => a1.book)
-                const years = this.state.year_set.split('-', 2)
-                const y1 = years[0]
-                const y2 = years[1]
-                const styles = this.state.style_set
-
-                // age 是 API 回傳的字串,y1/y2 也是字串;維持字串比較,不要轉數字(見規劃文件說明)
-                const re = juc.record
-                    .filter(a1 => a1.age >= y1 && a1.age <= y2 && (styles.length == 0 || styles == a1.style))
-                    .filter(a1 => books2.includes(a1.id))
-
-                this.#setState({ obdata: re, err_msg: "" })
-            }, (msg) => {
-                this.#setState({ err_msg: msg })
-            }, null, true)
+            this.#obListCache.set(isgb, juc.record)
+            this.#query_book_all_and_set_obdata(juc.record)
         }, (msg) => {
             this.#setState({ err_msg: msg })
         }, null)
+    }
+
+    // obRecords 是 ob.php 的全域書目清單(可能來自快取);再依目前經節查有哪些書卷有資料,
+    // 交集後套用年代/文體篩選,寫入 state.obdata。
+    #query_book_all_and_set_obdata(obRecords) {
+        let url2 = "sob.php" + (this.props.isgb ? "?gb=1" : "?gb=0")
+        url2 += "&book=all"
+        url2 += "&engs=" + fhl.g_book_all[this.props.ibook][0]
+        url2 += "&chap=" + this.props.ichap
+        fhl.json_api_text(url2, (jstr2) => {
+            let juc2
+            try {
+                juc2 = JSON.parse(jstr2)
+            } catch (e) {
+                this.#setState({ err_msg: "sob.php book=all 錯誤" })
+                return
+            }
+            if (juc2.status != "success") {
+                this.#setState({ err_msg: "sob.php book=all 錯誤" })
+                return
+            }
+
+            const books2 = juc2.record.map(a1 => a1.book)
+            const years = this.state.year_set.split('-', 2)
+            const y1 = years[0]
+            const y2 = years[1]
+            const styles = this.state.style_set
+
+            // age 是 API 回傳的字串,y1/y2 也是字串;維持字串比較,不要轉數字(見規劃文件說明)
+            const re = obRecords
+                .filter(a1 => a1.age >= y1 && a1.age <= y2 && (styles.length == 0 || styles == a1.style))
+                .filter(a1 => books2.includes(a1.id))
+
+            this.#setState({ obdata: re, err_msg: "" })
+        }, (msg) => {
+            this.#setState({ err_msg: msg })
+        }, null, true)
     }
 
     #query_sob_from_ajax_book_chap_sec(book1, chap1, sec1) {
