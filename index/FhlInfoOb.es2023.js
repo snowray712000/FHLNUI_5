@@ -312,8 +312,9 @@ export class FhlInfoOb {
     }
 
     // 依目前 read 記錄初始化/還原局部縮放圖片檢視器(滾輪縮放/拖曳平移/雙指縮放/雙擊/方向鍵,
-    // 放大到一定倍率自動換上原圖)。若還是同一張圖(比對 rec.small)就沿用先前的縮放/位移,
-    // 否則視為換了新頁面,重置為「符合視窗」。移植自 FHLNUI_6/src/ob/demo/ui-pv-image-zoom.ts。
+    // 放大到一定倍率自動換上原圖)。若還是同一張圖(比對 rec.small)就沿用先前的縮放/位移;
+    // 若換了新頁面但還是同一本書(rec.vid 不變),沿用翻頁前的 scale/tx/ty;
+    // 換書或第一次進入閱讀畫面才重置為「符合視窗」。移植自 FHLNUI_6/src/ob/demo/ui-pv-image-zoom.ts。
     #initViewer(rec) {
         const container = this.dom.find('.ob_divimg')
         if (container.length === 0) return
@@ -334,8 +335,17 @@ export class FhlInfoOb {
 
         const key = rec.small
         const sameImage = this.#viewer != null && this.#viewer.key === key
+        // 翻頁(同一本書,vid 不變)時使用者可能刻意放大到某個局部,翻下一頁/上一頁若直接重置
+        // 為「符合視窗」,反而要重新縮放/平移一次,很煩;所以同一本書翻頁沿用前一頁的
+        // scale/tx/ty,換書(vid 改變)或第一次進入閱讀畫面(#viewer 為 null)才重置。
+        const prev = this.#viewer
+        const carryTransform = !sameImage && prev != null && prev.vid === rec.vid
         const v = sameImage ? this.#viewer : {
-            key, scale: 1, tx: 0, ty: 0, fitWidth: 0, fitHeight: 0,
+            key, vid: rec.vid,
+            scale: carryTransform ? prev.scale : 1,
+            tx: carryTransform ? prev.tx : 0,
+            ty: carryTransform ? prev.ty : 0,
+            fitWidth: 0, fitHeight: 0,
             naturalOrig: null, resolution: "small", loadToken: 0,
         }
         this.#viewer = v
@@ -344,7 +354,9 @@ export class FhlInfoOb {
             imgEl.style.transform = `translate(${v.tx}px, ${v.ty}px) scale(${v.scale})`
             if (readoutEl != null) readoutEl.textContent = `${Math.round(v.scale * 100)}%`
         }
-        const computeFitAndCenter = () => {
+        // 只算新圖片的 fitWidth/fitHeight(符合視窗時的基準尺寸),不動 scale/tx/ty ——
+        // 供翻頁沿用前一頁縮放/位移時使用。
+        const computeFit = () => {
             const cw = containerEl.clientWidth
             const ch = containerEl.clientHeight
             const natW = imgEl.naturalWidth
@@ -355,9 +367,13 @@ export class FhlInfoOb {
             v.fitHeight = natH * ratio
             imgEl.style.width = `${v.fitWidth}px`
             imgEl.style.height = `${v.fitHeight}px`
+        }
+        const computeFitAndCenter = () => {
+            computeFit()
+            if (v.fitWidth === 0 && v.fitHeight === 0) return
             v.scale = 1
-            v.tx = (cw - v.fitWidth) / 2
-            v.ty = (ch - v.fitHeight) / 2
+            v.tx = (containerEl.clientWidth - v.fitWidth) / 2
+            v.ty = (containerEl.clientHeight - v.fitHeight) / 2
             applyTransform()
         }
         const maybeSwapResolution = () => {
@@ -378,6 +394,10 @@ export class FhlInfoOb {
 
             v.fitHeight = v.fitWidth * (v.naturalOrig.h / v.naturalOrig.w)
             imgEl.style.height = `${v.fitHeight}px`
+            // 換原圖前要清掉小圖那次留下的 onload(指向 computeFitAndCenter):否則原圖載完
+            // 觸發 load 事件時,舊 handler 又會跑一次,把上面剛算好的錨點/縮放蓋掉,變成
+            // 「高解析度下載完就整個 reset」,而不是模糊變清晰、位置與倍率不變。
+            imgEl.onload = null
             imgEl.src = rec.orig
 
             v.tx = anchorX - relX * v.scale * v.fitWidth
@@ -406,7 +426,15 @@ export class FhlInfoOb {
             const token = ++v.loadToken
             imgEl.onload = () => {
                 if (v.loadToken !== token) return
-                computeFitAndCenter()
+                if (carryTransform) {
+                    // 沿用翻頁前的 scale/tx/ty,只重算 fitWidth/fitHeight 當基準,
+                    // 不要重置成置中的「符合視窗」。
+                    computeFit()
+                    applyTransform()
+                    maybeSwapResolution()
+                } else {
+                    computeFitAndCenter()
+                }
             }
             imgEl.src = rec.small
             if (rec.orig && rec.orig !== rec.small) {
