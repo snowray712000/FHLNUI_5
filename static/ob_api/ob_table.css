@@ -28,6 +28,10 @@
         margin: 0px;
         padding: 0px;
     }
+
+    table.obtable {
+        table-layout: fixed;
+    }
     
     .obtable tr:last-child td:last-child {
         -moz-border-radius-bottomright: 0px;
@@ -72,6 +76,7 @@
         font-size: var(--fontsize);
         font-family: Arial;
         font-weight: normal;
+        word-break: break-word;
         /*color:#000000;*/
     }
     
