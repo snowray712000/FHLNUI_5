@@ -23,6 +23,7 @@ import { ParsingCache } from './ParsingCache_es2023.js'
 import { parsing_render_async } from './parsing_render_async_es2023.js'
 import { assert } from './assert_es2023.js'
 import { renderTsk } from './tsks/renderTsk.js'
+import { FhlInfoOb } from './FhlInfoOb.es2023.js'
 
 export class FhlInfoContent {
     static #s = null
@@ -214,18 +215,7 @@ export class FhlInfoContent {
                 break;
             case "fhlInfoOb":
                 // 典藏 snow
-                var dom2 = document.getElementById("fhlInfoContent");
-                if (dom2 != null) {
-                    var rProp = {
-                        ibook: ps.bookIndex - 1,
-                        ichap: ps.chap,
-                        isec: ps.sec,
-                        isgb: ps.gb ? true : false,
-                        cy: $(dom2).height()
-                    };
-                    var r = React.createElement(obphp.R.frame, rProp); // r:react Ob:(Old Bible) Frame
-                    var renderobj = React.render(r, dom2);
-                }
+                FhlInfoOb.s.render(ps, dom);
                 break;
             case "fhlInfoAudio":
 
