@@ -27,6 +27,7 @@ import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDia
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 
 import { FhlLecture } from './FhlLecture.es2023.js'
+import { APP_SKELETON_HTML } from './appSkeleton.es2023.js'
 import './load_json_gz_Async.es2023.js' // 設定 window.Sd_same_json；SN 資料改為用到時才載入（ensureSnDataAsync）
 
 import { do_preach } from './do_preach.es2023.js' // 講道
@@ -158,14 +159,6 @@ import { Hash_Changed } from './Hash_Changed.js'
                     // 'LeftWindowTool',
                     { dir: 'DialogTemplate', children: ['DialogTemplate', 'OrigDict', 'ParsingReference', 'ParsingOrigDict', 'SnDictDialog.html'] },
                     'checkHtmlVersion',
-                    {
-                        dir: '../static/js',
-                        children: [
-                            'manifest.3ad1d5771e9b13dbdad2.js',
-                            'vendor.3504402f0d075d75a38c.js',
-                            'app.e1b2e980bfe0ec8352ae.js',
-                        ]
-                    },
                     'indexLast',
 
                     // 'getAjaxUrl',
@@ -242,15 +235,9 @@ import { Hash_Changed } from './Hash_Changed.js'
                     doReadyStep1()
                     doReadyStep2()
 
-                    // Ijnjs.loadJsOrCssSync('./static/js/manifest.3ad1d5771e9b13dbdad2.js')
-                    // Ijnjs.loadJsOrCssSync('./static/js/vendor.3504402f0d075d75a38c.js')
-                    // Ijnjs.loadJsOrCssSync('./static/js/app.e1b2e980bfe0ec8352ae.js')
-                    Enumerable.from([
-                        'manifest.3ad1d5771e9b13dbdad2.js',
-                        'vendor.3504402f0d075d75a38c.js',
-                        'app.e1b2e980bfe0ec8352ae.js'
-                    ]).select(a1 => '../static/js/' + a1)
-                        .forEach(a1 => evalLegacy(caches.getStr(a1)))
+                    // 頁面骨架。原本在這裡 eval static/js 的 webpack Vue app（manifest/vendor/app）產生，
+                    // 它只有靜態模板，改為直接插入同樣的 HTML（見 appSkeleton.es2023.js）。
+                    document.getElementById('app').innerHTML = APP_SKELETON_HTML
 
                     evalLegacy(caches.getStr('indexLast'), { BibleConstantHelper })
 
