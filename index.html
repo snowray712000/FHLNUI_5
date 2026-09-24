@@ -18,7 +18,21 @@
   <!-- <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script> -->
   <script src="static/libs/jquery.ui.touch-punch.min.js"></script>
   <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+  <!-- lodash：全專案只用到 _.debounce(fn, 200)（4 處，含 ijnjs-ui 的 BookChapDialog），原本載入整個 lodash 4.15（約 70KB）。
+       保持 inline：要在 ijnjs.js 執行前就有 window._，否則 ijnjs 會自己再下載一份 lodash -->
+  <script>
+    window._ = window._ || {
+      // 與 lodash 預設相同：最後一次呼叫後 wait 毫秒才執行（trailing），保留 this 與參數
+      debounce: function (fn, wait) {
+        var timer
+        return function () {
+          var self = this, args = arguments
+          clearTimeout(timer)
+          timer = setTimeout(function () { fn.apply(self, args) }, wait || 0)
+        }
+      }
+    }
+  </script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
   <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css">
 
