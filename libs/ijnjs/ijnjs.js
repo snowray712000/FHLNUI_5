@@ -312,6 +312,7 @@
        * @param {string} src 
        * */
       function getName(src) {
+        src = src.split(/[?#]/)[0] // build 後網址會帶 ?v=版本號
         var n = src.length
         for (let i = n - 1; i >= 0; i--) {
           if (src[i] == '/') {

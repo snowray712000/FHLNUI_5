@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
+import crypto from 'node:crypto'
 
 // dev：取代 Live Server。大部分檔案仍是傳統全域 script 或以 $.ajax 在執行時載入，因此不讓 Vite 預掃描依賴。
 // build：只打包 index/index.js 的 ES module 樹與 index.html 的 <link> CSS；
@@ -26,7 +27,7 @@ export default defineConfig({
     emptyOutDir: false,
     sourcemap: true,
   },
-  plugins: [serveLegacyRaw(), copyLegacyFiles()],
+  plugins: [serveLegacyRaw(), copyLegacyFiles(), versionLegacyUrls()],
 })
 
 /** 執行時才以 <script src>、$.ajax、fetch 載入的檔案，照原路徑複製到 dist/。 */
@@ -61,6 +62,92 @@ function copyLegacyFiles() {
           filter: (src) => !/[\\/](\.DS_Store|node_modules)$/.test(src) && !src.endsWith('.map'),
         })
       }
+    },
+  }
+}
+
+/** 會隨版本更新、需要破快取的舊式檔案類型（圖片等不在此列） */
+const VERSIONED_EXT = /\.(js|css|html|json|gz|txt|md)$/i
+
+/**
+ * 讓舊式檔案（沒有經過 Vite 打包、檔名沒有 hash）也能在改版時破快取。
+ * 正式站 nginx 沒送 Cache-Control，瀏覽器會自行估算快取時間，使用者常拿到舊版 JS/CSS。
+ *
+ * - index.html 裡的 <script src>、<link href>：加上該檔內容 hash，?v=xxxxxxxx。檔案沒改網址就不變，快取照用。
+ * - 執行時以 XHR / fetch 載入的（ijnjs、$.ajax、.load()、.json.gz…）：在 <head> 最前面注入一段程式，
+ *   攔截 XMLHttpRequest.open 與 fetch，對同網域、VERSIONED_EXT 的網址加上 ?v=BUILD_ID。
+ *   不用 $.ajaxPrefilter：ijnjs 會 eval 自己的一份 jQuery 蓋掉 window.$，掛在原本 jQuery 上的 prefilter 會失效。
+ *   BUILD_ID 是所有這類檔案內容的總 hash，只有它們有變動時才會變。
+ * assets/ 下是 Vite 產出、檔名已含 hash 的檔案，不處理。
+ */
+function versionLegacyUrls() {
+  let root
+  const fileHashCache = new Map()
+  const hashOf = (buf) => crypto.createHash('md5').update(buf).digest('hex').slice(0, 8)
+  const fileHash = (abs) => {
+    if (!fileHashCache.has(abs)) fileHashCache.set(abs, hashOf(fs.readFileSync(abs)))
+    return fileHashCache.get(abs)
+  }
+  const listFiles = (abs) => {
+    if (!fs.existsSync(abs)) return []
+    if (fs.statSync(abs).isFile()) return [abs]
+    return fs.readdirSync(abs, { recursive: true, withFileTypes: true })
+      .filter((d) => d.isFile())
+      .map((d) => path.join(d.parentPath ?? d.path, d.name))
+  }
+
+  return {
+    name: 'version-legacy-urls',
+    apply: 'build',
+    configResolved(config) {
+      root = config.root
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const files = LEGACY_COPY.flatMap((p) => listFiles(path.resolve(root, p)))
+          .filter((f) => VERSIONED_EXT.test(f))
+          .sort()
+        const total = crypto.createHash('md5')
+        for (const f of files) total.update(path.relative(root, f)).update(fileHash(f))
+        const buildId = total.digest('hex').slice(0, 8)
+
+        // <script src=...> 與 <link href=...>，屬性值可能有引號或沒有
+        html = html.replace(/(<(?:script|link)\b[^>]*?\s(?:src|href)=)(["']?)([^"'\s>]+)\2/gi, (m, pre, q, url) => {
+          if (/^(?:[a-z]+:)?\/\//i.test(url) || url.startsWith('data:') || /(^|\/)assets\//.test(url) || url.includes('?')) return m
+          const abs = path.resolve(root, url.replace(/^\.\//, ''))
+          if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return m
+          return `${pre}${q || '"'}${url}?v=${fileHash(abs)}${q || '"'}`
+        })
+
+        const runtime = `<script>
+    // 由 vite.config.js versionLegacyUrls 注入：同網域的舊式檔案加上版本號以破快取
+    (function () {
+      var V = ${JSON.stringify(buildId)};
+      window.__BUILD_ID__ = V;
+      function ver(url) {
+        try {
+          var u = new URL(url, location.href);
+          if (u.origin !== location.origin || !${VERSIONED_EXT}.test(u.pathname) || /\\/assets\\//.test(u.pathname) || u.searchParams.has('v')) return url;
+          u.searchParams.set('v', V);
+          return u.href;
+        } catch (e) { return url; }
+      }
+      var open = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        var args = Array.prototype.slice.call(arguments);
+        if (typeof url === 'string' && String(method).toUpperCase() === 'GET') args[1] = ver(url);
+        return open.apply(this, args);
+      };
+      var fetch0 = window.fetch;
+      window.fetch = function (input, init) {
+        if (typeof input === 'string' && (!init || !init.method || String(init.method).toUpperCase() === 'GET')) input = ver(input);
+        return fetch0.call(this, input, init);
+      };
+    })();
+  </script>`
+        return html.replace(/<head>/i, `<head>\n  ${runtime}`)
+      },
     },
   }
 }
