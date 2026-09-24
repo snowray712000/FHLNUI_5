@@ -19,6 +19,8 @@ export class BaseJson {
   }
 
   #filecontent = null; // 檔案內容
+  /** @type {Promise<void>|null} 載入中的 promise，讓同時多處呼叫 loadAsync 只下載一次 */
+  #loading = null;
 
   constructor() {
     if (this.constructor === BaseJson) {
@@ -35,15 +37,17 @@ export class BaseJson {
     throw new Error("子類別必須實作 path_json");
   }
 
-  async loadAsync() {
-    if (this.#filecontent === null) {
-      try {
-        this.#filecontent = await loadAndDecompressJsonGzAsync(this.path_json);
-      } catch (error) {
-        console.error(`載入檔案失敗: ${this.path_json}`, error);
-        throw error;
-      }
-    }
+  /**
+   * 可重複呼叫：已載入就直接結束，載入中就等同一個 promise。
+   * 失敗時（loadAndDecompressJsonGzAsync 回傳 undefined）清掉 promise，下次呼叫會重試。
+   */
+  loadAsync() {
+    if (this.#filecontent !== null) return Promise.resolve();
+    this.#loading ??= loadAndDecompressJsonGzAsync(this.path_json).then((content) => {
+      this.#filecontent = content ?? null;
+      if (this.#filecontent === null) this.#loading = null;
+    });
+    return this.#loading;
   }
 
   /**

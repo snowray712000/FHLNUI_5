@@ -129,7 +129,7 @@ function add_book_property_to_bibletext_record(result, is_remove_engs_and_chines
 }
 
 async function get_fhlwh(book, chap) {
-    await testThenDoAsync(() => Bible_fhlwh_json.s.filecontent != null);
+    await Bible_fhlwh_json.s.loadAsync(); // 590KB，只有顯示此譯本時才載入
 
     // where [0]=bk and [1]=ch
     const jaBible = Bible_fhlwh_json.s.filecontent["data"].filter(ja => ja[0] == book && ja[1] == chap)

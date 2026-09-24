@@ -14,16 +14,45 @@ import { FhlLecture } from './FhlLecture.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
 import { ViewHistory } from './ViewHistory.es2023.js'
 import { eachFitDo } from './eachFitDo.es2023.js'
-import { comment_render_async } from './comment_render_es2023.js'
 import { comment_register_events } from './comment_register_events_es2023.js'
 import { Parsing_normalize_address } from './Parsing_normalize_Address_es2023.js'
 import { BookSelect } from './BookSelect.es2023.js'
-import { ai_render_tools } from './ai_render_tools_es2023.js'
 import { ParsingCache } from './ParsingCache_es2023.js'
 import { parsing_render_async } from './parsing_render_async_es2023.js'
 import { assert } from './assert_es2023.js'
-import { renderTsk } from './tsks/renderTsk.js'
-import { FhlInfoOb } from './FhlInfoOb.es2023.js'
+
+/**
+ * 延後載入：切到該分頁才下載，build 後各自成為獨立 chunk（首次載入少約 250KB 原始碼）。
+ * 載入過一次後就同步呼叫，行為與原本 static import 相同；只有第一次是非同步。
+ * @template T
+ * @param {() => Promise<T>} importer
+ */
+function lazyModule(importer) {
+    /** @type {T|undefined} */
+    let mod
+    /** @type {Promise<T>|undefined} */
+    let loading
+    return {
+        /**
+         * @param {TPFhlTitleId} titleId 下載完成時若使用者已切到別的分頁，就不 render
+         * @param {(m: T) => void} fn
+         */
+        run(titleId, fn) {
+            if (mod) return fn(mod)
+            loading ??= importer().then(m => (mod = m))
+            loading.then(m => {
+                if (TPPageState.s.titleId === titleId) fn(m)
+            }, err => {
+                loading = undefined // 下次切換再試
+                console.error(`載入 ${titleId} 失敗`, err)
+            })
+        },
+    }
+}
+const lazyComment = lazyModule(() => import('./comment_render_es2023.js')) // 註釋
+const lazyTsk = lazyModule(() => import('./tsks/renderTsk.js')) // 串珠
+const lazyOb = lazyModule(() => import('./FhlInfoOb.es2023.js')) // 典藏
+const lazyAi = lazyModule(() => import('./ai_render_tools_es2023.js')) // AI
 
 export class FhlInfoContent {
     static #s = null
@@ -204,18 +233,18 @@ export class FhlInfoContent {
                 parsing_render_async()
                 break;
             case "fhlInfoComment":
-                comment_render_async()
+                lazyComment.run(ps.titleId, m => m.comment_render_async())
                 break
             case "fhlInfoPreach":
                 do_preach(ps, dom);
                 break;
             case "fhlInfoTsk":
                 // 串珠 snow
-                renderTsk(ps);
+                lazyTsk.run(ps.titleId, m => m.renderTsk(ps));
                 break;
             case "fhlInfoOb":
                 // 典藏 snow
-                FhlInfoOb.s.render(ps, dom);
+                lazyOb.run(ps.titleId, m => m.FhlInfoOb.s.render(ps, dom));
                 break;
             case "fhlInfoAudio":
 
@@ -250,7 +279,7 @@ export class FhlInfoContent {
                 SnBranchRender.s.render(ps)
                 break
             case "fhlAi":
-                ai_render_tools()
+                lazyAi.run(ps.titleId, m => m.ai_render_tools())
                 break
         }
         fhlmap_titleId_prev = ps.titleId; //地圖 map 會用到, 因為切換走分頁, 再切換回來要 re-create render object. see also: fhlmap_render

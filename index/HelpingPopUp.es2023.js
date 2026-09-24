@@ -31,7 +31,8 @@ export class FhlHelpingPopUp {
         // 即時顯示功能
         const div_img = $('<div>').append(
             $("<a>").attr('href', './images/help_realtime_disappear.png').attr('target', '_blank').append(
-            $('<img>').attr('src', './images/help_realtime_disappear.png').css('height', '480px')
+            // 430KB，彈出視窗平時隱藏；lazy 讓它顯示時才下載
+            $('<img>').attr('loading', 'lazy').attr('src', './images/help_realtime_disappear.png').css('height', '480px')
         ));
         html += div_img.html();
         

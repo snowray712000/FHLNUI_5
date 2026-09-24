@@ -1,3 +1,5 @@
+import { ensureSnDataAsync } from './load_json_gz_Async.es2023.js'
+
 /**
  * mouserenter mouseleave 事件使用，改變 sn 顏色
  */
@@ -40,7 +42,9 @@ export class SN_Act_Color {
         
         // 同源字，標記為暗紅色
         const Sd_same_json = window.Sd_same_json
-        if ( Sd_same_json.s.filecontent != null) {
+        if (Sd_same_json.s.filecontent == null) {
+            ensureSnDataAsync() // 第一次滑到 sn 才開始載入，載完後的下一次 hover 就有同源字顏色
+        } else {
             // 下次觸發就有可能是存在了，一次沒觸發還好
 
             // n=0 新約，取 greek。n=1 舊約，取 hebrew

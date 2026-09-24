@@ -8,6 +8,7 @@ import { BibleConstant } from './BibleConstant.es2023.js'
 import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js"
 import { Sn_cnt_book_unv_json } from "./Sn_cnt_book_unv_json.es2023.js"
 import { Sd_cnt_json } from "./Sd_cnt_json.es2023.js"
+import { ensureSnDataAsync } from './load_json_gz_Async.es2023.js'
 import { Bible_fhlwh_json } from './Bible_fhlwh_json.es2023.js'
 
 import { getBookFunc } from './getBookFunc.es2023.js'
@@ -1106,7 +1107,8 @@ function mouseenter_sn_dialog(e) {
     }
 
     function get_parsing_and_dict_async(one) {
-        return Promise.all([get_parsing_async(one), get_dict_async(one)])
+        // 第三項：show_dialog 要顯示「聖經/本書/各章 出現次數」，第一次 hover 時才載入這些資料
+        return Promise.all([get_parsing_async(one), get_dict_async(one), ensureSnDataAsync()])
     }
     /**
      *

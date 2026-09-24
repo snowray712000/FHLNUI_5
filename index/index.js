@@ -27,7 +27,7 @@ import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDia
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 
 import { FhlLecture } from './FhlLecture.es2023.js'
-import { load_json_gz_Async } from './load_json_gz_Async.es2023.js'
+import './load_json_gz_Async.es2023.js' // 設定 window.Sd_same_json；SN 資料改為用到時才載入（ensureSnDataAsync）
 
 import { do_preach } from './do_preach.es2023.js' // 講道
 import { renderTsk } from './renderTsk.es2023.js' // 串珠
@@ -146,7 +146,6 @@ import { Hash_Changed } from './Hash_Changed.js'
     // window.cvtAddrsToRefEs6Js = cvtAddrsToRefEs6Js 
     // window.queryReferenceAndShowAtDialogAsyncEs6Js = queryReferenceAndShowAtDialogAsyncEs6Js
 
-    load_json_gz_Async()
     ParagraphData.s.isReadyAndStartingIfNeed()
 
     window.fhlLecture = FhlLecture.s
