@@ -43,8 +43,7 @@ export class FontSizeTool {
             ps.saveToLocalStorage();
 
             document.body.style.setProperty("--fontsize", ps.fontSize + "pt");
-
-            renderTsk(ps);
+            // 原本這裡呼叫的 renderTsk 是舊版 React 串珠，會把新版串珠（index/tsks）蓋掉；新版不隨字級變化，不需重畫
         };
 
         $('#fhlLectureFontSizeSliderBar').off('change').on('change', function () {

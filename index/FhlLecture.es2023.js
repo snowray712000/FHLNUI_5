@@ -348,8 +348,7 @@ async function renderLectureHtml(that) {
     function render_copyright(versions) {
         let div_copyrigh = $('<div id="div_copyright" class="lec copyright"></div>');
         $('#lecMain').append(div_copyrigh); // 放在 lecMain 才會在最下面. 因為 parent 有設 position 屬性
-        let rr = React.createElement(copyright_api.R.frame, { ver: versions });
-        const ss = React.render(rr, document.getElementById("div_copyright"));  // snow add 2016.01.21(四),
+        copyright_api.render(document.getElementById("div_copyright"), versions);  // snow add 2016.01.21(四),
         // bug 小心: 版權宣告 render 必須在 dom.html 之後唷, 這樣才找到的 divCopyright 實體
     }
     function render_footer(that) {

@@ -1,11 +1,4 @@
 ﻿/// <reference path="../libs/jquery-1.11.3.js" />
-/// <reference path="../libs/react/react-0.13.1.min.js" />
-/// <reference path="../libs/react/react-with-addons-0.13.1.min.js" />
-/*
-<script src="../libs/jquery-1.11.3.js"></script>
-<script src="../libs/react/react-0.13.1.min.js"></script>
-<script src="../libs/react/react-with-addons-0.13.1.min.js"></script>
-*/
 // copyright_api
 var copyright_data = {
   ncv: '《聖經新譯本》版權聲明<br/>《聖經新譯本》©1976, 1992, 1999, 2001, 2005, 2010版權屬於環球聖經公會，蒙允准使用，謹此致謝。<br/>使用者不論以任何形式（包括書寫、印刷、錄音、視像或電子媒體等）引用《聖經新譯本》經文，必須註明出處，或於作銷售用途的聖經參考書、註釋書刊引用《聖經新譯本》，須先得環球聖經公會書面許可。有關申請須以電郵(legal@wwbible.org)、傳真(852-2356-7234)或信函(地址：香港九龍新蒲崗雙喜街九號匯達商業中心22樓)方式寫給環球聖經公會版權部負責人收。',
@@ -21,45 +14,21 @@ var copyright_data = {
   others: '各聖經譯本著作權如<a href="https://www.fhl.net/main/fhl/fhl8.html" target="_blank">版權說明</a>。'
 };
 var copyright_api = copyright_api || {};
-copyright_api.R = copyright_api.R || {
-  frame: React.createClass({
-    getDefaultProps: function () {
-      return {
-        ver: [] //["unv", "tcv"]
-      };
-    },
-    getInitialState: function () { return {}; },
-    componentWillMount: function () { },
-    componentDidMount: function () {
-      var divThis = this.getDOMNode();
-      if (divThis == null)
-        return;
+/**
+ * 在 container 裡放各譯本的版權宣告（原為 React 0.13 元件 copyright_api.R.frame）。
+ * @param {HTMLElement} container
+ * @param {string[]} ver ex: ["unv", "tcv"]
+ */
+copyright_api.render = function (container, ver) {
+  var divThis = document.createElement("div");
+  $(container).empty().append(divThis);
 
-      $.each(this.props.ver, function () {
-        if ( copyright_data[this] != null )
-        {
-          var newelem = $('<hr/ style="margin:4px 0px;"><span class="copyright-text">' + copyright_data[this] + '</span>');
-          $(divThis).append(newelem);
-        }
-      });
-
-      $(divThis).append('<hr/ style="margin:4px 0px;"><span class="copyright-text">各聖經譯本著作權如<a href="https://www.fhl.net/main/fhl/fhl8.html" target="_blank">版權說明</a>。</span>');
-    },
-    componentWillReceiveProps: function (nextProp) {         },
-    componentWillUpdate: function (nextProp, nextState) { },
-    componentDidUpdate: function (preProp, preState) {
-      this.componentWillUnmount();
-      this.componentDidMount();
-    },
-    componentWillUnmount: function () {
-      var divThis = this.getDOMNode();
-      if (divThis == null)
-        return;
-      $(divThis).empty();//清空所有的child元件(在did建的)
-      //$(divThis).off();//移除所有監聽
-    },//通常在DidMount建的 DOM 在這裡要移除. timer 也是
-    render: function () {
-      return React.createElement("div", {ref:"mainframe"});
+  $.each(ver || [], function () {
+    if (copyright_data[this] != null) {
+      var newelem = $('<hr/ style="margin:4px 0px;"><span class="copyright-text">' + copyright_data[this] + '</span>');
+      $(divThis).append(newelem);
     }
-  })
+  });
+
+  $(divThis).append('<hr/ style="margin:4px 0px;"><span class="copyright-text">各聖經譯本著作權如<a href="https://www.fhl.net/main/fhl/fhl8.html" target="_blank">版權說明</a>。</span>');
 };

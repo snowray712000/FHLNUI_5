@@ -43,7 +43,6 @@ document.head.appendChild(Object.assign(document.createElement('link'), {
 import './load_json_gz_Async.es2023.js' // 設定 window.Sd_same_json；SN 資料改為用到時才載入（ensureSnDataAsync）
 
 import { do_preach } from './do_preach.es2023.js' // 講道
-import { renderTsk } from './renderTsk.es2023.js' // 串珠
 import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬書才有)
 
 import { FhlInfo } from './FhlInfo.es2023.js' // fhlInfoContent 用
@@ -114,7 +113,6 @@ import { Hash_Changed } from './Hash_Changed.js'
     window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
     // window.FhlLectureEs6Js = () => FhlLecture // 不需要，別人只用到實體 window.fhlLecture
     window.SearchFlow = SearchFlow
-    window.renderTsk = renderTsk // 因為 fhlInfoContent 還沒成 es2023
     window.SnBranchRender = SnBranchRender // 樹狀圖(羅馬書才有)
     window.do_preach = do_preach // 講道
     window.fhlInfo = FhlInfo.s // fhlInfoContent 用

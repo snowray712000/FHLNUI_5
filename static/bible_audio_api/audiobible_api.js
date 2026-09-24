@@ -3,141 +3,71 @@ var abvphp = abvphp || {};
 var sephp = sephp || {};
 var audiobible = audiobible || {};
 
-// defined react class
-audiobible.R = audiobible.R || {
-  version_item: React.createClass({
-    _onclick: function () {
-      this.props._set_cur(this.props.na);
-    },
-    render: function () {
-      return React.createElement("div", {
-        onClick: this._onclick,
-        style: {
-          zIndex: 1201,
-          "cursor": "pointer",
-          "white-space": "nowrap"
-        }
-      }, this.props.na);
-    }
-  }),
-  version: React.createClass({
-    _onclick_cur_button: function () {
-      this.setState({ isvisible_combo: !this.state.isvisible_combo });
-    },
-    _set_cur: function (na) {
-      /// <summary> 給 item onclick 時呼叫的 </summary>
+/**
+ * 版本下拉選單（原為 React 0.13 元件 audiobible.R.version）。
+ * 點目前版本會展開 / 收合清單；選了不同版本就呼叫 pfn_switch(na)，由它重建整個播放器。
+ * @param {HTMLElement} container
+ * @param {{vers: string[], ver_cur: string, pfn_switch: function(string)}} props
+ */
+audiobible.render_version_dropdown = function (container, props) {
+  var h = commonR.h;
+  var state = {
+    top_combo: "0px",
+    width_combo: "0px", // 第一次展開後，改為清單的寬度
+    isvisible_combo: false
+  };
 
-      // 相同, 沒有變化
-      if (na == this.props.ver_cur)
-        return;
-
-      if (this.props.pfn_switch == null)
-        return;
-
-      this.props.pfn_switch(na);
-
-      // 設定上層的. 
-      this.props._set_asrc_with_version(na);
-    },
-    getDefaultProps: function () {
-      return {
-        pfn_switch: null ,
-        ver_cur:"和合本",
-        vers: ["和合本", "現代中文譯本", "台語女聲", "台語男聲", "紅皮聖經", "廣東話", "希臘文", "客語"]
-      };
-    },
-    getInitialState: function () {
-      return {
-        top_combo: "0px",
-        width_combo: "0px",
-        isvisible_combo: true // 先true,在DidMount再隱藏.這樣才能算寬度
-      };
-    },
-    componentWillMount: function () {
-      this.setState({
-        isvisible_combo: true// 先true,在DidMount再隱藏.這樣才能算寬度
-      });
-    },
-    componentDidMount: function () {
-      var com_cur = this.refs.cur.getDOMNode();
-      var com_combo = this.refs.combo.getDOMNode();
-
-      //console.log($(com_combo).width());
-      //console.log($(com_cur).height());
-      this.setState({
-        //width_combo: $(com_combo).width(),
-        //top_combo: $(com_cur).height(),//$(com_combo).css("top", $(com_cur).height());
-        isvisible_combo: false// 先true,在DidMount再隱藏.這樣才能算寬度
-      });
-    },
-    componentDidUpdate: function () {
-      if ( this.state.isvisible_combo == true )
-      {
-        var com_cur = this.refs.cur.getDOMNode();
-        var com_combo = this.refs.combo.getDOMNode();
-
-        if ($(com_combo).width() == 0)
+  var r_cur = h("div", { onClick: function () { setVisible(!state.isvisible_combo); } }, props.ver_cur);
+  var r_items = props.vers.map(function (na) {
+    return h("div", {
+      onClick: function () {
+        // 相同, 沒有變化
+        if (na == props.ver_cur)
           return;
-
-        if ($(com_combo).width() != this.state.width_combo ) {
-          this.setState({
-            width_combo: $(com_combo).width()
-            //top_combo: $(com_cur).height(),//$(com_combo).css("top", $(com_cur).height());
-          });
-        }
-
-        top_combo: $(com_cur).height();
-        if ($(com_cur).height() != this.state.top_combo){
-          this.setState({
-            top_combo: $(com_cur).height(),//$(com_combo).css("top", $(com_cur).height());
-          });
-        }
-      }
-    },
-    componentWillReceiveProps: function (nextProps) {},
-    render: function () {
-
-      var r_cur = React.createElement("div", {
-        onClick: this._onclick_cur_button,
-        ref: "cur",
-        style: {
-          "width": this.state.width_combo,
-          "white-space": "nowrap",
-          "min-height": "24px",
-          cursor: "pointer"
-        }
-      }, this.props.ver_cur);
-
-      var pthis = this;
-      var r_items = this.props.vers.map(function (a1, a2) {
-        var ro = React.createElement(audiobible.R.version_item, {
-          _set_cur: pthis._set_cur,
-          na: a1
-        });
-
-        return ro;
-      });
-
-      var r_combox = React.createElement("div", {
-        ref: "combo",
-        style: {
-          "background-color":"#E0E0E0",
-          zIndex:1200,
-          position: "absolute",
-          top: this.state.top_combo
-        }// style
+        if (props.pfn_switch == null)
+          return;
+        props.pfn_switch(na);
       },
-        r_items);
+      style: {
+        zIndex: 1201,
+        "cursor": "pointer",
+        "white-space": "nowrap"
+      }
+    }, na);
+  });
+  var r_combox = h("div", {}, r_items);
+  var root = h("div", {}, r_cur);
+  container.appendChild(root);
 
-      return React.createElement("div",{}, r_cur, (this.state.isvisible_combo) ? r_combox : null);
-      //return React.createElement("div", { style: { display: "inline-block", "vertical-align": "top" } }, r_cur, (this.state.isvisible_combo) ? r_combox : null);
-    }
-  }),
-  
-};//defined react class
-
-audiobible.r = {};
-audiobible.r.vers = React.createElement(audiobible.R.version);
+  function render() {
+    commonR.setStyle(r_cur, {
+      "width": state.width_combo,
+      "white-space": "nowrap",
+      "min-height": "24px",
+      cursor: "pointer"
+    });
+    commonR.setStyle(r_combox, {
+      "background-color": "#E0E0E0",
+      zIndex: 1200,
+      position: "absolute",
+      top: state.top_combo
+    });
+    commonR.syncChildren(root, [r_cur, state.isvisible_combo ? r_combox : null]);
+  }
+  function setVisible(v) {
+    state.isvisible_combo = v;
+    render();
+    if (v == false)
+      return;
+    // 展開後量清單寬度，讓目前版本的寬度與清單一致；清單放在目前版本的下方
+    if ($(r_combox).width() == 0)
+      return;
+    state.width_combo = $(r_combox).width();
+    state.top_combo = $(r_cur).height();
+    render();
+  }
+  render();
+};
 
 audiobible.c_audiobible = function c_audiobible() { };// 定義有一個 class c_param{};
 
@@ -601,8 +531,7 @@ audiobible.c_audiobible.prototype.create = function create() {
     //});
     //var renderobj = React.render(rvers, div_dropdown);
 
-    var renderobj = React.render(audiobible.r.vers, div_dropdown);
-    renderobj.setProps({
+    audiobible.render_version_dropdown(div_dropdown, {
       vers: this.m_versions,
       ver_cur: this.m_versions[this.m_cur_idx],
       pfn_switch: pfn_switch
