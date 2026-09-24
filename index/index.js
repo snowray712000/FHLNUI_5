@@ -151,7 +151,9 @@ import { Hash_Changed } from './Hash_Changed.js'
 
     window.fhlLecture = FhlLecture.s
 
-    if (AppVersion.s.testIsLastVersion() == true || false) {
+    // 原本 testIsLastVersion() 以同步 ajax 取 app_versions.json，會卡住整頁
+    AppVersion.s.testIsLastVersionAsync().then(isLastVersion => {
+    if (isLastVersion) {
         testThenDoAsync(() => window.Ijnjs != undefined)
             .then(() => {
                 var files = [
@@ -271,6 +273,7 @@ import { Hash_Changed } from './Hash_Changed.js'
         AppVersion.s.addClickListVerionsInfosEvent();
         $('#waiting').hide()
     }
+    })
 
 
     $(() => {

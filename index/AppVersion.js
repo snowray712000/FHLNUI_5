@@ -18,6 +18,21 @@
     this.testIsLastVersion = function () {
       return this.getHtmlVersion() == this.getLastVersion()
     };
+    /**
+     * 同 testIsLastVersion，但不用同步 ajax（同步會卡住整頁）。取不到 app_versions.json 時視為最新版，照常啟動。
+     * @returns {Promise<boolean>}
+     */
+    this.testIsLastVersionAsync = function () {
+      return new Promise(function (res) {
+        $.ajax({
+          url: './app_versions.json', dataType: 'text', cache: false,
+          success: function (str) {
+            try { res(that.getHtmlVersion() == JSON.parse(str)["nui"]["last"]) } catch (e) { res(true) }
+          },
+          error: function () { res(true) }
+        })
+      })
+    };
 
     var _cntThisVersion = -1;
     this.getCntThisVersion = function () {

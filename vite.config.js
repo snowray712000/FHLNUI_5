@@ -27,7 +27,8 @@ export default defineConfig({
     emptyOutDir: false,
     sourcemap: true,
   },
-  plugins: [serveLegacyRaw(), copyLegacyFiles(), versionLegacyUrls()],
+  // bundleLegacyScripts 要在 versionLegacyUrls 之前（同為 transformIndexHtml post，依陣列順序執行）
+  plugins: [serveLegacyRaw(), copyLegacyFiles(), bundleLegacyScripts(), versionLegacyUrls()],
 })
 
 /** 執行時才以 <script src>、$.ajax、fetch 載入的檔案，照原路徑複製到 dist/。 */
@@ -62,6 +63,83 @@ function copyLegacyFiles() {
           filter: (src) => !/[\\/](\.DS_Store|node_modules)$/.test(src) && !src.endsWith('.map'),
         })
       }
+    },
+  }
+}
+
+/**
+ * 不合併的本地 script：ijnjs 系列靠 document.scripts 找自己的檔名推算路徑（getSrd），
+ * 且 ijnjs-fhl / ijnjs-ui 是 async 並依賴 ijnjs.js 先執行。
+ */
+const LEGACY_BUNDLE_EXCLUDE = /(^|\/)libs\/ijnjs/
+
+/**
+ * 把 index.html 裡本地的傳統 <script src>（約 30 個，含 AppVersion.js）依原順序串成一支
+ * assets/legacy-[hash].js，並加上 defer。
+ *
+ * - 原本這些 script 同步阻擋 html 解析，且 nginx 沒開 HTTP/2 時，數十個請求要分批排隊。
+ * - defer 保持彼此的相對順序，並在 index.js（module，同樣是延後執行）之前執行。
+ *   head 裡其餘 inline script 不依賴它們（AppVersion 在 inline 有同介面的 stub，
+ *   真正用到是在 index.js 之後）。
+ * - 串接時每支檔案之間加 `;`，避免前一支結尾沒分號、下一支以 ( 開頭時被黏成一個運算式。
+ * - 註解（<!-- -->）裡的 script 不處理。
+ */
+function bundleLegacyScripts() {
+  let root, outDir
+  /** @type {{ fileName: string, code: string } | null} */
+  let pending = null
+  return {
+    name: 'bundle-legacy-scripts',
+    apply: 'build',
+    configResolved(config) {
+      root = config.root
+      outDir = path.resolve(root, config.build.outDir)
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const comments = [...html.matchAll(/<!--[\s\S]*?-->/g)].map((m) => [m.index, m.index + m[0].length])
+        const inComment = (i) => comments.some(([a, b]) => i >= a && i < b)
+
+        const picked = []
+        const re = /<script\b([^>]*)>\s*<\/script>[ \t]*\r?\n?/gi
+        for (const m of html.matchAll(re)) {
+          const attrs = m[1]
+          if (inComment(m.index)) continue
+          if (/\b(type\s*=\s*["']?module|async|defer)\b/i.test(attrs)) continue
+          const src = attrs.match(/\bsrc\s*=\s*(["']?)([^"'\s>]+)\1/i)?.[2]
+          if (!src || /^(?:[a-z]+:)?\/\//i.test(src) || /(^|\/)assets\//.test(src)) continue
+          const rel = src.replace(/^\.\//, '')
+          if (LEGACY_BUNDLE_EXCLUDE.test(rel)) continue
+          const abs = path.resolve(root, rel)
+          if (!fs.existsSync(abs)) continue
+          picked.push({ start: m.index, end: m.index + m[0].length, rel, abs })
+        }
+        if (picked.length === 0) return html
+
+        const code = picked
+          .map((p) => `/* ==== ${p.rel} ==== */\n${fs.readFileSync(p.abs, 'utf8').replace(/^﻿/, '')}\n;`)
+          .join('\n')
+        const fileName = `assets/legacy-${crypto.createHash('md5').update(code).digest('hex').slice(0, 8)}.js`
+        pending = { fileName, code }
+
+        // 由後往前移除，最後一支的位置放合併後的 script
+        let out = html
+        for (let i = picked.length - 1; i >= 0; i--) {
+          const p = picked[i]
+          const replacement = i === picked.length - 1
+            ? `<script defer src="./${fileName}"></script>\n  <!-- 由 vite.config.js bundleLegacyScripts 合併：${picked.map((x) => x.rel).join(', ')} -->\n`
+            : ''
+          out = out.slice(0, p.start) + replacement + out.slice(p.end)
+        }
+        return out
+      },
+    },
+    closeBundle() {
+      if (!pending) return
+      const target = path.join(outDir, pending.fileName)
+      fs.mkdirSync(path.dirname(target), { recursive: true })
+      fs.writeFileSync(target, pending.code)
     },
   }
 }
