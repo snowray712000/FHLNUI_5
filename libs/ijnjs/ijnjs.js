@@ -269,6 +269,9 @@
     // 
     // step1: 自己變 /NUI_dev/src/assets/libs/ijnjs/ijnjs.js
 
+    // 直接給目錄（以 / 結尾）就原樣使用。打包後 index/index.js 會變成 assets/index-[hash].js，無法從 document.scripts 反推
+    if (nameThisJs.endsWith('/')) return nameThisJs
+
     var r1 = getHrefFromDocumentScripts(nameThisJs)
     var r2 = r1.substring(0, r1.lastIndexOf('/') + 1)
     var r3 = r2.replace(location.origin, '')

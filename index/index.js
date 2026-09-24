@@ -221,7 +221,7 @@ import { Hash_Changed } from './Hash_Changed.js'
                 ]
 
 
-                Ijnjs.getCacheAsync(files, false, 'index').then(async caches => {
+                Ijnjs.getCacheAsync(files, false, 'index/').then(async caches => {
                     Ijnjs.cachesIndex = caches
                     testThenDoAsync({
                         cbTest: caches.getList().length == 0,
@@ -251,9 +251,9 @@ import { Hash_Changed } from './Hash_Changed.js'
                         'vendor.3504402f0d075d75a38c.js',
                         'app.e1b2e980bfe0ec8352ae.js'
                     ]).select(a1 => '../static/js/' + a1)
-                        .forEach(a1 => eval(caches.getStr(a1)))
+                        .forEach(a1 => evalLegacy(caches.getStr(a1)))
 
-                    eval(caches.getStr('indexLast'))
+                    evalLegacy(caches.getStr('indexLast'), { BibleConstantHelper })
 
                     $("<style>", {
                         text: caches.getStr("fhl.css")
@@ -325,6 +325,17 @@ import { Hash_Changed } from './Hash_Changed.js'
 
 })(this ?? window)
 
+/**
+ * 執行 ijnjs 以文字載入的舊式檔案（取代 direct eval）。
+ * direct eval 看得到本模組的區域變數，但打包後名稱會被改掉，所以被 eval 的程式只能看到全域與 deps。
+ * 加上 "use strict" 維持原本 module 內 direct eval 的語意：頂層 var/function 不會洩漏成全域。
+ * @param {string} src
+ * @param {Object<string, any>} [deps] 被 eval 的程式需要、但不在 window 上的名稱
+ */
+function evalLegacy(src, deps = {}) {
+    new Function(...Object.keys(deps), '"use strict";\n' + src).call(window, ...Object.values(deps))
+}
+
 function init_fontsize_css_variable_from_pagestate(ps) {
     document.body.style.setProperty("--fontsize", ps.fontSize + "pt")
     document.body.style.setProperty("--fontsize-greek", ps.fontSizeGreek + "pt")
@@ -342,12 +353,10 @@ function doNoReadyStep1() {
     // fn1.call(window)
 
     // export DialogTemplate and findPrsingTableSnClassAndLetItCanClick
-    function fn2() { eval(caches.getStr('DialogTemplate/DialogTemplate')) }
-    fn2.call(window)
+    evalLegacy(caches.getStr('DialogTemplate/DialogTemplate'))
 
     // export checkHtmlVersion function
-    function fn3() { eval(caches.getStr('checkHtmlVersion')) }
-    fn3.call(window)
+    evalLegacy(caches.getStr('checkHtmlVersion'))
 
     initPageStateFlow(currentSWVer)
 

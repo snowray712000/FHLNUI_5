@@ -120,7 +120,7 @@ var Ijnjs = (() => {
      * 用於 lib 載入時用
      * @param {{}} fileDescription 參考 ijnjs.js
      * @param {boolean} isMin 決定要 load .min.js 還是 .js
-     * @param {string} mainJsName 供 getSrd 使用的參數 ijnjs 例如 ijnjs-ui ijnjs-fhl
+     * @param {string} mainJsName 供 getSrd 使用的參數 ijnjs 例如 ijnjs-ui ijnjs-fhl；或直接給目錄（以 / 結尾），例如 'index/'
      * @returns {Promise<FileCache>}
      */
     function getCacheAsync(fileDescription, isMin, mainJsName) { }
