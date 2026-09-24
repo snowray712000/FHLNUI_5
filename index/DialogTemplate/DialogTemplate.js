@@ -7,34 +7,24 @@
  * 浸宣出版社的字典出來時，同時就新增了不同的顯示方式
  * DialogTemplate findPrsingTableSnClassAndLetItCanClick 會用到
  * 此檔相依 SnDictDialog.html ， 很技術的，它是動態載入，成為一個 id 下的樣本
- * 也相依 OrigDict class 
+ * 也相依 OrigDict class
+ *
+ * ES module。原本由 index.js 以 ijnjs 下載成文字後 eval，本檔再從 ijnjs 快取 eval 其他三支；
+ * 現在改為一般 import。要等 Ijnjs.Libs 準備好才能執行，所以包成 initDialogTemplate()，由 index.js 在原本的時間點呼叫。
  */
+import { OrigDict } from './OrigDict.js'
+import { whenParsingReferenceReady } from './ParsingReference.js'
+import { addBreakLine, addOrigDict, addReference } from './ParsingOrigDict.js'
+import snDictDialogHtml from './SnDictDialog.html?raw'
 
-
-
+export function initDialogTemplate() {
 (function (root) {
     var $ = Ijnjs.Libs.s.libs.$
     var Enumerable = Ijnjs.Libs.s.libs.Enumerable
-    var caches = Ijnjs.cachesIndex
+    var pathSnDictDialogHtml = "index/DialogTemplate/SnDictDialog.html" // 只剩 pathHtmlAndId 用到（其使用處已註解）
 
-    var ps = Enumerable.from(['OrigDict', 'ParsingReference', 'ParsingOrigDict'])
-        .select(a1 => 'DialogTemplate/' + a1)
-        .select(a1 => {
-            return new Promise(res => {
-                function aaa() { eval(caches.getStr(a1)) }
-                var tmp = {}
-                aaa.call(tmp)
-                testThenDoAsync(() => Object.keys(tmp) != 0)
-                    .then(() => {
-                        caches.setStr(a1, undefined)
-                        res(tmp)
-                    })
-            })
-        }).toArray()
-
-    Promise.all(ps).then(tmps => {
-        var { OrigDict } = tmps[0]
-        var { addBreakLine, addOrigDict, addReference } = tmps[2].exports
+    // 原本等三支檔案 eval 完；OrigDict、ParsingOrigDict 是同步的，只有 ParsingReference 要等 window.FHL
+    whenParsingReferenceReady.then(() => {
 
         DialogTemplate.outerHTML = getDialogTemplateOuterHtml()
         root.DialogTemplate = DialogTemplate
@@ -44,7 +34,7 @@
 
         function getDialogTemplateOuterHtml() {
 
-            var r1 = $(caches.getStr('DialogTemplate/SnDictDialog.html'))
+            var r1 = $(snDictDialogHtml)
             /** @type {HTMLElement} */
             var r2 = Enumerable.from(r1)
                 .firstOrDefault(a1 => $(a1).attr("id") == 'SnDictDialog')
@@ -477,27 +467,6 @@
             }
         }
     })
-    return
 
-
-    var deps = [
-        { path: 'OrigDict.js', isCache: undefined },
-        { path: 'ParsingReference.js', isCache: undefined },
-        { path: 'ParsingOrigDict.js', isCache: undefined }, // 沒有需要的 exports
-    ]
-
-    var srd = "index/DialogTemplate/" // 相對於 NUI 下的 /index.html
-    var pathSnDictDialogHtml = srd + 'SnDictDialog.html'
-
-    Promise.all(deps.map(a1 => Ijnjs.loadJsInIIFEModel(srd + a1.path, a1.isCache)))
-        .then(re => {
-
-            var { OrigDict } = re[0]
-            var { addBreakLine, addOrigDict, addReference } = re[2]
-
-            root.DialogTemplate = DialogTemplate
-            root.findPrsingTableSnClassAndLetItCanClick = findPrsingTableSnClassAndLetItCanClick
-            return
-        })
-
-})(this)
+})(window)
+}

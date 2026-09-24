@@ -4,17 +4,16 @@
 /// <reference path="../libs/jsdoc/jquery.ui.touch-punch.js" />
 /// <reference path="../libs/ijnjs/ijnjs.d.js" />
 
-(function (root) {
-  doLast5()
-  doLast4()
-  doLast3()
-  doLast2()
+// ES module（原本由 index.js 以 ijnjs 下載成文字後 eval）。由 index.js 在頁面骨架插入後呼叫。
+import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
+
+export function runIndexLast() {
+  // 原本還有 doLast2~5：從 ijnjs 快取 eval 各元件，清單都已註解成空陣列（元件改成 es2023 module），已移除
   doLast1()
 
   // 搜尋 #fhlMidBottomWindow .sn mouseenter mouseleave 事件使用，改變 sn 顏色
   let_sn_color_change_in_search_result()
-
-})(this)
+}
 
 
 function let_sn_color_change_in_search_result() {
@@ -32,86 +31,6 @@ function let_sn_color_change_in_search_result() {
   })
 }
 
-function doLast5() {
-  var caches = Ijnjs.cachesIndex
-  Enumerable.from([
-    // 'getAjaxUrl',
-    // 'getBookFunc',
-    // 'requestFullscreen',
-    // 'registerEvents',
-  ]).forEach(a1 => {
-    function aaa() { eval(caches.getStr(a1)) }
-    aaa.call(window)
-  })
-}
-function doLast4() {
-  // Toolbar 相關
-  var caches = Ijnjs.cachesIndex
-  Enumerable.from([
-    // 'fhlToolBar',
-    // 'help',
-    // 'helpingPopUp',
-    // 'windowControl',
-    // 'bookSelect',
-    // 'bookSelectPopUp',
-    // 'bookSelectName',
-    // 'bookSelectChapter',
-  ]).forEach(a1 => {
-    function aaa() { eval(caches.getStr(a1)) }
-    aaa.call(window)
-  })
-}
-
-function doLast3() {
-  // Left Window 相關
-  var caches = Ijnjs.cachesIndex
-  Enumerable.from([
-    // 'fhlLeftWindow',
-    // 'settings',
-    // 'snSelect',
-    // 'gbSelect',
-    // 'show_mode',
-    // 'realTimePopUpSelect',
-    // 'mapTool',
-    // 'imageTool',
-    // 'renderTsk',
-    // 'SN_Act_Color',
-    // 'parsing_render_top',
-    // 'parsing_render_bottom_table',
-    // 'SnBranchRender',
-    // 'fontSizeTool',
-  ]).forEach(a1 => {
-    function aaa() { eval(caches.getStr(a1)) }
-    aaa.call(window)
-  })
-}
-
-function doLast2() {
-  var caches = Ijnjs.cachesIndex
-  Enumerable.from([
-    // 'versionSelect',
-    // 'docEvent',
-    // 'viewHistory',
-    // 'fhlMidWindow',
-    // 'fhlLecture',
-    // 'fhlMidBottomWindow',
-    // 'fhlInfoContent',
-    // 'parsingPopUp',
-    // 'searchTool',
-    // 'coreInfoWindowShowHide',
-    // 'FontSizeToolBase',
-    // 'charHG',
-    // 'doSearch',
-    // 'do_preach',
-    // 'gbText',
-    // 'updateLocalStorage',
-    // 'triggerGoEventWhenPageStateAddressChange',
-    // 'windowAdjust',
-  ]).forEach(a1 => {
-    function aaa() { eval(caches.getStr(a1)) }
-    aaa.call(window)
-  })
-}
 function doLast1() {
   addUrlChangedEvents()
   addViewHistoryEvents()

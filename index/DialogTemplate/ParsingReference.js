@@ -1,15 +1,16 @@
 /// <reference path="../../FHL.tools.js" />
 
+// ES module（原本由 DialogTemplate.js 從 ijnjs 快取取出後 eval；完成時設 root.nouse 通知 DialogTemplate）
 var FHL = window.FHL || {};
 if (FHL === undefined) {
     FHL = {};
 }
+const exported = {};
 (function(root){
-    
-    testThenDoAsync(()=> window.FHL != undefined)
+
+    root.ready = testThenDoAsync(()=> window.FHL != undefined)
     .then(()=>{
         appendFunctionsToFHLNamespace()
-        root.nouse = undefined
     })
     return
 
@@ -494,8 +495,11 @@ FHL.ParsingReferenceToAddresses = function (ref, book = 40, chap = 1) {
             }
         }
     }
-};    
+};
     }
 
 
-})(this)
+})(exported)
+
+/** FHL.ParsingReference* 等函式都加進 window.FHL 後 resolve */
+export const whenParsingReferenceReady = exported.ready

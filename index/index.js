@@ -28,6 +28,11 @@ import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtD
 
 import { FhlLecture } from './FhlLecture.es2023.js'
 import { APP_SKELETON_HTML } from './appSkeleton.es2023.js'
+// 以下原本由 Ijnjs.getCacheAsync 在啟動時下載成文字再 eval
+import { initDialogTemplate } from './DialogTemplate/DialogTemplate.js'
+import { checkHtmlVersion } from './checkHtmlVersion.js'
+import { runIndexLast } from './indexLast.js'
+import fhlCss from './fhl.css?raw' // 以 <style> 插在最後以蓋過 ijnjs 動態加入的 bootstrap；內含相對於頁面的 url()，不能交給 Vite 處理
 import './load_json_gz_Async.es2023.js' // 設定 window.Sd_same_json；SN 資料改為用到時才載入（ensureSnDataAsync）
 
 import { do_preach } from './do_preach.es2023.js' // 講道
@@ -156,77 +161,11 @@ import { Hash_Changed } from './Hash_Changed.js'
     if (isLastVersion) {
         testThenDoAsync(() => window.Ijnjs != undefined)
             .then(() => {
-                var files = [
-                    // 'initPageStateFlow', 
-                    // 'LeftWindowTool',
-                    { dir: 'DialogTemplate', children: ['DialogTemplate', 'OrigDict', 'ParsingReference', 'ParsingOrigDict', 'SnDictDialog.html'] },
-                    'checkHtmlVersion',
-                    'indexLast',
-
-                    // 'getAjaxUrl',
-                    // 'getBookFunc',
-                    // 'requestFullscreen',
-                    // 'registerEvents',
-
-                    // 'fhlToolBar',
-                    // 'help',
-                    // 'helpingPopUp',
-                    // 'windowControl',
-                    // 'bookSelect',
-                    // 'bookSelectPopUp',
-                    // 'bookSelectName',
-                    // 'bookSelectChapter',
-
-                    // 'fhlLeftWindow',
-                    // 'settings',
-                    // 'snSelect',
-                    // 'gbSelect',
-                    // 'show_mode',
-                    // 'realTimePopUpSelect',
-                    // 'mapTool',
-                    // 'imageTool',
-                    // 'renderTsk', //es 模式成功，讓這個被拿掉
-                    // 'SnBranchRender', //es 模式成功，讓這個被拿掉
-                    // 'fontSizeTool',
-
-                    // 'versionSelect',
-                    // 'docEvent',
-                    // 'viewHistory',
-                    // 'fhlMidWindow',
-                    //'fhlLecture', //es 模式成功，讓這個被拿掉
-                    // 'fhlMidBottomWindow',
-                    // 'SN_Act_Color',
-                    // 'parsing_render_top',
-                    // 'parsing_render_bottom_table',
-                    // 'fhlInfoContent',
-                    // 'parsingPopUp',
-                    // 'searchTool',
-                    // 'coreInfoWindowShowHide',
-                    // 'FontSizeToolBase',
-                    // 'charHG',
-                    // 'doSearch',
-                    // 'do_preach',
-                    // 'gbText',
-                    // 'updateLocalStorage',
-                    // 'triggerGoEventWhenPageStateAddressChange',
-                    // 'windowAdjust',
-
-                    'fhl.css'
-                ]
-
-
-                Ijnjs.getCacheAsync(files, false, 'index/').then(async caches => {
-                    Ijnjs.cachesIndex = caches
-                    testThenDoAsync({
-                        cbTest: caches.getList().length == 0,
-                        msg: 'auto clear ijnjs.cachesInex',
-                        ms: 1000,
-                    }).then(a1 => {
-                        delete Ijnjs.cachesIndex
-                    })
-
+                // 原本先以 Ijnjs.getCacheAsync 下載 DialogTemplate/*、checkHtmlVersion、indexLast、fhl.css 成文字，
+                // 再逐一 eval；現在都是一般 import（見本檔開頭），省下這一輪請求。
+                (async () => {
                     doNoReadyStep1()
-                    doNoReadyStep2() //廢棄                    
+                    doNoReadyStep2() //廢棄
                     doNoReadyStep3()
 
                     // doNoReadyStep1 會載入這個全域變數
@@ -241,17 +180,17 @@ import { Hash_Changed } from './Hash_Changed.js'
                     // 它只有靜態模板，改為直接插入同樣的 HTML（見 appSkeleton.es2023.js）。
                     document.getElementById('app').innerHTML = APP_SKELETON_HTML
 
-                    evalLegacy(caches.getStr('indexLast'), { BibleConstantHelper })
+                    runIndexLast()
 
                     $("<style>", {
-                        text: caches.getStr("fhl.css")
+                        text: fhlCss
                     }).appendTo($("head"))
 
                     setTimeout(() => {
                         $('#app').show()
                         $('#waiting').hide()
                     }, 300);
-                })
+                })()
 
 
                 // doNoReadyStep1()
@@ -314,17 +253,6 @@ import { Hash_Changed } from './Hash_Changed.js'
 
 })(this ?? window)
 
-/**
- * 執行 ijnjs 以文字載入的舊式檔案（取代 direct eval）。
- * direct eval 看得到本模組的區域變數，但打包後名稱會被改掉，所以被 eval 的程式只能看到全域與 deps。
- * 加上 "use strict" 維持原本 module 內 direct eval 的語意：頂層 var/function 不會洩漏成全域。
- * @param {string} src
- * @param {Object<string, any>} [deps] 被 eval 的程式需要、但不在 window 上的名稱
- */
-function evalLegacy(src, deps = {}) {
-    new Function(...Object.keys(deps), '"use strict";\n' + src).call(window, ...Object.values(deps))
-}
-
 function init_fontsize_css_variable_from_pagestate(ps) {
     document.body.style.setProperty("--fontsize", ps.fontSize + "pt")
     document.body.style.setProperty("--fontsize-greek", ps.fontSizeGreek + "pt")
@@ -332,8 +260,6 @@ function init_fontsize_css_variable_from_pagestate(ps) {
     document.body.style.setProperty("--fontsize-sn", ps.fontSizeStrongNumber + "pt")
 }
 function doNoReadyStep1() {
-    /** @type {Ijnjs.FileCache} */
-    var caches = Ijnjs.cachesIndex
     // export window.initPageStateFlow
     // eval(caches.getStr('initPageStateFlow'))
 
@@ -342,10 +268,9 @@ function doNoReadyStep1() {
     // fn1.call(window)
 
     // export DialogTemplate and findPrsingTableSnClassAndLetItCanClick
-    evalLegacy(caches.getStr('DialogTemplate/DialogTemplate'))
+    initDialogTemplate()
 
-    // export checkHtmlVersion function
-    evalLegacy(caches.getStr('checkHtmlVersion'))
+    // checkHtmlVersion：現在直接 import（window.checkHtmlVersion 也在該模組載入時設定）
 
     initPageStateFlow(currentSWVer)
 

@@ -1,5 +1,6 @@
 // 檢查 .html 是否需要更新 (會在 document.ready 之後作)
-function checkHtmlVersion(){
+// ES module（原本由 index.js 以 ijnjs 下載成文字後 eval）
+export function checkHtmlVersion(){
     render()
     checkVersionAndSetText()
     
@@ -60,6 +61,4 @@ function checkHtmlVersion(){
     }
 }
 
-(function(root){
-    root.checkHtmlVersion = checkHtmlVersion
-})(this)
+window.checkHtmlVersion = checkHtmlVersion // 維持舊的全域介面
