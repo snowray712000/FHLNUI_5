@@ -121,23 +121,6 @@ function doLast1() {
 
   function addUrlChangedEvents() {
     $(function () {
-      $(fhlUrlParameter).on('bible', function () {
-        console.log('bible trigger')
-        // console.log(fhlUrlParameter.bibleResult) // {book: 1, chap: 12, sec: 9}
-        if (pageState != undefined) {
-          pageState.chineses = BibleConstant.CHINESE_BOOK_ABBREVIATIONS[fhlUrlParameter.bibleResult.book - 1]
-          pageState.engs = BibleConstant.ENGLISH_BOOK_ABBREVIATIONS[fhlUrlParameter.bibleResult.book - 1]
-          if (fhlUrlParameter.bibleResult.book > 0) {
-
-            pageState.bookIndex = fhlUrlParameter.bibleResult.book
-            pageState.chap = fhlUrlParameter.bibleResult.chap >= 0 ? fhlUrlParameter.bibleResult.chap : 1
-            pageState.sec = fhlUrlParameter.bibleResult.sec >= 0 ? fhlUrlParameter.bibleResult.sec : 1
-
-            fhlLecture.render(pageState, fhlLecture.dom); // 內容
-            bookSelect.render(pageState, bookSelect.dom); // 內容的 title
-          }
-        }
-      }) // bible event
       $(window).trigger('hashchange')
 
       $(document).on('chapchanged', function () {

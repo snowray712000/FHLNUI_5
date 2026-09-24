@@ -63,7 +63,7 @@
     };
     AppVersion.s = new AppVersion();
 
-    var currentSWVer = "5.6.5" // 發版本要改
+    var currentSWVer = "5.7.1" // 發版本要改
     $.ajax({ url: 'index/AppVersion.js', async: false, dataType: 'script' })
     if (AppVersion.s.getCntThisVersion() == 1) {
       location.reload(true)
@@ -130,7 +130,6 @@
   <!-- <script src="./FHL.BibleConstant.js"></script> -->
 
   <script>
-    var fhlUrlParameter = new FHL.FhlUrlParameter()
     // var pageState; // 2025.5 改為 singleton 模式
     // 維持舊版相容，使用這個全域變數。
     var currentSWVer = AppVersion.s.getHtmlVersion();
