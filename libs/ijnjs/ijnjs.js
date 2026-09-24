@@ -164,6 +164,9 @@
     'jquery-ui-css': window.jQuery != undefined && window.jQuery.ui != undefined,
     'jquery-touch': window.jQuery != undefined && window.jQuery.ui != undefined,
     'lodash': window._ != undefined,
+    // index.html 以 <script defer> 載入 bootstrap 5 的 js（此時尚未執行，所以看標籤），css 由 index.js 插入
+    'bootstrap': document.querySelector('script[src*="bootstrap@5"]') != null,
+    'bootstrap-css': document.querySelector('script[src*="bootstrap@5"]') != null,
   }
   function isProvidedByPage(na) { return pageProvided[na] === true }
 
@@ -366,6 +369,11 @@
     }
     function addBootstrapWhenReady() {
       var $ = Libs.s.libs.$
+      if (isProvidedByPage('bootstrap')) {
+        // defer 的 script 在 DOM ready 前就已執行完；releaseCacheFromIjnjsAsync 會等 Libs.s.libs.bootstrap
+        $(() => { Libs.s.libs.bootstrap = window.bootstrap })
+        return
+      }
       $(() => {
         noRequireJs(() => {
           // ready 時，加入 css

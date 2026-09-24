@@ -32,7 +32,14 @@ import { APP_SKELETON_HTML } from './appSkeleton.es2023.js'
 import { initDialogTemplate } from './DialogTemplate/DialogTemplate.js'
 import { checkHtmlVersion } from './checkHtmlVersion.js'
 import { runIndexLast } from './indexLast.js'
-import fhlCss from './fhl.css?raw' // 以 <style> 插在最後以蓋過 ijnjs 動態加入的 bootstrap；內含相對於頁面的 url()，不能交給 Vite 處理
+import fhlCss from './fhl.css?raw' // 以 <style> 插在最後以蓋過 bootstrap 5；內含相對於頁面的 url()，不能交給 Vite 處理
+
+// Bootstrap 5.1 css。原本由 ijnjs 以 XHR 下載、DOM ready 後以 <style> 插入；現在直接以 <link> 插到 <head> 最後，
+// 維持相同的層疊順序：在 index.html 所有 css（含 Vite 打包的 css、bs4-compat.css）之後、fhl.css 之前。
+document.head.appendChild(Object.assign(document.createElement('link'), {
+    rel: 'stylesheet',
+    href: 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css',
+}))
 import './load_json_gz_Async.es2023.js' // 設定 window.Sd_same_json；SN 資料改為用到時才載入（ensureSnDataAsync）
 
 import { do_preach } from './do_preach.es2023.js' // 講道

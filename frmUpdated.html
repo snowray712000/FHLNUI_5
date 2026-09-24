@@ -47,7 +47,7 @@
       <form action="" method="POST" id="force-reload">
         方法2: <a href="javascript:void(0) // post" onclick="$('#force-reload').submit()">點擊此鈕</a> <br />
       </form>
-      方法3:<a class="" data-toggle="collapse" href="#method3" role="button" aria-expanded="false"
+      方法3:<a class="" data-toggle="collapse" data-bs-toggle="collapse" href="#method3" role="button" aria-expanded="false"
         aria-controls="collapseExample">
         電腦{非手機}可用
       </a> <br />
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      方法4:<a class="" data-toggle="collapse" href="#method4" role="button" aria-expanded="false"
+      方法4:<a class="" data-toggle="collapse" data-bs-toggle="collapse" href="#method4" role="button" aria-expanded="false"
         aria-controls="collapseExample">
         Android手機
       </a> <br />
@@ -92,7 +92,7 @@
       <!-- 版本資訊 -->
       <div>
         <h4><span style="color: red;">查看</span>版本更新資訊</h4>
-        <a class="" data-toggle="collapse" href="#list-versions" role="button" aria-expanded="false"
+        <a class="" data-toggle="collapse" data-bs-toggle="collapse" href="#list-versions" role="button" aria-expanded="false"
           aria-controls="collapseExample" id="version-info-address">
           查看
         </a> <br />
@@ -124,14 +124,14 @@
           <div class="card">
             <div class="card-header" id="headingOne">
               <h5 class="mb-0">
-                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true"
+                <button class="btn btn-link" data-toggle="collapse" data-bs-toggle="collapse" data-target="#collapseOne" data-bs-target="#collapseOne" aria-expanded="true"
                   aria-controls="collapseOne">
                   詳細說明
                 </button>
               </h5>
             </div>
 
-            <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+            <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion" data-bs-parent="#accordion">
               <div class="card-body">
                 當FHL程式版本更新後，許多人的畫面是一片灰，而造成原因是瀏覽器的cache功能(當然，有時候是Bug)。
                 cache是為了"節省網路流量"而存在，一些程式碼、圖片沒必要"每次"都抓一次(沒錯，一些資料將存在你的電腦中)。
@@ -144,13 +144,13 @@
           <div class="card">
             <div class="card-header" id="headingTwo">
               <h5 class="mb-0">
-                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo"
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#collapseTwo" data-bs-target="#collapseTwo"
                   aria-expanded="false" aria-controls="collapseTwo">
                   方法1-原理
                 </button>
               </h5>
             </div>
-            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion" data-bs-parent="#accordion">
               <div class="card-body">
                 呼叫 javascript 的 location.reload (true)。
                 它會保證 .html .js .css 任何檔案，都會重新抓取，像新的一樣。
@@ -163,13 +163,13 @@
           <div class="card">
             <div class="card-header" id="headingThree">
               <h5 class="mb-0">
-                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree"
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#collapseThree" data-bs-target="#collapseThree"
                   aria-expanded="false" aria-controls="collapseThree">
                   方法2-原理
                 </button>
               </h5>
             </div>
-            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion" data-bs-parent="#accordion">
               <div class="card-body">
                 若以 POST 協定{而非GET協定}取得 .html 網頁，一定會回傳最新的 html，而不是用 Cache 檔。
                 然而，與方法1不同的是，其它檔案{例如.js .css}仍然有可能用 Cache 檔。
@@ -182,13 +182,13 @@
           <div class="card">
             <div class="card-header" id="headingThree">
               <h5 class="mb-0">
-                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse4"
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#collapse4" data-bs-target="#collapse4"
                   aria-expanded="false" aria-controls="collapseThree">
                   方法3-原理
                 </button>
               </h5>
             </div>
-            <div id="collapse4" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+            <div id="collapse4" class="collapse" aria-labelledby="headingThree" data-parent="#accordion" data-bs-parent="#accordion">
               <div class="card-body">
                 當按著 shift 時，按下 refresh 鈕，就是，全部檔案都抓最新的，不要用 Cache 檔。
                 就是以程式呼叫 location.reload(true) 是一樣的效果。
@@ -199,13 +199,13 @@
           <div class="card">
             <div class="card-header" id="headingThree">
               <h5 class="mb-0">
-                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse5"
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#collapse5" data-bs-target="#collapse5"
                   aria-expanded="false" aria-controls="collapseThree">
                   方法4-原理
                 </button>
               </h5>
             </div>
-            <div id="collapse5" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+            <div id="collapse5" class="collapse" aria-labelledby="headingThree" data-parent="#accordion" data-bs-parent="#accordion">
               <div class="card-body">
                 操作目的：手動的清除 Cache 檔 <br />
               </div>
