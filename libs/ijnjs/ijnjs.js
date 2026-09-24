@@ -130,7 +130,7 @@
       var $ = Ijnjs.Libs.s.libs.$
 
       var srd = getSrd('ijnjs')
-      var promises = libs.filter(a1 => a1.na != 'jquery').map(a1 => {
+      var promises = libs.filter(a1 => a1.na != 'jquery' && !isProvidedByPage(a1.na)).map(a1 => {
         var isHttp = /https?:\/\//i.test(a1.url)
         if (isHttp == false) {
           a1.url = srd + a1.url
@@ -152,6 +152,20 @@
     }
   }
   FileCache3rd.s = new FileCache3rd()
+
+  /**
+   * index.html 已經載入的第三方函式庫，不再重複下載與 eval（在 ijnjs.js 執行時判斷）。
+   * jquery-ui 的 css 由 index.html 的 <link> 載入；touch-punch 在 index.html 也有引用。
+   * @param {string} na thirdPartFileDescription 的 na
+   */
+  var pageProvided = {
+    'linq': window.Enumerable != undefined,
+    'jquery-ui': window.jQuery != undefined && window.jQuery.ui != undefined,
+    'jquery-ui-css': window.jQuery != undefined && window.jQuery.ui != undefined,
+    'jquery-touch': window.jQuery != undefined && window.jQuery.ui != undefined,
+    'lodash': window._ != undefined,
+  }
+  function isProvidedByPage(na) { return pageProvided[na] === true }
 
 
 
@@ -193,6 +207,11 @@
    * @returns {Promise<{$:jQuery}>} 
    * */
   function getJQueryAsync() {
+    // index.html 已載入 jQuery（含 jquery-ui、hotkeys 等插件）時直接沿用。
+    // 原本會再下載一份並 eval，把 window.$ 換成新的實例，掛在舊實例上的插件是否還在取決於 XHR 回來的時機。
+    if (window.jQuery != undefined) {
+      return Promise.resolve({ $: window.jQuery })
+    }
     return new Promise((res, rej) => {
       var r1 = new XMLHttpRequest()
       r1.onerror = a1 => { rej(a1) }
@@ -364,6 +383,7 @@
       })
     }
     function addJQueryUiAndTouchNowAndCssWhenReady() {
+      if (isProvidedByPage('jquery-ui')) return // 頁面的 jQuery 上已經有 jquery-ui、touch-punch 與其 css
       var isExist = window.jQuery != undefined
       var $ = Libs.s.libs.$
       if (isExist==false){
@@ -385,6 +405,10 @@
       }
     }
     function addLinqJs() {
+      if (isProvidedByPage('linq')) {
+        Libs.s.libs.Enumerable = window.Enumerable
+        return
+      }
       function aaa() {
         eval(FileCache3rd.s.getStr("linq"))
       }
