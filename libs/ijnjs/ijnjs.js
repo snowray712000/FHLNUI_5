@@ -669,12 +669,34 @@
    * @param {string} mainJsName 供 getSrd 使用的參數 ijnjs 例如 ijnjs-ui ijnjs-fhl
    * @returns {Promise<FileCache>}
    */
+  /**
+   * build 時 vite.config.js 的 preloadIjnjsFiles 會把本函式庫要下載的小檔先打包成一支
+   * assets/ijnjs-preload-[hash].js（在 ijnjs.js 之前執行），設定 window.__IJNJS_PRELOAD__ = { files: { 相對路徑: 內容 } }。
+   * 有的話直接用，省下十幾個請求；dev 模式沒有，照舊下載。
+   * @param {string} url
+   * @returns {string|undefined}
+   */
+  function getPreloaded(url) {
+    var P = window.__IJNJS_PRELOAD__
+    if (P == undefined) return undefined
+    if (P.byHref == undefined) {
+      P.byHref = {}
+      for (var k in P.files) P.byHref[new URL(k, document.baseURI).href] = P.files[k]
+    }
+    return P.byHref[new URL(url, location.href).href]
+  }
   function getCacheAsync(fileDescription, isMin, mainJsName) {
     var $ = Ijnjs.Libs.s.libs.$
     var r1 = toStandardUrls(fileDescription, isMin, mainJsName)
 
     return Promise.all(r1.map(a1 => {
       return new Promise((res, rej) => {
+        var preloaded = getPreloaded(a1.url)
+        if (preloaded !== undefined) {
+          a1.str = preloaded
+          res(a1)
+          return
+        }
         $.ajax({
           url: a1.url,
           dataType: 'text',

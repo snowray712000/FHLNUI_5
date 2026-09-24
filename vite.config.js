@@ -28,7 +28,7 @@ export default defineConfig({
     sourcemap: true,
   },
   // bundleLegacyScripts 要在 versionLegacyUrls 之前（同為 transformIndexHtml post，依陣列順序執行）
-  plugins: [serveLegacyRaw(), copyLegacyFiles(), bundleLegacyScripts(), versionLegacyUrls()],
+  plugins: [serveLegacyRaw(), copyLegacyFiles(), bundleLegacyScripts(), preloadIjnjsFiles(), versionLegacyUrls()],
 })
 
 /** 執行時才以 <script src>、$.ajax、fetch 載入的檔案，照原路徑複製到 dist/。 */
@@ -133,6 +133,72 @@ function bundleLegacyScripts() {
           out = out.slice(0, p.start) + replacement + out.slice(p.end)
         }
         return out
+      },
+    },
+    closeBundle() {
+      if (!pending) return
+      const target = path.join(outDir, pending.fileName)
+      fs.mkdirSync(path.dirname(target), { recursive: true })
+      fs.writeFileSync(target, pending.code)
+    },
+  }
+}
+
+/**
+ * ijnjs 系列在執行時以 XHR 下載再 eval 的小檔（ijnjs 核心、ijnjs-fhl、ijnjs-ui 的兩個對話框）。
+ * 清單取自實際載入的請求；漏列的檔案不會壞，只是照舊下載。
+ */
+const IJNJS_PRELOAD_FILES = [
+  'libs/ijnjs/SplitStringByRegex.min.js',
+  'libs/ijnjs/assert.min.js',
+  'libs/ijnjs/TestTime.min.js',
+  'libs/ijnjs/rem2Px.min.js',
+  'libs/ijnjs/Path/Path.min.js',
+  'libs/ijnjs-fhl/FHL/index.min.js',
+  'libs/ijnjs-fhl/FHL/BibleConstant.min.js',
+  'libs/ijnjs-fhl/FHL/BibleConstantFunctions.min.js',
+  'libs/ijnjs-fhl/FHL/generateDTextDom.min.js',
+  'libs/ijnjs-ui/BookChapDialog/index.js',
+  'libs/ijnjs-ui/BookChapDialog/BookChapDialog.js',
+  'libs/ijnjs-ui/BookChapDialog/BookChapDialog.html',
+  'libs/ijnjs-ui/BibleVersionDialog/index.js',
+  'libs/ijnjs-ui/BibleVersionDialog/BibleVersionDialog.js',
+  'libs/ijnjs-ui/BibleVersionDialog/BibleVersionDialog.html',
+  'libs/ijnjs-ui/BibleVersionDialog/BibleVersionDialog.css',
+]
+
+/**
+ * 把 IJNJS_PRELOAD_FILES 的內容打包成 assets/ijnjs-preload-[hash].js，放在 ijnjs.js 之前（同步執行），
+ * 設定 window.__IJNJS_PRELOAD__；ijnjs 的 getCacheAsync 有預載內容就不下載。
+ * 仍以原本的 eval 方式執行，只省下請求（這些檔案要等 ijnjs 準備好才開始一支支下載）。
+ * 必須同步且在 ijnjs.js 之前：ijnjs.js 一執行就會開始抓核心檔案。
+ */
+function preloadIjnjsFiles() {
+  let root, outDir
+  /** @type {{ fileName: string, code: string } | null} */
+  let pending = null
+  return {
+    name: 'preload-ijnjs-files',
+    apply: 'build',
+    configResolved(config) {
+      root = config.root
+      outDir = path.resolve(root, config.build.outDir)
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const files = {}
+        for (const rel of IJNJS_PRELOAD_FILES) {
+          const abs = path.resolve(root, rel)
+          if (fs.existsSync(abs)) files[rel] = fs.readFileSync(abs, 'utf8').replace(/^﻿/, '')
+        }
+        const code = `window.__IJNJS_PRELOAD__ = ${JSON.stringify({ files })};\n`
+        const fileName = `assets/ijnjs-preload-${crypto.createHash('md5').update(code).digest('hex').slice(0, 8)}.js`
+        pending = { fileName, code }
+
+        const re = /<script\b[^>]*\bsrc\s*=\s*["']?(?:\.\/)?libs\/ijnjs\/ijnjs\.js[^>]*><\/script>/i
+        if (!re.test(html)) throw new Error('preloadIjnjsFiles: index.html 找不到 libs/ijnjs/ijnjs.js')
+        return html.replace(re, (m) => `<script src="./${fileName}"></script>\n  ${m}`)
       },
     },
     closeBundle() {
