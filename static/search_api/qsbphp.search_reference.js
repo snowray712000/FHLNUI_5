@@ -90,8 +90,6 @@ qsbphp.search_reference = function search_reference(keyword, default_book, defau
     // 函式結束於此.
   };// action_success
 
-  fhl.json_api_text_post(url,data, action_success, function (text, pdata) { throw text; }, null, false);
-  // fhl.json_api_text(url, action_success, function (text, pdata) { throw text; }, null, false);
-
-  return jret;
+  // 回傳 Promise
+  return fhl.json_api_text_post(url, data, action_success, function (text, pdata) { throw text; }).then(function () { return jret; });
 };

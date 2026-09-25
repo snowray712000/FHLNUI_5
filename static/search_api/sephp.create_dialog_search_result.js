@@ -53,7 +53,7 @@ sephp.create_dialog_search_result = function create_dialog_search_result(jrecord
 
 /**
  * 
- * @returns {{ibook: number, chap: number, sec: number, bible_text: string}[]} ordered records
+ * @returns {Promise<{ibook: number, chap: number, sec: number, bible_text: string}[]|null>} ordered records
  */
 sephp.continue_search = function continue_search() {
   return Search_continue_search()

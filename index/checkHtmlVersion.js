@@ -33,7 +33,7 @@ export function checkHtmlVersion(){
                     }
                 },
                 (err) => {
-                    alert('當檢查是否更新，發生錯誤\n. ' + err.status + ' ' + err.statusText + ' ' + err.responseText)
+                    alert('當檢查是否更新，發生錯誤\n. ' + err)
                 })
         }
     }

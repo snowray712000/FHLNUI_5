@@ -18,6 +18,7 @@ FHL NUI (信望愛聖經工具) is a web-based Bible study tool. The app runs di
 - Don't derive paths from `document.scripts` / the module's own filename; in `dist/` the module becomes `assets/index-[hash].js`. Use paths relative to the page.
 - CSS order matters: `<div class="markdown-body">` inside `<head>` ends `<head>` early, `index/bs4-compat.css` (vite-ignore) sits in Bootstrap 4's old slot, Bootstrap 5 css is appended to `<head>` by `index.js`, then `fhl.css`. Don't reorder without a computed-style diff.
 - No React / Vue / lodash / Bootstrap 4. Old `static/` components use `static/commonR/h.js` (`commonR.h`, `setStyle`, `syncChildren`). Map tab loads leaflet on demand (`ensureLeafletAsync`).
+- No `$.ajax` / `.load()` / XHR: use `fetch`. ES modules use `index/fetchAsync.es2023.js` (`fetchTextAsync` / `fetchJsonAsync`, non-2xx rejects, `timeout` option); classic scripts use `fhl.json_api_text` etc. in `static/search_api/fhl_api.js`, which now return a Promise (the `isAsync` arg is ignored — await instead). Dead copies with ajax remain in root `ijnjs/`, root `ijnjs-fhl/`, `libs/ijnjs/ijnjsold.js`, `tests/`.
 - Node 24 `fs.rmSync` crashes (0xC0000409) on this Windows path with Chinese characters, which is why `emptyOutDir` is off and `npm run build` deletes `dist/` with `fs.promises.rm` first.
 
 ## Architecture

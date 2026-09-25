@@ -6,7 +6,7 @@
 /// <reference path="fhl_api.js" />
 var sephp = sephp || {};
 sephp.pre_search_sn = function pre_search_sn(keyword, isGB, version) {
-  /// <summary> 取得超過 500 限制的結果. 從和合本版本搜尋(因為目前只有它有SN), 新約舊約都會找(依順序輸出) </summary>
+  /// <summary> 取得超過 500 限制的結果. 從和合本版本搜尋(因為目前只有它有SN), 新約舊約都會找(依順序輸出) 回傳 Promise </summary>
   /// <param type="string" name="keyword" parameterArray="false">ex: 652, 652a</param>
   /// <param type="bool" name="isGB" parameterArray="false" optional="true">是簡體結果顯示嗎(預設false)....index only不應該分繁簡體才對...</param>
   /// <param type="string" name="version" parameterArray="false" optional="true">ex: 'unv' 預設unv, 目前也只有unv,kjv可查sn</param>
@@ -41,13 +41,13 @@ sephp.pre_search_sn = function pre_search_sn(keyword, isGB, version) {
     RANGE = 1;
     orig = 1;
     offset = 0;//重設為0
-    action_do_search();
+    return action_do_search();
   }
   function searchOldTestment(){
     RANGE = 2;
     orig = 2;
     offset = 0;//重設為0
-    action_do_search();
+    return action_do_search();
   }
 
   // 2021-07 add by snow,
@@ -78,7 +78,7 @@ sephp.pre_search_sn = function pre_search_sn(keyword, isGB, version) {
     var cnt_this = jr1["record_count"];
     if (cnt_this == 500) {
       offset = 500 + offset;
-      action_do_search();
+      return action_do_search();
     }// 繼續找. 500 筆
     else {
       jret["record"] = linqRecord.toArray();
@@ -95,7 +95,7 @@ sephp.pre_search_sn = function pre_search_sn(keyword, isGB, version) {
 
   // 執行查執 (改變 offset q RANGE 參數即可, 裡面包含了呼叫等)
   action_do_search = function action_do_search() {
-    fhl.json_api_text(func_get_url(), action_search, function (text, pdata) { throw "pre_search_sn text:" + text + " url:" + func_get_url(); }, null, false);
+    return fhl.json_api_text(func_get_url(), action_search, function (text, pdata) { throw "pre_search_sn text:" + text + " url:" + func_get_url(); }, null, false);
   };//action 
 
   // 2021-07 修改 by snow
@@ -107,11 +107,6 @@ sephp.pre_search_sn = function pre_search_sn(keyword, isGB, version) {
       return reRegex[1].toUpperCase() == "H"
     }
   }
-  if (isOldTestment()){
-    searchOldTestment()
-  } else {
-    searchNewTestment()
-  }
-
-  return jret;
+  var promise = isOldTestment() ? searchOldTestment() : searchNewTestment()
+  return promise.then(function () { return jret; });
 };

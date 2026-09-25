@@ -198,7 +198,14 @@ import { Hash_Changed } from './Hash_Changed.js'
                 })()
             })
     } else {
-        $('#app').load('frmUpdated.html #app .container')
+        // 原本 $('#app').load('frmUpdated.html #app .container')：只取該片段，不執行裡面的 <script>
+        fetch('frmUpdated.html')
+            .then(response => response.text())
+            .then(html => {
+                const container = new DOMParser().parseFromString(html, 'text/html').querySelector('#app .container')
+                document.getElementById('app').replaceChildren(...(container ? [document.importNode(container, true)] : []))
+            })
+            .catch(er => console.error(er))
         AppVersion.s.setUpdateDialogVersion();
         AppVersion.s.addClickListVerionsInfosEvent();
         $('#waiting').hide()

@@ -1,5 +1,6 @@
 import { BibleConstant } from "./BibleConstant.es2023.js"
 import { isRDLocation } from "./isRDLocation.es2023.js"
+import { fetchJsonAsync } from "./fetchAsync.es2023.js"
 
        // msg += `\n詞索引: ${r.wid} SN: G${get_sn_shorter(r.sn)} 原文字: ${r.word} 詞性: ${pro} 字彙分析: 『${wform}』 原型: ${r.orig} 原型簡義: 『${r.exp}』 備註:『 ${remark}』`
 /**
@@ -20,7 +21,7 @@ export async function parsing_api_async(address){
     let host = isRDLocation() ? 'https://bible.fhl.net' : ''
     let url = host + endpoint
     try{
-        const response = await $.ajax({ url });
+        const response = await fetchJsonAsync(url);
         if (response.status === "success" && response.record.length > 0) {
             return response;
         }

@@ -133,7 +133,7 @@ function change_book_highlight(pdata, tpClicking) {
         $(`.div_books > .book[book_name="${book_name}"]`).addClass("selected");
     }
 }
-function start_search_and_render_result(pdata){
+async function start_search_and_render_result(pdata){
     /** @type {OneSeRecord[]} */
     const record = pdata.data.jret2
     /** @type {number[]} 若是單卷書，則是 length = 1 的陣列 0based*/
@@ -148,7 +148,10 @@ function start_search_and_render_result(pdata){
     sephp.Lq_ret_group = record2
     sephp.cnt_search = 0; // 目前已經有 0 筆資料具有 bible_text
     
-    const re = Search_continue_search();
+    const re = await Search_continue_search();
+    if (sephp.Lq_ret_group !== record2) {
+        return // 查詢期間使用者又點了別的書卷，這批結果已過時
+    }
     if (re != null && re.length > 0) {
         sephp.node_search_result.innerHTML = "";
         sephp.create_dialog_search_result(re);

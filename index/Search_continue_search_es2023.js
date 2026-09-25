@@ -6,9 +6,9 @@
 // import Enumerable from '../libs/jsdoc/linq';
 
 /**
- * @returns {OneSeRecord[]}
+ * @returns {Promise<OneSeRecord[]|null>}
  */
-export function Search_continue_search() {
+export async function Search_continue_search() {
   /// <summary> 卷軸到底的時候,會呼叫此函式來搜尋 </summary>
   // sephp.Lq_ret_group 可說是 input, 例如使用者已經「點選 "創(30)"」，這就是那30筆資料
 
@@ -22,9 +22,10 @@ export function Search_continue_search() {
   var g_book_all = fhl.g_book_allAuto(sephp.isgb)
 
   var Lq5 = Enumerable.from( Lq_r4s) .groupBy(a1 => a1.ver); // qstr 只能1次1個版本. 所以要分離
-  Lq5.forEach(function (a1) {
-    if (a1.length == 0)
-      return;
+  // 各版本同時查詢，結果依版本原本順序接起來
+  const jrets_qsb = await Promise.all(Lq5.toArray().map(function (a1) {
+    if (a1.getSource().length == 0)
+      return null;
 
     var ver = a1.key();
 
@@ -44,9 +45,12 @@ export function Search_continue_search() {
     });// a2 function
     sqbstr += "|";
 
-    var jret_qsb = qsbphp.search_reference(sqbstr, default_book_name, ver, sephp.issn, sephp.isgb);
-    Lq_record = Lq_record.concat(jret_qsb["record"]);
-  });//a1
+    return qsbphp.search_reference(sqbstr, default_book_name, ver, sephp.issn, sephp.isgb);
+  }));//a1
+  for (const jret_qsb of jrets_qsb) {
+    if (jret_qsb != null)
+      Lq_record = Lq_record.concat(jret_qsb["record"]);
+  }
 
   if (Lq_record.length == 0)
     return null;

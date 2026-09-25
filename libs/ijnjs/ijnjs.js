@@ -127,8 +127,6 @@
      * @returns {Promise<any>}
      */
     this.loadAsync = function loadAsync(libs) {
-      var $ = Ijnjs.Libs.s.libs.$
-
       var srd = getSrd('ijnjs')
       var promises = libs.filter(a1 => a1.na != 'jquery' && !isProvidedByPage(a1.na)).map(a1 => {
         var isHttp = /https?:\/\//i.test(a1.url)
@@ -136,16 +134,11 @@
           a1.url = srd + a1.url
         }
 
-        return new Promise((res2) => {
-          $.ajax({
-            url: a1.url,
-            dataType: 'text',
-            complete: () => {
-              res2()
-            }, success: str => {
-              this.data.caches[a1.na] = { str: str }
-            }
-          })
+        // 失敗也 resolve（原本 $.ajax 的 complete），只是不放進 caches
+        return fetchTextOrUndefinedAsync(a1.url).then(str => {
+          if (str !== undefined) {
+            this.data.caches[a1.na] = { str: str }
+          }
         })
       })
       return Promise.all(promises)
@@ -215,29 +208,24 @@
     if (window.jQuery != undefined) {
       return Promise.resolve({ $: window.jQuery })
     }
-    return new Promise((res, rej) => {
-      var r1 = new XMLHttpRequest()
-      r1.onerror = a1 => { rej(a1) }
-      r1.onload = (a1) => {
-        if (304 == r1.status || (r1.status >= 200 && r1.status < 300)) {
-          var isAlreadyHave = window.$ != undefined
-          FileCache3rd.s.setStr("jquery", r1.responseText)
-          noRequireJs(() => {
-            eval(FileCache3rd.s.getStr("jquery")) // 經測試與看 source code，在 es5下，都是輸出到 window.$
-          })
-          var r2 = {}
-          r2.$ = window.$
-          if (isAlreadyHave == false) {
-            delete window.$
-            delete window.jQuery
-          }
-          res(r2)
-        } else {
-          rej(new Error('status code ' + r1.status + ' ' + r1.statusText))
-        }
+    return fetch(thirdPartFileDescription[0].url).then(response => {
+      if (!response.ok) {
+        throw new Error('status code ' + response.status + ' ' + response.statusText)
       }
-      r1.open('get', thirdPartFileDescription[0].url, true)
-      r1.send()
+      return response.text()
+    }).then(responseText => {
+      var isAlreadyHave = window.$ != undefined
+      FileCache3rd.s.setStr("jquery", responseText)
+      noRequireJs(() => {
+        eval(FileCache3rd.s.getStr("jquery")) // 經測試與看 source code，在 es5下，都是輸出到 window.$
+      })
+      var r2 = {}
+      r2.$ = window.$
+      if (isAlreadyHave == false) {
+        delete window.$
+        delete window.jQuery
+      }
+      return r2
     })
   }
   function processIjnjsFile(caches) {
@@ -685,8 +673,17 @@
     }
     return P.byHref[new URL(url, location.href).href]
   }
+  /**
+   * 下載文字；失敗（網路錯誤或非 2xx）時回傳 undefined，不 reject。
+   * @param {string} url
+   * @returns {Promise<string|undefined>}
+   */
+  function fetchTextOrUndefinedAsync(url) {
+    return fetch(url)
+      .then(response => response.ok ? response.text() : undefined)
+      .catch(() => undefined)
+  }
   function getCacheAsync(fileDescription, isMin, mainJsName) {
-    var $ = Ijnjs.Libs.s.libs.$
     var r1 = toStandardUrls(fileDescription, isMin, mainJsName)
 
     return Promise.all(r1.map(a1 => {
@@ -697,14 +694,10 @@
           res(a1)
           return
         }
-        $.ajax({
-          url: a1.url,
-          dataType: 'text',
-          complete: () => res(a1),
-          success: (str) => {
-            a1.str = str
-            res(a1)
-          }
+        // 失敗也 resolve（原本 $.ajax 的 complete），a1.str 維持 undefined
+        fetchTextOrUndefinedAsync(a1.url).then(str => {
+          a1.str = str
+          res(a1)
         })
       })
     })).then(re => {

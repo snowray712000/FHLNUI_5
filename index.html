@@ -63,8 +63,8 @@
     // 這幾行，只是為了 intellisense 作用
     function AppVersion() {
       this.getHtmlVersion = () => '';
-      this.getLastVersion = () => '';
-      this.testIsLastVersion = () => true;
+      this.getLastVersionAsync = () => Promise.resolve('');
+      this.testIsLastVersionAsync = () => Promise.resolve(true);
       /** 回傳1的時候，表示就是「這次是變更版本」，目前還沒用到此值 */
       this.getCntThisVersion = () => 1;
       /** 當需要更新版本的時候，要設定載入的 dom 版本，#ver-old #ver-new */

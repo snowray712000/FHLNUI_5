@@ -4,6 +4,7 @@ import { ISnDictionary } from './ISnDictionary.es2023.js';
 import { twcbflow } from './twcbflow.es2023.js';
 
 import { isRDLocation } from './isRDLocation.es2023.js';
+import { fetchJsonAsync } from './fetchAsync.es2023.js';
 
 export class SnDictOfTwcb extends ISnDictionary {
     constructor() {
@@ -20,56 +21,17 @@ export class SnDictOfTwcb extends ISnDictionary {
         val += "&gb=0"
         url += val
         if (isRD == false) { // 真實上線 (才不會有 cross-domain 問題)
-            return new Promise((res, rej) => {
-                $.ajax({
-                    url: url,
-                    error: er => {
-                        console.error(er);
-                        rej(er)
-                    },
-                    success: reStr => {
-                        res(JSON.parse(reStr))
-                    },
-                })
+            return fetchJsonAsync(url).catch(er => {
+                console.error(er);
+                throw er
             })
-
         } else { // 先嘗試 127.0.0.1:15600 proxy，失敗再用 虛擬資料(開發用)
-            return new Promise((res, rej) => {
-                $.ajax({
-                    url: `http://127.0.0.1:15600${url}`,
-                    timeout: 1000,
-                    error: er => {
-                        console.warn("可以開啟 python flask 作的 proxy.");
-                        try {
-                            // 嘗試使用 virtual data
-                            // let re = param.isOld ? virtualOld() : virtualNew();
-                            virtualNewOld(param.sn, param.isOld).then( re2 => res( JSON.parse(re2) ))
-                        } catch (error) {
-                            rej(er);
-                        }
-                    },
-                    success: reStr => {
-                        // api 回傳 text，
-                        res(JSON.parse(reStr));
-                    },
-                });
+            return fetchJsonAsync(`http://127.0.0.1:15600${url}`, { timeout: 1000 }).catch(er => {
+                console.warn("可以開啟 python flask 作的 proxy.");
+                // 嘗試使用 virtual data
+                let json_file = param.isOld ? './index/sd_virtual_old_twcb.json' : './index/sd_virtual_new_twcb.json'
+                return fetchJsonAsync(json_file)
             })
-
-            function virtualNewOld(sn, isOld){
-                let json_file = isOld ? './index/sd_virtual_old_twcb.json' : './index/sd_virtual_new_twcb.json'
-                return new Promise((res, rej) => {
-                    $.ajax({
-                        url: json_file,
-                        error: er => {
-                            rej(er)
-                        },
-                        success: joFile => {
-                            let textFile = JSON.stringify(joFile)
-                            res(textFile)
-                        },
-                    })
-                })
-            }
         }
     }
     /**

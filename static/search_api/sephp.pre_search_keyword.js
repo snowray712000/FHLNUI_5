@@ -4,7 +4,7 @@
 /// <reference path="fhl_api.js" />
 var sephp = sephp || {};
 sephp.pre_search_keyword_core = function pre_search_keyword_core(keyword, version, isGB) {
-  /// <summary> 取得超過 500 限制的結果.  </summary>
+  /// <summary> 取得超過 500 限制的結果. 回傳 Promise </summary>
   /// <param type="string" name="keyword" parameterArray="false">ex: 652, 652a</param>
   /// <param type="string" name="version" parameterArray="false" optional="true">ex: 'unv' 參考:https://bkbible.fhl.net/ajax/abv.php </param>
   /// <param type="bool" name="isGB" parameterArray="false" optional="true">關鍵字是簡體嗎? default=false</param>
@@ -53,7 +53,7 @@ sephp.pre_search_keyword_core = function pre_search_keyword_core(keyword, versio
     var cnt_this = jr1["record_count"];
     if (cnt_this == 500) {
       offset = 500 + offset;
-      action_do_search();
+      return action_do_search();
     }// 繼續找. 500 筆
     else {
       jret["record"] = linqRecord.toArray();
@@ -70,30 +70,23 @@ sephp.pre_search_keyword_core = function pre_search_keyword_core(keyword, versio
   };// action search 
 
   action_do_search = function action_do_search() {
-    fhl.json_api_text(func_get_url(), action_search, function (text, pdata) { throw "pre_search_keyword_core text:" + text + " url:" + func_get_url(); }, null, false);
+    return fhl.json_api_text(func_get_url(), action_search, function (text, pdata) { throw "pre_search_keyword_core text:" + text + " url:" + func_get_url(); }, null, false);
   };//action 
 
   // 開始搜尋
-  action_do_search();
-
-  return jret;
+  return action_do_search().then(function () { return jret; });
   //console.log(jret); //debug
   //console.log(func_get_url());//debug
   //linqRecord.WriteLine("$.chineses + '_' + $.chap + '_' + $.sec ");//debug
 };
 sephp.pre_search_keyword = function pre_search_keyword(keyword, versions, isGB) {
-  /// <summary> 取得超過 500 限制的結果. 一個version一個結果. (此平行處理呼叫 pre_search_keyword_core 處理各版本 Parallel)   </summary>
+  /// <summary> 取得超過 500 限制的結果. 一個version一個結果. (此平行處理呼叫 pre_search_keyword_core 處理各版本 Parallel) 回傳 Promise  </summary>
   /// <param type="string" name="keyword" parameterArray="false">ex: 摩西</param>
   /// <param type="string array" name="versions" parameterArray="true">ex: ['unv','kjv'] 參考:https://bkbible.fhl.net/ajax/abv.php </param>
   /// <param type="bool" name="isGB" parameterArray="false" optional="true">關鍵字是簡體嗎? default=false</param>
   /// add 2015.07.18(主)
 
-  var jrets = [];
-  var act_search = function (str, idx) {
-    var jret = sephp.pre_search_keyword_core(keyword, str, isGB);
-    jrets.push(jret);
-  };
-  Enumerable.from(versions).forEach(act_search);
-
-  return jrets;
+  return Promise.all(versions.map(function (str) {
+    return sephp.pre_search_keyword_core(keyword, str, isGB);
+  }));
 };// sephp.pre_search_keyword

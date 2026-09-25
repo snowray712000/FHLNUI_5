@@ -13,6 +13,7 @@
  * 現在改為一般 import。要等 Ijnjs.Libs 準備好才能執行，所以包成 initDialogTemplate()，由 index.js 在原本的時間點呼叫。
  */
 import { OrigDict } from './OrigDict.js'
+import { fetchJsonAsync } from '../fetchAsync.es2023.js'
 import { whenParsingReferenceReady } from './ParsingReference.js'
 import { addBreakLine, addOrigDict, addReference } from './ParsingOrigDict.js'
 import snDictDialogHtml from './SnDictDialog.html?raw'
@@ -52,10 +53,14 @@ export function initDialogTemplate() {
                     setLevelAndPrepareNextLevelDialog(this, levelNext);
 
                     var r2 = button.data('data'); // 雖原本是字串，但會自動轉為 json
+                    var onError = error => {
+                        renderError(this, error);
+                        console.error(error);
+                    }
                     if ('sn' in r2) {
-                        renderOrigDict(this, r2.sn, r2.isOld);
+                        renderOrigDict(this, r2.sn, r2.isOld).catch(onError);
                     } else if ('ref' in r2) {
-                        renderReference(this, r2.ref, r2.book, r2.chap);
+                        renderReference(this, r2.ref, r2.book, r2.chap).catch(onError);
                     }
                 } catch (error) {
                     renderError(this, error);
@@ -74,10 +79,10 @@ export function initDialogTemplate() {
                     } else { }
                 }
 
-                function renderOrigDict(pthis, sn, isOld) {
+                async function renderOrigDict(pthis, sn, isOld) {
                     console.log('isOld ' + isOld);
                     var this$ = $(pthis);
-                    var reDict = new OrigDict().queryFromApi(sn, isOld);
+                    var reDict = await new OrigDict().queryFromApi(sn, isOld);
                     var reDict2 = reDict.map(cvt_each);
                     var reDict3 = merge(reDict2);
                     var html1 = reDict3.map(a1 => generateContent(a1)).join('');
@@ -236,11 +241,11 @@ export function initDialogTemplate() {
                 /**
                  * @param {string} ref
                  */
-                function renderReference(pthis, ref, book, chap) {
+                async function renderReference(pthis, ref, book, chap) {
                     var this$ = $(pthis);
 
 
-                    var html1 = generateReferenceHtml(ref, book);
+                    var html1 = await generateReferenceHtml(ref, book);
                     var test1 = '<div id="ref-content">' + html1 + '</div>';
 
                     var modaltitle$ = this$.find('.modal-title');
@@ -272,13 +277,13 @@ export function initDialogTemplate() {
                  * @param {string} ref 
                  * @param {number} book 
                  */
-                function generateReferenceHtml(ref, book) {
+                async function generateReferenceHtml(ref, book) {
                     var r1 = FHL.ParsingReferenceToAddresses(ref, book);
                     var r2 = FHL.ParsingAddressesToReferenceLink(r1);
 
                     console.log(r2);
 
-                    var r3 = fromApi({ qstr: r2 });
+                    var r3 = await fromApi({ qstr: r2 });
 
                     var r4 = '<div>' + r3.record.map(generateEachRecord).join('') + '</div>';
                     return r4;
@@ -319,9 +324,9 @@ export function initDialogTemplate() {
 
                     /**     
                      * @param {{ver:string,isGb:0|1,isSn:0|1},qstr:string} args 
-                     * @returns {{record:{bible_text:string,chap:number,sec:number,chineses:string}[]}}
+                     * @returns {Promise<{record:{bible_text:string,chap:number,sec:number,chineses:string}[]}>}
                      */
-                    function fromApi(args) {
+                    async function fromApi(args) {
                         args.ver = args.ver !== undefined ? args.ver : 'unv';
                         args.isGb = args.isGb !== undefined ? args.ver : 0;
                         args.isSn = args.isSn !== undefined ? args.isSn : 0;
@@ -336,16 +341,11 @@ export function initDialogTemplate() {
 
                         var re;
                         var er;
-                        $.ajax({
-                            url: (FHL.isLocalHost() ? 'http://bible.fhl.net' : '') + '/json/qsb.php' + url2,
-                            async: false,
-                            success: function (aa) {
-                                re = JSON.parse(aa);
-                            },
-                            error: function (aa) {
-                                er = aa;
-                            }
-                        });
+                        try {
+                            re = await fetchJsonAsync((FHL.isLocalHost() ? 'http://bible.fhl.net' : '') + '/json/qsb.php' + url2);
+                        } catch (aa) {
+                            er = aa;
+                        }
                         if (er !== undefined) {
                             console.error(er + ' 當 qsb.php ' + qsb);
                             return undefined;

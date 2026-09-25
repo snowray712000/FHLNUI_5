@@ -106,35 +106,40 @@ function doLast1() {
                   document.head.appendChild(link);
                 });
               }
-              function setDomVersionInfo() {
+              async function setDomVersionInfo() {
                 if (r4.children().length != 0) {
                   return;
                 }
 
-                for (var it of getDataList()) {
+                var dataList = await getDataListAsync();
+                if (r4.children().length != 0) {
+                  return; // 等待下載時又開了一次
+                }
+                for (var it of dataList) {
                   r4.append($(gHtml(it)));
                 }
                 r4.children(":odd").addClass("odd")
 
                 return;
-                function getDataList() {
-                  var jo = getJoAppVersion()
+                async function getDataListAsync() {
+                  var jo = await getJoAppVersionAsync()
 
                   return jo.nui.historys
-                  function getJoAppVersion() {
-                    var re = {
-                      nui: {
-                        last: '',
-                        historys: [{ na: '', na2: ['', ''], img: [''] }, { na: '', na2: [''] }]
-                      },
-                      rwd: {
-                        last: ''
+                  async function getJoAppVersionAsync() {
+                    try {
+                      // 與 AppVersion、checkHtmlVersion 共用同一次下載（不走快取）
+                      return JSON.parse(await AppVersion.s.getVersionsTextAsync())
+                    } catch (error) {
+                      console.error(error)
+                      return {
+                        nui: {
+                          last: '',
+                          historys: [{ na: '', na2: ['', ''], img: [''] }, { na: '', na2: [''] }]
+                        },
+                        rwd: {
+                          last: ''
+                        }
                       }
-                    }
-                    $.ajax({ url: 'app_versions.json', dataType: 'text', async: false, cache: false, success: cb })
-                    return re
-                    function cb(str) {
-                      re = JSON.parse(str)
                     }
                   }
                 }

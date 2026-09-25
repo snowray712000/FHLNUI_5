@@ -36,11 +36,15 @@ sephp.determine_keywordType = function determine_keywordType(strKeyword) {
 
   return 0;
 };
-sephp.search = function search(keyword, issn, isgb, verions, default_book,isAll) {
-  /// <summary> 0: keywords 1: SN 2:Reference </summary>
+sephp.search = async function search(keyword, issn, isgb, verions, default_book,isAll) {
+  /// <summary> 0: keywords 1: SN 2:Reference 。回傳 Promise </summary>
 
   if (keyword == undefined || keyword.length == 0 )
     return;
+
+  // 連續搜尋時，只顯示最後一次的結果（查詢是非同步的，先送出的可能後回來）
+  var seq = sephp._search_seq = (sephp._search_seq || 0) + 1;
+  var isStale = function () { return seq !== sephp._search_seq; };
 
   sephp.isgb = isgb;
   sephp.issn = issn;
@@ -50,7 +54,8 @@ sephp.search = function search(keyword, issn, isgb, verions, default_book,isAll)
   var itype = sephp.determine_keywordType(keyword);
   if (itype == 2) {
     /*reference*/
-    var jret_qsb = qsbphp.search_reference(keyword, default_book, verions[0], issn, isgb);
+    var jret_qsb = await qsbphp.search_reference(keyword, default_book, verions[0], issn, isgb);
+    if (isStale()) return;
 
     // 產生 result dialog 要用的資料  (這段code與 sephp.create_dialog_presearch.js 中 sephp.pre_search_click  很像)
     var Lq_record = Enumerable.from(jret_qsb["record"]);
@@ -78,7 +83,8 @@ sephp.search = function search(keyword, issn, isgb, verions, default_book,isAll)
     // 搜尋 SN 時，搜尋 UI 開啟 sn。(但經文保持原設定)
     sephp.issn = 1
     
-    var jret = sephp.pre_search_sn(keyword, isgb, 'unv');
+    var jret = await sephp.pre_search_sn(keyword, isgb, 'unv');
+    if (isStale()) return;
 
     var jrets = []; jrets.push(jret);
     sephp.keyword = /(G|H)?(\d+a?)/i.exec(keyword)[2] // 上色 Bug 2021-07 snow
@@ -87,7 +93,8 @@ sephp.search = function search(keyword, issn, isgb, verions, default_book,isAll)
     sephp.create_dialog_presearch(jrets);
   } else {
     /*keyword*/
-    var jrets = sephp.pre_search_keyword(keyword, verions, sephp.isgb);
+    var jrets = await sephp.pre_search_keyword(keyword, verions, sephp.isgb);
+    if (isStale()) return;
       
     sephp.keyword = keyword;
     sephp.node_pre_search.innerHTML = "";

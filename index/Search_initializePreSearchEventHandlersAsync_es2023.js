@@ -1,5 +1,8 @@
 import { testThenDoAsync } from './testThenDo.es2023.js'
 
+/** 捲到底載入下一批中，避免同一批重複查詢 */
+let isContinueSearching = false
+
 export function Search_initializePreSearchEventHandlersAsync() {
     testThenDoAsync({
         cbTest: () =>
@@ -34,10 +37,19 @@ export function Search_initializePreSearchEventHandlersAsync() {
             sephp.copy_text(event);
         }).on("click", "span.seSN", function (event) {
             sephp.sn_click(event);
-        }).on('scroll', function (event) {
+        }).on('scroll', async function (event) {
+            if (isContinueSearching) {
+                return // 上一批還沒回來，捲動會連續觸發
+            }
             if ($(this).scrollTop() + $(this).innerHeight() + 100 >= this.scrollHeight) {
-                var re = sephp.continue_search();
-                if (re != null)
+                const group = sephp.Lq_ret_group
+                isContinueSearching = true
+                try {
+                    var re = await sephp.continue_search();
+                } finally {
+                    isContinueSearching = false
+                }
+                if (re != null && sephp.Lq_ret_group === group)
                     sephp.create_dialog_search_result(re);
             }
         })

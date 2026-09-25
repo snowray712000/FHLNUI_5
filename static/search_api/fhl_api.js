@@ -23,135 +23,96 @@ fhl.urlAjax = urlAjax;
 // fhl.g_book_group
 
 // fhl.xml_api fhl.json_api 函式定義 (這用在 se.php sq.php abv.php 都可以用到)
-fhl.xml_api = function xml_api(url, fncb_success, fncb_error, obj_param, isAsync) {
-  if (isAsync == undefined)//default value
-    isAsync = true;
-  // var root_url = "https://bkbible.fhl.net/ajax/";
-  var root_url = fhl.urlAjax;
+//
+// 原本用 $.ajax，現在用 fetch。
+// - 回傳 Promise：成功時 resolve fncb_success 的回傳值；fncb_error 丟出例外時 reject。
+// - isAsync 參數保留只為相容，已沒有作用：fetch 沒有同步模式。原本傳 false 的呼叫端要改成 await 回傳的 Promise。
+// - fncb_error 的第 1 個參數原本是 jqXHR，現在是 Error。
 
-  var ab_url = root_url + url;
-  ab_url = encodeURI(ab_url).replace("#", "%23"); // encodeURI 不會轉換#符號, 手動轉換
-  return $.ajax({
-    url: ab_url,
-    type: "GET",
-    dataType: "xml",
-    async: isAsync,
-    error: function (xml) {
-      console.debug("xml api error ...");
-      if (fncb_error != null) fncb_error(xml, obj_param);
-    },
-    success: function (xml) {
-      if (fncb_success != null) fncb_success(xml, obj_param);
-    }
-  });// $.ajax(...);
+/**
+ * @param {string} ab_url
+ * @param {"xml"|"json"|"text"} dataType
+ * @param {RequestInit} init
+ * @param {Function} fncb_success
+ * @param {Function} fncb_error
+ * @param {*} obj_param
+ * @param {string} errorMsg
+ * @returns {Promise<any>}
+ */
+fhl._fetch_api = function _fetch_api(ab_url, dataType, init, fncb_success, fncb_error, obj_param, errorMsg) {
+  return fetch(ab_url, init).then(function (response) {
+    if (!response.ok) throw new Error(response.status + " " + response.statusText + " " + ab_url);
+    return response.text();
+  }).then(function (text) {
+    if (dataType == "xml") return new DOMParser().parseFromString(text, "text/xml");
+    if (dataType == "json") return JSON.parse(text);
+    return text;
+  }).then(function (data) {
+    if (fncb_success != null) return fncb_success(data, obj_param);
+  }, function (er) {
+    console.debug(errorMsg);
+    if (fncb_error != null) return fncb_error(er, obj_param);
+  });
+};
+/** encodeURI 不會轉換#符號, 手動轉換 */
+fhl._encode_api_url = function _encode_api_url(root_url, url) {
+  return encodeURI(root_url + url).replace("#", "%23");
+};
+
+fhl.xml_api = function xml_api(url, fncb_success, fncb_error, obj_param, isAsync) {
+  // var root_url = "https://bkbible.fhl.net/ajax/";
+  var ab_url = fhl._encode_api_url(fhl.urlAjax, url);
+  return fhl._fetch_api(ab_url, "xml", {}, fncb_success, fncb_error, obj_param, "xml api error ...");
 };//fhl.xml_api function
 // 小雪 fhl.xml_api fhl.json_api 函式定義 (這用在 se.php sq.php abv.php 都可以用到)
 fhl.json_api = function json_api(url, fncb_success, fncb_error, obj_param, isAsync) {
-  if (isAsync == undefined)//default value
-    isAsync = true;
   //var root_url = "https://bible.fhl.net/json/";
-  var root_url = fhl.urlJSON;
-  var ab_url = root_url + url;
-  ab_url = encodeURI(ab_url).replace("#", "%23"); // encodeURI 不會轉換#符號, 手動轉換
-  return $.ajax({
-    url: ab_url,
-    type: "GET",
-    dataType: "json",
-    async: isAsync,
-    error: function (json) {
-      console.debug("json api error ...");
-      if (fncb_error != null) fncb_error(json, obj_param);
-    },
-    success: function (json) {
-      if (fncb_success != null) fncb_success(json, obj_param);
-    }
-  });// $.ajax(...);
+  var ab_url = fhl._encode_api_url(fhl.urlJSON, url);
+  return fhl._fetch_api(ab_url, "json", {}, fncb_success, fncb_error, obj_param, "json api error ...");
 };//fhl.json_api function
 
 fhl.xml_api_text = function xml_api(url, fncb_success, fncb_error, obj_param, isAsync) {
   /// <summary> 取fhl的json資料, 但是確是取得最原始資料, 原因是 json 有時候不正確, 還是回傳純文字好了 </summary>
   /// <param type="string" name="url">例如 se.php?q=.... 不用包含全部網址 </param>
   /// <param type="Action&lt;string,T>" name="fncb_success">當API成功，要作什麼事，arg1是回傳的文字，arg2是obj_param傳入的。可傳null表示不作事</param>
-  /// <param type="Action&lt;string,T>" name="fncb_error">當API失敗時，要作什麼事，arg1是回傳的文字，arg2是obj_param傳入的。可傳null表示不作事</param>
+  /// <param type="Action&lt;string,T>" name="fncb_error">當API失敗時，要作什麼事，arg1是 Error，arg2是obj_param傳入的。可傳null表示不作事</param>
   /// <param type="Action&lt;T>" name="obj_param">傳入給fnch_success第2個參數。通常是作為存回傳值用的</param>
-  /// <param type="bool" name="isAsync" optional="true">true表示主執行緒會繼續執行，false表示主執行緒會等這個api回傳後再繼續。</param>
+  /// <param type="bool" name="isAsync" optional="true">已無作用（fetch 沒有同步模式），要等結果請 await 回傳的 Promise。</param>
 
-  if (isAsync == undefined)//default value
-    isAsync = true;
   // var root_url = "https://bkbible.fhl.net/ajax/";
-  var root_url = fhl.urlAjax;
-  var ab_url = root_url + url;
-  ab_url = encodeURI(ab_url).replace("#", "%23"); // encodeURI 不會轉換#符號, 手動轉換
-  return $.ajax({
-    url: ab_url,
-    type: "GET",
-    dataType: "text",
-    async: isAsync,
-    error: function (xml) {
-      console.debug("xml api error ...");
-      if (fncb_error != null) fncb_error(xml, obj_param);
-    },
-    success: function (xml) {
-      if (fncb_success != null) fncb_success(xml, obj_param);
-    }
-  });// $.ajax(...);
+  var ab_url = fhl._encode_api_url(fhl.urlAjax, url);
+  return fhl._fetch_api(ab_url, "text", {}, fncb_success, fncb_error, obj_param, "xml api error ...");
 };//fhl.xml_api_text function
 fhl.json_api_text = function json_api_text(url, fncb_success, fncb_error, obj_param, isAsync) {
   /// <summary> 取fhl的json資料, 但是確是取得最原始資料, 原因是 json 有時候不正確, 還是回傳純文字好了 </summary>
   /// <param type="string" name="url">例如 se.php?q=.... 不用包含全部網址 </param>
   /// <param type="Action&lt;string,T>" name="fncb_success">當API成功，要作什麼事，arg1是回傳的文字，arg2是obj_param傳入的。可傳null表示不作事</param>
-  /// <param type="Action&lt;string,T>" name="fncb_error">當API失敗時，要作什麼事，arg1是回傳的文字，arg2是obj_param傳入的。可傳null表示不作事</param>
+  /// <param type="Action&lt;string,T>" name="fncb_error">當API失敗時，要作什麼事，arg1是 Error，arg2是obj_param傳入的。可傳null表示不作事</param>
   /// <param type="Action&lt;T>" name="obj_param">傳入給fnch_success第2個參數。通常是作為存回傳值用的</param>
-  /// <param type="bool" name="isAsync" optional="true">true表示主執行緒會繼續執行，false表示主執行緒會等這個api回傳後再繼續。</param>
+  /// <param type="bool" name="isAsync" optional="true">已無作用（fetch 沒有同步模式），要等結果請 await 回傳的 Promise。</param>
 
-  if (isAsync == undefined)//default value
-    isAsync = true;
   // var root_url = "https://bible.fhl.net/json/";
-  var root_url = fhl.urlJSON;
-  var ab_url = root_url + url;
-  ab_url = encodeURI(ab_url).replace("#", "%23"); // encodeURI 不會轉換#符號, 手動轉換
-  return $.ajax({
-    url: ab_url,
-    type: "GET",
-    dataType: "text",
-    async: isAsync,
-    error: function (jstr) {
-      console.debug("xml api error ...");
-      if (fncb_error != null) fncb_error(jstr, obj_param);
-    },
-    success: function (jstr) {
-      if (fncb_success != null) fncb_success(jstr, obj_param);
-    }
-  });// $.ajax(...);
+  var ab_url = fhl._encode_api_url(fhl.urlJSON, url);
+  return fhl._fetch_api(ab_url, "text", {}, fncb_success, fncb_error, obj_param, "xml api error ...");
 };//fhl.json_api_text function
 fhl.json_api_text_post = function json_api_text_post(url, data, fncb_success, fncb_error, obj_param, isAsync) {
   /// <summary> 取fhl的json資料, 但是確是取得最原始資料, 原因是 json 有時候不正確, 還是回傳純文字好了 </summary>
   /// <param type="string" name="url">例如 se.php?q=.... 不用包含全部網址 </param>
+  /// <param type="string" name="data">例如 version=unv&engs=Gen ，以 application/x-www-form-urlencoded 送出</param>
   /// <param type="Action&lt;string,T>" name="fncb_success">當API成功，要作什麼事，arg1是回傳的文字，arg2是obj_param傳入的。可傳null表示不作事</param>
-  /// <param type="Action&lt;string,T>" name="fncb_error">當API失敗時，要作什麼事，arg1是回傳的文字，arg2是obj_param傳入的。可傳null表示不作事</param>
+  /// <param type="Action&lt;string,T>" name="fncb_error">當API失敗時，要作什麼事，arg1是 Error，arg2是obj_param傳入的。可傳null表示不作事</param>
   /// <param type="Action&lt;T>" name="obj_param">傳入給fnch_success第2個參數。通常是作為存回傳值用的</param>
-  /// <param type="bool" name="isAsync" optional="true">true表示主執行緒會繼續執行，false表示主執行緒會等這個api回傳後再繼續。</param>
+  /// <param type="bool" name="isAsync" optional="true">已無作用（fetch 沒有同步模式），要等結果請 await 回傳的 Promise。</param>
 
-  if (isAsync == undefined)//default value
-    isAsync = true;
   // var root_url = "https://bible.fhl.net/json/";
-  var root_url = fhl.urlJSON;
-  var ab_url = root_url + url;
-  ab_url = encodeURI(ab_url).replace("#", "%23"); // encodeURI 不會轉換#符號, 手動轉換
-  return $.ajax({
-    url: ab_url,
-    type: "POST",
-    data: data,
-    dataType: "text",
-    async: isAsync,
-    error: function (jstr) {
-      console.debug("xml api error ...");
-      if (fncb_error != null) fncb_error(jstr, obj_param);
-    },
-    success: function (jstr) {
-      if (fncb_success != null) fncb_success(jstr, obj_param);
-    }
-  });// $.ajax(...);
+  var ab_url = fhl._encode_api_url(fhl.urlJSON, url);
+  var init = { method: "POST" };
+  if (data != null) {
+    // 與 $.ajax 相同：字串原樣送出，物件轉成 a=1&b=2
+    init.body = typeof data == "string" ? data : new URLSearchParams(data).toString();
+    init.headers = { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" };
+  }
+  return fhl._fetch_api(ab_url, "text", init, fncb_success, fncb_error, obj_param, "xml api error ...");
 };
 // 小雪 聖經書卷群組(目前用在搜尋功能)...因為覺得是共用的，所以定義在fhl namespace中
 /**

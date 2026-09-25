@@ -62,12 +62,12 @@ qsb.qsbapi = function (keyword, default_book, default_version, isSN, isGB) {
   //console.log(data);
   //version=unv&engs=Matt&strong=0&gb=0&qstr=Matt 5
 
-  fhl.json_api_text_post(url, data, action_success, function (text, pdata) { throw text; }, null, false);
+  // 回傳 Promise
+  return fhl.json_api_text_post(url, data, action_success, function (text, pdata) { throw text; }).then(function () { return jret; });
 
   //console.log(jret);
   // .status: "success"
   // .record: [{},{},{}...] ..
   // each .. 
   // bible_text: "就<WG2532>差<WG3992><WTG5660>他们...", chap:2 , chinese:"太", engs:"Matt", ibook:39, sec:8, ver:"unv"
-  return jret;
 };

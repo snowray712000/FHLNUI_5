@@ -6,20 +6,18 @@
   function AppVersion() {
     var that = this;
     this.getHtmlVersion = () => currentSWVer;
-    this.getLastVersion = () => {
-      var ver = "";
-      $.ajax({ url: './app_versions.json', dataType: 'text', cache: false, async: false, success: cb })
-      return ver;
-      function cb(str) {
-        var r1 = JSON.parse(str);
-        ver = r1["nui"]["last"];
-      }
-    }
-    this.testIsLastVersion = function () {
-      return this.getHtmlVersion() == this.getLastVersion()
-    };
     /**
-     * 同 testIsLastVersion，但不用同步 ajax（同步會卡住整頁）。取不到 app_versions.json 時視為最新版，照常啟動。
+     * app_versions.json 中的最新版本
+     * @returns {Promise<string>}
+     */
+    this.getLastVersionAsync = function () {
+      return that.getVersionsTextAsync().then(function (str) {
+        return JSON.parse(str)["nui"]["last"];
+      })
+    }
+    /**
+     * html 是不是最新版本。取不到 app_versions.json 時視為最新版，照常啟動。
+     * （原本的 testIsLastVersion 用同步 ajax，會卡住整頁，已移除）
      * @returns {Promise<boolean>}
      */
     this.testIsLastVersionAsync = function () {
@@ -32,14 +30,16 @@
     /**
      * app_versions.json 的原始文字（不走快取，才能發現有新版）。
      * 啟動時 testIsLastVersionAsync 與 checkHtmlVersion 都要用，同一頁只下載一次（約 38KB）。
-     * 失敗時 reject jqXHR。
+     * 失敗時 reject Error。
      * @returns {Promise<string>}
      */
     var _versionsText = null;
     this.getVersionsTextAsync = function () {
       if (_versionsText == null) {
-        _versionsText = new Promise(function (res, rej) {
-          $.ajax({ url: './app_versions.json', dataType: 'text', cache: false, success: res, error: rej })
+        // 與原本 $.ajax 的 cache: false 相同，加上 _=時間 讓中間的 proxy 也不會給舊的
+        _versionsText = fetch('./app_versions.json?_=' + Date.now(), { cache: 'no-store' }).then(function (response) {
+          if (!response.ok) throw new Error(response.status + ' ' + response.statusText + ' app_versions.json');
+          return response.text();
         });
         _versionsText.catch(function () { _versionsText = null; }); // 失敗的話下次重試
       }
@@ -92,8 +92,9 @@
           ms: 100
         }).then(() => {
           $('#ver-old').text(currentSWVer); // html 檔的版本
-          var ver = that.getLastVersion(); // app_versions.json 中的版本
-          $('#ver-new').text(ver)
+          that.getLastVersionAsync().then(function (ver) {
+            $('#ver-new').text(ver) // app_versions.json 中的版本
+          })
         })
       })
     }
@@ -109,34 +110,38 @@
         })        
       })
       return;
-      function setDomVersionInfo() {
+      async function setDomVersionInfo() {
         if ($('#version-info').children().length != 0) {
           return;
         }
 
-        for (var it of getDataList()) {
+        var dataList = await getDataListAsync();
+        if ($('#version-info').children().length != 0) {
+          return; // 等待下載時又點了一次
+        }
+        for (var it of dataList) {
           $('#version-info').append($(gHtml(it)));
         }
         $('#version-info').children(":odd").addClass("odd")
 
         return;
-        function getDataList() {
-          var jo = getJoAppVersion()
+        async function getDataListAsync() {
+          var jo = await getJoAppVersionAsync()
           return jo.nui.historys
-          function getJoAppVersion() {
-            var re = {
-              nui: {
-                last: '',
-                historys: [{ na: '', na2: ['', ''], img: [''] }, { na: '', na2: [''] }]
-              },
-              rwd: {
-                last: ''
+          async function getJoAppVersionAsync() {
+            try {
+              return JSON.parse(await that.getVersionsTextAsync())
+            } catch (error) {
+              console.error(error)
+              return {
+                nui: {
+                  last: '',
+                  historys: [{ na: '', na2: ['', ''], img: [''] }, { na: '', na2: [''] }]
+                },
+                rwd: {
+                  last: ''
+                }
               }
-            }
-            $.ajax({ url: 'app_versions.json', dataType: 'text', async: false, cache: false, success: cb })
-            return re
-            function cb(str) {
-              re = JSON.parse(str)
             }
           }
         }

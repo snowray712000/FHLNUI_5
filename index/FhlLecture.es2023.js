@@ -33,6 +33,7 @@ import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } fr
 import { assert } from './assert_es2023.js'
 import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
 import { rtAsync } from './rtAsync.js'
+import { fetchJsonAsync } from './fetchAsync.es2023.js'
 
 /*
 若有 2 個譯本，並且是併排方式
@@ -1041,12 +1042,11 @@ function mouseenter_sn_dialog(e) {
             let host = isRDLocation() ? 'https://bible.fhl.net' : ''
             let url = host + endpoint
 
-            $.ajax({
-                url,
+            fetchJsonAsync(url).then(
                 /**
                  * @param {IDParsingResult} a1
                  */
-                success: a1 => {
+                a1 => {
                     if (a1.status == "success" && a1.record.length > 0) {
                         ParsingCache.add(one, a1)
 
@@ -1058,10 +1058,10 @@ function mouseenter_sn_dialog(e) {
                         res("找不到資料 get_parsing_async a")
                     }
                 },
-                error: er => {
+                er => {
                     res("找不到資料 get_parsing_async b")
                 }
-            });
+            );
 
 
         })
@@ -1082,9 +1082,8 @@ function mouseenter_sn_dialog(e) {
         let url = host + endpoint
 
         return new Promise((res, rej) => {
-            $.ajax({
-                url,
-                success: a1 => {
+            fetchJsonAsync(url).then(
+                a1 => {
                     if (a1.status == "success" && a1.record.length > 0) {
                         /** @type {DataOfDictOfFhl_Realtime} */
                         SnDictCache.add(one, a1)
@@ -1098,10 +1097,10 @@ function mouseenter_sn_dialog(e) {
                         res("找不到資料 get_dict_async a")
                     }
                 },
-                error: er => {
+                er => {
                     res("找不到資料 get_dict_async b")
                 }
-            });
+            );
         })
     }
 

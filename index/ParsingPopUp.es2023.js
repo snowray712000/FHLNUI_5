@@ -3,6 +3,7 @@ import { TPPageState } from "./TPPageState.es2023.js";
 import { dev_sbdag } from "./dev_sbdag.es2023.js"
 import { dev_stwcbhdic } from "./dev_stwcbhdic.es2023.js"
 import { getAjaxUrl } from './getAjaxUrl.es2023.js';
+import { fetchTextAsync } from './fetchAsync.es2023.js';
 
 export class ParsingPopUp {
     static #s = null
@@ -88,10 +89,8 @@ export class ParsingPopUp {
             }
             else if (par == "psn") {
                 var ajaxUrl = getAjaxUrl('sd', ps);
-                $.ajax({
-                    url: ajaxUrl
-                }).done(function (d, s, j) {
-                    var jsonObj = JSON.parse(j.responseText);
+                fetchTextAsync(ajaxUrl).then(function (responseText) {
+                    var jsonObj = JSON.parse(responseText);
                     var html = jsonObj.record[0].dic_text;
                     html = parseDic(html);
 
@@ -151,18 +150,16 @@ export class ParsingPopUp {
 
                 // cbol 字典
                 let ajaxUrl = getAjaxUrl('sd', ps);
-                $.ajax({
-                    url: ajaxUrl
-                }).done((d, s, j) => {
+                fetchTextAsync(ajaxUrl).then(responseText => {
                     try {
-                        dict['cbol'] = JSON.parse(j.responseText);;
+                        dict['cbol'] = JSON.parse(responseText);
                     } catch (error) {
                         console.error("Error parsing response:", error);
                     } finally {
                         count_wait--;
                     }
-                }).fail((jqXHR, textStatus, errorThrown) => {
-                    console.error("AJAX request failed:", textStatus, errorThrown);
+                }, er => {
+                    console.error("request failed:", er);
                     count_wait--;
                 });
 
@@ -171,9 +168,7 @@ export class ParsingPopUp {
                 
                 isNewTestament = ps.N == 0
                 let ajaxUrl2 = getAjaxUrl(isNewTestament ? 'sbdag' : 'stwcbhdic', ps);
-                $.ajax({
-                    url: ajaxUrl2
-                }).done((d, s, j) => {
+                fetchTextAsync(ajaxUrl2).then(responseText => {
                     try {
                         // 如果是 local development，回傳假資料
                         if (isLocalHost()) {
@@ -183,15 +178,15 @@ export class ParsingPopUp {
                                 dict['twcb'] = JSON.parse(dev_stwcbhdic());
                             }
                         } else {
-                            dict['twcb'] = JSON.parse(j.responseText);;
+                            dict['twcb'] = JSON.parse(responseText);
                         }
                     } catch (error) {
                         console.error("Error parsing response:", error);
                     } finally {
                         count_wait--;
                     }
-                }).fail((jqXHR, textStatus, errorThrown) => {
-                    console.error("AJAX request failed:", textStatus, errorThrown);
+                }, er => {
+                    console.error("request failed:", er);
                     count_wait--;
                 });                    
 

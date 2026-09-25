@@ -1,4 +1,5 @@
 // ES module（原本由 DialogTemplate.js 從 ijnjs 快取取出後 eval，root 是暫存物件）
+import { fetchJsonAsync } from '../fetchAsync.es2023.js'
 var FHL = window.FHL || {};
 const exported = {};
 
@@ -8,7 +9,7 @@ const exported = {};
          * 使用 queryFromApi()
          */
          function OrigDict() { }
-         OrigDict.prototype._queryFromCbolApi = function (sn = '113', isOld = 0, isGb = 0) {
+         OrigDict.prototype._queryFromCbolApi = async function (sn = '113', isOld = 0, isGb = 0) {
              function cvt(r1) {
                  var re = [];
                  if (r1 !== undefined && r1.record !== undefined && r1.record.length !== 0) {
@@ -24,22 +25,17 @@ const exported = {};
              var re = undefined;
              var er = undefined;
          
-             $.ajax({
-                 url: (this._isLocalHost() ? 'http://bible.fhl.net' : '') + '/json/sd.php?k=' + sn + '&' + gb + '&' + n,
-                 async: false,
-                 success: function (aa) {
-                     re = JSON.parse(aa);
-                 },
-                 error: function (aa) {
-                     er = aa;
-                     console.error(er);
-                 }
-             });
+             try {
+                 re = await fetchJsonAsync((this._isLocalHost() ? 'http://bible.fhl.net' : '') + '/json/sd.php?k=' + sn + '&' + gb + '&' + n);
+             } catch (aa) {
+                 er = aa;
+                 console.error(er);
+             }
          
              return cvt(re);
          };
          /** twcb 是浸宣的官網 */
-         OrigDict.prototype._queryFromTwcbApi = function (sn = '113', isOld = 0, isGb = 0) {
+         OrigDict.prototype._queryFromTwcbApi = async function (sn = '113', isOld = 0, isGb = 0) {
              function cvt(r1) {
                  var re = [];
                  if (r1 !== undefined && r1.record !== undefined && r1.record.length !== 0) {
@@ -59,18 +55,13 @@ const exported = {};
          
                  // sbdag
                  var urlapi = isOld === 1 ? 'stwcbhdic.php' : 'sbdag.php';
-                 $.ajax({
-                     url: '/json/' + urlapi + '?k=' + sn + '&' + gb + '&' + n,
-                     async: false,
-                     success: function (aa) {
-                         re = JSON.parse(aa);
-                         console.log(JSON.stringify(re));
-                     },
-                     error: function (aa) {
-                         er = aa;
-                         console.log(aa);
-                     }
-                 });
+                 try {
+                     re = await fetchJsonAsync('/json/' + urlapi + '?k=' + sn + '&' + gb + '&' + n);
+                     console.log(JSON.stringify(re));
+                 } catch (aa) {
+                     er = aa;
+                     console.log(aa);
+                 }
          
                  return cvt(re);
              }
@@ -86,14 +77,14 @@ const exported = {};
           * @param {string} sn 
           * @param {0|1} isOld 
           * @param {0|1} isGb 
-          * @returns {{w:string,isOld:0|1,sn:string,orig:string,ver:'cbol中文'|'cbol英文'|'浸宣'}[]}
+          * @returns {Promise<{w:string,isOld:0|1,sn:string,orig:string,ver:'cbol中文'|'cbol英文'|'浸宣'}[]>}
           */
-         OrigDict.prototype.queryFromApi = function (sn = '113', isOld = 0, isGb = 0) {
+         OrigDict.prototype.queryFromApi = async function (sn = '113', isOld = 0, isGb = 0) {
              if (sn === undefined) {
                  return [];
              }
-             var re1 = this._queryFromCbolApi(sn, isOld, isGb);
-             var re2 = this._queryFromTwcbApi(sn, isOld, isGb);
+             var re1 = await this._queryFromCbolApi(sn, isOld, isGb);
+             var re2 = await this._queryFromTwcbApi(sn, isOld, isGb);
              for (const it1 of re2) {
                  re1.push(it1);
              }

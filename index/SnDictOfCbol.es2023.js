@@ -2,6 +2,7 @@
 import { ISnDictionary } from "./ISnDictionary.es2023.js"
 import { isRDLocation } from "./isRDLocation.es2023.js"
 import { cbolflow } from "./cbolflow.es2023.js"
+import { fetchJsonAsync } from "./fetchAsync.es2023.js"
 
 export class SnDictOfCbol extends ISnDictionary {
     constructor() {
@@ -20,41 +21,18 @@ export class SnDictOfCbol extends ISnDictionary {
         val += "&gb=0"
         let url = "/json/sd.php" + val
         if (isRD == false) {
-            return new Promise((res, rej) => {
-                $.ajax({
-                    url: url,
-                    error: er => {
-                        console.error(er);
-                        rej(er)
-                    },
-                    success: reStr => {
-
-                        res(reStr) // sd.php 回傳本來就是一個 json 物件，所以不要再用 JSON.parse
-                    },
-                })
+            // sd.php 回傳本來就是一個 json 物件
+            return fetchJsonAsync(url).catch(er => {
+                console.error(er);
+                throw er
             })
         } else {
             // 如果 127.0.0.1:15600 有開著，就使用這個作為 proxy
-            return new Promise((res, rej) =>{
-                $.ajax({
-                    url: `http://127.0.0.1:15600/json/sd.php${val}`,
-                    timeout: 1000,
-                    error: er => {
-                        console.warn("可以開啟 python flask 作的 proxy.");
-                        try {
-                            // 嘗試使用 virtual data
-                            gVirtualData().then(re => res(re))
-                        } catch (error) {
-                            rej(er);
-
-                        }
-                    },
-                    success: reStr => {
-                        res(reStr);
-                    },
-                });
+            return fetchJsonAsync(`http://127.0.0.1:15600/json/sd.php${val}`, { timeout: 1000 }).catch(er => {
+                console.warn("可以開啟 python flask 作的 proxy.");
+                // 嘗試使用 virtual data
+                return gVirtualData()
             })
-
         }
 
         /**
@@ -63,13 +41,7 @@ export class SnDictOfCbol extends ISnDictionary {
          */
         function gVirtualData() {
             let virtual_json_path = param.isOld ? "./index/sd_virtual_old.json" : "./index/sd_virtual_new.json"
-            return new Promise((res, rej) => {
-                $.ajax({
-                    url: virtual_json_path,
-                    success: re => res(re),
-                    error: er => rej(er)
-                })
-            })
+            return fetchJsonAsync(virtual_json_path)
         }
     }
     /**

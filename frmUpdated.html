@@ -220,10 +220,11 @@
   <script>
     // 下面就是測試用的 code 了
     $('#ver-old').text('1.6.5')
-    var joVer = getJoAppVersion()
-    $('#ver-new').text(joVer.nui.last)
+    getJoAppVersionAsync().then(function (joVer) {
+      $('#ver-new').text(joVer.nui.last)
+    })
 
-    function getJoAppVersion() {
+    function getJoAppVersionAsync() {
       var re = {
         nui: {
           last: '',
@@ -233,11 +234,10 @@
           last: ''
         }
       }
-      $.ajax({ url: 'app_versions.json', dataType: 'text', async: false, cache: false, success: cb })
-      return re
-      function cb(str) {
-        re = JSON.parse(str)
-      }
+      return fetch('app_versions.json?_=' + Date.now(), { cache: 'no-store' })
+        .then(function (response) { return response.text() })
+        .then(function (str) { return JSON.parse(str) })
+        .catch(function (error) { console.error(error); return re })
     }
 
     $(() => {
@@ -245,19 +245,23 @@
         setDomVersionInfo()
       })
     })
-    function setDomVersionInfo() {
+    async function setDomVersionInfo() {
       if ($('#version-info').children().length != 0) {
         return;
       }
 
-      for (var it of getDataList()) {
+      var dataList = await getDataListAsync();
+      if ($('#version-info').children().length != 0) {
+        return; // 等待下載時又點了一次
+      }
+      for (var it of dataList) {
         $('#version-info').append($(gHtml(it)));
       }
       $('#version-info').children(":odd").addClass("odd")
 
       return;
-      function getDataList() {
-        var jo = getJoAppVersion()
+      async function getDataListAsync() {
+        var jo = await getJoAppVersionAsync()
         console.log(jo)
         return jo.nui.historys
       }
