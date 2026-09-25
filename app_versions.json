@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "5.7.1",
+        "last": "6.1.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -23,6 +23,15 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.1.1",
+                "na2":
+                [
+                    "📈 優化: 網頁載入速度快很多",
+                    "📈 優化: 原文字型改載入 woff (11MB)，不再下載 ttf (21MB)",
+                    "📝 工程師筆記: vite 化，能 build dist/ ， 注意事項，看 docs/z260925b(dev、build與上傳注意事項).md",
+                    "📝 工程師筆記: .gitignore 改為只列不要的檔，新檔不用再 git add -f；移除未使用的大檔 (gif、字型展示頁、svg 字型)"
                 ]
             },{
                 "na": "5.7.1",
