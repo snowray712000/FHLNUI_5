@@ -303,7 +303,7 @@ async function renderLectureHtml(that) {
         ps.sn_stastic = get_sn_stastic(rspArr, $htmlContent)
 
         // add 2016.10 地圖與照片
-        let htmlContent = (ps.ispos || ps.ispho) ? render_pos_and_pho($htmlContent) : $htmlContent.html() //.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
+        let htmlContent = (ps.ispos || ps.ispho) ? await render_pos_and_pho($htmlContent) : $htmlContent.html() //.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
 
         that.$lecture.find('#lecMain').first()
             .html(htmlContent)
@@ -396,14 +396,14 @@ async function renderLectureHtml(that) {
             dtitle.append($(`<div class=lecContent><div class=versionName>${o.v_name}<span class='closeButton' cname='${cname}'>x</span></div></div>`));
         }
     }
-    function render_pos_and_pho($htmlContent) {
-        let htmlContent = ""
+    async function render_pos_and_pho($htmlContent) {
+        let htmlContent = $htmlContent.html() // sobj.php 失敗時，至少顯示經文
         const ps = TPPageState.s
         const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1];
         var url2 = "sobj.php?engs=" + engs + "&chap=" + ps.chap;
         if (ps.gb == 1)
             url2 += "&gb=1";
-        fhl.json_api_text(url2, function (aa1, aa2) {
+        await fhl.json_api_text(url2, function (aa1, aa2) {
             var jrr1 = JSON.parse(aa1);
             //console.log(jrr1);
 
@@ -472,7 +472,7 @@ async function renderLectureHtml(that) {
             htmlContent = $htmlContent.html();//.html()不包含自己 ... 所以這裡不是設 lecMain 有用的地方
         }, function (aa1, aa2) {
             console.error(aa1);
-        }, null, false); //第4個參數要false,要同步,否則$htmlContent還沒好就被拿來用會出問題
+        }); // 要 await，否則 $htmlContent 還沒處理好就被拿來用
 
         return htmlContent
     }
