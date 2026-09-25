@@ -196,20 +196,6 @@ import { Hash_Changed } from './Hash_Changed.js'
                         $('#waiting').hide()
                     }, 300);
                 })()
-
-
-                // doNoReadyStep1()
-                // doNoReadyStep2()
-                // doNoReadyStep3()
-
-                //Ijnjs.loadJsSync('index/index.js')
-                //// $('<div id=app><app></app></div>').appendTo('body')
-                // Ijnjs.loadJsOrCssSync('./static/js/manifest.3ad1d5771e9b13dbdad2.js')
-                // Ijnjs.loadJsOrCssSync('./static/js/vendor.3504402f0d075d75a38c.js')
-                // Ijnjs.loadJsOrCssSync('./static/js/app.e1b2e980bfe0ec8352ae.js')
-                // Ijnjs.loadJsSync('index/indexLast.js')
-                // Ijnjs.loadJsOrCssSync('index/fhl.css')
-
             })
     } else {
         $('#app').load('frmUpdated.html #app .container')

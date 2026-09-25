@@ -31,7 +31,8 @@
                     "📈 優化: 網頁載入速度快很多",
                     "📈 優化: 原文字型改載入 woff (11MB)，不再下載 ttf (21MB)",
                     "📝 工程師筆記: vite 化，能 build dist/ ， 注意事項，看 docs/z260925b(dev、build與上傳注意事項).md",
-                    "📝 工程師筆記: .gitignore 改為只列不要的檔，新檔不用再 git add -f；移除未使用的大檔 (gif、字型展示頁、svg 字型)"
+                    "📝 工程師筆記: .gitignore 改為只列不要的檔，新檔不用再 git add -f；移除未使用的大檔 (gif、字型展示頁、svg 字型)",
+                    "📝 工程師筆記: Vue、React 已完全移除，刪掉殘留的 vue.js、static/js (webpack Vue app)、react-0.13 共約 1.5MB，dist/ 不再帶上這些檔"
                 ]
             },{
                 "na": "5.7.1",

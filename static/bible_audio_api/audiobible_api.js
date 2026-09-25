@@ -524,13 +524,6 @@ audiobible.c_audiobible.prototype.create = function create() {
       }
     }
 
-    //var rvers = React.createElement(audiobible.R.version, {
-    //    pfn_switch: pfn_switch,
-    //    vers: this.m_versions,
-    //    ver_cur: this.m_versions[this.m_cur_idx]
-    //});
-    //var renderobj = React.render(rvers, div_dropdown);
-
     audiobible.render_version_dropdown(div_dropdown, {
       vers: this.m_versions,
       ver_cur: this.m_versions[this.m_cur_idx],
