@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Table Selection Demo v6 — TableSelector 解耦重構</title>
+  <link rel="stylesheet" href="09_smart_table_selection_rect_demo.css">
+</head>
+<body>
+
+<h2>Smart Table Selection Demo v6</h2>
+<p class="desc">
+  拖曳選取後，選單自動跳出（電腦 cross cell / 平板）。或用 <b>Ctrl+C</b>、面板<b>複製按鈕</b>。
+  右鍵還原為瀏覽器原生選單。
+</p>
+
+<div class="layout">
+
+  <table id="demo">
+    <thead>
+      <tr><td>欄 A</td><td>欄 B</td><td>欄 C</td></tr>
+    </thead>
+    <tbody>
+      <tr><td>A行1 蘋果</td><td>B行1 Apple</td><td>C行1 りんご</td></tr>
+      <tr><td>A行2 香蕉</td><td>B行2 Banana</td><td>C行2 バナナ</td></tr>
+      <tr><td>A行3 橘子</td><td>B行3 Orange</td><td>C行3 オレンジ</td></tr>
+      <tr><td>A行4 西瓜</td><td>B行4 Watermelon</td><td>C行4 スイカ</td></tr>
+    </tbody>
+  </table>
+
+  <div id="panel">
+    <h3>選取狀態</h3>
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+
+    <button id="btn-copy" disabled>📋 複製</button>
+
+    <label>複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+
+</div>
+
+<!-- Context Menu（由 CtxMenu.js 動態填入 items） -->
+<div id="ctx-menu"></div>
+
+<div id="explain">
+  <b>v6 對比 v5 改動：</b><br>
+  &nbsp;・<b>解耦重構</b>：選取狀態機抽出為 <code>TableSelector extends EventTarget</code>。<br>
+  &nbsp;・<code>TableSelector</code> 只負責：繪圖（highlight / cursor）＋消化 pointer 事件狀態機。<br>
+  &nbsp;・選取確認後發出 <code>selectioncommit</code> 事件，payload 使用 row/col index（非 DOM ref）。<br>
+  &nbsp;・「電腦 single 不自動跳選單」的業務規則移至 listener 端，<code>TableSelector</code> 不含 UI 政策。<br>
+  &nbsp;・status 更新、context menu、copy 邏輯各自成為獨立 listener，未來擴充不需修改 <code>TableSelector</code>。<br>
+  &nbsp;・另發出 <code>selectionstart</code>、<code>selectiondrag</code>、<code>selectioncancel</code> 輔助事件。
+</div>
+
+<script type="module" src="09_smart_table_selection_rect_demo.js"></script>
+</body>
+</html>

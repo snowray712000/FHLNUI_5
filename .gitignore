@@ -1,10 +1,20 @@
+# ---- 可重新產生的 ----
 node_modules/
-**/*
-*.ts
-*.js
-docs/
-.vscode/
-images/z2.4.1_sn_table.png
-images/z2.5.1_parsing.png
-images/z*.png
+dist/
+
+# ---- 作業系統 / 當機雜檔 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+*.stackdump
+
+# ---- 編輯器與個人設定 ----
+# .vscode 只共用 settings.json，其餘（個人主題、markdown 預覽樣式）留在本機
+.vscode/*
+!.vscode/settings.json
+# Claude Code 個人權限設定；launch.json 共用
+.claude/settings.local.json
+**/.claude/settings.local.json
+
+# ---- 個人小工具 ----
 call_auto_dir_time.bat

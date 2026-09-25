@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Table Demo v18 — Render Mode 1–4</title>
+
+  <!-- jQuery、touch-punch、Linq、Lodash、jQuery UI -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+          crossorigin="anonymous"></script>
+  <script src="../../../libs/jquery.ui.touch-punch.min.js"></script>
+  <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css">
+
+  <!-- pako（段落資料 .json.gz 解壓縮用） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+
+  <!-- Bootstrap CSS（BookChapDialog / BibleVersionDialog 按鈕樣式） -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+
+  <!-- ijnjs 套件群（載入順序固定） -->
+  <script src="../../../libs/ijnjs/ijnjs.js"></script>
+  <script src="../../../libs/ijnjs-fhl/ijnjs-fhl.js"></script>
+  <script src="../../../libs/ijnjs-ui/ijnjs-ui.js"></script>
+
+  <link rel="stylesheet" href="18_smart_table_joTable_demo.css">
+</head>
+<body>
+
+<h2>Smart Table Demo v18 — Render Mode 1–4</h2>
+<p class="desc">
+  以下拉選單切換 4 種 render mode。<br>
+  <b>Mode 1</b> 逐節 · 並排：每節一行，各譯本左右欄。
+  <b>Mode 2</b> 逐節 · 交錯：每節交錯，各譯本同欄。<br>
+  <b>Mode 3</b> 段落 · 並排：依段落分組，各譯本左右欄（段落資料來自 ncv）。
+  <b>Mode 4</b> 段落 · 交錯：依段落分組，交錯同欄。
+</p>
+
+<p id="loading-status">載入中…</p>
+<p id="foot-status"></p>
+
+<div class="layout">
+
+  <div id="lec-container"></div>
+
+  <div id="panel">
+    <h3>設定</h3>
+
+    <label for="sel-mode">Render Mode</label>
+    <select id="sel-mode">
+      <option value="1">Mode 1 — 逐節 · 並排</option>
+      <option value="2">Mode 2 — 逐節 · 交錯</option>
+      <option value="3">Mode 3 — 段落 · 並排</option>
+      <option value="4">Mode 4 — 段落 · 交錯</option>
+    </select>
+
+    <label class="chk-label">
+      <input type="checkbox" id="chk-show-version" checked>
+      顯示譯本名稱（Mode 2/4）
+    </label>
+
+    <button id="btn-book">歌羅西書 第2章</button>
+    <button id="btn-version">unv / lcc / csb</button>
+    <button id="btn-sn">隱藏 SN</button>
+    <button id="btn-copy" disabled>📋 複製</button>
+
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+
+    <label>複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+
+</div>
+
+<div id="ctx-menu"></div>
+
+<script type="module" src="18_smart_table_joTable_demo.js"></script>
+</body>
+</html>

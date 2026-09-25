@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Table Demo v10 — joTable + render_dtexts + TableSelector</title>
+  <link rel="stylesheet" href="10_smart_table_joTable_demo.css">
+</head>
+<body>
+
+<h2>Smart Table Demo v10 — joTable 資料驅動</h2>
+<p class="desc">
+  由 <b>joTable</b> 資料結構驅動，透過 <b>render_dtexts</b> callback 渲染每個 cell，
+  搭配 <b>TableSelector</b>（09 原版，完全不修改）處理選取。<br>
+  Copy 邏輯從 joTable.cells 取資料，而非 DOM scraping。
+</p>
+
+<div class="layout">
+
+  <!-- TableRenderer 動態生成 table，掛入此容器 -->
+  <div id="table-container"></div>
+
+  <div id="panel">
+    <h3>選取狀態</h3>
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+
+    <button id="btn-copy" disabled>📋 複製</button>
+
+    <label>複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+
+</div>
+
+<!-- Context Menu -->
+<div id="ctx-menu"></div>
+
+<div id="explain">
+  <b>v10 架構重點：</b><br>
+  &nbsp;・<b>資料層</b>：<code>joTable</code>（cells 含 content / rowspan / colspan）<br>
+  &nbsp;・<b>Render 層</b>：<code>render_dtexts(content)</code> callback → HTML string，未來可換成真正的 FHL render<br>
+  &nbsp;・<b>DOM 層</b>：<code>TableRenderer.buildDom(joTable, render_dtexts)</code> → &lt;table&gt;，每個 &lt;td&gt; 帶 <code>data-r / data-c</code><br>
+  &nbsp;・<b>選取層</b>：<code>TableSelector</code>（09 原版，零修改）— 只負責 pointer 事件 + highlight<br>
+  &nbsp;・<b>Copy 邏輯</b>：從 <code>table.querySelectorAll('td.sel')</code> 的 <code>data-r / data-c</code> 反查 <code>joTable.cells</code>，不 query DOM text
+</div>
+
+<script type="module" src="10_smart_table_joTable_demo.js"></script>
+</body>
+</html>

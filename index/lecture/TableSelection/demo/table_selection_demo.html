@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>TableSelection Modular Demo</title>
+  <link rel="stylesheet" href="table_selection_demo.css">
+</head>
+<body>
+  <h2>TableSelection Modular Demo</h2>
+  <p class="desc">
+    這個版本改用 TableSelectionController + SelectionClassRenderer + ClipboardAdapter。
+    只區分「單格」與「跨 cell」兩種狀態；一旦跨出起始 cell，就由 controller 接管選取。
+  </p>
+
+  <div class="layout">
+    <table id="demo">
+      <thead>
+        <tr><td>欄 A</td><td>欄 B</td><td>欄 C</td></tr>
+      </thead>
+      <tbody>
+        <tr><td>A行1 蘋果</td><td>B行1 Apple</td><td>C行1 りんご</td></tr>
+        <tr><td>A行2 香蕉</td><td>B行2 Banana</td><td>C行2 バナナ</td></tr>
+        <tr><td>A行3 橘子</td><td>B行3 Orange</td><td>C行3 オレンジ</td></tr>
+        <tr><td>A行4 西瓜</td><td>B行4 Watermelon</td><td>C行4 スイカ</td></tr>
+      </tbody>
+    </table>
+
+    <div id="panel">
+      <h3>選取狀態</h3>
+      <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+      <div id="status-detail"></div>
+
+      <label>Ctrl+C 複製結果：</label>
+      <div id="copy-output">（尚未複製）</div>
+    </div>
+  </div>
+
+  <div id="explain">
+    這個 demo 的目的是驗證：一旦跨出起始 cell，就停止原生文字選取並改由 controller 接管。<br>
+    若拖曳又回到同一個 cell，則回到 single 狀態。跨 cell 的高亮一律藍底白字。<br>
+    匯入檔案：<code>core/TableSelectionController.js</code>、<code>renderers/SelectionClassRenderer.js</code>、<code>adapters/ClipboardAdapter.js</code>、<code>ui/SelectionStatusPresenter.js</code>
+  </div>
+
+  <script type="module" src="table_selection_demo.js"></script>
+</body>
+</html>

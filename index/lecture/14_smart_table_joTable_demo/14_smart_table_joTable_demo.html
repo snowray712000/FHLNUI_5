@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Table Demo v14 — 書卷章節 + 譯本切換</title>
+
+  <!-- jQuery、touch-punch、Linq、Lodash、jQuery UI -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+          integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+          crossorigin="anonymous"></script>
+  <script src="../../../libs/jquery.ui.touch-punch.min.js"></script>
+  <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css">
+
+  <!-- Bootstrap CSS（BookChapDialog / BibleVersionDialog 按鈕樣式） -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+
+  <!-- ijnjs 套件群（載入順序固定） -->
+  <script src="../../../libs/ijnjs/ijnjs.js"></script>
+  <script src="../../../libs/ijnjs-fhl/ijnjs-fhl.js"></script>
+  <script src="../../../libs/ijnjs-ui/ijnjs-ui.js"></script>
+
+  <link rel="stylesheet" href="14_smart_table_joTable_demo.css">
+</head>
+<body>
+
+<h2>Smart Table Demo v14 — 書卷章節 + 譯本切換</h2>
+<p class="desc">
+  在 13 版基礎上，加入譯本切換：點「切換譯本」開啟專案內建的 BibleVersionDialog。<br>
+  <code>bible_text</code> → <code>cvt_others()</code> → <code>DText[]</code>
+  → <code>dtexts_render()</code> → DOM
+</p>
+
+<p id="loading-status">載入中…</p>
+
+<div class="layout">
+
+  <div id="table-container"></div>
+
+  <div id="panel">
+    <h3>章節、譯本與選取</h3>
+
+    <button id="btn-book">以弗所書 第3章</button>
+    <button id="btn-version">unv / kjv / rcuv</button>
+    <button id="btn-sn">隱藏 SN</button>
+    <button id="btn-copy" disabled>📋 複製</button>
+
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+
+    <label>複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+
+</div>
+
+<div id="ctx-menu"></div>
+
+<script type="module" src="14_smart_table_joTable_demo.js"></script>
+</body>
+</html>

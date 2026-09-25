@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Table Selection Demo v4 — 結構化資料渲染 + rowspan</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 24px; background: #f0f0f0; }
+    h2 { margin-bottom: 4px; }
+    p.desc { margin: 0 0 16px; color: #444; font-size: 0.9em; }
+
+    .layout { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+
+    /* ── Table ── */
+    table#demo {
+      border-collapse: collapse;
+      background: white;
+      cursor: default;
+      touch-action: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+    table#demo td {
+      border: 1px solid #aaa;
+      padding: 10px 22px;
+      min-width: 140px;
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    table#demo thead td {
+      background: #d0d0d0;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+    }
+    table#demo td.col-sel { background: #1a7fd4 !important; color: white !important; }
+    table#demo td.row-sel { background: #e07b00 !important; color: white !important; }
+
+    /* isRef 節數標記 */
+    .ref-mark {
+      font-size: 0.78em;
+      font-weight: bold;
+      color: #1a7fd4;
+      vertical-align: super;
+      cursor: help;
+      margin-right: 1px;
+    }
+    table#demo td.col-sel .ref-mark,
+    table#demo td.row-sel .ref-mark { color: #cce4ff; }
+
+    /* ── Status panel ── */
+    #panel {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 18px 20px;
+      min-width: 220px;
+      font-size: 0.88em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #panel h3 { margin: 0 0 12px; font-size: 1em; }
+    #mode-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.95em;
+      margin-bottom: 10px;
+    }
+    .badge-none   { background: #ccc;    color: #555;  }
+    .badge-col    { background: #1a7fd4; color: white; }
+    .badge-row    { background: #e07b00; color: white; }
+    .badge-single { background: #2d8a4e; color: white; }
+    #status-detail { margin-bottom: 14px; color: #333; line-height: 1.7; }
+    #panel label { font-weight: bold; display: block; margin-bottom: 4px; }
+    #btn-copy {
+      display: block; width: 100%; padding: 8px 0; margin-bottom: 10px;
+      background: #1a7fd4; color: white; border: none; border-radius: 4px;
+      font-size: 1em; font-weight: bold; cursor: pointer;
+    }
+    #btn-copy:hover   { background: #155fa0; }
+    #btn-copy:disabled { background: #aaa; cursor: default; }
+    #copy-output {
+      background: #f5f5f5; border: 1px solid #ddd; padding: 8px;
+      font-family: monospace; white-space: pre; min-height: 36px;
+      font-size: 0.88em; color: #222;
+    }
+
+    /* ── Context menu ── */
+    #ctx-menu {
+      position: fixed; display: none; background: white;
+      border: 1px solid #ccc; border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 9999; min-width: 140px; padding: 4px 0;
+    }
+    #ctx-menu .item {
+      padding: 9px 18px; cursor: pointer;
+      font-size: 0.92em; user-select: none;
+    }
+    #ctx-menu .item:hover          { background: #e8f0fe; }
+    #ctx-menu .item.disabled       { color: #aaa; cursor: default; }
+    #ctx-menu .item.disabled:hover { background: white; }
+    #ctx-menu .separator           { border-top: 1px solid #eee; margin: 4px 0; }
+
+    /* 右鍵提示泡泡 */
+    #ctx-hint {
+      position: fixed; display: none; background: #333; color: white;
+      padding: 6px 12px; border-radius: 6px; font-size: 0.85em;
+      pointer-events: none; z-index: 9999; white-space: nowrap;
+    }
+    #ctx-hint::before {
+      content: ''; position: absolute; top: -6px; left: 16px;
+      border: 6px solid transparent;
+      border-bottom-color: #333; border-top: none;
+    }
+
+    /* ── Explanation ── */
+    #explain {
+      margin-top: 24px; background: white;
+      border-left: 4px solid #2d8a4e;
+      padding: 14px 18px; font-size: 0.82em; line-height: 1.75;
+      color: #333; max-width: 760px;
+    }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<h2>Smart Table Selection Demo v4 — 結構化資料 + rowspan</h2>
+<p class="desc">
+  由 <code>joTable</code> 物件動態渲染，支援 <code>rowspan</code>。
+  同欄→Column-based（藍）；跨欄→矩形 Row-based（橘）；單格→字元選取。
+</p>
+
+<div class="layout">
+  <table id="demo"></table><!-- 由 JS 渲染 -->
+
+  <div id="panel">
+    <h3>選取狀態</h3>
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+    <button id="btn-copy" disabled>📋 複製</button>
+    <label>複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+</div>
+
+<div id="ctx-hint">👆 請在此處按右鍵</div>
+<div id="ctx-menu">
+  <div class="item" id="ctx-copy">📋 複製</div>
+  <div class="separator"></div>
+  <div class="item" id="ctx-native">顯示瀏覽器原本選單…</div>
+</div>
+
+<div id="explain">
+  <b>★ v4 新增：結構化資料渲染</b><br>
+  <code>joTable</code> 物件描述表格結構（r/c/rs/cs/content），<code>renderJoTable()</code> 動態建立 DOM，
+  並在每個 <code>&lt;td&gt;</code> 上寫入 <code>data-vrow</code> / <code>data-vcol</code>（視覺座標，1-based）。<br><br>
+  <code>render_dtexts(content)</code> 迭代 content 陣列：<code>isRef:1</code> 項目渲染為
+  <code>&lt;sup class="ref-mark"&gt;</code>（可 hover 看 ref-desc）；其餘為純文字節點。回傳 <code>jQuery&lt;span&gt;</code>。<br><br>
+  選取邏輯改用 <code>gridMap[&apos;r,c&apos;]</code>（1-based）查 TD，<code>getCellsInRange()</code>
+  自動處理 rowspan/colspan 重疊，避免重複選取。
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════
+// 資料定義
+// ════════════════════════════════════════════════════════════════════════
+
+const joTable = {
+  r: 3,
+  c: 2,
+  headers: [
+    { c: 1, content: [{ w: 'KJV' }] },
+    { c: 2, content: [{ w: '和合本' }] },
+  ],
+  cells: [
+    { r: 1, c: 1, content: [
+        { w: '1 ', isRef: 1, 'ref-desc': '創 1:1' },
+        { w: 'In the beginning God created the heavens and the earth.' },
+    ]},
+    { r: 2, c: 1, rs: 2, content: [
+        { w: '2–3 ', isRef: 1, 'ref-desc': '創 1:2-3' },
+        { w: 'The earth was without form and void, and darkness was over the face of the deep. And the Spirit of God was hovering over the face of the waters. And God said, “Let there be light,” and there was light.' },
+    ]},
+    { r: 1, c: 2, content: [
+        { w: '1 ', isRef: 1, 'ref-desc': '創 1:1' },
+        { w: '起初　神創造天地。' },
+    ]},
+    { r: 2, c: 2, content: [
+        { w: '2 ', isRef: 1, 'ref-desc': '創 1:2' },
+        { w: '地是空虛混沌，淵面黑暗；　神的靈運行在水面上。' },
+    ]},
+    { r: 3, c: 2, content: [
+        { w: '3 ', isRef: 1, 'ref-desc': '創 1:3' },
+        { w: '　神說：「要有光」，就有了光。' },
+    ]},
+  ],
+};
+
+// ════════════════════════════════════════════════════════════════════════
+// render_dtexts(content) → jQuery<span>
+// ════════════════════════════════════════════════════════════════════════
+
+/**
+ * 將 content 陣列渲染為 jQuery<span>。
+ * isRef:1 → <sup class="ref-mark" title="ref-desc">
+ * 其餘   → 純文字節點
+ */
+function render_dtexts(content) {
+  const $span = $('<span>');
+  for (const item of content) {
+    if (item.isRef) {
+      $('<sup class="ref-mark">')
+        .text(item.w)
+        .attr('title', item['ref-desc'] ?? '')
+        .appendTo($span);
+    } else {
+      $span.append(document.createTextNode(item.w));
+    }
+  }
+  return $span;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// renderJoTable — 動態建立 DOM，填寫 gridMap
+// ════════════════════════════════════════════════════════════════════════
+
+/**
+ * gridMap['r,c'] = tdElement   (1-based 視覺座標)
+ * 同一個 rowspanned TD 會在多個 key 中出現（供 getCellsInRange 使用）。
+ */
+const gridMap = {};
+
+function renderJoTable(jot) {
+  const tableEl = document.getElementById('demo');
+  tableEl.innerHTML = '';
+
+  // ── thead
+  const thead = tableEl.createTHead();
+  const hRow  = thead.insertRow();
+  for (const h of jot.headers) {
+    const th = document.createElement('td');
+    render_dtexts(h.content).appendTo(th);
+    hRow.appendChild(th);
+  }
+
+  // ── tbody
+  const tbody = tableEl.createTBody();
+  const occupied = {}; // 標記已由 rowspan/colspan 佔用的視覺格
+
+  for (let r = 1; r <= jot.r; r++) {
+    const tr = tbody.insertRow();
+    for (let c = 1; c <= jot.c; c++) {
+      if (occupied[`${r},${c}`]) continue; // 被上方 rowspan 佔用，略過
+
+      const cellData = jot.cells.find(cell => cell.r === r && cell.c === c);
+      const td = document.createElement('td');
+
+      const rs = cellData?.rs ?? 1;
+      const cs = cellData?.cs ?? 1;
+      if (rs > 1) td.rowSpan = rs;
+      if (cs > 1) td.colSpan = cs;
+
+      // ★ 視覺座標 data 屬性（選取邏輯使用）
+      td.dataset.vrow = r;
+      td.dataset.vcol = c;
+      td.dataset.rspan = rs;
+      td.dataset.cspan = cs;
+
+      if (cellData) {
+        render_dtexts(cellData.content).appendTo(td);
+      }
+
+      tr.appendChild(td);
+
+      // 填入 gridMap（含所有被此 td 覆蓋的視覺格）
+      for (let dr = 0; dr < rs; dr++) {
+        for (let dc = 0; dc < cs; dc++) {
+          const key = `${r + dr},${c + dc}`;
+          gridMap[key] = td;
+          if (dr > 0 || dc > 0) occupied[key] = true;
+        }
+      }
+    }
+  }
+}
+
+renderJoTable(joTable);
+
+// ════════════════════════════════════════════════════════════════════════
+// UI 節點
+// ════════════════════════════════════════════════════════════════════════
+
+const table        = document.getElementById('demo');
+const modeBadge    = document.getElementById('mode-badge');
+const statusDetail = document.getElementById('status-detail');
+const copyOutput   = document.getElementById('copy-output');
+const btnCopy      = document.getElementById('btn-copy');
+const ctxMenu      = document.getElementById('ctx-menu');
+const ctxCopy      = document.getElementById('ctx-copy');
+const ctxNative    = document.getElementById('ctx-native');
+const ctxHint      = document.getElementById('ctx-hint');
+
+// ════════════════════════════════════════════════════════════════════════
+// 選取狀態
+// ════════════════════════════════════════════════════════════════════════
+
+let startCell   = null;
+let currentCell = null;
+let hasCrossed  = false;
+let currentMode = null;   // 'col' | 'row' | 'single' | null
+let rowGroups   = null;
+
+// ── helpers
+
+function tdAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el?.closest('#demo tbody td') ?? null;
+}
+
+/** 視覺座標（1-based），使用 data 屬性，rowspan TD 回傳起始格座標 */
+function pos(td) {
+  return {
+    row: parseInt(td.dataset.vrow),
+    col: parseInt(td.dataset.vcol),
+  };
+}
+
+function clearHighlights() {
+  table.querySelectorAll('td.col-sel, td.row-sel').forEach(td =>
+    td.classList.remove('col-sel', 'row-sel'));
+}
+
+function setStatus(mode, detail) {
+  currentMode = mode;
+  const cfg = {
+    col:    { text: 'Column-based',   cls: 'badge-col'    },
+    row:    { text: 'Row-based 矩形',  cls: 'badge-row'    },
+    single: { text: '單格字元選取',    cls: 'badge-single' },
+  };
+  modeBadge.textContent = cfg[mode].text;
+  modeBadge.className   = cfg[mode].cls;
+  statusDetail.textContent = detail;
+  btnCopy.disabled = false;
+  ctxCopy.classList.remove('disabled');
+}
+
+/**
+ * 取得視覺矩形 [minRow,maxRow] × [minCol,maxCol] 內所有不重複的 TD。
+ * 合併儲存格只出現一次（以 gridMap 去重）。
+ */
+function getCellsInRange(minRow, maxRow, minCol, maxCol) {
+  const seen = new Set();
+  const result = [];
+  for (let r = minRow; r <= maxRow; r++) {
+    for (let c = minCol; c <= maxCol; c++) {
+      const td = gridMap[`${r},${c}`];
+      if (td && !seen.has(td)) { seen.add(td); result.push(td); }
+    }
+  }
+  return result;
+}
+
+// ── Selection logic
+
+function applySingleCell(td) {
+  clearHighlights();
+  rowGroups = null;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  const range = document.createRange();
+  range.selectNodeContents(td);
+  sel.addRange(range);
+  const p = pos(td);
+  setStatus('single', `(列${p.row},欄${p.col}) — 整格選取`);
+}
+
+function applyColSelection(start, end) {
+  clearHighlights();
+  const sp = pos(start), ep = pos(end);
+  const col    = sp.col;
+  const minRow = Math.min(sp.row, ep.row);
+  const maxRow = Math.max(sp.row, ep.row);
+  window.getSelection().removeAllRanges();
+  const cells = getCellsInRange(minRow, maxRow, col, col);
+  cells.forEach(td => td.classList.add('col-sel'));
+  setStatus('col', `欄 ${col}，列 ${minRow}–${maxRow}（${cells.length} 格）`);
+}
+
+/** 回傳 [[td,...], [td,...], ...]，rowspan td 只出現在第一次遇到的 row group */
+function buildRowGroups(minRow, maxRow, minCol, maxCol) {
+  const seen = new Set();
+  const groups = [];
+  for (let r = minRow; r <= maxRow; r++) {
+    const rowArr = [];
+    for (let c = minCol; c <= maxCol; c++) {
+      const td = gridMap[`${r},${c}`];
+      if (td && !seen.has(td)) { seen.add(td); rowArr.push(td); }
+    }
+    if (rowArr.length > 0) groups.push(rowArr);
+  }
+  return groups;
+}
+
+function applyRowSelection(start, end) {
+  clearHighlights();
+  const sp = pos(start), ep = pos(end);
+  const minRow = Math.min(sp.row, ep.row), maxRow = Math.max(sp.row, ep.row);
+  const minCol = Math.min(sp.col, ep.col), maxCol = Math.max(sp.col, ep.col);
+
+  rowGroups = buildRowGroups(minRow, maxRow, minCol, maxCol);
+  window.getSelection().removeAllRanges();
+  getCellsInRange(minRow, maxRow, minCol, maxCol)
+    .forEach(td => td.classList.add('row-sel'));
+
+  setStatus('row',
+    `矩形 列${minRow}–${maxRow} × 欄${minCol}–${maxCol}（${rowGroups.flat().length} 格）`);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Copy logic
+// ════════════════════════════════════════════════════════════════════════
+
+function buildCopyData() {
+  if (currentMode === 'col') {
+    const cells    = [...table.querySelectorAll('td.col-sel')];
+    const plain    = cells.map(td => td.textContent).join('\n');
+    const htmlRows = cells.map(td => {
+      const rs = td.rowSpan > 1 ? ` rowspan="${td.rowSpan}"` : '';
+      return `<tr><td${rs}>${td.innerHTML}</td></tr>`;
+    }).join('');
+    return { plain, html: `<table border="1">${htmlRows}</table>` };
+  }
+  if (currentMode === 'row') {
+    const groups = rowGroups ?? [];
+    const plain  = groups.map(r => r.map(td => td.textContent).join('\t')).join('\n');
+    const htmlRows = groups.map(r =>
+      `<tr>${r.map(td => {
+        const rs = td.rowSpan > 1 ? ` rowspan="${td.rowSpan}"` : '';
+        const cs = td.colSpan > 1 ? ` colspan="${td.colSpan}"` : '';
+        return `<td${rs}${cs}>${td.innerHTML}</td>`;
+      }).join('')}</tr>`).join('');
+    return { plain, html: `<table border="1">${htmlRows}</table>` };
+  }
+  if (currentMode === 'single') {
+    return { plain: window.getSelection().toString(), html: null };
+  }
+  return { plain: null, html: null };
+}
+
+async function performCopy() {
+  const { plain, html } = buildCopyData();
+  if (plain === null) return;
+
+  let ok = false;
+  if (navigator.clipboard) {
+    try {
+      if (html && navigator.clipboard.write) {
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html':  new Blob([html],  { type: 'text/html'  }),
+          'text/plain': new Blob([plain], { type: 'text/plain' }),
+        })]);
+      } else {
+        await navigator.clipboard.writeText(plain);
+      }
+      ok = true;
+    } catch (_) {}
+  }
+  if (!ok) {
+    const ta = Object.assign(document.createElement('textarea'),
+      { value: plain, style: 'position:fixed;opacity:0' });
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  copyOutput.textContent = (html ? '[HTML table + 純文字]\n' : '[純文字]\n') + plain;
+}
+
+document.addEventListener('copy', e => {
+  if (!currentMode) return;
+  e.preventDefault();
+  const { plain, html } = buildCopyData();
+  if (html) {
+    e.clipboardData.setData('text/html',  html);
+    e.clipboardData.setData('text/plain', plain);
+  } else if (plain !== null) {
+    e.clipboardData.setData('text/plain', plain);
+  }
+  copyOutput.textContent = (html ? '[HTML table + 純文字]\n' : '[純文字]\n') + (plain ?? '');
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// Mouse & Touch events
+// ════════════════════════════════════════════════════════════════════════
+
+function onDragStart(td) {
+  startCell   = td;
+  currentCell = td;
+  hasCrossed  = false;
+  currentMode = null;
+  rowGroups   = null;
+  clearHighlights();
+  btnCopy.disabled = true;
+  ctxCopy.classList.add('disabled');
+  modeBadge.textContent = '拖曳中…';
+  modeBadge.className   = 'badge-none';
+  statusDetail.textContent = '';
+}
+
+function onDragMove(x, y) {
+  if (!startCell) return;
+  const td = tdAt(x, y);
+  if (!td) return;
+  if (!hasCrossed && td === startCell) return;
+
+  hasCrossed = true;
+  if (td === currentCell) return;
+  currentCell = td;
+
+  if (td === startCell) { applySingleCell(td); return; }
+
+  window.getSelection().removeAllRanges();
+  const sp = pos(startCell), ep = pos(currentCell);
+  if (sp.col === ep.col) applyColSelection(startCell, currentCell);
+  else                   applyRowSelection(startCell, currentCell);
+}
+
+function onDragEnd() {
+  if (!startCell) return;
+  if (!hasCrossed) {
+    const p = pos(startCell);
+    setStatus('single', `(列${p.row},欄${p.col}) — 可拖曳選取字元`);
+  }
+  startCell = null;
+}
+
+table.addEventListener('mousedown', e => {
+  if (e.button !== 0) return;
+  const td = tdAt(e.clientX, e.clientY);
+  if (td) onDragStart(td);
+});
+document.addEventListener('mousemove', e => {
+  if (!startCell || !(e.buttons & 1)) return;
+  e.preventDefault();
+  onDragMove(e.clientX, e.clientY);
+});
+document.addEventListener('mouseup', () => onDragEnd());
+
+table.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  const td = tdAt(t.clientX, t.clientY);
+  if (td) onDragStart(td);
+}, { passive: true });
+table.addEventListener('touchmove', e => {
+  if (!startCell) return;
+  const t = e.touches[0];
+  const td = tdAt(t.clientX, t.clientY);
+  if (td && td !== startCell) e.preventDefault();
+  onDragMove(t.clientX, t.clientY);
+}, { passive: false });
+table.addEventListener('touchend', () => onDragEnd());
+
+// ════════════════════════════════════════════════════════════════════════
+// Context menu
+// ════════════════════════════════════════════════════════════════════════
+
+let bypassNextContextMenu = false;
+let ctxHintTimer = null;
+
+function showCtxMenu(x, y) {
+  ctxMenu.style.left = x + 'px';
+  ctxMenu.style.top  = y + 'px';
+  ctxMenu.style.display = 'block';
+  const r = ctxMenu.getBoundingClientRect();
+  if (r.right  > window.innerWidth)  ctxMenu.style.left = (x - r.width)  + 'px';
+  if (r.bottom > window.innerHeight) ctxMenu.style.top  = (y - r.height) + 'px';
+}
+
+function hideCtxMenu() { ctxMenu.style.display = 'none'; }
+
+table.addEventListener('contextmenu', e => {
+  hideCtxHint();
+  if (bypassNextContextMenu) { bypassNextContextMenu = false; return; }
+  e.preventDefault();
+  showCtxMenu(e.clientX, e.clientY);
+}, { capture: true });
+
+// capture-phase 監聽：確保 hideCtxHint 在 bypass check 之前執行
+table.addEventListener('contextmenu', () => hideCtxHint(), { capture: true });
+
+document.addEventListener('click',  e => { if (!ctxMenu.contains(e.target)) hideCtxMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideCtxMenu(); });
+
+ctxCopy.addEventListener('click', () => {
+  if (ctxCopy.classList.contains('disabled')) return;
+  hideCtxMenu();
+  performCopy();
+});
+
+function showCtxHint(x, y) {
+  ctxHint.style.left    = x + 'px';
+  ctxHint.style.top     = (y + 12) + 'px';
+  ctxHint.style.display = 'block';
+}
+function hideCtxHint() {
+  ctxHint.style.display = 'none';
+  clearTimeout(ctxHintTimer);
+}
+
+ctxNative.addEventListener('click', e => {
+  hideCtxMenu();
+  bypassNextContextMenu = true;
+  showCtxHint(e.clientX, e.clientY);
+  ctxHintTimer = setTimeout(hideCtxHint, 5000);
+});
+
+// ── 面板按鈕
+
+btnCopy.addEventListener('click', () => performCopy());
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Table Selection Demo v3 — 右鍵/觸控複製</title>
+  <link rel="stylesheet" href="06_smart_table_selection_rect_demo.css">
+</head>
+<body>
+
+<h2>Smart Table Selection Demo v3 — 右鍵 / 觸控複製</h2>
+<p class="desc">
+  拖曳選取後，可用：<b>Ctrl+C</b>、<b>右鍵→複製</b>、或面板上的<b>複製按鈕</b>（平板觸控友善）。
+</p>
+
+<div class="layout">
+
+  <table id="demo">
+    <thead>
+      <tr><td>欄 A</td><td>欄 B</td><td>欄 C</td></tr>
+    </thead>
+    <tbody>
+      <tr><td>A行1 蘋果</td><td>B行1 Apple</td><td>C行1 りんご</td></tr>
+      <tr><td>A行2 香蕉</td><td>B行2 Banana</td><td>C行2 バナナ</td></tr>
+      <tr><td>A行3 橘子</td><td>B行3 Orange</td><td>C行3 オレンジ</td></tr>
+      <tr><td>A行4 西瓜</td><td>B行4 Watermelon</td><td>C行4 スイカ</td></tr>
+    </tbody>
+  </table>
+
+  <div id="panel">
+    <h3>選取狀態</h3>
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+
+    <button id="btn-copy" disabled>📋 複製</button>
+
+    <label>複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+
+</div>
+
+<!-- ★ 右鍵 Context Menu -->
+<div id="ctx-menu">
+  <div class="item" id="ctx-copy">📋 複製</div>
+  <div class="separator"></div>
+  <div class="item" id="ctx-native">顯示瀏覽器原本選單…</div>
+</div>
+
+<div id="explain">
+  <span class="s">■ 單格</span>：原生字元選取。<br>
+  <span class="c">■ Column-based</span>：同欄跨列，CSS 藍色，Copy → <code>text/html</code> 單欄表格 + <code>text/plain</code> 換行。<br>
+  <span class="r">■ Row-based 矩形</span>：minRow–maxRow × minCol–maxCol，CSS 橘色，Copy → <code>text/html</code> table + <code>text/plain</code>。<br><br>
+  <b>★ v3 新增</b>：<br>
+  &nbsp;・面板「複製」按鈕：選取後直接點擊，平板最易操作。<br>
+  &nbsp;・右鍵 Context Menu：攔截 <code>contextmenu</code> 事件，顯示自訂選單。長按平板也會觸發。<br>
+  &nbsp;・Touch 支援：<code>touchstart/touchmove/touchend</code> 對應 <code>mousedown/mousemove/mouseup</code>，<code>touch-action:none</code> 避免捲動干擾。<br>
+  &nbsp;・<code>performCopy()</code> 使用 <code>navigator.clipboard.write()</code>（含 HTML）；不支援時 fallback 到 <code>execCommand('copy')</code>。
+</div>
+
+<script src="06_smart_table_selection_rect_demo.js"></script>
+</body>
+</html>

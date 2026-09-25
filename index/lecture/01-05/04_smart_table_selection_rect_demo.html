@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Table Selection Demo v3 — 右鍵/觸控複製</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; background: #f0f0f0; }
+    h2 { margin-bottom: 4px; }
+    p.desc { margin: 0 0 16px; color: #444; font-size: 0.9em; }
+
+    .layout { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+
+    /* ── Table ── */
+    table#demo {
+      border-collapse: collapse;
+      background: white;
+      cursor: default;
+      touch-action: none; /* 讓 touch 事件完整交給 JS */
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+    table#demo td {
+      border: 1px solid #aaa;
+      padding: 10px 22px;
+      min-width: 110px;
+      white-space: nowrap;
+    }
+    table#demo thead td {
+      background: #d0d0d0;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+    }
+    table#demo td.col-sel { background: #1a7fd4 !important; color: white !important; }
+    table#demo td.row-sel { background: #e07b00 !important; color: white !important; }
+
+    /* ── Status panel ── */
+    #panel {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 18px 20px;
+      min-width: 220px;
+      font-size: 0.88em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #panel h3 { margin: 0 0 12px; font-size: 1em; }
+
+    #mode-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.95em;
+      margin-bottom: 10px;
+    }
+    .badge-none   { background: #ccc;    color: #555;  }
+    .badge-col    { background: #1a7fd4; color: white; }
+    .badge-row    { background: #e07b00; color: white; }
+    .badge-single { background: #2d8a4e; color: white; }
+
+    #status-detail { margin-bottom: 14px; color: #333; line-height: 1.7; }
+
+    /* ★ 可見複製按鈕 */
+    #btn-copy {
+      display: block;
+      width: 100%;
+      padding: 8px 0;
+      margin-bottom: 10px;
+      background: #1a7fd4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #btn-copy:hover   { background: #155fa0; }
+    #btn-copy:disabled { background: #aaa; cursor: default; }
+
+    #panel label { font-weight: bold; display: block; margin-bottom: 4px; }
+    #copy-output {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-family: monospace;
+      white-space: pre;
+      min-height: 36px;
+      font-size: 0.88em;
+      color: #222;
+    }
+
+    /* ── Context menu ── */
+    #ctx-menu {
+      position: fixed;
+      display: none;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 9999;
+      min-width: 130px;
+      padding: 4px 0;
+    }
+    #ctx-menu .item {
+      padding: 9px 18px;
+      cursor: pointer;
+      font-size: 0.92em;
+      user-select: none;
+    }
+    #ctx-menu .item:hover              { background: #e8f0fe; }
+    #ctx-menu .item.disabled           { color: #aaa; cursor: default; }
+    #ctx-menu .item.disabled:hover     { background: white; }
+    #ctx-menu .separator               { border-top: 1px solid #eee; margin: 4px 0; }
+
+    /* ── Explanation ── */
+    #explain {
+      margin-top: 24px;
+      background: white;
+      border-left: 4px solid #e07b00;
+      padding: 14px 18px;
+      font-size: 0.82em;
+      line-height: 1.75;
+      color: #333;
+      max-width: 720px;
+    }
+    #explain .c { color: #1a7fd4; font-weight: bold; }
+    #explain .r { color: #e07b00; font-weight: bold; }
+    #explain .s { color: #2d8a4e; font-weight: bold; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<h2>Smart Table Selection Demo v3 — 右鍵 / 觸控複製</h2>
+<p class="desc">
+  拖曳選取後，可用：<b>Ctrl+C</b>、<b>右鍵→複製</b>、或面板上的<b>複製按鈕</b>（平板觸控友善）。
+</p>
+
+<div class="layout">
+
+  <table id="demo">
+    <thead>
+      <tr><td>欄 A</td><td>欄 B</td><td>欄 C</td></tr>
+    </thead>
+    <tbody>
+      <tr><td>A行1 蘋果</td><td>B行1 Apple</td><td>C行1 りんご</td></tr>
+      <tr><td>A行2 香蕉</td><td>B行2 Banana</td><td>C行2 バナナ</td></tr>
+      <tr><td>A行3 橘子</td><td>B行3 Orange</td><td>C行3 オレンジ</td></tr>
+      <tr><td>A行4 西瓜</td><td>B行4 Watermelon</td><td>C行4 スイカ</td></tr>
+    </tbody>
+  </table>
+
+  <div id="panel">
+    <h3>選取狀態</h3>
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+
+    <button id="btn-copy" disabled>📋 複製</button>
+
+    <label>複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+
+</div>
+
+<!-- ★ 右鍵 Context Menu -->
+<div id="ctx-menu">
+  <div class="item" id="ctx-copy">📋 複製</div>
+  <div class="separator"></div>
+  <div class="item" id="ctx-native">顯示瀏覽器原本選單…</div>
+</div>
+
+<div id="explain">
+  <span class="s">■ 單格</span>：原生字元選取。<br>
+  <span class="c">■ Column-based</span>：同欄跨列，CSS 藍色，Copy → <code>text/html</code> 單欄表格 + <code>text/plain</code> 換行。<br>
+  <span class="r">■ Row-based 矩形</span>：minRow–maxRow × minCol–maxCol，CSS 橘色，Copy → <code>text/html</code> table + <code>text/plain</code>。<br><br>
+  <b>★ v3 新增</b>：<br>
+  &nbsp;・面板「複製」按鈕：選取後直接點擊，平板最易操作。<br>
+  &nbsp;・右鍵 Context Menu：攔截 <code>contextmenu</code> 事件，顯示自訂選單。長按平板也會觸發。<br>
+  &nbsp;・Touch 支援：<code>touchstart/touchmove/touchend</code> 對應 <code>mousedown/mousemove/mouseup</code>，<code>touch-action:none</code> 避免捲動干擾。<br>
+  &nbsp;・<code>performCopy()</code> 使用 <code>navigator.clipboard.write()</code>（含 HTML）；不支援時 fallback 到 <code>execCommand('copy')</code>。
+</div>
+
+<script>
+const table        = document.getElementById('demo');
+const modeBadge    = document.getElementById('mode-badge');
+const statusDetail = document.getElementById('status-detail');
+const copyOutput   = document.getElementById('copy-output');
+const btnCopy      = document.getElementById('btn-copy');
+const ctxMenu      = document.getElementById('ctx-menu');
+const ctxCopy      = document.getElementById('ctx-copy');
+const ctxNative    = document.getElementById('ctx-native');
+
+let startCell   = null;
+let currentCell = null;
+let hasCrossed  = false;
+let currentMode = null;   // 'col' | 'row' | 'single' | null
+let rowGroups   = null;
+
+// ── helpers ───────────────────────────────────────────────────────────
+
+function tdAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el?.closest('#demo tbody td') ?? null;
+}
+
+function pos(td) {
+  return { row: td.parentElement.rowIndex, col: td.cellIndex };
+}
+
+function clearHighlights() {
+  table.querySelectorAll('td.col-sel, td.row-sel').forEach(td =>
+    td.classList.remove('col-sel', 'row-sel'));
+}
+
+function setStatus(mode, detail) {
+  currentMode = mode;
+  const cfg = {
+    col:    { text: 'Column-based',   cls: 'badge-col'    },
+    row:    { text: 'Row-based 矩形',  cls: 'badge-row'    },
+    single: { text: '單格字元選取',    cls: 'badge-single' },
+  };
+  modeBadge.textContent = cfg[mode].text;
+  modeBadge.className   = cfg[mode].cls;
+  statusDetail.textContent = detail;
+  btnCopy.disabled = false;
+  ctxCopy.classList.remove('disabled');
+}
+
+// ── Selection logic ───────────────────────────────────────────────────
+
+function applySingleCell(td) {
+  clearHighlights();
+  rowGroups = null;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  const range = document.createRange();
+  range.selectNodeContents(td);
+  sel.addRange(range);
+  const p = pos(td);
+  setStatus('single', `(列${p.row},欄${p.col}) — 整格選取`);
+}
+
+function applyColSelection(start, end) {
+  clearHighlights();
+  const sp = pos(start), ep = pos(end);
+  const col    = sp.col;
+  const minRow = Math.min(sp.row, ep.row);
+  const maxRow = Math.max(sp.row, ep.row);
+  window.getSelection().removeAllRanges();
+  for (let r = minRow; r <= maxRow; r++)
+    table.rows[r].cells[col].classList.add('col-sel');
+  setStatus('col', `欄 ${col}，列 ${minRow}–${maxRow}（${maxRow - minRow + 1} 格）`);
+}
+
+function buildRowGroups(start, end) {
+  const sp = pos(start), ep = pos(end);
+  const minRow = Math.min(sp.row, ep.row), maxRow = Math.max(sp.row, ep.row);
+  const minCol = Math.min(sp.col, ep.col), maxCol = Math.max(sp.col, ep.col);
+  const groups = [];
+  for (let r = minRow; r <= maxRow; r++) {
+    const row = [];
+    for (let c = minCol; c <= maxCol; c++) row.push(table.rows[r].cells[c]);
+    groups.push(row);
+  }
+  return groups;
+}
+
+function applyRowSelection(start, end) {
+  clearHighlights();
+  rowGroups = buildRowGroups(start, end);
+  window.getSelection().removeAllRanges();
+  rowGroups.forEach(row => row.forEach(td => td.classList.add('row-sel')));
+  const sp = pos(start), ep = pos(end);
+  const minRow = Math.min(sp.row, ep.row), maxRow = Math.max(sp.row, ep.row);
+  const minCol = Math.min(sp.col, ep.col), maxCol = Math.max(sp.col, ep.col);
+  setStatus('row',
+    `矩形 列${minRow}–${maxRow} × 欄${minCol}–${maxCol}（${rowGroups.flat().length} 格）`);
+}
+
+// ── Copy logic（三種觸發方式共用）────────────────────────────────────
+
+function buildCopyData() {
+  if (currentMode === 'col') {
+    const cells = [...table.querySelectorAll('td.col-sel')];
+    const plain    = cells.map(td => td.textContent).join('\n');
+    const htmlRows = cells.map(td => `<tr><td>${td.innerHTML}</td></tr>`).join('');
+    return { plain, html: `<table border="1">${htmlRows}</table>` };
+  }
+  if (currentMode === 'row') {
+    const groups = rowGroups ?? [];
+    const plain  = groups.map(r => r.map(td => td.textContent).join('\t')).join('\n');
+    const htmlRows = groups.map(r =>
+      `<tr>${r.map(td => `<td>${td.innerHTML}</td>`).join('')}</tr>`).join('');
+    return { plain, html: `<table border="1">${htmlRows}</table>` };
+  }
+  if (currentMode === 'single') {
+    return { plain: window.getSelection().toString(), html: null };
+  }
+  return { plain: null, html: null };
+}
+
+async function performCopy() {
+  const { plain, html } = buildCopyData();
+  if (!plain && plain !== '') return;
+
+  let succeeded = false;
+
+  // 優先：navigator.clipboard（現代瀏覽器，支援 HTML）
+  if (navigator.clipboard) {
+    try {
+      if (html && navigator.clipboard.write) {
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html':  new Blob([html],  { type: 'text/html'  }),
+          'text/plain': new Blob([plain], { type: 'text/plain' }),
+        })]);
+      } else {
+        await navigator.clipboard.writeText(plain);
+      }
+      succeeded = true;
+    } catch (_) { /* fallback below */ }
+  }
+
+  // Fallback：textarea + execCommand（舊瀏覽器 / file:// 不允許 clipboard API）
+  if (!succeeded) {
+    const ta = Object.assign(document.createElement('textarea'), {
+      value: plain,
+      style: 'position:fixed;opacity:0;',
+    });
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+
+  copyOutput.textContent =
+    (html ? '[HTML table + 純文字]' : '[純文字]') + '\n' + plain;
+}
+
+// ── Ctrl+C 仍保留（透過 copy 事件）──────────────────────────────────
+
+document.addEventListener('copy', e => {
+  if (!currentMode) return;
+  e.preventDefault();
+  const { plain, html } = buildCopyData();
+  if (html) {
+    e.clipboardData.setData('text/html',  html);
+    e.clipboardData.setData('text/plain', plain);
+  } else if (plain !== null) {
+    e.clipboardData.setData('text/plain', plain);
+  }
+  copyOutput.textContent =
+    (html ? '[HTML table + 純文字]' : '[純文字]') + '\n' + (plain ?? '');
+});
+
+// ── Mouse events ──────────────────────────────────────────────────────
+
+function onDragStart(td) {
+  startCell   = td;
+  currentCell = td;
+  hasCrossed  = false;
+  currentMode = null;
+  rowGroups   = null;
+  clearHighlights();
+  btnCopy.disabled = true;
+  ctxCopy.classList.add('disabled');
+  modeBadge.textContent = '拖曳中…';
+  modeBadge.className   = 'badge-none';
+  statusDetail.textContent = '';
+}
+
+function onDragMove(x, y, isTouch) {
+  if (!startCell) return;
+  const td = tdAt(x, y);
+  if (!td) return;
+  if (!hasCrossed && td === startCell) return;
+
+  hasCrossed = true;
+  if (td === currentCell) return;
+  currentCell = td;
+
+  if (td === startCell) { applySingleCell(td); return; }
+
+  window.getSelection().removeAllRanges();
+  const sp = pos(startCell), ep = pos(currentCell);
+  if (sp.col === ep.col) applyColSelection(startCell, currentCell);
+  else                   applyRowSelection(startCell, currentCell);
+}
+
+function onDragEnd() {
+  if (!startCell) return;
+  if (!hasCrossed) {
+    const p = pos(startCell);
+    setStatus('single', `(列${p.row},欄${p.col}) — 可拖曳選取字元`);
+  }
+  startCell = null;
+}
+
+table.addEventListener('mousedown', e => {
+  if (e.button !== 0) return; // 只處理左鍵（右鍵交給 contextmenu）
+  const td = tdAt(e.clientX, e.clientY);
+  if (td) onDragStart(td);
+});
+
+document.addEventListener('mousemove', e => {
+  if (!startCell || !(e.buttons & 1)) return;
+  e.preventDefault();
+  onDragMove(e.clientX, e.clientY, false);
+});
+
+document.addEventListener('mouseup', () => onDragEnd());
+
+// ── Touch events ──────────────────────────────────────────────────────
+
+table.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  const td = tdAt(t.clientX, t.clientY);
+  if (td) onDragStart(td);
+}, { passive: true });
+
+table.addEventListener('touchmove', e => {
+  if (!startCell) return;
+  const t = e.touches[0];
+  const td = tdAt(t.clientX, t.clientY);
+  // 跨 cell 才阻止捲動
+  if (td && td !== startCell) e.preventDefault();
+  onDragMove(t.clientX, t.clientY, true);
+}, { passive: false });
+
+table.addEventListener('touchend', () => onDragEnd());
+
+// ── 右鍵 Context Menu ─────────────────────────────────────────────────
+
+function showCtxMenu(x, y) {
+  ctxMenu.style.left    = x + 'px';
+  ctxMenu.style.top     = y + 'px';
+  ctxMenu.style.display = 'block';
+  // 超出視窗時反向顯示
+  const r = ctxMenu.getBoundingClientRect();
+  if (r.right  > window.innerWidth)  ctxMenu.style.left = (x - r.width)  + 'px';
+  if (r.bottom > window.innerHeight) ctxMenu.style.top  = (y - r.height) + 'px';
+}
+
+function hideCtxMenu() { ctxMenu.style.display = 'none'; }
+
+let bypassNextContextMenu = false; // one-shot flag，讓下次右鍵顯示瀏覽器原生選單
+
+table.addEventListener('contextmenu', e => {
+  if (bypassNextContextMenu) {
+    bypassNextContextMenu = false;
+    return; // 不 preventDefault → 瀏覽器原生選單自然出現
+  }
+  e.preventDefault();
+  showCtxMenu(e.clientX, e.clientY);
+});
+
+document.addEventListener('click',   e => { if (!ctxMenu.contains(e.target)) hideCtxMenu(); });
+document.addEventListener('keydown',  e => { if (e.key === 'Escape') hideCtxMenu(); });
+
+ctxCopy.addEventListener('click', () => {
+  if (ctxCopy.classList.contains('disabled')) return;
+  hideCtxMenu();
+  performCopy();
+});
+
+ctxNative.addEventListener('click', () => {
+  hideCtxMenu();
+  bypassNextContextMenu = true;
+  statusDetail.textContent = '請再按一次右鍵，即顯示瀏覽器原本選單';
+});
+
+// ── 面板複製按鈕 ───────────────────────────────────────────────────────
+
+btnCopy.addEventListener('click', () => performCopy());
+</script>
+</body>
+</html>

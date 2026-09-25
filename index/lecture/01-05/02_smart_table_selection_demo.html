@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Table Selection Demo</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; background: #f0f0f0; }
+    h2 { margin-bottom: 4px; }
+    p.desc { margin: 0 0 16px; color: #444; }
+
+    .layout { display: flex; gap: 24px; align-items: flex-start; }
+
+    /* ── Table ── */
+    table#demo {
+      border-collapse: collapse;
+      background: white;
+      /* ★ 不設 user-select:none，保留單格內字元選取能力 */
+      cursor: default;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+    table#demo td {
+      border: 1px solid #aaa;
+      padding: 10px 22px;
+      min-width: 110px;
+      white-space: nowrap;
+    }
+    table#demo thead td {
+      background: #d0d0d0;
+      font-weight: bold;
+      text-align: center;
+      user-select: none; /* 表頭不讓選 */
+    }
+
+    /* ★ Column-based：藍色 */
+    table#demo td.col-sel {
+      background: #1a7fd4 !important;
+      color: white !important;
+    }
+    /* ★ Row-based：橘色（CSS class，與 col-sel 同等可靠） */
+    table#demo td.row-sel {
+      background: #e07b00 !important;
+      color: white !important;
+    }
+
+    /* ── Status panel ── */
+    #panel {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 18px 20px;
+      min-width: 240px;
+      font-size: 0.88em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #panel h3 { margin: 0 0 12px; font-size: 1em; }
+
+    #mode-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.95em;
+      margin-bottom: 10px;
+    }
+    .badge-none   { background: #ccc;    color: #555;   }
+    .badge-col    { background: #1a7fd4; color: white;  }
+    .badge-row    { background: #e07b00; color: white;  }
+    .badge-single { background: #2d8a4e; color: white;  }
+
+    #status-detail { margin-bottom: 14px; color: #333; line-height: 1.7; }
+
+    #panel label { font-weight: bold; display: block; margin-bottom: 4px; }
+    #copy-output {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-family: monospace;
+      white-space: pre;
+      min-height: 36px;
+      font-size: 0.9em;
+      color: #222;
+    }
+
+    /* ── Explanation ── */
+    #explain {
+      margin-top: 24px;
+      background: white;
+      border-left: 4px solid #555;
+      padding: 14px 18px;
+      font-size: 0.83em;
+      line-height: 1.75;
+      color: #333;
+      max-width: 700px;
+    }
+    #explain .c { color: #1a7fd4; font-weight: bold; }
+    #explain .r { color: #e07b00; font-weight: bold; }
+    #explain .s { color: #2d8a4e; font-weight: bold; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<h2>Smart Table Selection Demo</h2>
+<p class="desc">
+  在表格內拖曳滑鼠。
+  <b style="color:#1a7fd4">同欄拖曳</b> → Column-based（藍）；
+  <b style="color:#e07b00">跨欄拖曳</b> → Row-based（橘）；
+  <b style="color:#2d8a4e">單格內拖曳</b> → 正常字元選取（綠）
+</p>
+
+<div class="layout">
+
+  <table id="demo">
+    <thead>
+      <tr><td>欄 A</td><td>欄 B</td><td>欄 C</td></tr>
+    </thead>
+    <tbody>
+      <tr><td>A行1 蘋果</td><td>B行1 Apple</td><td>C行1 りんご</td></tr>
+      <tr><td>A行2 香蕉</td><td>B行2 Banana</td><td>C行2 バナナ</td></tr>
+      <tr><td>A行3 橘子</td><td>B行3 Orange</td><td>C行3 オレンジ</td></tr>
+      <tr><td>A行4 西瓜</td><td>B行4 Watermelon</td><td>C行4 スイカ</td></tr>
+    </tbody>
+  </table>
+
+  <div id="panel">
+    <h3>選取狀態</h3>
+    <div id="mode-badge" class="badge-none">— 尚未選取 —</div>
+    <div id="status-detail"></div>
+
+    <label>Ctrl+C 複製結果：</label>
+    <div id="copy-output">（尚未複製）</div>
+  </div>
+
+</div>
+
+<div id="explain">
+  <span class="s">■ 單格字元選取</span>：<code>mousedown</code> 不攔截（不 preventDefault），
+  瀏覽器原生 drag 直接作用在該 cell 的文字節點上。<br>
+
+  <span class="c">■ Column-based（同欄跨列）</span>：第一個 <code>mousemove</code> 進入不同 cell 時，
+  呼叫 <code>e.preventDefault()</code> + <code>removeAllRanges()</code> 接管選取。
+  對欄內每個 cell 加 <code>.col-sel</code> CSS class（藍色）；
+  同時 <code>addRange()</code>（Firefox 多段保留；Chrome 僅最後一段，視覺靠 CSS）。<br>
+
+  <span class="r">■ Row-based（跨欄）</span>：同樣接管後，依 DOM 順序計算範圍內所有 cell，
+  加 <code>.row-sel</code> CSS class（橘色）。Copy 時同時寫入兩種格式：<br>
+  &nbsp;・<code>text/html</code> → <code>&lt;table&gt;</code> 結構（貼到 Word/Excel 還原為表格）<br>
+  &nbsp;・<code>text/plain</code> → Tab 分欄 + 換行分列（純文字環境相容）
+</div>
+
+<script>
+const table      = document.getElementById('demo');
+const modeBadge  = document.getElementById('mode-badge');
+const statusDetail = document.getElementById('status-detail');
+const copyOutput = document.getElementById('copy-output');
+
+let startCell    = null;   // mousedown 起點
+let currentCell  = null;   // 目前 hover cell
+let hasCrossed   = false;  // 是否已跨 cell（一旦為 true 就接管）
+let currentMode  = null;   // 'col' | 'row' | 'single' | null
+let rowGroups    = null;   // row-based 時的 cell 分組（供 copy 使用）
+
+// ── helpers ───────────────────────────────────────────────────────────
+
+function tdAt(e) {
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  return el?.closest('#demo tbody td') ?? null;
+}
+
+function pos(td) {
+  return { row: td.parentElement.rowIndex, col: td.cellIndex };
+}
+
+function clearHighlights() {
+  table.querySelectorAll('td.col-sel, td.row-sel').forEach(td => {
+    td.classList.remove('col-sel', 'row-sel');
+  });
+}
+
+// ── Single-cell（拖回起點時用）────────────────────────────────────────
+
+function applySingleCell(td) {
+  clearHighlights();
+  rowGroups = null;
+  // 用 selectNodeContents 讓原生藍色反白出現在整格
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  const range = document.createRange();
+  range.selectNodeContents(td);
+  sel.addRange(range);
+  const p = pos(td);
+  setStatus('single', `(列${p.row},欄${p.col}) — 整格選取`);
+}
+
+// ── Column-based ─────────────────────────────────────────────────────
+
+function applyColSelection(start, end) {
+  clearHighlights();
+  const sp = pos(start), ep = pos(end);
+  const col    = sp.col;
+  const minRow = Math.min(sp.row, ep.row);
+  const maxRow = Math.max(sp.row, ep.row);
+
+  window.getSelection().removeAllRanges(); // 清掉原生選取，視覺完全交給 CSS
+
+  for (let r = minRow; r <= maxRow; r++) {
+    table.rows[r].cells[col].classList.add('col-sel');
+  }
+
+  setStatus('col',
+    `欄 ${col}，列 ${minRow}–${maxRow}（${maxRow - minRow + 1} 格）`);
+}
+
+// ── Row-based ─────────────────────────────────────────────────────────
+
+/** 回傳 [ [cell,...], [cell,...], ... ]，按 DOM 順序分 row */
+function buildRowGroups(start, end) {
+  const sp = pos(start), ep = pos(end);
+  let f = { ...sp }, l = { ...ep };
+  if (f.row > l.row || (f.row === l.row && f.col > l.col)) [f, l] = [l, f];
+
+  const maxCol = table.rows[0].cells.length - 1;
+  const groups = [];
+  for (let r = f.row; r <= l.row; r++) {
+    const c0 = (r === f.row) ? f.col : 0;
+    const c1 = (r === l.row) ? l.col : maxCol;
+    const rowArr = [];
+    for (let c = c0; c <= c1; c++) rowArr.push(table.rows[r].cells[c]);
+    groups.push(rowArr);
+  }
+  return groups;
+}
+
+function applyRowSelection(start, end) {
+  clearHighlights();
+  rowGroups = buildRowGroups(start, end);
+
+  window.getSelection().removeAllRanges();
+  rowGroups.forEach(row => row.forEach(td => td.classList.add('row-sel')));
+
+  const sp = pos(start), ep = pos(end);
+  setStatus('row',
+    `(列${sp.row},欄${sp.col}) → (列${ep.row},欄${ep.col})，共 ${rowGroups.flat().length} 格`);
+}
+
+// ── Status ────────────────────────────────────────────────────────────
+
+function setStatus(mode, detail) {
+  currentMode = mode;
+  const cfg = {
+    col:    { text: 'Column-based',      cls: 'badge-col'    },
+    row:    { text: 'Row-based',         cls: 'badge-row'    },
+    single: { text: '單格字元選取',       cls: 'badge-single' },
+  };
+  modeBadge.textContent = cfg[mode].text;
+  modeBadge.className   = cfg[mode].cls;
+  statusDetail.textContent = detail;
+}
+
+// ── Mouse events ──────────────────────────────────────────────────────
+
+table.addEventListener('mousedown', e => {
+  const td = tdAt(e);
+  if (!td) return;
+
+  // ★ 不 preventDefault → 讓瀏覽器正常啟動選取（保留單格字元選取能力）
+  startCell   = td;
+  currentCell = td;
+  hasCrossed  = false;
+  currentMode = null;
+  rowGroups   = null;
+  clearHighlights();
+  modeBadge.textContent = '拖曳中…';
+  modeBadge.className   = 'badge-none';
+  statusDetail.textContent = '';
+});
+
+document.addEventListener('mousemove', e => {
+  if (!startCell || !(e.buttons & 1)) return;
+
+  const td = tdAt(e);
+  if (!td) return;
+
+  if (!hasCrossed && td === startCell) {
+    // 仍在起始 cell 內 → 原生字元選取，不干涉
+    return;
+  }
+
+  // ★ 已跨 cell：接管選取
+  e.preventDefault();          // 阻止瀏覽器繼續延伸原生選取
+  hasCrossed = true;
+
+  if (td === currentCell) return;
+  currentCell = td;
+
+  // ★ 拖回起點 → 恢復單格藍色反白，清除多格 CSS
+  if (td === startCell) {
+    applySingleCell(td);
+    return;
+  }
+
+  window.getSelection().removeAllRanges(); // 清掉原生選取殘留
+
+  const sp = pos(startCell), ep = pos(currentCell);
+  if (sp.col === ep.col) applyColSelection(startCell, currentCell);
+  else                   applyRowSelection(startCell, currentCell);
+});
+
+document.addEventListener('mouseup', e => {
+  if (!startCell) return;
+
+  if (!hasCrossed) {
+    // 單格：原生選取還在，只更新狀態列
+    const p = pos(startCell);
+    setStatus('single', `(列${p.row},欄${p.col}) — 可拖曳選取字元`);
+  }
+
+  startCell = null; // 結束追蹤（currentCell/mode 保留給 copy 用）
+});
+
+// ── Copy interception ─────────────────────────────────────────────────
+
+document.addEventListener('copy', e => {
+  if (currentMode === 'col') {
+    // Column-based → 純文字，換行分隔
+    e.preventDefault();
+    const text = [...table.querySelectorAll('td.col-sel')]
+      .map(td => td.textContent).join('\n');
+    e.clipboardData.setData('text/plain', text);
+    copyOutput.textContent = '[純文字]\n' + text;
+
+  } else if (currentMode === 'row') {
+    // Row-based → text/html (table) + text/plain 雙軌
+    e.preventDefault();
+    const groups = rowGroups ?? [];
+
+    // text/plain：Tab 分欄，換行分列（Excel 相容）
+    const plain = groups
+      .map(row => row.map(td => td.textContent).join('\t'))
+      .join('\n');
+
+    // text/html：完整 <table> 結構（Word/Excel 貼上為表格）
+    const htmlRows = groups.map(row => {
+      const cells = row.map(td => `<td>${td.innerHTML}</td>`).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    const html = `<table border="1">${htmlRows}</table>`;
+
+    e.clipboardData.setData('text/html',  html);
+    e.clipboardData.setData('text/plain', plain);
+    copyOutput.textContent = '[HTML table + 純文字]\n' + plain;
+
+  } else if (currentMode === 'single') {
+    // 單格 → 原生處理，只顯示結果
+    setTimeout(() => {
+      copyOutput.textContent = '[原生字元選取]\n' + window.getSelection().toString();
+    }, 10);
+  }
+});
+</script>
+</body>
+</html>
