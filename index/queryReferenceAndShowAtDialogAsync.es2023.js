@@ -14,7 +14,6 @@ import { TPPageState } from "./TPPageState.es2023.js"
 import { BookSelect } from "./BookSelect.es2023.js"
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js"
 
-import markdownit from 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
 import { cvt_others } from "./cvt_others.js"
 import { prepare_dtexts_for_html } from "./prepare_dtexts_for_html.js"

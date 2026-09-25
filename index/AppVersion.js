@@ -24,14 +24,26 @@
      */
     this.testIsLastVersionAsync = function () {
       return new Promise(function (res) {
-        $.ajax({
-          url: './app_versions.json', dataType: 'text', cache: false,
-          success: function (str) {
-            try { res(that.getHtmlVersion() == JSON.parse(str)["nui"]["last"]) } catch (e) { res(true) }
-          },
-          error: function () { res(true) }
-        })
+        that.getVersionsTextAsync().then(function (str) {
+          try { res(that.getHtmlVersion() == JSON.parse(str)["nui"]["last"]) } catch (e) { res(true) }
+        }, function () { res(true) })
       })
+    };
+    /**
+     * app_versions.json 的原始文字（不走快取，才能發現有新版）。
+     * 啟動時 testIsLastVersionAsync 與 checkHtmlVersion 都要用，同一頁只下載一次（約 38KB）。
+     * 失敗時 reject jqXHR。
+     * @returns {Promise<string>}
+     */
+    var _versionsText = null;
+    this.getVersionsTextAsync = function () {
+      if (_versionsText == null) {
+        _versionsText = new Promise(function (res, rej) {
+          $.ajax({ url: './app_versions.json', dataType: 'text', cache: false, success: res, error: rej })
+        });
+        _versionsText.catch(function () { _versionsText = null; }); // 失敗的話下次重試
+      }
+      return _versionsText;
     };
 
     var _cntThisVersion = -1;

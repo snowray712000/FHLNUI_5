@@ -18,14 +18,12 @@ export function checkHtmlVersion(){
         })
         return
         function getLastVersion(cb) {
-            $.ajax({
-                url: './app_versions.json',
-                dataType: 'text',
-                cache: false,
-                /**             
-                 * @param {string} jo 
+            // 與啟動時的 testIsLastVersionAsync 共用同一次下載
+            AppVersion.s.getVersionsTextAsync().then(
+                /**
+                 * @param {string} jo
                  */
-                success: (jo) => {
+                (jo) => {
                     try {
                         /** @type {{"nui":{"last":string}}} */
                         var r1 = JSON.parse(jo)
@@ -34,10 +32,9 @@ export function checkHtmlVersion(){
                         alert('當檢查是否更新，發生錯誤\n. ' + error)
                     }
                 },
-                error: (err) => {
+                (err) => {
                     alert('當檢查是否更新，發生錯誤\n. ' + err.status + ' ' + err.statusText + ' ' + err.responseText)
-                }
-            })
+                })
         }
     }
     function render() {

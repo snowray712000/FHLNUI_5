@@ -54,6 +54,33 @@ const lazyTsk = lazyModule(() => import('./tsks/renderTsk.js')) // 串珠
 const lazyOb = lazyModule(() => import('./FhlInfoOb.es2023.js')) // 典藏
 const lazyAi = lazyModule(() => import('./ai_render_tools_es2023.js')) // AI
 
+// leaflet（地圖用）原本在 index.html 一開始就載入。只有地圖分頁用得到，改為第一次切到地圖時才載入
+let leafletLoading
+function ensureLeafletAsync() {
+    if (leafletLoading) return leafletLoading
+    const load = (tag, attrs) => new Promise((res, rej) => {
+        const el = Object.assign(document.createElement(tag), attrs)
+        el.crossOrigin = ''
+        el.onload = res
+        el.onerror = rej
+        document.head.appendChild(el)
+    })
+    leafletLoading = Promise.all([
+        load('link', {
+            rel: 'stylesheet', href: 'https://unpkg.com/leaflet@1.3.4/dist/leaflet.css',
+            integrity: 'sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==',
+        }),
+        load('script', {
+            src: 'https://unpkg.com/leaflet@1.3.4/dist/leaflet.js',
+            integrity: 'sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA==',
+        }),
+    ]).catch(err => {
+        leafletLoading = undefined // 下次切換再試
+        throw err
+    })
+    return leafletLoading
+}
+
 export class FhlInfoContent {
     static #s = null
     /** @returns {FhlInfoContent} */
@@ -271,8 +298,13 @@ export class FhlInfoContent {
                 }
                 break;
             case "fhlInfoMap":
-                // 地圖 map
-                fhlmap_render(ps, dom);
+                // 地圖 map（第一次切到地圖時才載入 leaflet）
+                if (window.L != null)
+                    fhlmap_render(ps, dom);
+                else
+                    ensureLeafletAsync().then(() => {
+                        if (TPPageState.s.titleId === "fhlInfoMap") fhlmap_render(ps, dom)
+                    }, err => console.error('載入 leaflet 失敗', err))
                 // dom.html("<div style='position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); '>施工中...</div>");
                 break;
             case "fhlSnBranch":
