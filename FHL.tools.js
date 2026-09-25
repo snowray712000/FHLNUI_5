@@ -1,4 +1,4 @@
-/// <reference path="ijnjs/SplitStringByRegex.js" />
+/// <reference path="libs/ijnjs/SplitStringByRegex.js" />
 /// <reference path="./FHL.BibleConstant.js" /> 
 /// <reference path="FHL.linq.js" />
 // BibleConstant 一定要先, 這裡會用到

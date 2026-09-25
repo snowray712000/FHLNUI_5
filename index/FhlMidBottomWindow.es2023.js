@@ -1,7 +1,7 @@
 /// <reference path="../jsdoc/jquery.js" />
 /// <reference path="../jsdoc/loadash.js" />
 /// <reference path="../jsdoc/jquery-ui.js" />
-/// <reference path="../ijnjs/ijnjs.d.js" />
+/// <reference path="../libs/ijnjs/ijnjs.d.js" />
 /// <reference path="DPageState.d.js" />
 import { TPPageState } from "./TPPageState.es2023.js";
 

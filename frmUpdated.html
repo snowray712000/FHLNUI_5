@@ -28,7 +28,6 @@
     integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
     crossorigin="anonymous"></script>
 
-    <script src="ijnjs/ijnjs.js"></script>
   <title>信望愛聖經工具</title>
 </head>
 
@@ -324,9 +323,17 @@
               if (/https?:\/\//i.test(img)) {
                 return ''
               }
-              var r1 = Ijnjs.Path.getDirectoryName(location.pathname)
+              var r1 = location.pathname.substring(0, location.pathname.lastIndexOf('/'))
               return r1 + '/images/'
               // return '/NUI/assets/'
+            }
+            /** 'a/b.gif' → '.gif'；沒有副檔名 → '' */
+            function getExtension(url) {
+              var m = /\.[^./\\]*$/.exec(url)
+              return m == null ? '' : m[0]
+            }
+            function changeExtension(url, ext) {
+              return url.substring(0, url.length - getExtension(url).length) + ext
             }
             function generateLink(url, innerHtml) {
               return '<a href="' + url + '" target="_blank">' + innerHtml + '</a>'
@@ -338,10 +345,10 @@
               // https://www.infoq.cn/article/animated-gif-without-the-gif
 
               var r2 = $('<picture></picture>')
-              var ext = Ijnjs.Path.getExtension(url)
+              var ext = getExtension(url)
               if (/(gif)|(mov)|(mp4)/i.test(ext)) {
-                var mp4 = Ijnjs.Path.changeExtension(url, '.mp4')
-                var gif = Ijnjs.Path.changeExtension(url, '.gif')
+                var mp4 = changeExtension(url, '.mp4')
+                var gif = changeExtension(url, '.gif')
                 $('<source type="video/mov" srcset="' + url + '">').appendTo(r2)
                 $('<source type="video/mp4" srcset="' + mp4 + '">').appendTo(r2)
                 $(gImg(gif)).appendTo(r2)

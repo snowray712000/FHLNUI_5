@@ -1,7 +1,6 @@
 /// <reference path='../jsdoc/jquery.js' />
 /// <reference path='../jsdoc/linq.d.ts' />
-/// <reference path='../ijnjs/ijnjs.d.ts' />
-/// <reference path='../ijnjs-fhl/ijn-fhl.d.ts' />
+/// <reference path='../libs/ijnjs/ijnjs.d.ts' />
 /// <reference path='DPageState.d.js' />
 var bookSelect = {}
 bookSelect.dom = $('#bookSelect')

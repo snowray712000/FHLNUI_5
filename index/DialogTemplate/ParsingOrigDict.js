@@ -1,4 +1,4 @@
-/// <reference path="../../ijnjs/ijnjs.d.ts" />
+/// <reference path="../../libs/ijnjs/ijnjs.d.ts" />
 /// <reference path="../../FHL.BibleConstant.js" />
 /// <reference path="../../FHL.tools.js" />
 // ES module（原本由 DialogTemplate.js 從 ijnjs 快取取出後 eval，root 是暫存物件）

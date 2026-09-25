@@ -1,4 +1,4 @@
-/// <reference path='../../ijnjs/ijnjs.d.ts' />
+/// <reference path='../../libs/ijnjs/ijnjs.d.ts' />
 /// <reference path='OrigDict.d.ts' />
 /// <reference path='ParsingReference.js' />
 /// <reference path='ParsingOrigDict.js' />

@@ -1,7 +1,7 @@
 /// <reference path="../jsdoc/jquery.js" />
 /// <reference path="../jsdoc/jquery-ui.js" />
 /// <reference path="../jsdoc/sephp.d.js" />
-/// <reference path="../ijnjs/ijnjs.d.js" />
+/// <reference path="../libs/ijnjs/ijnjs.d.js" />
 /// <reference path="DPageState.d.js" />
 
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'

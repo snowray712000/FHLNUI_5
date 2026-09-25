@@ -1,5 +1,5 @@
 /// <reference path="../jsdoc/linq.d.ts" />
-/// <reference path="../ijnjs/ijnjs.d.ts" />
+/// <reference path="../libs/ijnjs/ijnjs.d.ts" />
 /// <reference path="../jsdoc/jquery.js" />
 /// <reference path="../jsdoc/jquery-ui.js" />
 /// <reference path="../jsdoc/jquery.ui.touch-punch.js" />

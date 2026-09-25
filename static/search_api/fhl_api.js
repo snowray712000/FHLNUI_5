@@ -1,6 +1,5 @@
 /// <reference path="./../../libs/jsdoc/jquery.js" />
 /// <reference path="./../../libs/jsdoc/linq.d.ts" />
-/// <reference path="./../../ijnjs/BibleConstantHelper.es6.js" />
 /// <reference path="./../../index/queryReferenceAndShowAtDialogAsync.es6.js" />
 
 var fhl = fhl || {};

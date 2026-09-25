@@ -1,5 +1,5 @@
 /// <reference path="./DataOfDictOfFhl.d.ts" />
-/// <reference path="./../ijnjs/DText.d.ts" />
+/// <reference path="./DText.js" />
 /**
  * 將會有 Twcb 版的實作、Cbol 版的實作
  * SnDictOfTwcb SnDictOfCbol
