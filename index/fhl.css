@@ -2172,7 +2172,8 @@ nav#fhlTopMenu {
   
       @font-face {
         font-family: "bstw";
-        src: url("./static/font/open_han.ttf") format("trueType"), url("./static/font/open_han.woff2") format("woff2"), url("./static/font/open_han.svg") format("svg"), url("./static/font/open_han.woff") format("woff");
+        /* 瀏覽器取第一個支援的格式：woff(11MB) 要排在 ttf(21MB) 前 */
+        src: url("./static/font/open_han.woff") format("woff"), url("./static/font/open_han.ttf") format("truetype");
       }
 .isParenthesesFW {
     color: #9400d3;
