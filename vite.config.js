@@ -27,6 +27,10 @@ export default defineConfig({
     emptyOutDir: false,
     sourcemap: true,
   },
+  test: {
+    // vitest (npm test)；index/*.spec.js 是瀏覽器開的舊測試，dist/ 是 build 產物，都不要抓
+    include: ['tests/**/*.test.js'],
+  },
   // bundleLegacyScripts 要在 versionLegacyUrls 之前（同為 transformIndexHtml post，依陣列順序執行）
   plugins: [serveLegacyRaw(), copyLegacyFiles(), bundleLegacyScripts(), preloadIjnjsFiles(), versionLegacyUrls()],
 })

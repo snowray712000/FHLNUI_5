@@ -9,7 +9,8 @@ FHL NUI (信望愛聖經工具) is a web-based Bible study tool. The app runs di
 - **Entry point**: `index.html` → `index/index.js`
 - **Dev server**: `npm run dev` → `http://127.0.0.1:5173/` (Vite; non-module files are served raw, see `vite.config.js`)
 - **Build**: `npm run build` → `dist/` (bundles the `index/index.js` module tree + `<link>` CSS; everything loaded at runtime via `<script src>` / `$.ajax` / `fetch` is copied as-is). Test with `npm run preview` → `http://127.0.0.1:5175/`
-- **Tests**: Open any `tests/*.html` file directly in a browser
+- **Tests**: `npm test` runs Vitest on `tests/**/*.test.js` (pure functions, e.g. `gcode2.test.js`); older tests are `tests/*.html` opened directly in a browser
+- **Greek text**: FHL stores accents as oxia (έ U+1F73); keyboards and NFC produce tonos (U+03AD). They look identical, so write expected Greek in tests as `\u` escapes (editors may normalize literals)
 
 ### Build constraints
 

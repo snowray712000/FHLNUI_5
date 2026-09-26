@@ -3,12 +3,14 @@
     "vite": "^8.0.8"
   },
   "devDependencies": {
-    "dependency-cruiser": "^18.1.1"
+    "dependency-cruiser": "^18.1.1",
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "dev": "vite",
     "build": "node -e \"require('fs').promises.rm('dist',{recursive:true,force:true})\" && vite build",
     "preview": "vite preview --port 5175 --strictPort",
-    "depgraph": "depcruise index/index.js --no-config --output-type mermaid --output-to docs/dependency-graph.mmd"
+    "depgraph": "depcruise index/index.js --no-config --output-type mermaid --output-to docs/dependency-graph.mmd",
+    "test": "vitest run"
   }
 }

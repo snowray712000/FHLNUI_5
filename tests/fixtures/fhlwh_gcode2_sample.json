@@ -1,0 +1,312 @@
+[
+ {
+  "addr": "John 8:52",
+  "ascii": "ei\\pon + + (o͘\\n) + aujtw'/ oiJ Ijoudai'oi,\nNu'n ejgnwvkamen \no&ti daimovnion e[ceis. \nAjbraa;m ajpevqanen \nkai; oiJ profh'tai, \nkai; su; levgeis,\nEjavn tis to;n lovgon mo͘ thrhvsh/, \nouj mh; geuvshtai qanavtou eijs to;n aijw'na.",
+  "unicode": "εἶπον + + (οὖν) + αὐτῷ οἱ Ἰουδαῖοι,\nΝῦν ἐγνώκαμεν \nὅτι δαιμόνιον ἔχεις. \nἈβραὰμ ἀπέθανεν \nκαὶ οἱ προφῆται, \nκαὶ σὺ λέγεις,\nἘάν τις τὸν λόγον μου τηρήσῃ, \nοὐ μὴ γεύσηται θανάτου εἰς τὸν αἰῶνα."
+ },
+ {
+  "addr": "Matt 5:22",
+  "ascii": "ejgw; de; levgw uJmi'n o&ti\npa's oJ ojrgizovmenos tw'/ ajdelfw'/ aujtou'\ne[nocos e[stai th'/ krivsei{\no^s d# a]n ei[ph/ tw'/ ajdelfw'/ aujtou', RJakav,\ne[nocos e[stai tw'/ sunedrivw/{\no^s d# a]n ei[ph/, Mwrev,\ne[nocos e[stai eijs th;n gevennan to͘' purovs.",
+  "unicode": "ἐγὼ δὲ λέγω ὑμῖν ὅτι\nπᾶς ὁ ὀργιζόμενος τῷ ἀδελφῷ αὐτοῦ\nἔνοχος ἔσται τῇ κρίσει·\nὃς δ᾽ ἂν εἴπῃ τῷ ἀδελφῷ αὐτοῦ, Ῥακά,\nἔνοχος ἔσται τῷ συνεδρίῳ·\nὃς δ᾽ ἂν εἴπῃ, Μωρέ,\nἔνοχος ἔσται εἰς τὴν γέενναν τοῦ πυρός."
+ },
+ {
+  "addr": "2 Cor 1:17",
+  "ascii": "to͘'to o͘\\n boulovmenos mhvti a[ra th'/ ejlafriva/ ejcrhsavmhn} \nh] a^ bouleuvomai kata; savrka bouleuvomai \ni&na h\\/ par# ejmoi; to; Nai; nai; kai; to; O͘] o͘[}",
+  "unicode": "τοῦτο οὖν βουλόμενος μήτι ἄρα τῇ ἐλαφρίᾳ ἐχρησάμην; \nἢ ἃ βουλεύομαι κατὰ σάρκα βουλεύομαι \nἵνα ᾖ παρ᾽ ἐμοὶ τὸ Ναὶ ναὶ καὶ τὸ Οὒ οὔ;"
+ },
+ {
+  "addr": "Rev 1:16",
+  "ascii": "kai; e[cwn ejn th'/ dexia'/ ceiri; aujtou' ajstevras eJptav \nkai; ejk to͘' stovmatos aujtou' rJomfaiva divstomos ojxei'a ejkporeuomevnh \nkai; hJ o[yis aujtou' wJs oJ h&lios faivnei ejn th'/ dunavmei aujtou'.",
+  "unicode": "καὶ ἔχων ἐν τῇ δεξιᾷ χειρὶ αὐτοῦ ἀστέρας ἑπτά \nκαὶ ἐκ τοῦ στόματος αὐτοῦ ῥομφαία δίστομος ὀξεῖα ἐκπορευομένη \nκαὶ ἡ ὄψις αὐτοῦ ὡς ὁ ἥλιος φαίνει ἐν τῇ δυνάμει αὐτοῦ."
+ },
+ {
+  "addr": "Acts 1:13",
+  "ascii": "kai; o&te eijsh'lqon,\neijs to; uJperw'/on ajnevbhsan o͘| h\\san katamevnontes,\no& te Pevtros kai; Ijwavnnhs kai; Ijavkwbos kai; Ajndrevas,\nFivlippos kai; Qwma's,\nBarqolomai'os kai; Maqqai'os,\nIjavkwbos AJlfaivou kai; Sivmwn oJ Zhlwth;s kai; Ijouvdas Ijakwvbou.",
+  "unicode": "καὶ ὅτε εἰσῆλθον,\nεἰς τὸ ὑπερῷον ἀνέβησαν οὗ ἦσαν καταμένοντες,\nὅ τε Πέτρος καὶ Ἰωάννης καὶ Ἰάκωβος καὶ Ἀνδρέας,\nΦίλιππος καὶ Θωμᾶς,\nΒαρθολομαῖος καὶ Μαθθαῖος,\nἸάκωβος Ἁλφαίου καὶ Σίμων ὁ Ζηλωτὴς καὶ Ἰούδας Ἰακώβου."
+ },
+ {
+  "addr": "John 19:13",
+  "ascii": "OJ o͘\\n Pila'tos ajkouvsas tw'n lovgwn touvtwn \nh[gagen e[xw to;n Ijhsou'n \nkai; ejkavqisen ejpi; bhvmatos \neijs tovpon legovmenon Liqovstrwton,\n EJbrai>sti; de; Gabbaqa.",
+  "unicode": "Ὁ οὖν Πιλᾶτος ἀκούσας τῶν λόγων τούτων \nἤγαγεν ἔξω τὸν Ἰησοῦν \nκαὶ ἐκάθισεν ἐπὶ βήματος \nεἰς τόπον λεγόμενον Λιθόστρωτον,\n Ἑβραϊστὶ δὲ Γαββαθα."
+ },
+ {
+  "addr": "Gal 2:3",
+  "ascii": "ajll' oujde; Tivtos oJ su;n ejmoiv, \nE&llhn w[n, \nhjnagkavsqh peritmhqh'nai{",
+  "unicode": "ἀλλ' οὐδὲ Τίτος ὁ σὺν ἐμοί, \nἝλλην ὤν, \nἠναγκάσθη περιτμηθῆναι·"
+ },
+ {
+  "addr": "Heb 13:11",
+  "ascii": "w|n ga;r eijsfevretai zwv/wn to; ai|ma peri; aJmartivas eijs ta; a&gia \ndia; to͘' ajrcierevws, \ntouvtwn ta; swvmata katakaivetai e[xw th's parembolh's.",
+  "unicode": "ὧν γὰρ εἰσφέρεται ζῴων τὸ αἷμα περὶ ἁμαρτίας εἰς τὰ ἅγια \nδιὰ τοῦ ἀρχιερέως, \nτούτων τὰ σώματα κατακαίεται ἔξω τῆς παρεμβολῆς."
+ },
+ {
+  "addr": "John 17:22",
+  "ascii": "kajgw; th;n dovxan h^n devdwkavs moi devdwka aujtoi's, \ni&na w\\sin e^n kaqw;s hJmei's e&n{",
+  "unicode": "κἀγὼ τὴν δόξαν ἣν δέδωκάς μοι δέδωκα αὐτοῖς, \nἵνα ὦσιν ἓν καθὼς ἡμεῖς ἕν·"
+ },
+ {
+  "addr": "Heb 3:16",
+  "ascii": "tivnes ga;r \najkouvsantes parepivkranan; \najll# ouj pavntes oiJ ejxelqovntes \nejx Aijguvptou dia; Mwu>sevws;",
+  "unicode": "τίνες γὰρ \nἀκούσαντες παρεπίκραναν; \nἀλλ᾽ οὐ πάντες οἱ ἐξελθόντες \nἐξ Αἰγύπτου διὰ Μωϋσέως;"
+ },
+ {
+  "addr": "1 Cor 15:22",
+  "ascii": "w&sper ga;r ejn tw'/ Ajda;m pavntes ajpoqnhv/skousin, \no͘&tws kai; ejn tw'/ Cristw'/ pavntes zw/opoihqhvsontai.",
+  "unicode": "ὥσπερ γὰρ ἐν τῷ Ἀδὰμ πάντες ἀποθνῄσκουσιν, \nοὕτως καὶ ἐν τῷ Χριστῷ πάντες ζῳοποιηθήσονται."
+ },
+ {
+  "addr": "Mark 11:10",
+  "ascii": "Eujloghmevnh \nhJ ejrcomevnh basileiva to͘' patro;s hJmw'n Dauivd{\nWJsanna; ejn toi's uJyivstois.",
+  "unicode": "Εὐλογημένη \nἡ ἐρχομένη βασιλεία τοῦ πατρὸς ἡμῶν Δαυίδ·\nὩσαννὰ ἐν τοῖς ὑψίστοις."
+ },
+ {
+  "addr": "Luke 7:43",
+  "ascii": "ajpokriqei;s Sivmwn ei\\pen, \nUJpolambavnw o&ti w|/ to; plei'on ejcarivsato. \noJ de; ei\\pen aujtw'/, Ojrqw's e[krinas.",
+  "unicode": "ἀποκριθεὶς Σίμων εἶπεν, \nὙπολαμβάνω ὅτι ᾧ τὸ πλεῖον ἐχαρίσατο. \nὁ δὲ εἶπεν αὐτῷ, Ὀρθῶς ἔκρινας."
+ },
+ {
+  "addr": "Rom 10:16",
+  "ascii": "Ajll# ouj pavntes uJphvkousan tw'/ eujaggelivw/.\n Hjsai?as ga;r levgei,\nKuvrie,\n tivs ejpivsteusen th'/ ajkoh'/ hJmw'n}",
+  "unicode": "Ἀλλ᾽ οὐ πάντες ὑπήκουσαν τῷ εὐαγγελίῳ.\n Ἠσαΐας γὰρ λέγει,\nΚύριε,\n τίς ἐπίστευσεν τῇ ἀκοῇ ἡμῶν;"
+ },
+ {
+  "addr": "Rev 1:8",
+  "ascii": "Ejgwv eijmi to; A[lfa kai; to; W\\,\n levgei kuvrios oJ qeovs,\n oJ w]n kai; oJ h\\n kai; oJ ejrcovmenos,\n oJ pantokravtwr.",
+  "unicode": "Ἐγώ εἰμι τὸ Ἄλφα καὶ τὸ Ὦ,\n λέγει κύριος ὁ θεός,\n ὁ ὢν καὶ ὁ ἦν καὶ ὁ ἐρχόμενος,\n ὁ παντοκράτωρ."
+ },
+ {
+  "addr": "Luke 12:54",
+  "ascii": "E[legen de; kai; toi's o[clois, \nO&tan i[dhte + + (th;n) + nefevlhn ajnatevllousan ejpi; dusmw'n, \neujqevws levgete o&ti O[mbros e[rcetai, \nkai; givnetai o͘&tws{",
+  "unicode": "Ἔλεγεν δὲ καὶ τοῖς ὄχλοις, \nὍταν ἴδητε + + (τὴν) + νεφέλην ἀνατέλλουσαν ἐπὶ δυσμῶν, \nεὐθέως λέγετε ὅτι Ὄμβρος ἔρχεται, \nκαὶ γίνεται οὕτως·"
+ },
+ {
+  "addr": "Rev 15:3",
+  "ascii": "kai; a[/dousin th;n w/jdh;n Mwu>sevws to͘' douvlou to͘' qeou' \nkai; th;n w/jdh;n to͘' ajrnivou levgontes, \nMegavla kai; qaumasta; ta; e[rga so͘, \nkuvrie oJ qeo;s oJ pantokravtwr{ \ndivkaiai kai; ajlhqinai; aiJ oJdoiv so͘, \noJ basileu;s + tw'n aijwvnwn + tw'n ejqnw'n +{",
+  "unicode": "καὶ ᾄδουσιν τὴν ῳjδὴν Μωϋσέως τοῦ δούλου τοῦ θεοῦ \nκαὶ τὴν ῳjδὴν τοῦ ἀρνίου λέγοντες, \nΜεγάλα καὶ θαυμαστὰ τὰ ἔργα σου, \nκύριε ὁ θεὸς ὁ παντοκράτωρ· \nδίκαιαι καὶ ἀληθιναὶ αἱ ὁδοί σου, \nὁ βασιλεὺς + τῶν αἰώνων + τῶν ἐθνῶν +·"
+ },
+ {
+  "addr": "Luke 22:7",
+  "ascii": "H\\lqen de; hJ hJmevra tw'n ajzuvmwn, \n+ + (ejn) + h|/ e[dei quvesqai to; pavsca{",
+  "unicode": "Ἦλθεν δὲ ἡ ἡμέρα τῶν ἀζύμων, \n+ + (ἐν) + ᾗ ἔδει θύεσθαι τὸ πάσχα·"
+ },
+ {
+  "addr": "Matt 2:3",
+  "ascii": "ajkouvsas de; oJ basileu;s HJrwv/dhs ejtaravcqh \nkai; pa'sa IJerosovluma met# aujtou',",
+  "unicode": "ἀκούσας δὲ ὁ βασιλεὺς Ἡρῴδης ἐταράχθη \nκαὶ πᾶσα Ἱεροσόλυμα μετ᾽ αὐτοῦ,"
+ },
+ {
+  "addr": "Matt 11:17",
+  "ascii": "levgousin,\nHujlhvsamen uJmi'n kai; oujk wjrchvsasqe,\nejqrhnhvsamen kai; oujk ejkovyasqe.",
+  "unicode": "λέγουσιν,\nΗὐλήσαμεν ὑμῖν καὶ οὐκ ὠρχήσασθε,\nἐθρηνήσαμεν καὶ οὐκ ἐκόψασθε."
+ },
+ {
+  "addr": "Acts 1:2",
+  "ascii": "a[cri h|s hJmevras\nejnteilavmenos toi's ajpostovlois dia; pneuvmatos aJgivou o͘^s ejxelevxato\najnelhvmfqh{",
+  "unicode": "ἄχρι ἧς ἡμέρας\nἐντειλάμενος τοῖς ἀποστόλοις διὰ πνεύματος ἁγίου οὓς ἐξελέξατο\nἀνελήμφθη·"
+ },
+ {
+  "addr": "1 Cor 15:17",
+  "ascii": "eij de; Cristo;s oujk ejghvgertai, \nmataiva hJ pivstis uJmw'n, \n+ [estin] + e[ti ejste; ejn tai's aJmartivais uJmw'n, +",
+  "unicode": "εἰ δὲ Χριστὸς οὐκ ἐγήγερται, \nματαία ἡ πίστις ὑμῶν, \n+ [εστιν] + ἔτι ἐστὲ ἐν ταῖς ἁμαρτίαις ὑμῶν, +"
+ },
+ {
+  "addr": "John 6:64",
+  "ascii": "ajll# eijsi;n ejx uJmw'n tines oi^ ouj pisteuvousin.\n h[/dei ga;r ejx ajrch's oJ Ijhsou's \ntivnes eijsi;n oiJ mh; pisteuvontes \nkai; tivs ejstin oJ paradwvswn aujtovn.",
+  "unicode": "ἀλλ᾽ εἰσὶν ἐξ ὑμῶν τινες οἳ οὐ πιστεύουσιν.\n ᾔδει γὰρ ἐξ ἀρχῆς ὁ Ἰησοῦς \nτίνες εἰσὶν οἱ μὴ πιστεύοντες \nκαὶ τίς ἐστιν ὁ παραδώσων αὐτόν."
+ },
+ {
+  "addr": "John 19:15",
+  "ascii": "ejkrauvgasan o͘\\n ejkei'noi,\nA\\ron a\\ron,\n stauvrwson aujtovn.\n levgei aujtoi's oJ Pila'tos,\nTo;n basileva uJmw'n staurwvsw}\n ajpekrivqhsan oiJ ajrcierei's,\nOujk e[comen basileva \neij mh; Kaivsara.",
+  "unicode": "ἐκραύγασαν οὖν ἐκεῖνοι,\nἎρον ἆρον,\n σταύρωσον αὐτόν.\n λέγει αὐτοῖς ὁ Πιλᾶτος,\nΤὸν βασιλέα ὑμῶν σταυρώσω;\n ἀπεκρίθησαν οἱ ἀρχιερεῖς,\nΟὐκ ἔχομεν βασιλέα \nεἰ μὴ Καίσαρα."
+ },
+ {
+  "addr": "Acts 21:5",
+  "ascii": "o&te de; ejgevneto + ejxartvisai hJma's + hJma's ejxartivsai + ta;s hJmevras, \nejxelqovntes ejporeuovmeqa \npropempovntwn hJma's pavntwn su;n gunaixi; kai; tevknois e&ws e[xw th's povlews, \nkai; qevntes ta; govnata ejpi; to;n aijgialo;n proseuxavmenoi",
+  "unicode": "ὅτε δὲ ἐγένετο + ἐξαρτvισαι ἡμᾶς + ἡμᾶς ἐξαρτίσαι + τὰς ἡμέρας, \nἐξελθόντες ἐπορευόμεθα \nπροπεμπόντων ἡμᾶς πάντων σὺν γυναιξὶ καὶ τέκνοις ἕως ἔξω τῆς πόλεως, \nκαὶ θέντες τὰ γόνατα ἐπὶ τὸν αἰγιαλὸν προσευξάμενοι"
+ },
+ {
+  "addr": "John 19:22",
+  "ascii": "ajpekrivqh oJ Pila'tos,\nO^ gevgrafa,\n gevgrafa.",
+  "unicode": "ἀπεκρίθη ὁ Πιλᾶτος,\nὋ γέγραφα,\n γέγραφα."
+ },
+ {
+  "addr": "Luke 19:25",
+  "ascii": "- kai; ei\\pan aujtw'/, \nKuvrie, \ne[cei devka mna's -",
+  "unicode": "- καὶ εἶπαν αὐτῷ, \nΚύριε, \nἔχει δέκα μνᾶς -"
+ },
+ {
+  "addr": "Luke 11:12",
+  "ascii": "h] kai; aijthvsei wj/ovn, \nejpidwvsei aujtw'/ skorpivon}",
+  "unicode": "ἢ καὶ αἰτήσει ᾠόν, \nἐπιδώσει αὐτῷ σκορπίον;"
+ },
+ {
+  "addr": "John 11:36",
+  "ascii": "e[legon o͘\\n oiJ Ijoudai'oi,\nI[de pw's ejfivlei aujtovn.",
+  "unicode": "ἔλεγον οὖν οἱ Ἰουδαῖοι,\nἼδε πῶς ἐφίλει αὐτόν."
+ },
+ {
+  "addr": "1 Thess 4:18",
+  "ascii": "W&ste parakalei'te ajllhvlous ejn toi's lovgois touvtois.",
+  "unicode": "Ὥστε παρακαλεῖτε ἀλλήλους ἐν τοῖς λόγοις τούτοις."
+ },
+ {
+  "addr": "Luke 22:1",
+  "ascii": "H[ggizen de; hJ eJorth; tw'n ajzuvmwn hJ legomevnh pavsca.",
+  "unicode": "Ἤγγιζεν δὲ ἡ ἑορτὴ τῶν ἀζύμων ἡ λεγομένη πάσχα."
+ },
+ {
+  "addr": "Luke 3:28",
+  "ascii": "to͘' Melci; to͘' Ajddi; to͘' Kwsa;m \nto͘' Ejlmada;m to͘' H]r",
+  "unicode": "τοῦ Μελχὶ τοῦ Ἀδδὶ τοῦ Κωσὰμ \nτοῦ Ἐλμαδὰμ τοῦ Ἢρ"
+ },
+ {
+  "addr": "Gal 5:23",
+  "ascii": "prau?ths ejgkravteia{ \nkata; tw'n toiouvtwn oujk e[stin novmos.",
+  "unicode": "πραΰτης ἐγκράτεια· \nκατὰ τῶν τοιούτων οὐκ ἔστιν νόμος."
+ },
+ {
+  "addr": "Luke 3:26",
+  "ascii": "to͘' Mavaq to͘' Mattaqivou to͘' Semei:n \nto͘' Ijwsh;c to͘' Ijwda;",
+  "unicode": "τοῦ Μάαθ τοῦ Ματταθίου τοῦ Σεμεῒν \nτοῦ Ἰωσὴχ τοῦ Ἰωδὰ"
+ },
+ {
+  "addr": "1 John 1:4",
+  "ascii": "kai; tau'ta gravfomen hJmei's,\ni&na hJ cara; hJmw'n h/\\ peplhrwmevnh.",
+  "unicode": "καὶ ταῦτα γράφομεν ἡμεῖς,\nἵνα ἡ χαρὰ ἡμῶν ῃ\\ πεπληρωμένη."
+ },
+ {
+  "addr": "2 Cor 6:3",
+  "ascii": "mhdemivan ejn mhdeni; didovntes proskophvn,\ni&na mh; mwmhq'/h hJ diakoniva,",
+  "unicode": "μηδεμίαν ἐν μηδενὶ διδόντες προσκοπήν,\nἵνα μὴ μωμηθ'/η ἡ διακονία,"
+ },
+ {
+  "addr": "John 18:24",
+  "ascii": "ajpevsteilen o͘\\n aujto;n oJ A&nnas\n dedemevnon pro;s Kai>avfan to;n ajrciereva.",
+  "unicode": "ἀπέστειλεν οὖν αὐτὸν ὁ Ἅννας\n δεδεμένον πρὸς Καϊάφαν τὸν ἀρχιερέα."
+ },
+ {
+  "addr": "Matt 24:23",
+  "ascii": "tovte ejavn tis uJmi'n ei[ph/,\nIjdou; w|de oJ Cristovs,\n h[,\nW|de,\n mh; pisteuvshte{",
+  "unicode": "τότε ἐάν τις ὑμῖν εἴπῃ,\nἸδοὺ ὧδε ὁ Χριστός,\n ἤ,\nὯδε,\n μὴ πιστεύσητε·"
+ },
+ {
+  "addr": "Luke 10:15",
+  "ascii": "kai; suv, Kafarnaouvm, \nmh; e&ws oujranou' uJywqhvsh/} \ne&ws to͘' a&/dou katabhvsh/.",
+  "unicode": "καὶ σύ, Καφαρναούμ, \nμὴ ἕως οὐρανοῦ ὑψωθήσῃ; \nἕως τοῦ ᾅδου καταβήσῃ."
+ },
+ {
+  "addr": "2 Tim 2:16",
+  "ascii": "ta;s de; bebhvlous kenofwnivas perṳ?staso{ \nejpi; plei'on ga;r prokovyousin ajsebeivas",
+  "unicode": "τὰς δὲ βεβήλους κενοφωνίας περιΐστασο· \nἐπὶ πλεῖον γὰρ προκόψουσιν ἀσεβείας"
+ },
+ {
+  "addr": "Acts 13:28",
+  "ascii": "kai; mhdemivan aijtivan qanavtou euJrovntes \nhj/thvsanto Pila'ton ajnaireqh'nai aujtovn.",
+  "unicode": "καὶ μηδεμίαν αἰτίαν θανάτου εὑρόντες \nᾐτήσαντο Πιλᾶτον ἀναιρεθῆναι αὐτόν."
+ },
+ {
+  "addr": "John 7:21",
+  "ascii": "ajpekrivqh Ijhsou's \nkai; ei\\pen aujtoi's,\nE^n e[rgon ejpoivhsa \nkai; pavntes qaumavzete.",
+  "unicode": "ἀπεκρίθη Ἰησοῦς \nκαὶ εἶπεν αὐτοῖς,\nἛν ἔργον ἐποίησα \nκαὶ πάντες θαυμάζετε."
+ },
+ {
+  "addr": "Acts 10:15",
+  "ascii": "kai; fwnh; pavlin ejk deutevrou pro;s aujtovn, \nA^ oJ qeo;s ejkaqavrisen, \nsu; mh; koivnou.",
+  "unicode": "καὶ φωνὴ πάλιν ἐκ δευτέρου πρὸς αὐτόν, \nἋ ὁ θεὸς ἐκαθάρισεν, \nσὺ μὴ κοίνου."
+ },
+ {
+  "addr": "John 4:16",
+  "ascii": "Levgei aujth'/,\nU&page fwvnhson + so͘ to;n a[ndra + to;n a[ndra so͘ + \nkai; ejlqe; ejnqavde.",
+  "unicode": "Λέγει αὐτῇ,\nὝπαγε φώνησον + σου τὸν ἄνδρα + τὸν ἄνδρα σου + \nκαὶ ἐλθὲ ἐνθάδε."
+ },
+ {
+  "addr": "Acts 20:14",
+  "ascii": "wJs de; sunevballen hJmi'n eijs th;n A;sson, \najnalabovntes aujto;n h[lqomen eijs Mitulhvnhn,",
+  "unicode": "ὡς δὲ συνέβαλλεν ἡμῖν εἰς τὴν Ὰσσον, \nἀναλαβόντες αὐτὸν ἤλθομεν εἰς Μιτυλήνην,"
+ },
+ {
+  "addr": "Luke 8:46",
+  "ascii": "oJ de; Ijhsou's ei\\pen, \nH&yatov mouv tis, \nejgw; ga;r e[gnwn duvnamin ejxelhluqui'an ajp# ejmou'.",
+  "unicode": "ὁ δὲ Ἰησοῦς εἶπεν, \nἭψατό μού τις, \nἐγὼ γὰρ ἔγνων δύναμιν ἐξεληλυθυῖαν ἀπ᾽ ἐμοῦ."
+ },
+ {
+  "addr": "Heb 12:24",
+  "ascii": "kai; diaqhvkhs nevas mesivth/ Ijhsou' kai; ai&mati rJantismou' \nkrei'tton lalou'nti para; to;n &Abel.",
+  "unicode": "καὶ διαθήκης νέας μεσίτῃ Ἰησοῦ καὶ αἵματι ῥαντισμοῦ \nκρεῖττον λαλοῦντι παρὰ τὸν &Αβελ."
+ },
+ {
+  "addr": "Mark 10:48",
+  "ascii": "kai; ejpetivmwn aujtw'/ polloi; \ni&na siwphvsh/{\n oJ de; pollw'/ ma'llon e[krazen,\nUiJe; Dauivd,\n ejlevhsovn me.",
+  "unicode": "καὶ ἐπετίμων αὐτῷ πολλοὶ \nἵνα σιωπήσῃ·\n ὁ δὲ πολλῷ μᾶλλον ἔκραζεν,\nΥἱὲ Δαυίδ,\n ἐλέησόν με."
+ },
+ {
+  "addr": "Rom 1:1",
+  "ascii": "Pau'los dou'los + Ihsou' Cristou' + Cristou' Ihsou' +,\nklhto;s ajpovstolos ajfwrismevnos eijs eujaggevlion qeou',",
+  "unicode": "Παῦλος δοῦλος + Ιησοῦ Χριστοῦ + Χριστοῦ Ιησοῦ +,\nκλητὸς ἀπόστολος ἀφωρισμένος εἰς εὐαγγέλιον θεοῦ,"
+ },
+ {
+  "addr": "John 20:16",
+  "ascii": "levgei aujth'/ Ijhsou's,\n Mariavm.\n strafei'sa ejkeivnh \nlevgei aujtw'/ EJbrai>stiv,\nRabbouni\n o^ levgetai didavskale.",
+  "unicode": "λέγει αὐτῇ Ἰησοῦς,\n Μαριάμ.\n στραφεῖσα ἐκείνη \nλέγει αὐτῷ Ἑβραϊστί,\nΡαββουνι\n ὃ λέγεται διδάσκαλε."
+ },
+ {
+  "addr": "Acts 16:11",
+  "ascii": "Ajnacqevntes + o͘\\n + de; + ajpo; Trw/avdos eujqudromhvsamen eijs Samoqrav/khn, \nth'/ de; ejpiouvsh/ eijs Nevan Povlin",
+  "unicode": "Ἀναχθέντες + οὖν + δὲ + ἀπὸ Τρῳάδος εὐθυδρομήσαμεν εἰς Σαμοθρᾴκην, \nτῇ δὲ ἐπιούσῃ εἰς Νέαν Πόλιν"
+ },
+ {
+  "addr": "Mark 4:31",
+  "ascii": "wJs kovkkw/ sinavpews,\n o^s o&tan sparh'/ ejpi; th's gh's,\n mikrovteron o]n pavntwn tw'n spermavtwn tw'n ejpi; th's gh's,",
+  "unicode": "ὡς κόκκῳ σινάπεως,\n ὃς ὅταν σπαρῇ ἐπὶ τῆς γῆς,\n μικρότερον ὂν πάντων τῶν σπερμάτων τῶν ἐπὶ τῆς γῆς,"
+ },
+ {
+  "addr": "Matt 16:22",
+  "ascii": "kai; proslabovmenos aujto;n oJ Pevtros \nh[rxato ejpitima'n aujtw'/ levgwn,\nI&lewvs soi,\n kuvrie{\nouj mh; e[stai soi to͘'to.",
+  "unicode": "καὶ προσλαβόμενος αὐτὸν ὁ Πέτρος \nἤρξατο ἐπιτιμᾶν αὐτῷ λέγων,\nἽλεώς σοι,\n κύριε·\nοὐ μὴ ἔσται σοι τοῦτο."
+ },
+ {
+  "addr": "1 Tim 6:20",
+  "ascii": "W; Timovqee, th;n paraqhvkhn fuvlaxon \nejktrepovmenos ta;s bebhvlous kenofwnivas \nkai; ajntiqevseis th's yeudwnuvmou gnwvsews,",
+  "unicode": "Ὼ Τιμόθεε, τὴν παραθήκην φύλαξον \nἐκτρεπόμενος τὰς βεβήλους κενοφωνίας \nκαὶ ἀντιθέσεις τῆς ψευδωνύμου γνώσεως,"
+ },
+ {
+  "addr": "Gal 5:10",
+  "ascii": "ejgw; pevpoiqa eijs uJma's ejn kurivw/ \no&ti oujde;n a[llo fronhvsete{ \noJ de; taravsswn uJma's bastavsei to; krivma, \no&stis eja;n h;/.",
+  "unicode": "ἐγὼ πέποιθα εἰς ὑμᾶς ἐν κυρίῳ \nὅτι οὐδὲν ἄλλο φρονήσετε· \nὁ δὲ ταράσσων ὑμᾶς βαστάσει τὸ κρίμα, \nὅστις ἐὰν ῂ."
+ },
+ {
+  "addr": "Heb 7:21",
+  "ascii": "oJ de; meta; oJrkwmosivas dia; to͘' levgontos pro;s aujtovn, \nW[mosen kuvrios kai; ouj metamelhqhvsetai, \nSu; iJereu;s eijs to;n aijw'na.",
+  "unicode": "ὁ δὲ μετὰ ὁρκωμοσίας διὰ τοῦ λέγοντος πρὸς αὐτόν, \nὬμοσεν κύριος καὶ οὐ μεταμεληθήσεται, \nΣὺ ἱερεὺς εἰς τὸν αἰῶνα."
+ },
+ {
+  "addr": "Matt 21:5",
+  "ascii": "Ei[pate th'/ qugatri; Siwvn,\nIjdou; oJ basileuvs so͘ e[rcetaiv soi \nprau:s kai; ejpibebhkw;s ejpi; o[non \nkai; ejpi; pw'lon uiJo;n uJpozugivou.",
+  "unicode": "Εἴπατε τῇ θυγατρὶ Σιών,\nἸδοὺ ὁ βασιλεύς σου ἔρχεταί σοι \nπραῢς καὶ ἐπιβεβηκὼς ἐπὶ ὄνον \nκαὶ ἐπὶ πῶλον υἱὸν ὑποζυγίου."
+ },
+ {
+  "addr": "Luke 12:19",
+  "ascii": "kai; ejrw' th'/ yuch'/ mo͘, \nYuchv, e[ceis polla; ajgaqa; \n+ (keivmena + keivmena + eijs e[th pollav{  \najnapauvou, favge, + pive) + pive +, eujfraivnou.",
+  "unicode": "καὶ ἐρῶ τῇ ψυχῇ μου, \nΨυχή, ἔχεις πολλὰ ἀγαθὰ \n+ (κείμενα + κείμενα + εἰς ἔτη πολλά·  \nἀναπαύου, φάγε, + πίε) + πίε +, εὐφραίνου."
+ },
+ {
+  "addr": "Matt 12:18",
+  "ascii": "Ijdou; oJ pai's mo͘ \no^n hJ/revtisa,\noJ ajgaphtovs mo͘ \n+ + eijs + o^n eujdovkhsen hJ yuchv mo͘{\nqhvsw to; pneu'mav mo͘ ejp# aujtovn,\nkai; krivsin toi's e[qnesin ajpaggelei'.",
+  "unicode": "Ἰδοὺ ὁ παῖς μου \nὃν ᾑρέτισα,\nὁ ἀγαπητός μου \n+ + εἰς + ὃν εὐδόκησεν ἡ ψυχή μου·\nθήσω τὸ πνεῦμά μου ἐπ᾽ αὐτόν,\nκαὶ κρίσιν τοῖς ἔθνεσιν ἀπαγγελεῖ."
+ },
+ {
+  "addr": "Acts 17:18",
+  "ascii": "tine;s de; kai; tw'n Ejpikoureivwn kai; + Stwikw'n + Stoi>kw'n + filosovfwn \nsunevballon aujtw'/, \nkaiv tines e[legon, \nTiv a]n qevloi oJ spermolovgos o͘|tos levgein} \noiJ dev, \nXevnwn daimonivwn dokei' kataggeleu;s ei\\nai, \no&ti to;n Ijhsou'n kai; th;n ajnavstasin eujhggelivzeto.",
+  "unicode": "τινὲς δὲ καὶ τῶν Ἐπικουρείων καὶ + Στωικῶν + Στοϊκῶν + φιλοσόφων \nσυνέβαλλον αὐτῷ, \nκαί τινες ἔλεγον, \nΤί ἂν θέλοι ὁ σπερμολόγος οὗτος λέγειν; \nοἱ δέ, \nΞένων δαιμονίων δοκεῖ καταγγελεὺς εἶναι, \nὅτι τὸν Ἰησοῦν καὶ τὴν ἀνάστασιν εὐηγγελίζετο."
+ },
+ {
+  "addr": "1 Thess 5:19",
+  "ascii": "to; pneu'ma mh; sbevnnute,",
+  "unicode": "τὸ πνεῦμα μὴ σβέννυτε,"
+ },
+ {
+  "addr": "John 1:1",
+  "ascii": "Ejn ajrch'/ h\\n oJ lovgos,\n kai; oJ lovgos h\\n pro;s to;n qeovn,\n kai; qeo;s h\\n oJ lovgos.",
+  "unicode": "Ἐν ἀρχῇ ἦν ὁ λόγος,\n καὶ ὁ λόγος ἦν πρὸς τὸν θεόν,\n καὶ θεὸς ἦν ὁ λόγος."
+ }
+]
