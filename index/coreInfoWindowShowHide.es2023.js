@@ -80,7 +80,6 @@ export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
             $('#help').css('top', '2.25rem')
             $('#windowControl').css('top', '2rem')
             $('#searchTool').css('top', '2rem')
-            $('#searchTool').css('max-width', '40%')
             $('#title').contents().first()[0].textContent = "FHL " //太寬會讓 se 擋到 手動更新功能
         } else {
             o4.animate(sizes.rc4, 400)
@@ -88,13 +87,12 @@ export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
             $('#help').css('top', '')
             $('#windowControl').css('top', '')
             $('#searchTool').css('top', '')
-            $('#searchTool').css('max-width', '')
             $('#title').contents().first()[0].textContent = "信望愛聖經工具"
         }
     }
 
     chnageControlsMaxWidthInToolbar(sizes.rc4)
-    // changeSearchInputMaxWidthIfNeed(sizes.rc4)
+    fitSearchToolWhenNarrow(sizes.rc4)
 
     o2.animate(sizes.rc2, 400, fnCompleted)
 
@@ -155,27 +153,14 @@ export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
             }
         }
     }
-    function changeSearchInputMaxWidthIfNeed(rc4) {
-        var rc4Width = rc4.width
-        var r1 = $("#searchTool .icon-search-container")
-        if (r1 === undefined) { return }
-
-        if (testIsChSearchInputMaxWidth(rc4Width)) {
-            chSearchInputMaxWidth(rc4Width)
-        }
-
-        return
-
-        function testIsChSearchInputMaxWidth(rc4Width) {
-            var r2 = parseInt(r1.css("max-width")) // 481px 會直接是 481, 若沒有值, 會是 NaN
-            if (isNaN(r2)) { return true } // 需要設定一個 max-width
-
-            var r3 = Math.round(rc4Width / 4.0)
-            return r2 != r3
-        }
-        function chSearchInputMaxWidth(rc4Width) {
-            r1.css("max-width", Math.round(rc4Width / 4.0))
-        }
+    /**
+     * 窄的時候 (工具列 2 行)，第 2 行左邊是視窗按鈕，右邊是搜尋框。
+     * 視窗按鈕縮到剛好的寬度，剩下的都給搜尋框 (原本各 40%，搜尋框太窄)
+     */
+    function fitSearchToolWhenNarrow(rc4) {
+        $('#fhlToolBar').toggleClass('toolbar-narrow', rc4.height != null)
+        observeWindowControlButtons()
+        applyFitSearchTool()
     }
 
     function getSizes(is1, is3, cx1, cx3) {
@@ -256,4 +241,51 @@ export function coreInfoWindowShowHide(fnCompleted, isShow1, isShow3) {
             cx3 = cx3 == undefined ? TPPageState.s.cxInfoWindow : cx3
         }
     }
+}
+
+/*
+ * 狀態 (是否窄、是否已經在觀察) 放在 DOM 上，不放在 module 變數：
+ * dev 時 Vite 可能因 HMR 時間戳不同載入兩份此 module，各自的變數會互相打架
+ */
+
+/**
+ * 按鈕的寬度會變 (選取的按鈕 padding 較大；FhlLeftWindow 之後還會插入按鈕)，變了就重算。
+ * 啟動時 #windowControlButtons 可能還沒產生，所以也看 #windowControl (骨架就有) 的子元素變化
+ */
+function observeWindowControlButtons() {
+    const wc = $('#windowControl')[0]
+    if (wc == null || wc.dataset.fitSearchObserved || typeof ResizeObserver == 'undefined') return
+    wc.dataset.fitSearchObserved = '1'
+
+    let observed = null
+    const resizeObserver = new ResizeObserver(() => applyFitSearchTool())
+    const observeButtons = () => {
+        const btns = $('#windowControlButtons')[0]
+        if (btns == null || btns === observed) return
+        if (observed != null) resizeObserver.unobserve(observed)
+        resizeObserver.observe(btns)
+        observed = btns
+    }
+    new MutationObserver(() => {
+        observeButtons()
+        applyFitSearchTool()
+    }).observe(wc, { childList: true, subtree: true })
+    observeButtons()
+}
+function applyFitSearchTool() {
+    const wc = $('#windowControl')
+    const search = $('#searchTool')
+    if (!$('#fhlToolBar').hasClass('toolbar-narrow')) {
+        wc.css('width', '')
+        search.css({ left: '', width: '', 'max-width': '' })
+        return
+    }
+
+    // 此時 icon 已隱藏，按鈕靠左。不換行，否則縮窄後再量，會量到換行後的寬度
+    const btnsWidth = $('#windowControlButtons').css('white-space', 'nowrap').outerWidth()
+    if (btnsWidth > 0) {
+        wc.css('width', btnsWidth + 8 + 'px')
+    }
+    const left = wc.position().left + wc.outerWidth() + 8
+    search.css({ left: left + 'px', width: 'auto', 'max-width': 'none' })
 }
