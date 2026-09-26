@@ -1,5 +1,8 @@
 import { assert } from './assert_es2023.js';
 import { Search_continue_search } from './Search_continue_search_es2023.js'
+import { Search_suggestFilter } from './Search_suggestFilter_es2023.js'
+import { Search_DataForGroupUi } from './Search_DataForGroupUi_es2023.js'
+import { TPPageState } from './TPPageState.es2023.js'
 /**
  * 定義型別別名
  * @typedef {import('./Search_Types_es2023').OneSeRecord} OneSeRecord
@@ -170,3 +173,27 @@ export function Search_pre_search_click(pdata) {
         start_search_and_render_result(pdata);
     }
 }//pre_search_click
+/**
+ * 預搜尋 UI 產生後呼叫 (取代原本固定 click「整卷聖經」)
+ * 依目前閱讀的書卷，自動選 同卷 → 同分類 → 同約 → 整卷聖經，並開始顯示經文
+ */
+export function Search_select_suggested_filter() {
+    const data = Search_DataForGroupUi.s
+    const ibook = TPPageState.s.bookIndex - 1
+    const { group_name, ibook: ibook_selected } = Search_suggestFilter(data._cnt_of_book, fhl.g_book_group, ibook)
+
+    $(`.group_name[group_name="${group_name}"]`).addClass("selected");
+    if (ibook_selected == null) {
+        // 與點擊分類相同：整卷聖經、舊約、新約，太多所以不展開
+        if (group_name != "整卷聖經" && group_name != "舊約" && group_name != "新約") {
+            get_div_books_of_group_name(group_name).css('display', 'block');
+        }
+    } else {
+        // 同一卷書會出現在多個分類 (整卷聖經、新約、其它書信)，只選這個分類下的
+        get_div_books_of_group_name(group_name).css('display', 'block')
+            .children(`.book[books="[${ibook_selected}]"]`).addClass("selected");
+    }
+
+    const books = ibook_selected == null ? fhl.g_book_group[group_name] : [ibook_selected]
+    start_search_and_render_result({ data: { jret2: data._record_ordered, books } });
+}

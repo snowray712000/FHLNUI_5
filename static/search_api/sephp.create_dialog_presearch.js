@@ -47,9 +47,8 @@ sephp.create_dialog_presearch = function create_dialog_presearch(jrets) {
   $(sephp.node_pre_search).append(textarea);
   sephp.node_sephp_copy = textarea[0]; // 相容舊版
   
-  // trigger click 
-  const group_name = "整卷聖經";
-  $(`.group_name[group_name="${group_name}"]`).trigger('click');
+  // 依目前閱讀書卷，自動選 同卷 → 同分類 → 同約 → 整卷聖經 (原本固定 click「整卷聖經」)
+  Search_select_suggested_filter();
 };
 
 testThenDoAsync({cbTest: () => window.Search_initializePreSearchEventHandlersAsync != undefined}).then(() => {

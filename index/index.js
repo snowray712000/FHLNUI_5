@@ -78,7 +78,7 @@ import { Search_UiOfGroupRender } from './Search_UiOfGroupRender_es2023.js'
 import { Search_initializePreSearchEventHandlersAsync } from './Search_initializePreSearchEventHandlersAsync_es2023.js'
 import { Search_continue_search } from './Search_continue_search_es2023.js'
 import { Search_create_dialog_search_result } from './Search_create_dialog_search_result_es2023.js'
-import { Search_pre_search_click } from './Search_pre_search_click_es2023.js'
+import { Search_pre_search_click, Search_select_suggested_filter } from './Search_pre_search_click_es2023.js'
 import { hash_change_on_initial } from './hash_change_on_initial.js'
 import { Hash_Changed } from './Hash_Changed.js'
 (function (root) {
@@ -90,6 +90,7 @@ import { Hash_Changed } from './Hash_Changed.js'
     window.Search_continue_search = Search_continue_search
     window.Search_create_dialog_search_result = Search_create_dialog_search_result
     window.Search_pre_search_click = Search_pre_search_click
+    window.Search_select_suggested_filter = Search_select_suggested_filter
 
     window.BibleConstantEs6Js = () => BibleConstant
     window.BibleConstantHelperEs6Js = () => BibleConstantHelper
