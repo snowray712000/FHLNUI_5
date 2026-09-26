@@ -47,7 +47,6 @@ export function registerEvents_doc(ps) {
                 'Slash': () => $('#help').trigger("click"), // 反斜線 /
                 'KeyC': () => $('#fhlInfoWindowControl').trigger('click'), // 
                 'KeyZ': () => $('#fhlLeftWindowControl').trigger('click'), // 
-                'KeyX': () => $('#fhlMidBottomWindowControl').trigger('click'), // 
                 'KeyL': () => $('#fullscreenControl').trigger('click'), // 全螢幕
             }
             if (maps[e.code] != undefined) {

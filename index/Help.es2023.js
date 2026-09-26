@@ -24,7 +24,6 @@ export class Help {
 
             // 快速鍵清單
             // Alt + Shift + z: 設定視窗開關 (左邊)
-            // Alt + Shift + x: 搜尋視窗開關 (下方)
             // Alt + Shift + c: 輔助視窗開關 (右邊)
             // Alt + Shift + /: 幫助，跳出 (這個視窗)
             // Alt + Shift + L: 全螢幕 (目前有Bug, 全營幕後，即時功能失效)
@@ -34,7 +33,6 @@ export class Help {
                 $("<h3>").text('快速鍵清單'),
                 $('<ul>').append(
                     $('<li>').text('Alt + Shift + z: 設定視窗開關 (左邊)'),
-                    $('<li>').text('Alt + Shift + x: 搜尋視窗開關 (下方)'),
                     $('<li>').text('Alt + Shift + c: 輔助視窗開關 (右邊)'),
                     $('<li>').text('Alt + Shift + /: 幫助，跳出 (這個視窗)'),
                     $('<li>').text('Alt + Shift + L: 全螢幕 (目前有Bug, 全螢幕後，即時功能失效)'),

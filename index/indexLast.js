@@ -10,26 +10,8 @@ import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 export function runIndexLast() {
   // 原本還有 doLast2~5：從 ijnjs 快取 eval 各元件，清單都已註解成空陣列（元件改成 es2023 module），已移除
   doLast1()
-
-  // 搜尋 #fhlMidBottomWindow .sn mouseenter mouseleave 事件使用，改變 sn 顏色
-  let_sn_color_change_in_search_result()
 }
 
-
-function let_sn_color_change_in_search_result() {
-  $('#fhlMidBottomWindow').on('mouseenter', '.sn', function () {
-    var sn = $(this).attr('sn')
-    const tp = $(this).attr('tp') // 'G' or 'H'
-    pageState.snAct = sn
-    pageState.snActTp = tp
-
-    SN_Act_Color.s.act_add(sn, tp)
-  }).on('mouseleave', '.sn', function () {
-    SN_Act_Color.s.act_remove()
-    pageState.snAct = ''
-    pageState.snActTp = ''
-  })
-}
 
 function doLast1() {
   addUrlChangedEvents()

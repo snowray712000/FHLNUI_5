@@ -1,6 +1,4 @@
-import { FhlMidBottomWindow } from "./FhlMidBottomWindow.es2023.js";
-import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
-import { doSearch } from "./doSearch.es2023.js";
+import { SearchDialog } from "./SearchDialog_es2023.js";
 
 export class SearchTool {
     static #s = null
@@ -44,14 +42,7 @@ export class SearchTool {
         })
 
         $('.searchBtn').on('click', function (e) {
-            //ps.leftBtmWinShow = true;
-            triggerGoEventWhenPageStateAddressChange(ps);
-            FhlMidBottomWindow.s.render(ps);
-            doSearch($('.searchBox').val(), ps);
-
-            if (!$('#fhlMidBottomWindowControl').hasClass('selected')) {
-                $('#fhlMidBottomWindowControl').trigger("click");
-            }
+            SearchDialog.s.searchAsync($('.searchBox').val());
         });
     }
     render(ps, dom) {

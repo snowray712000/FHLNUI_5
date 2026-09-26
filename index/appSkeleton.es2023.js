@@ -87,9 +87,7 @@ export const APP_SKELETON_HTML = `<div><nav id="fhlTopMenu"><div><img id="logoFH
 <div class="chapNext chapControl"><span>❯</span></div>
 <span id="viewHistoryButton" style="position: absolute; right: 10px; cursor: pointer; font-size: 28px; font-weight: 800;"><span class="b noselect">←</span><span class="n noselect">→</span></span>
 <div id="lecMainTitle"></div>
-<div id="lecMain" style="padding: 10px 50px;"></div></div>
-<div id="fhlMidBottomWindow"><div id="fhlMidBottomWindowTitle"></div>
-<div id="fhlMidBottomWindowContent"></div></div></div>
+<div id="lecMain" style="padding: 10px 50px;"></div></div></div>
 <div id="fhlInfo"><div id="fhlInfoTitle"></div>
 <div id="fhlInfoContent"></div></div>
 <div id="bookSelectPopUp"><div id="bookSelectName"></div></div>

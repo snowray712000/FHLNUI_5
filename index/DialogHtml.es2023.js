@@ -9,7 +9,7 @@ export class DialogHtml {
     dlg = null;
     /**
      * 顯示對話框
-     * @param {{ html: string, maxWidth?: number, maxHeight?: number, width?: number, position?: any, getTitle: () => string, registerEventWhenShowed: (dlg: JQuery<HTMLElement>) => void }} jo 
+     * @param {{ html: string, maxWidth?: number, maxHeight?: number, width?: number, height?: number, position?: any, getTitle: () => string, registerEventWhenShowed: (dlg: JQuery<HTMLElement>) => void }} jo 
      */
     showDialog = (jo) => {
         const idDlg = this.#getIdOfDialog();
@@ -37,6 +37,9 @@ export class DialogHtml {
         dlg.dialog("option", "maxWidth", jo.maxWidth ?? window.innerWidth * 0.80);
         dlg.dialog("option", "maxHeight", jo.maxHeight ?? window.innerHeight * 0.80);
         dlg.dialog("option", "width", jo.width ?? window.innerWidth * 0.80);
+        if (jo.height) {
+            dlg.dialog("option", "height", jo.height);
+        }
         if (jo.position) {
             dlg.dialog("option", "position", jo.position);
         }

@@ -349,19 +349,4 @@ fhl.any_name_2_iBook = function any_name_2_iBook(name, isgb) {
   return jr1.indexOf(jr2);
 }
 
-var sephp = sephp || {};
-sephp.node_search_result = document.createElement("div");
-sephp.node_pre_search = document.createElement("div");
-sephp.act_sn_button_click = function act_sn_button_click(pdata) {
-  /// <summary> 會傳入 engs, keyword, ver </summary>
-  console.log("act_sn_button_click not assign., 會傳入 engs, keyword, ver 資訊. 通常是把查詢輸入的地方文字變為keyword");
-  console.log('ex: {engs: "Dan",keyword: "03478",ver: "unv"}');
-};
-sephp.act_ref_button_click = function act_ref_button_click(pdata) {
-  /// <summary> 會傳入 engs, chap, sec, ver 資訊. 通常是用來切換章節</summary>
-  console.log("act_ref_button_click not assign., 會傳入 engs, chap, sec, ver 資訊. 通常是用來切換章節");
-};
-sephp.keyword = "";
-sephp.issn = true;
-sephp.isgb = false;
 

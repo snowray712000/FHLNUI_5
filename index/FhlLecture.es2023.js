@@ -1431,16 +1431,15 @@ function mouseenter_sn_dialog(e) {
                     let tp = $(a1.target).attr('tp')
                     const hgSn = `${tp}${sn}` // H3303 G4314
 
-                    // 將 #searchTool 下的 <input> 它的 class 是 .search-input 的內容改設定為 G4314
-                    $('#searchTool').find('.search-input').val(hgSn)
-                    // 觸發 .searchBtn 的 click 事件, 開始搜尋
-                    $('.searchBtn').trigger('click');
-
                     // 開啟新的前，自動關閉已經開啟中的 ... 所有 .ui-dialog-title 中 text 是 Parsing 的 ... 取得 close 按鈕結束
                     // let rr1 = $('.ui-dialog-title').filter((i, e) => $(e).hasClass('realtime-sn'))
                     const rr1 = $('.ui-dialog-title')
                     let rr2 = rr1.siblings('.ui-dialog-titlebar-close')
                     rr2.trigger('click')
+
+                    // 先關掉所有 dialog 再搜尋，否則剛開的搜尋 dialog 也會被關掉
+                    $('#searchTool').find('.search-input').val(hgSn)
+                    $('.searchBtn').trigger('click');
                 })
 
                 dlg.on('click', '.ref', a1 => {

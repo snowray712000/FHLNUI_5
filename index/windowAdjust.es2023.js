@@ -36,13 +36,6 @@ export function windowAdjust() {
     //     height: height + 'px'
     // });
 
-    /* for MidBottomWindow height */
-    var fhlMidBottomWindow$ = $("#fhlMidBottomWindow")
-    var lecMain$ = $('#lecMain')
-    var isVisiblefhlMidBottomWindowControl = $("#fhlMidBottomWindowControl").hasClass('selected')
-    if (isVisiblefhlMidBottomWindowControl)
-        height -= ($("#fhlMidBottomWindow").height() + 12);
-
     // $('#fhlLecture').css({
     //     height: height + 'px'
     // });

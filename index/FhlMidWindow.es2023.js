@@ -1,4 +1,3 @@
-import { FhlMidBottomWindow } from "./FhlMidBottomWindow.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 
@@ -12,7 +11,6 @@ export class FhlMidWindow {
 
         this.dom = dom;
         FhlLecture.s.init(ps, $('#fhlLecture'));
-        FhlMidBottomWindow.s.init(ps, $('#fhlMidBottomWindow'));
         this.render(ps, dom);
     }
 

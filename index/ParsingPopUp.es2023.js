@@ -1,4 +1,4 @@
-import { doSearch } from './doSearch.es2023.js'
+import { SearchDialog } from './SearchDialog_es2023.js'
 import { TPPageState } from "./TPPageState.es2023.js";
 import { dev_sbdag } from "./dev_sbdag.es2023.js"
 import { dev_stwcbhdic } from "./dev_stwcbhdic.es2023.js"
@@ -40,23 +40,18 @@ export class ParsingPopUp {
                 searchText = searchText.replace(/&nbsp;/g, " ");
                 searchText = "#" + searchText + "|";
 
-                // replace 2015.08.01(六)
-                doSearch(searchText, ps);
+                SearchDialog.s.searchAsync(searchText);
 
                 // mark 2015.08.01(六)
                 // doSearch("#" + searchText + "|", "search", 0);
             });
 
             $('.searchSN').on('click',function () {
-                if (!$('#fhlMidBottomWindowControl').hasClass('selected')) {
-                    $('#fhlMidBottomWindowControl').trigger("click");
-                }
                 // var keywords = $(this).attr('k'); // sn
                 var keywords = $(this).attr('sn'); // sn
                 //keywords = '3478'; //example;
 
-                //replace 2015.08.01(六)
-                doSearch(keywords, ps, false);
+                SearchDialog.s.searchAsync(keywords);
 
                 // mark 2015.08.01(六)
                 //doSearch($(this).attr('k'),"search",parseInt($(this).attr('N'))+1);

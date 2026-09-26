@@ -13,8 +13,8 @@ export class SN_Act_Color {
      * @returns {str} jQuery selector
      */
     ids(){
-        // 下面會重複使用 lecMain 閱讀 search_result 搜尋結果 parsingTable 原文 commentScrollDiv 注釋
-        let id_array_for_jquery = '#lecMain, #search_result, #parsingTable, #commentScrollDiv'
+        // 下面會重複使用 lecMain 閱讀 searchDlgResults 搜尋結果 parsingTable 原文 commentScrollDiv 注釋
+        let id_array_for_jquery = '#lecMain, #searchDlgResults, #parsingTable, #commentScrollDiv'
         return id_array_for_jquery
     }
     /**

@@ -7,7 +7,6 @@
 /*
 - span#versionSelect3，選擇譯本
 - span#fhlLeftWindowControl，左側顯示與隱藏
-- span#fhlMidBottomWindowControl，底部顯示與隱藏，底部負責搜尋的結果
 - span#fhlInfoWindowControl，右側顯示與隱藏，右側有許多功能，串珠、Parsing、註釋等等
 - span#fullscreenControl，螢幕全螢幕顯示與隱藏，但通常會自動換行所以看不到，算是Bug
 - i#windowControlIcon，決定 div#windowControlButtons 的顯示與隱藏 ... 很窄的時候，會自動隱藏
@@ -18,7 +17,6 @@
   <div#windowControlButtons>
     <span#versionSelect3>
     <span#fhlLeftWindowControl>
-    <span#fhlMidBottomWindowControl>
     <span#fhlInfoWindowControl>
     <span#fullscreenControl>
   </div>
@@ -27,7 +25,6 @@
 */
 
 import { FhlLecture } from "./FhlLecture.es2023.js";
-import { FhlMidBottomWindow } from "./FhlMidBottomWindow.es2023.js";
 import { requestFullscreen } from "./requestFullscreen.es2023.js";
 import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
 
@@ -88,28 +85,6 @@ export class WindowControl {
       }
     );
 
-    // 第2個功能 底部顯示與隱藏，就是搜尋結果
-    $('#fhlMidBottomWindowControl').on('click',
-      function (e) {
-        const that = $(e.currentTarget)
-
-        var fhlMidBottomWindow$ = $('#fhlMidBottomWindow')
-        if (that.hasClass('selected')) {
-          that.removeClass('selected');
-
-          fhlMidBottomWindow$.hide()
-          FhlMidBottomWindow.s.updateBottomOfLecture()
-        }
-        else {
-          that.addClass('selected');
-          fhlMidBottomWindow$.show()
-
-          FhlMidBottomWindow.s.updateMaxHeightOfResizableAndOfDom()
-          FhlMidBottomWindow.s.updateBottomOfLecture()
-        }
-      }
-    );
-
     // 第3個功能 右側顯示與隱藏
     $('#fhlInfoWindowControl').on('click',
       function (e) {
@@ -146,7 +121,7 @@ export class WindowControl {
     });
   }
   render(ps, dom) {
-    var html = "<i id='windowControlIcon' class='fa fa-tv fa-fw selected'></i><div id='windowControlButtons'><span id='fhlLeftWindowControl' class='selected' ><i class='fa fa-wrench fa-fw'></i></span><span id='fhlMidBottomWindowControl'><i class='fa fa-search fa-fw'></i></span><span id='fhlInfoWindowControl' class='selected'><i class='fa fa-file-text-o fa-fw'></i></span><space style='margin: 0px 10px; cursor: default; color: #D0D0D0;'>|</space><span id='fullscreenControl'><i class='fa fa-arrows-alt fa-fw'></i></span></div>";
+    var html = "<i id='windowControlIcon' class='fa fa-tv fa-fw selected'></i><div id='windowControlButtons'><span id='fhlLeftWindowControl' class='selected' ><i class='fa fa-wrench fa-fw'></i></span><span id='fhlInfoWindowControl' class='selected'><i class='fa fa-file-text-o fa-fw'></i></span><space style='margin: 0px 10px; cursor: default; color: #D0D0D0;'>|</space><span id='fullscreenControl'><i class='fa fa-arrows-alt fa-fw'></i></span></div>";
     dom.html(html);
   }
 }
