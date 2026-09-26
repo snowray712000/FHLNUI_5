@@ -52,7 +52,7 @@ describe('gcode_2 字尾 s → ς', () => {
 })
 
 describe('gcode_2 重音、氣號、iota 下標', () => {
-    // 全新約 (bible_fhlwh.sqlite) 實際用到的 131 個 orga 組合 (orgb 表一個都沒用到)。
+    // 全新約 (bible_fhlwh.sqlite) 實際用到的 131 個組合 (大寫帶氣號用的是 orgb 的寫法，例 OJ EJ A[)。
     // 預期值由 gcode_2 產生，但全新約與 qsb.php 已整句比對一致，所以可當回歸測試。
     // 用 \u 寫，因為編輯器常把 oxia 正規化 (NFC) 成 tonos，肉眼看不出差別。
     it.each([
