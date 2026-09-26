@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh_tw">
+<head>
+<meta charset="utf-8">
+<title>Search Result:</title>
+</head>
+<body>
+<form method="post" action="ssn.php">
+<input type="hidden" name="graph" value="2"/>
+<br/>
+請輸入原文編號<input type="text" name="SN" value="" size="5">
+原型簡意<input type="text" name="exp" value="" size="7">
+或 原型：<input type="text" name="orig" value="" size="6"> 或 原文字：<input type="text" name="word" vlaue="zzzz" size="6"> 或 Unicode原型：<input type="text" name="uorig" value="" size="6"> 或 Unicode原文：<input type="text" name="uword" vlaue="" size="6">
+詞性：<input type="text" name="pro" vlaue="" size="2"/>
+字彙分析：<input type="text" name="PC" vlaue="" size="5"/>
+查詢範圍：<select NAME="engs">
+  <option  VALUE=" " >全部  <option  VALUE="Matt" >馬太福音  <option  VALUE="Mark" >馬可福音  <option  VALUE="Luke" >路加福音  <option  VALUE="John" >約翰福音  <option  VALUE="Acts" >使徒行傳  <option  VALUE="Rom" >羅馬書  <option  VALUE="1 Cor" >哥林多前書  <option  VALUE="2 Cor"  >哥林多後書  <option  VALUE="Gal"  >加拉太書  <option  VALUE="Eph"  >以弗所書  <option  VALUE="Phil" >腓立比書  <option  VALUE="Col"  >歌羅西書  <option  VALUE="1 Thess" >帖撒羅尼迦前書  <option  VALUE="2 Thess" >帖撒羅尼迦後書  <option  VALUE="1 Tim" >提摩太前書  <option  VALUE="2 Tim"  >提摩太後書  <option  VALUE="Titus"  >提多書  <option  VALUE="Philem" >腓利門書  <option  VALUE="Heb" >希伯來書  <option  VALUE="James" >雅各書  <option  VALUE="1 Pet" >彼得前書  <option  VALUE="2 Pet" >彼得後書  <option  VALUE="1 John" >約翰一書  <option  VALUE="2 John" >約翰二書  <option  VALUE="3 John" >約翰三書  <option  VALUE="Jude" >猶大書  <option  VALUE="Rev" >啟示錄</select>
+ <input type="submit" name="submit1" value="查詢">
+</form><br/>
+查不到任何資料，請<a href="fhlwhparsing.html">修改查詢條件</a>再查 <br />

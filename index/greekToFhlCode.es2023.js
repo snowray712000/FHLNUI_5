@@ -60,3 +60,21 @@ export function greekToFhlCode(input) {
     for (const c of s) out += map.get(c) ?? c
     return out
 }
+
+/** tonos (鍵盤) → oxia (FHL 經文) */
+const OXIA_OF_TONOS = { '\u03ac': '\u1f71', '\u03ad': '\u1f73', '\u03ae': '\u1f75', '\u03af': '\u1f77', '\u03cc': '\u1f79', '\u03cd': '\u1f7b', '\u03ce': '\u1f7d', '\u0390': '\u1fd3', '\u03b0': '\u1fe3' }
+
+/**
+ * 關鍵字轉 regex 字串：一般字元 escape；希臘文 tonos 與 oxia 視為相同、σ 與 ς 視為相同
+ * 例 `λόγος` 可以標出經文中 oxia 的 λόγος
+ * @param {string} word
+ */
+export function greekLooseRegexSource(word) {
+    let re = ''
+    for (const c of word.normalize('NFC')) {
+        if (OXIA_OF_TONOS[c] != null) re += `[${c}${OXIA_OF_TONOS[c]}]`
+        else if (c == '\u03c3' || c == '\u03c2') re += '[\u03c3\u03c2]'
+        else re += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    }
+    return re
+}

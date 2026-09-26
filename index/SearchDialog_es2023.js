@@ -11,6 +11,7 @@ import { FhlInfo } from './FhlInfo.es2023.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
+import { greekLooseRegexSource } from './greekToFhlCode.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -223,7 +224,10 @@ export class SearchDialog {
         }
 
         const failed = session.failedVersions.map(a1 => abvphp.get_cname_from_book(a1.ver, session.gb == 1) || a1.ver)
-        const hint = failed.length ? `（${failed.join('、')} ${gbText('無法搜尋')}）` : ''
+        const names = BibleConstantHelper.getBookNameArrayChineseShort()
+        const tooMany = session.tooManyBooks.map(engs => names[fhl.engs_2_iBook(engs)] ?? engs)
+        const hint = (failed.length ? `（${failed.join('、')} ${gbText('無法搜尋')}）` : '')
+            + (tooMany.length ? `（${tooMany.join('、')} ${gbText('原文結果太多，未列入')}）` : '')
         if (session.total == 0) {
             this.#setResultsHtml($('<div class="sd-hint">').text(gbText('查無資料') + hint))
             this.#setStatus('')
@@ -336,7 +340,7 @@ export function colorBibleText(bible_text, keys) {
     if (words.length == 0) return html
 
     // 只換標籤以外的文字，避免改到 <span sn="..."> 之類的屬性
-    const reWords = new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'gi')
+    const reWords = new RegExp(words.map(greekLooseRegexSource).join('|'), 'gi')
     return html.split(/(<[^>]*>)/).map(part =>
         part.startsWith('<') ? part : part.replace(reWords, m => `<span class="seKey">${m}</span>`)
     ).join('')

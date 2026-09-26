@@ -1,4 +1,5 @@
 import { fetchTextAsync } from './fetchAsync.es2023.js'
+import { greekToFhlCode } from './greekToFhlCode.es2023.js'
 
 /**
  * ### 搜尋用到的 api：se.php (找出在哪幾節)、qsb.php (取經文)
@@ -65,18 +66,28 @@ async function searchIndexAsync(params, signal) {
 
 /**
  * 關鍵字搜尋，各譯本同時查。某譯本失敗 (例如原文譯本不能用中文查) 不影響其它譯本。
+ * fhlwh (新約原文) 用希臘文查時走 ssn.php (se.php 不支援 fhlwh)
  * @param {string} keyword
  * @param {string[]} versions
  * @param {0|1} gb
  * @param {AbortSignal} [signal]
- * @returns {Promise<{ver: string, addrs: SearchAddr[]}[] & {failed: {ver: string, reason: string}[]}>}
+ * @returns {Promise<{ver: string, addrs: SearchAddr[]}[] & {failed: {ver: string, reason: string}[], tooManyBooks: string[]}>} tooManyBooks 見 searchFhlwhAsync
  */
 export async function searchKeywordAsync(keyword, versions, gb, signal) {
-    const results = await Promise.allSettled(versions.map(ver =>
-        searchIndexAsync({ orig: 0, VERSION: ver, q: keyword, gb }, signal)))
+    const isGreek = isGreekKeyword(keyword)
+    let tooManyBooks = []
+    const results = await Promise.allSettled(versions.map(async ver => {
+        if (ver == 'fhlwh' && isGreek) {
+            const r = await searchFhlwhAsync(keyword, signal)
+            tooManyBooks = r.tooManyBooks
+            return r.addrs
+        }
+        return searchIndexAsync({ orig: 0, VERSION: ver, q: keyword, gb }, signal)
+    }))
 
     const re = []
     re.failed = []
+    re.tooManyBooks = tooManyBooks
     results.forEach((r, i) => {
         if (r.status == 'fulfilled') {
             re.push({ ver: versions[i], addrs: r.value })
@@ -88,6 +99,87 @@ export async function searchKeywordAsync(keyword, versions, gb, signal) {
         throw new Error(re.failed.map(a1 => `${a1.ver}: ${a1.reason}`).join('; '))
     }
     return re
+}
+
+/** 含希臘字母 (含 polytonic) */
+export function isGreekKeyword(keyword) {
+    return /[Ͱ-Ͽἀ-῿]/.test(keyword)
+}
+
+/** ssn.php 的 engs 參數 (新約) */
+const NT_ENGS = ['Matt', 'Mark', 'Luke', 'John', 'Acts', 'Rom', '1 Cor', '2 Cor', 'Gal', 'Eph', 'Phil', 'Col',
+    '1 Thess', '2 Thess', '1 Tim', '2 Tim', 'Titus', 'Philem', 'Heb', 'James', '1 Pet', '2 Pet',
+    '1 John', '2 John', '3 John', 'Jude', 'Rev']
+
+/**
+ * 解析 ssn.php 的 HTML。每筆是一個字，同一節可能出現多次
+ * @param {string} html
+ * @returns {{addrs: {engs: string, chap: number, sec: number}[], tooMany: number | null}} tooMany：超過上限 (約 500) 時的總筆數，此時 addrs 是空的
+ */
+export function parseSsnHtml(html) {
+    const m = /資料太多，共有\s*(\d+)\s*筆/.exec(html)
+    if (m) return { addrs: [], tooMany: parseInt(m[1]) }
+
+    const addrs = []
+    for (const a1 of html.matchAll(/href="fhlwhparsing\.php\?([^"]*)"/g)) {
+        const q = new URLSearchParams(a1[1].replace(/&amp;/g, '&'))
+        addrs.push({ engs: q.get('engs'), chap: parseInt(q.get('chap')), sec: parseInt(q.get('sec')) })
+    }
+    return { addrs, tooMany: null }
+}
+
+/** ssn.php 沒有 CORS；開發時經 VirtualApi proxy，上線時同源 */
+function urlSsn() { return fhl.isRDLocation ? 'http://127.0.0.1:15600/new/ssn.php' : '/new/ssn.php' }
+
+/**
+ * @param {Record<string, string>} params
+ * @param {AbortSignal} [signal]
+ */
+async function fetchSsnAsync(params, signal) {
+    const qs = new URLSearchParams({ ...params, graph: 2 })
+    return parseSsnHtml(await fetchTextAsync(urlSsn() + '?' + qs, { signal }))
+}
+
+/**
+ * ssn.php 一個條件 (例 word=lovgos)。超過上限時改成逐卷查，逐卷仍太多的書卷放 tooManyBooks
+ * @returns {Promise<{addrs: SearchAddr[], tooManyBooks: string[]}>}
+ */
+async function searchSsnAsync(params, signal) {
+    const toAddrs = r => r.addrs.map(a1 => ({ ibook: fhl.engs_2_iBook(a1.engs), chap: a1.chap, sec: a1.sec }))
+    const all = await fetchSsnAsync(params, signal)
+    if (all.tooMany == null) return { addrs: toAddrs(all), tooManyBooks: [] }
+
+    const perBook = await Promise.all(NT_ENGS.map(engs => fetchSsnAsync({ ...params, engs }, signal)))
+    return {
+        addrs: perBook.flatMap(toAddrs),
+        tooManyBooks: NT_ENGS.filter((_, i) => perBook[i].tooMany != null),
+    }
+}
+
+/**
+ * 新約原文搜尋 (fhlwh)，以 ssn.php 用信望愛內碼查 (Unicode 參數 uword/uorig 字尾 σ/ς 會查不到)
+ * - 每個詞：原文字 (word) 或原型 (orig) 符合，前綴比對，例 λόγο → λόγος λόγου…；πνεῦμα 的原型也找到 πνεύματος
+ * - 多個詞 (空白分隔)：同一節都要有
+ * @param {string} keyword Unicode 希臘文，tonos / oxia 皆可
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<{addrs: SearchAddr[], tooManyBooks: string[]}>} tooManyBooks：結果太多、沒有列入的書卷 (engs)
+ */
+export async function searchFhlwhAsync(keyword, signal) {
+    const words = keyword.split(/\s+/).filter(w => w.length > 0).map(greekToFhlCode)
+    const tooMany = new Set()
+    /** @type {Map<string, SearchAddr>[]} 每個詞找到的節 */
+    const perWord = await Promise.all(words.map(async code => {
+        const results = await Promise.all([searchSsnAsync({ word: code }, signal), searchSsnAsync({ orig: code }, signal)])
+        const map = new Map()
+        for (const r of results) {
+            r.tooManyBooks.forEach(a1 => tooMany.add(a1))
+            for (const a1 of r.addrs) map.set(`${a1.ibook}:${a1.chap}:${a1.sec}`, a1)
+        }
+        return map
+    }))
+    const [first, ...rest] = perWord
+    const addrs = [...(first?.entries() ?? [])].filter(([key]) => rest.every(m => m.has(key))).map(([, v]) => v)
+    return { addrs, tooManyBooks: NT_ENGS.filter(a1 => tooMany.has(a1)) }
 }
 
 /**

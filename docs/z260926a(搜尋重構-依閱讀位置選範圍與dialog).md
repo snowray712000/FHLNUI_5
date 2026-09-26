@@ -191,3 +191,20 @@ ParsingPopUp ────────────┼─→ SearchDialog.s.search
 - `app_versions.json` 的 TODO「搜尋貼上交互參照，可跳出」：現在可以貼 `羅1:3-4;約3:16` 直接搜尋；是否算完成由作者判斷。
 - `npm run depgraph` 在 Node 25 無法執行（dependency-cruiser 只支援 22 / 24 / ≥ 26），`docs/dependency-graph.mmd` 尚未更新。
 - 瀏覽器的 viewport 模擬不會觸發 `resize` 事件；手機寬度的搜尋框是手動觸發 resize 驗證的，未在實機旋轉測試。
+
+---
+
+## 9. 希臘文搜尋：新約原文 (fhlwh) + 七十士譯本 (lxx)
+
+關鍵字含希臘字母時，`SearchSession` 不論目前選的譯本，改查 `['fhlwh', 'lxx']`（新約原文 + 舊約七十士譯本）。
+
+- **lxx**：`se.php?VERSION=lxx`，Unicode 直接查（子字串、依經文原樣，`καί` 查不到 `καὶ`）。
+- **fhlwh**：`se.php` 不支援（回 `Fail:fhlwh not found!`），改用 `ssn.php`（新約字彙分析，回 HTML）。
+  - **要用信望愛內碼查**：`word`（原文字）/`orig`（原型）。Unicode 參數 `uword`/`uorig` 對字尾 σ/ς 的字、鍵盤打的 tonos 都查不到（λόγος 0 筆，`lovgos` 68 筆）。轉換用 `greekToFhlCode`（`gcode_2` 的反向）。
+  - FHL 的重音是 oxia（έ U+1F73），鍵盤與 NFC 是 tonos（U+03AD），看起來一樣。
+  - 前綴比對：`lovgo` → λόγος λόγου…（277 筆）。每個詞查 `word` 與 `orig` 取聯集，多個詞取交集。
+  - 上限約 500 筆，超過回「資料太多，共有 N 筆」。此時改成逐卷查（`engs=Matt`…27 卷）；逐卷仍太多的書卷顯示在狀態列「原文結果太多，未列入」（例 καί：太、可、路、約、徒、啟）。
+  - 沒有 CORS：開發時經 VirtualApi proxy（`http://127.0.0.1:15600/new/ssn.php`，需先啟動 VirtualApi），上線時同源 `/new/ssn.php`。
+- 關鍵字上色 `greekLooseRegexSource`：tonos/oxia、σ/ς 視為相同；原型搜尋找到的變化形（πνεύματος）不會上色。
+- 已知：資料庫的 `h~` `w~`（應是 ᾐ ᾠ，例 ᾐτήσατο），PHP 轉成 ἤ ὤ，打 ᾐτήσατο 查不到（全新約 9 個字）。
+- 測試：`npm test`（`tests/gcode2.test.js`、`greekToFhlCode.test.js`、`searchFhlwh.test.js`）。

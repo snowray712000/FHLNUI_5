@@ -1,4 +1,4 @@
-import { searchKeywordAsync, searchSnAsync, queryQsbAsync, addrsToQstr } from './SearchApi_es2023.js'
+import { searchKeywordAsync, searchSnAsync, queryQsbAsync, addrsToQstr, isGreekKeyword } from './SearchApi_es2023.js'
 
 /**
  * ### 一次搜尋的資料與狀態 (不碰 DOM)
@@ -29,6 +29,7 @@ export class SearchSession {
     /** @type {SearchVerse[]} 已排序 */ verses = []
     /** @type {Object.<number, number>} 0based ibook → 節數 */ cntOfBook = {}
     /** @type {{ver: string, reason: string}[]} 無法搜尋的譯本 */ failedVersions = []
+    /** @type {string[]} 新約原文搜尋結果太多、沒有列入的書卷 (engs) */ tooManyBooks = []
     /** @type {SearchRow[]} reference 搜尋直接取得經文 */ #rowsOfReference = []
 
     /** @type {SearchVerse[]} 目前範圍內的節 */ filtered = []
@@ -46,6 +47,8 @@ export class SearchSession {
         this.strong = arg.strong
         this.engs = arg.engs
         this.kind = SearchSession.determineKind(this.keyword)
+        // 希臘文：查新約原文 (fhlwh) 與七十士譯本 (lxx)，不論目前選的譯本
+        if (this.kind == 'keyword' && isGreekKeyword(this.keyword)) this.versions = ['fhlwh', 'lxx']
     }
 
     /**
@@ -87,6 +90,7 @@ export class SearchSession {
         } else {
             perVer = await searchKeywordAsync(this.keyword, this.versions, this.gb, signal)
             this.failedVersions = perVer.failed
+            this.tooManyBooks = perVer.tooManyBooks
         }
         this.#mergeVerses(perVer)
     }
