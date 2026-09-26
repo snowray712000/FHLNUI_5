@@ -1,5 +1,7 @@
 import { fetchTextAsync } from './fetchAsync.es2023.js'
 import { greekToFhlCode } from './greekToFhlCode.es2023.js'
+import { hebSearchRegex, isHebrewKeyword } from './hebCode.es2023.js'
+import { Bible_bhs_code_json } from './Bible_bhs_code_json.es2023.js'
 
 /**
  * ### 搜尋用到的 api：se.php (找出在哪幾節)、qsb.php (取經文)
@@ -66,7 +68,7 @@ async function searchIndexAsync(params, signal) {
 
 /**
  * 關鍵字搜尋，各譯本同時查。某譯本失敗 (例如原文譯本不能用中文查) 不影響其它譯本。
- * fhlwh (新約原文) 用希臘文查時走 ssn.php (se.php 不支援 fhlwh)
+ * fhlwh (新約原文) 用希臘文查時走 ssn.php (se.php 不支援 fhlwh)；bhs (舊約原文) 用希伯來文查時在本機比對
  * @param {string} keyword
  * @param {string[]} versions
  * @param {0|1} gb
@@ -75,6 +77,7 @@ async function searchIndexAsync(params, signal) {
  */
 export async function searchKeywordAsync(keyword, versions, gb, signal) {
     const isGreek = isGreekKeyword(keyword)
+    const isHebrew = isHebrewKeyword(keyword)
     let tooManyBooks = []
     const results = await Promise.allSettled(versions.map(async ver => {
         if (ver == 'fhlwh' && isGreek) {
@@ -82,6 +85,7 @@ export async function searchKeywordAsync(keyword, versions, gb, signal) {
             tooManyBooks = r.tooManyBooks
             return r.addrs
         }
+        if (ver == 'bhs' && isHebrew) return searchBhsAsync(keyword)
         return searchIndexAsync({ orig: 0, VERSION: ver, q: keyword, gb }, signal)
     }))
 
@@ -183,6 +187,23 @@ export async function searchFhlwhAsync(keyword, signal) {
 }
 
 /**
+ * 舊約原文搜尋 (bhs)。se.php 的 bhs 存的是內碼，用 Unicode 查 0 筆；
+ * 而 LIKE 分大小寫、dagesh 變體多是大小寫 (y י / Y יּ)，伺服器無法粗篩，所以載入全舊約內碼在本機比對
+ * - 每個詞見 hebSearchRegex (可不打母音)；多個詞 (空白或 maqaf 分隔) 同一節都要有
+ * @param {string} keyword Unicode 希伯來文
+ * @returns {Promise<SearchAddr[]>}
+ */
+export async function searchBhsAsync(keyword) {
+    const words = keyword.split(/[\s\u05be]+/).filter(w => isHebrewKeyword(w))
+    if (words.length == 0) return []
+    await Bible_bhs_code_json.s.loadAsync()
+    const data = Bible_bhs_code_json.s.filecontent?.data
+    if (data == null) throw new Error('bible_bhs_code.json.gz 載入失敗')
+    const res = words.map(hebSearchRegex)
+    return data.filter(a1 => res.every(re => re.test(a1[3]))).map(a1 => ({ ibook: a1[0] - 1, chap: a1[1], sec: a1[2] }))
+}
+
+/**
  * SN 搜尋 (只有和合本有 SN)
  * @param {string} sn 例 80、652a
  * @param {boolean} isOld H 是舊約，G 是新約
@@ -214,7 +235,9 @@ export async function queryQsbAsync(qstr, opt, signal) {
         return [] // 例如 qstr 解析不出任何節
     }
     return (jo.record ?? []).map(a1 => ({
-        ibook: toIbook(a1), chap: a1.chap, sec: a1.sec, ver: opt.version, bible_text: a1.bible_text,
+        ibook: toIbook(a1), chap: a1.chap, sec: a1.sec, ver: opt.version,
+        // bhs：qsb.php (umscode) 把整節反轉，多行時行的順序也倒了；同 lecture_get_data_async 的 modify_bhs_bible_text
+        bible_text: opt.version == 'bhs' ? a1.bible_text.split(/\r?\n\r?/g).reverse().join('\n') : a1.bible_text,
     }))
 }
 

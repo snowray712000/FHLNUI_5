@@ -12,6 +12,7 @@ import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtD
 import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
 import { greekLooseRegexSource } from './greekToFhlCode.es2023.js'
+import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -307,7 +308,7 @@ function renderRow(row, isMultiVersion, keys, gb) {
         if (isMultiVersion) {
             $('<span class="sd-ver">').text(abvphp.get_cname_from_book(t.ver, gb == 1) || t.ver).appendTo(row$)
         }
-        $('<span class="sd-text">').html(colorBibleText(t.bible_text, keys)).appendTo(row$)
+        $('<span class="sd-text">').attr('dir', t.ver == 'bhs' ? 'rtl' : null).html(colorBibleText(t.bible_text, keys)).appendTo(row$)
         $('<span class="sd-copy" title="copy"><i class="fa fa-files-o"></i></span>').appendTo(row$)
     }
     return verse$
@@ -335,12 +336,12 @@ export function colorBibleText(bible_text, keys) {
         return span[0].outerHTML
     })
 
-    const words = (keys.words ?? '').split(/\s+/)
+    const words = (keys.words ?? '').split(/[\s\u05be]+/)
         .filter(w => w.length > 0 && !/^(and|or|not)$/i.test(w))
     if (words.length == 0) return html
 
     // 只換標籤以外的文字，避免改到 <span sn="..."> 之類的屬性
-    const reWords = new RegExp(words.map(greekLooseRegexSource).join('|'), 'gi')
+    const reWords = new RegExp(words.map(w => isHebrewKeyword(w) ? hebLooseRegexSource(w) : greekLooseRegexSource(w)).join('|'), 'gi')
     return html.split(/(<[^>]*>)/).map(part =>
         part.startsWith('<') ? part : part.replace(reWords, m => `<span class="seKey">${m}</span>`)
     ).join('')

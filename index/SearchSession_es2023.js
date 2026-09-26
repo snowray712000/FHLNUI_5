@@ -1,4 +1,5 @@
 import { searchKeywordAsync, searchSnAsync, queryQsbAsync, addrsToQstr, isGreekKeyword } from './SearchApi_es2023.js'
+import { isHebrewKeyword } from './hebCode.es2023.js'
 
 /**
  * ### 一次搜尋的資料與狀態 (不碰 DOM)
@@ -49,6 +50,8 @@ export class SearchSession {
         this.kind = SearchSession.determineKind(this.keyword)
         // 希臘文：查新約原文 (fhlwh) 與七十士譯本 (lxx)，不論目前選的譯本
         if (this.kind == 'keyword' && isGreekKeyword(this.keyword)) this.versions = ['fhlwh', 'lxx']
+        // 希伯來文：查舊約原文 (bhs)
+        else if (this.kind == 'keyword' && isHebrewKeyword(this.keyword)) this.versions = ['bhs']
     }
 
     /**

@@ -95,6 +95,7 @@ Raw Bible text
 ## Data Files
 
 - `index/bible_fhlwh.json` / `.json.gz` — Bible text index (gzip via pako)
+- `index/bible_bhs_code.json.gz` — whole OT Hebrew (bhs) in FHL's internal ASCII code, for Hebrew search. Regenerate with `npm run gen:bhs`
 - `index/sd_cnt.json`, `index/sd_same.json` — Strong's Number data
 - `app_versions.json` — Version changelog (update `currentSWVer` in `index.html` on release)
 

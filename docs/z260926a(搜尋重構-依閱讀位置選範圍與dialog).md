@@ -208,3 +208,21 @@ ParsingPopUp ────────────┼─→ SearchDialog.s.search
 - 關鍵字上色 `greekLooseRegexSource`：tonos/oxia、σ/ς 視為相同；原型搜尋找到的變化形（πνεύματος）不會上色。
 - 已知：資料庫的 `h~` `w~`（應是 ᾐ ᾠ，例 ᾐτήσατο），PHP 轉成 ἤ ὤ，打 ᾐτήσατο 查不到（全新約 9 個字）。
 - 測試：`npm test`（`tests/gcode2.test.js`、`greekToFhlCode.test.js`、`searchFhlwh.test.js`）。
+
+## 10. 希伯來文搜尋：舊約原文 (bhs)
+
+關鍵字含希伯來字母時，`SearchSession` 改查 `['bhs']`。
+
+- `se.php?VERSION=bhs` 存的是**信望愛內碼**（ASCII），用 Unicode 查一律 0 筆（不會報錯）。回傳的 `bible_text` 就是內碼。
+- 內碼 → Unicode：`umscode`（`index/hebCode.es2023.js`，移植自 `VirtualApi/api_php/code.php`，全舊約 23144 節與 `qsb.php` 一致）。
+  - 內碼是**視覺順序**，`umscode` 把整個字串反轉，多行經文的行順序也倒了 → `qsb.php` 的 bhs 要再把行反轉（主畫面 `modify_bhs_bible_text`，搜尋在 `queryQsbAsync`）。
+  - 表要從 `code.php` 取，不要手抄：שׂ 的組合符號順序是 PHP 的（05E9 05C2 05BC），NFC 會改掉。
+- 為什麼不在伺服器查：`se.php` 的 q 直接放進 SQL LIKE（`%` `_` 是萬用字元），但**分大小寫**，而 dagesh 變體多是大小寫（`y` י / `Y` יּ），只用子音也粗篩不了。
+- 所以全舊約內碼打包成 `index/bible_bhs_code.json.gz`（約 950KB，第一次搜尋希伯來文才載入，`Bible_bhs_code_json`），在本機以 `hebSearchRegex` 比對。重新產生：`npm run gen:bhs`。
+- `hebSearchRegex`：不反推成單一內碼（母音碼有瘦 / 胖 / 右三組，資料庫的選法有例外），而是產生 regex：
+  - 子音：dagesh、shin/sin 點有打才要求；字尾形視為相同。
+  - 母音：沒打不限（希伯來文鍵盤預設不打母音）；有打就要剛好是那些，三組碼皆可。
+  - 重音符號、meteg 忽略；多個詞（空白或 maqaf）取交集。
+  - 全舊約 54079 個字：打母音 54042、只打子音 54050 個能找到自己；其餘是資料本身的問題（母音重複輸入等）。
+- 上色 `hebLooseRegexSource`：只比對字母，中間可以有任何附加符號。
+- 測試：`tests/hebCode.test.js`。
