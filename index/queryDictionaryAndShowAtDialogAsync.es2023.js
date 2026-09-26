@@ -5,6 +5,7 @@ import { SnDictOfTwcb } from "./SnDictOfTwcb.es2023.js"
 import { DialogHtml } from "./DialogHtml.es2023.js"
 import { cvtDTextsToHtml } from "./cvtDTextsToHtml.es2023.js"
 import { queryReferenceAndShowAtDialogAsync } from "./queryReferenceAndShowAtDialogAsync.es2023.js"
+import { SearchTool } from "./SearchTool.es2023.js"
 
 /**
  * 開發給 原字Parsing時，點擊原文字，要跳出字典內容
@@ -54,8 +55,7 @@ export function queryDictionaryAndShowAtDialogAsync(jo) {
                     rr2.trigger('click')
 
                     // 先關掉所有 dialog 再搜尋，否則剛開的搜尋 dialog 也會被關掉
-                    $('#searchTool').find('.search-input').val(hgSn)
-                    $('.searchBtn').trigger('click');
+                    SearchTool.s.search(hgSn)
                 })
 
                 dlg.on('click', '.ref', a1 => {

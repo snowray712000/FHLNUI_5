@@ -2,6 +2,7 @@
 import { TPPageState } from "./TPPageState.es2023.js";
 import { getBookFunc } from "./getBookFunc.es2023.js";
 import { BookSelectChapter } from "./BookSelectChapter.es2023.js";
+import { SearchTool } from "./SearchTool.es2023.js";
 
 /**
  * @param {TPPageState} ps 
@@ -40,10 +41,7 @@ export function registerEvents_doc(ps) {
                     BookSelectChapter.s.dom.show();
                     //alert(pageState.chineses);
                 },
-                'KeyF': () => {
-                    $('[data-ic-class="search-trigger"]').trigger("click");
-                    setTimeout(function () { $('[data-ic-class="search-clear"]').trigger("click"); }, 1);
-                }, // 
+                'KeyF': () => SearchTool.s.focus(), // 游標移到搜尋框
                 'Slash': () => $('#help').trigger("click"), // 反斜線 /
                 'KeyC': () => $('#fhlInfoWindowControl').trigger('click'), // 
                 'KeyZ': () => $('#fhlLeftWindowControl').trigger('click'), // 
@@ -68,21 +66,7 @@ export function registerEvents_doc(ps) {
     //     copyTextarea.select();
     // });
 
-    /*in search input*/
-    $('[data-ic-class="search-input"]').on('keydown', 'alt+shift+f', function () {
-        console.log(64);
-        $('[data-ic-class="search-trigger"]').trigger("click");
-        setTimeout(function () { $('[data-ic-class="search-clear"]').trigger("click"); }, 1);
-    });
-    $('[data-ic-class="search-input"]').on('keydown', 'esc', function () {
-        console.log(69);
-        $('[data-ic-class="search-input"]').val('');
-        $('[data-ic-class="search-trigger"]').removeClass('active');
-    });
-    $('[data-ic-class="search-input"]').on('keydown', 'return', function () {
-        console.log(74);
-        $('.searchBtn').trigger("click");
-    });
+    // 搜尋框的 Enter、Esc 由 SearchTool 處理
 }
 
 // (root => {

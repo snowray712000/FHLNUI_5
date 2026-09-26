@@ -1,60 +1,60 @@
 import { SearchDialog } from "./SearchDialog_es2023.js";
+import { gbText } from "./gbText.es2023.js";
 
+/*
+### 工具列右上的搜尋框
+- 只有「按放大鏡」或「Enter」才搜尋 (點輸入框不會)
+- 有文字時才出現 ×，按下清空
+- Esc 清空
+
+<form#searchTool .st-box>
+  <button.st-go> 放大鏡 </button>
+  <input.st-input.searchBox>
+  <button.st-clear> × </button>
+</form>
+*/
 export class SearchTool {
     static #s = null
     /** @returns {SearchTool} */
     static get s() { if (!this.#s) this.#s = new SearchTool(); return this.#s; }
 
+    /** @type {JQuery<HTMLElement>} */
     dom = null;
     init(ps, dom) {
         this.dom = dom;
         this.render(ps, this.dom);
     }
+    /** @returns {JQuery<HTMLInputElement>} */
+    get #input() { return this.dom.find('.st-input') }
+
+    /**
+     * 其它地方要搜尋時呼叫 (例 原文字典的「出現經文」)，會把關鍵字填入搜尋框
+     * @param {string} keyword
+     */
+    search(keyword) {
+        if (keyword != null) this.#input.val(keyword)
+        SearchDialog.s.searchAsync(this.#input.val())
+    }
+    /** 快速鍵 Alt+Shift+F */
+    focus() {
+        this.#input.trigger('focus').trigger('select')
+    }
     registerEvents(ps) {
-        var $searchTrigger = $('[data-ic-class="search-trigger"]'),
-            $searchInput = $('[data-ic-class="search-input"]'),
-            $searchClear = $('[data-ic-class="search-clear"]');
-
-        // 一定展開，不再縮起來 (王道仁提出 2021-07)
-        if ($searchTrigger.hasClass('active') == false) {
-            $searchTrigger.addClass('active');
-        }
-
-        // 放大鏡，按下之後，事件
-        $searchTrigger.on('click', function (e) {
-            if ($searchInput.val().length > 0) {
-                // 使用 trigger 取代 click
-                $('.searchBtn').trigger('click');
-            }
+        this.dom.on('submit', '.st-box', e => {
+            e.preventDefault() // Enter 或按放大鏡
+            this.search()
+        }).on('click', '.st-clear', () => {
+            this.#input.val('').trigger('focus')
+        }).on('keydown', '.st-input', e => {
+            if (e.key == 'Escape') this.#input.val('')
         })
-
-        // searchInput，按下 Enter 後，觸發搜尋
-        $searchInput.on('keypress', function (e) {
-            if (e.which === 13) {
-                // 使用 trigger 取代 click
-                $('.searchBtn').trigger('click');
-            }
-        })
-
-        // 使用 searchClear.on 取代過時的 searchClear.click
-        $searchClear.on('click', function (e) {
-            $searchInput.val('')
-        })
-
-        $('.searchBtn').on('click', function (e) {
-            SearchDialog.s.searchAsync($('.searchBox').val());
-        });
     }
     render(ps, dom) {
-        var html = "";/*&#x1f50d;*/
-        html += ' <div class="wrapper">\
-                      <div class="icon-search-container active" data-ic-class="search-trigger">\
-                        <span class="search"><i class="fa fa-search fa-fw"></i></span>\
-                        <input type="text" class="searchBox search-input" data-ic-class="search-input" placeholder="Search" on/>\
-                        <span class="times-circle" data-ic-class="search-clear">×</span>\
-                      </div>\
-                      <span class="searchBtn">快速搜尋</span>\
-                    </div>'
-        dom.html(html);
+        const placeholder = gbText('關鍵字、G80、羅1:3')
+        dom.html(`<form class="st-box" role="search">
+            <button type="submit" class="st-go" title="${gbText('搜尋')}"><i class="fa fa-search"></i></button>
+            <input type="text" class="st-input searchBox" placeholder="${placeholder}" autocomplete="off">
+            <button type="button" class="st-clear" title="${gbText('清除')}"><i class="fa fa-times-circle"></i></button>
+        </form>`);
     }
 }

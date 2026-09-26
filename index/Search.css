@@ -1,4 +1,53 @@
-/* 搜尋結果 dialog，見 SearchDialog_es2023.js */
+/* ===== 工具列右上的搜尋框，見 SearchTool.es2023.js =====
+   #searchTool 的位置、寬度仍在 fhl.css */
+#searchTool .st-box {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    border: 1px solid #707070;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    transition: border-color 0.2s, background-color 0.2s;
+}
+#searchTool .st-box:hover { border-color: #909090; }
+#searchTool .st-box:focus-within {
+    border-color: #00A0FF;
+    background: rgba(255, 255, 255, 0.14);
+}
+#searchTool .st-go,
+#searchTool .st-clear {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2em;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #B0B0B0;
+    cursor: pointer;
+}
+#searchTool .st-go { font-size: 1.05em; padding-left: 0.2em; }
+#searchTool .st-go:hover,
+#searchTool .st-clear:hover { color: #00A0FF; }
+#searchTool .st-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0 0.2em;
+    border: none;
+    outline: none;
+    background: none;
+    color: white;
+    font-size: 1rem;
+}
+#searchTool .st-input::placeholder { color: #909090; }
+/* 沒有文字時不顯示 × */
+#searchTool .st-input:placeholder-shown + .st-clear { visibility: hidden; }
+
+/* ===== 搜尋結果 dialog，見 SearchDialog_es2023.js ===== */
 .ui-dialog-content:has(> .search-dlg) {
     padding: 0 !important;
     overflow: hidden !important; /* 捲動交給 .sd-results */

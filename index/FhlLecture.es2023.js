@@ -34,6 +34,7 @@ import { assert } from './assert_es2023.js'
 import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
 import { rtAsync } from './rtAsync.js'
 import { fetchJsonAsync } from './fetchAsync.es2023.js'
+import { SearchTool } from './SearchTool.es2023.js'
 
 /*
 若有 2 個譯本，並且是併排方式
@@ -1438,8 +1439,7 @@ function mouseenter_sn_dialog(e) {
                     rr2.trigger('click')
 
                     // 先關掉所有 dialog 再搜尋，否則剛開的搜尋 dialog 也會被關掉
-                    $('#searchTool').find('.search-input').val(hgSn)
-                    $('.searchBtn').trigger('click');
+                    SearchTool.s.search(hgSn)
                 })
 
                 dlg.on('click', '.ref', a1 => {

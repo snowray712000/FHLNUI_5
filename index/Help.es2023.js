@@ -27,7 +27,7 @@ export class Help {
             // Alt + Shift + c: 輔助視窗開關 (右邊)
             // Alt + Shift + /: 幫助，跳出 (這個視窗)
             // Alt + Shift + L: 全螢幕 (目前有Bug, 全營幕後，即時功能失效)
-            // Alt + Shift + F: 搜尋 (失效)
+            // Alt + Shift + F: 游標移到搜尋框
             // Alt + Shift + S: 快速選章 (失效)
             const div_shortcut = $('<div>').append(
                 $("<h3>").text('快速鍵清單'),
@@ -36,7 +36,7 @@ export class Help {
                     $('<li>').text('Alt + Shift + c: 輔助視窗開關 (右邊)'),
                     $('<li>').text('Alt + Shift + /: 幫助，跳出 (這個視窗)'),
                     $('<li>').text('Alt + Shift + L: 全螢幕 (目前有Bug, 全螢幕後，即時功能失效)'),
-                    $('<li>').text('Alt + Shift + F: 搜尋 (失效)'),
+                    $('<li>').text('Alt + Shift + F: 游標移到搜尋框'),
                     $('<li>').text('Alt + Shift + S: 快速選章 (失效)')
                 )
             );
