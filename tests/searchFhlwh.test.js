@@ -31,10 +31,10 @@ describe('parseSsnHtml', () => {
 
 describe('isGreekKeyword', () => {
     it.each([
-        ['λόγος', true], // λόγος tonos
-        ['Ἰησοῦς', true], // Ἰησοῦς
+        ['\u03bb\u03cc\u03b3\u03bf\u03c2', true], // λόγος tonos
+        ['\u1f38\u03b7\u03c3\u03bf\u1fe6\u03c2', true], // Ἰησοῦς
         ['摩西', false], ['G80', false], ['love', false],
-    ])('%s → %s', (s, exp) => {
+    ])('%s \u2192 %s', (s, exp) => {
         expect(isGreekKeyword(s)).toBe(exp)
     })
 })
@@ -44,14 +44,14 @@ describe('greekLooseRegexSource (搜尋結果標示關鍵字)', () => {
 
     it('鍵盤打的 tonos 能標出經文的 oxia', () => {
         // 經文 (FHL, oxia)：τὸ πνεῦμα μὴ σβέννυτε
-        const text = 'τὸ πνεῦμα μὴ σβέννυτε'
-        expect(text.match(re('σβέννυτε'))).toHaveLength(1) // σβέννυτε tonos
-        expect(text.match(re('σβέννυτε'))).toHaveLength(1) // oxia
+        const text = '\u03c4\u1f78 \u03c0\u03bd\u03b5\u1fe6\u03bc\u03b1 \u03bc\u1f74 \u03c3\u03b2\u1f73\u03bd\u03bd\u03c5\u03c4\u03b5'
+        expect(text.match(re('\u03c3\u03b2\u03ad\u03bd\u03bd\u03c5\u03c4\u03b5'))).toHaveLength(1) // σβέννυτε tonos
+        expect(text.match(re('\u03c3\u03b2\u1f73\u03bd\u03bd\u03c5\u03c4\u03b5'))).toHaveLength(1) // oxia
     })
 
-    it('σ ς 視為相同 (打 λογοσ 也行)', () => {
-        const text = 'λόγος' // λόγος
-        expect(text.match(re('λόγοσ'))).toHaveLength(1)
+    it('\u03c3 \u03c2 視為相同 (打 \u03bb\u03bf\u03b3\u03bf\u03c3 也行)', () => {
+        const text = '\u03bb\u1f79\u03b3\u03bf\u03c2' // λόγος
+        expect(text.match(re('\u03bb\u03cc\u03b3\u03bf\u03c3'))).toHaveLength(1)
     })
 
     it('一般字元照常 escape', () => {

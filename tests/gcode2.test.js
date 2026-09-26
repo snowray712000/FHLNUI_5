@@ -12,12 +12,12 @@ describe('gcode_2 基本', () => {
         expect(gcode_2('')).toBe('')
     })
 
-    it('小寫字母 (c=χ f=φ q=θ x=ξ y=ψ z=ζ)', () => {
-        expect(gcode_2('abgdezhiklmncopqrstufxyw')).toBe('αβγδεζηικλμνχοπθρστυφξψω')
+    it('小寫字母 (c=\u03c7 f=\u03c6 q=\u03b8 x=\u03be y=\u03c8 z=\u03b6)', () => {
+        expect(gcode_2('abgdezhiklmncopqrstufxyw')).toBe('\u03b1\u03b2\u03b3\u03b4\u03b5\u03b6\u03b7\u03b9\u03ba\u03bb\u03bc\u03bd\u03c7\u03bf\u03c0\u03b8\u03c1\u03c3\u03c4\u03c5\u03c6\u03be\u03c8\u03c9')
     })
 
     it('大寫字母', () => {
-        expect(gcode_2('ABGDEZHIKLMNCOPQRSTUFXYW')).toBe('ΑΒΓΔΕΖΗΙΚΛΜΝΧΟΠΘΡΣΤΥΦΞΨΩ')
+        expect(gcode_2('ABGDEZHIKLMNCOPQRSTUFXYW')).toBe('\u0391\u0392\u0393\u0394\u0395\u0396\u0397\u0399\u039a\u039b\u039c\u039d\u03a7\u039f\u03a0\u0398\u03a1\u03a3\u03a4\u03a5\u03a6\u039e\u03a8\u03a9')
     })
 
     it('標點 { } #', () => {
@@ -28,26 +28,26 @@ describe('gcode_2 基本', () => {
 
     it('不認得的字元保留', () => {
         expect(gcode_2('123-_=+')).toBe('123-_=+')
-        expect(gcode_2('A1b2C3')).toBe('Α1β2Χ3')
+        expect(gcode_2('A1b2C3')).toBe('\u03911\u03b22\u03a73')
     })
 })
 
-describe('gcode_2 字尾 s → ς', () => {
+describe('gcode_2 字尾 s \u2192 \u03c2', () => {
     it('字串結尾', () => {
-        expect(gcode_2('s')).toBe('ς')
-        expect(gcode_2('logos')).toBe('λογος')
+        expect(gcode_2('s')).toBe('\u03c2')
+        expect(gcode_2('logos')).toBe('\u03bb\u03bf\u03b3\u03bf\u03c2')
     })
 
     it.each(['-', '\r', '\n', ',', '.', ':', ';', '}', '{', ')', ' '])('在 %j 之前', p => {
         const out = gcode_2(`logos${p}`)
-        expect(out.startsWith('λογος')).toBe(true)
+        expect(out.startsWith('\u03bb\u03bf\u03b3\u03bf\u03c2')).toBe(true)
     })
 
-    it('其它位置維持 σ', () => {
-        expect(gcode_2('sa')).toBe('σα')
-        expect(gcode_2('s!')).toBe('σ!') // ! 不在規則內
-        expect(gcode_2('sos')).toBe('σος')
-        expect(gcode_2('ss')).toBe('σς')
+    it('其它位置維持 \u03c3', () => {
+        expect(gcode_2('sa')).toBe('\u03c3\u03b1')
+        expect(gcode_2('s!')).toBe('\u03c3!') // ! 不在規則內
+        expect(gcode_2('sos')).toBe('\u03c3\u03bf\u03c2')
+        expect(gcode_2('ss')).toBe('\u03c3\u03c2')
     })
 })
 
@@ -197,7 +197,7 @@ describe('gcode_2 重音、氣號、iota 下標', () => {
         expect(gcode_2('av/')).toBe('\u1fb4') // ᾴ
     })
 
-    it('銳音輸出 oxia (U+1F71…)，不是 tonos (U+03AC…)', () => {
+    it('銳音輸出 oxia (U+1F71\u2026)，不是 tonos (U+03AC\u2026)', () => {
         // ssn.php 用 Unicode 查詢時，送 tonos 會查不到
         expect(hex(gcode_2('av ev hv iv ov uv wv'))).toBe(hex('\u1f71 \u1f73 \u1f75 \u1f77 \u1f79 \u1f7b \u1f7d'))
         expect(gcode_2('ev')).not.toBe('\u03ad')
@@ -211,19 +211,19 @@ describe('gcode_2 落單的 v ; j J 照原樣 (與 PHP 相同)', () => {
         ["toi';", '\u03c4\u03bf\u1fd6;'],
         ['tv', '\u03c4v'],
         ['h/jt', '\u1fc3j\u03c4'],
-    ])('%s → %s', (src, exp) => {
+    ])('%s \u2192 %s', (src, exp) => {
         expect(gcode_2(src)).toBe(exp)
     })
 })
 
 describe('gcode_2 bible_fhlwh.sqlite 的錯字元', () => {
-    it('U+0358 (o͘) 是 u', () => {
+    it('U+0358 (o\u0358) 是 u', () => {
         expect(gcode_2("To\u0358'to")).toBe('\u03a4\u03bf\u1fe6\u03c4\u03bf')
         expect(gcode_2('o\u0358|tos')).toBe('\u03bf\u1f57\u03c4\u03bf\u03c2')
         expect(gcode_2('o\u0358\\n')).toBe('\u03bf\u1f56\u03bd')
     })
 
-    it('U+1E73 (ṳ) 是 ii', () => {
+    it('U+1E73 (\u1e73) 是 ii', () => {
         expect(gcode_2('per\u1e73?staso')).toBe('\u03c0\u03b5\u03c1\u03b9\u1fd3\u03c3\u03c4\u03b1\u03c3\u03bf') // περιΐστασο
     })
 })
