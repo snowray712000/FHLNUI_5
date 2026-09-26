@@ -11,6 +11,8 @@ export function dtexts_render(dtexts) {
     const container = $('<span></span>');
     for (const dtext of dtexts) {
         const $dtext = dtext_render(dtext);
+        // 新約原文 韋式、聯式 (cvt_others_wu_plus.js)
+        if (dtext?.wu != null) $dtext.addClass(dtext.wu == 'w' ? 'greek_w' : 'greek_u');
         container.append($dtext);
     }
     return container.children();

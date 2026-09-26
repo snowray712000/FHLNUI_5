@@ -13,6 +13,7 @@ import { TPPageState } from './TPPageState.es2023.js';
 import { runAddFoot } from "./cvt_others_addFoot.js";
 import { attach_sn_text } from "./attach_sn_text.js";
 import { text_like_foot } from "./cvt_other_text_like_foot.js";
+import { split_wu_plus, add_wu_label } from "./cvt_others_wu_plus.js";
 /**
  * @typedef {[number, number, number, string]} RecordWithAddr // [book, chap, sec, text]
  */
@@ -59,9 +60,14 @@ function cvt_one(record_with_addr, version) {
     if (version === 'csb_foot') replaceCsbFootReference(dtexts_with_addr);
     doUsingDOMParsor(dtexts_with_addr);
 
+    // - 新約原文 + 韋式 + 聯式 +，要在 add_sn_text 前後各作一步
+    if (version === 'fhlwh') dtexts_with_addr[3] = split_wu_plus(dtexts_with_addr[3]);
+
     if (['unv', 'kjv', 'rcuv', 'fhlwh', 'bhs'].indexOf(version) != -1) {
         add_sn_text(dtexts_with_addr, version);
     }
+
+    if (version === 'fhlwh') dtexts_with_addr[3] = add_wu_label(dtexts_with_addr[3]);
 
     addParentheses(dtexts_with_addr);
     addReference(dtexts_with_addr, version);
