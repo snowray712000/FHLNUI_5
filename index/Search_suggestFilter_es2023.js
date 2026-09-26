@@ -5,6 +5,7 @@
  * 搜尋時，通常最想先知道「同卷書」，再來「同分類」(如保羅書信)，再來「同約」，最後才是「整卷聖經」。
  * - 同卷書筆數夠多 (>= min_count)，就只顯示這卷書
  * - 否則，由小到大找包含此卷的分類，第一個筆數夠多的
+ *   (卷數相同時，後定義的優先。例 約翰福音：約翰著作、福音書都是 5 卷，選約翰著作)
  * - 都不夠多，就整卷聖經
  *
  * @param {Object.<number, number>} cnt_of_book 0based ibook → 筆數，例 {58: 12}
@@ -17,10 +18,12 @@ export function Search_suggestFilter(cnt_of_book, book_group, ibook, min_count =
     const ALL = '整卷聖經'
     const count = books => books.reduce((sum, b) => sum + (cnt_of_book[b] ?? 0), 0)
 
-    // 包含此卷的分類，由小到大：小分類 → 舊約/新約 → 整卷聖經
+    // 包含此卷的分類，由小到大：同作者/小分類 → 舊約/新約 → 整卷聖經
     const groups = Object.entries(book_group)
-        .filter(([, books]) => books.includes(ibook))
-        .sort((a, b) => a[1].length - b[1].length)
+        .map(([name, books], order) => ({ name, books, order }))
+        .filter(g => g.books.includes(ibook))
+        .sort((a, b) => a.books.length - b.books.length || b.order - a.order)
+        .map(g => [g.name, g.books])
     if (groups.length === 0) {
         return { group_name: ALL, ibook: null }
     }
