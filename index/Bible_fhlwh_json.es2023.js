@@ -15,7 +15,7 @@ export class Bible_fhlwh_json extends BaseJson {
   }
   /** @typedef {number,number,number,string} DOneRow book,chap,sec,內容*/
   /**
-   * 由 tools/gen_bible_fhlwh.mjs 產生 (npm run gen:fhlwh)
+   * 由 tools/gen_bible_orig.mjs 產生 (npm run gen:orig)
    * @typedef {Object<string, string>} DBible_fhlwh_json
    * @property {string[]} col 描述欄位 ["book","chap","sec","text"]，不太會用到這個值
    * @property {string} ver 來源 bible_parsing.db 的 version.dt，判斷要不要重新產生用

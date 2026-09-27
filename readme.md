@@ -33,7 +33,7 @@ npm run dev
 | `npm test` | Vitest 單元測試 (`tests/**/*.test.js`) |
 | `npm run depgraph` | 重新產生模組依賴圖 `docs/dependency-graph.mmd` |
 | `npm run gen:bhs` | 重新產生舊約希伯來文搜尋資料 `index/bible_bhs_code.json.gz` |
-| `npm run gen:fhlwh` | 從信望愛公開的 `bible_parsing.zip` 重新產生新約原文 (嵌 SN) `index/bible_fhlwh.json.gz` |
+| `npm run gen:orig` | 從信望愛公開的 `bible_parsing.zip` 重新產生新舊約原文 (嵌 SN) `index/bible_fhlwh.json.gz`、`index/bible_bhs.json.gz` |
 
 部署時上傳 `dist/` 的內容，注意事項見 [docs/z260925b(dev、build與上傳注意事項).md](docs/z260925b(dev、build與上傳注意事項).md)。
 

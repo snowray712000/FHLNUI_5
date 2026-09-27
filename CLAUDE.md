@@ -101,7 +101,7 @@ Raw Bible text
 
 ## Data Files
 
-- `index/bible_fhlwh.json.gz` — NT Greek (fhlwh) with SN embedded (`word<WG2526>`), shown when the 新約原文 version is selected. Regenerate with `npm run gen:fhlwh` from FHL's open `bible_parsing.zip` (ftp.fhl.net/FHL/COBS/data, sqlite); text from each verse's wid=0 row, SN from the word rows; `ver` in the file = the db's `version.dt`
+- `index/bible_fhlwh.json.gz` / `index/bible_bhs.json.gz` — NT Greek / OT Hebrew with SN embedded (`word<WG2526>`, `word<WH7225>`), loaded instead of qsb.php when the 新約原文 / 舊約馬索拉原文 version is shown. Regenerate both with `npm run gen:orig` (`tools/gen_bible_orig.mjs`) from FHL's open `bible_parsing.zip` (ftp.fhl.net/FHL/COBS/data, sqlite); text from each verse's wid=0 row (OT: `word` converted line by line with `umscode`, since `uword` has reversed line order), SN from the word rows; `ver` in the file = the db's `version.dt`
 - `index/bible_bhs_code.json.gz` — whole OT Hebrew (bhs) in FHL's internal ASCII code, for Hebrew search. Regenerate with `npm run gen:bhs`
 - `index/audio_bible_index.json` — which chapters each audio bible version has (and which have mp4 slides). Regenerate with `npm run gen:audio`
 - `index/sd_cnt.json`, `index/sd_same.json` — Strong's Number data

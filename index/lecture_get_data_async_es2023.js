@@ -1,4 +1,5 @@
 import { Bible_fhlwh_json } from "./Bible_fhlwh_json.es2023.js";
+import { Bible_bhs_json } from "./Bible_bhs_json.es2023.js";
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { getAjaxUrl } from "./getAjaxUrl.es2023.js";
 import { isRDLocation } from "./isRDLocation.es2023.js";
@@ -17,7 +18,9 @@ export async function lecture_get_data_async() {
     const gb = ps.gb
     const versionPromises = ps.version.map(ver => {
         if (ver == "fhlwh") {
-            return get_fhlwh(book, chap)
+            return get_orig_async(Bible_fhlwh_json.s, "fhlwh", "新約原文", book, chap)
+        } else if (ver == "bhs") {
+            return get_orig_async(Bible_bhs_json.s, "bhs", "舊約馬索拉原文", book, chap)
         } else {
             return get_from_qsb_php_async(book, chap, gb, ver)
         }
@@ -29,21 +32,7 @@ export async function lecture_get_data_async() {
     // - 將 engs 或 chineses 轉成 book
     joResults.map(a1 => add_book_property_to_bibletext_record(a1))
 
-    // - 避免 bhs 順序
-    const idx_bhs = ps.version.indexOf("bhs")
-    if ( idx_bhs != -1){
-        modify_bhs_bible_text(joResults[idx_bhs])
-    }
-    
     return joResults
-}
-
-function modify_bhs_bible_text(joResult) {
-    for (let ja = 0; ja < joResult.record.length; ja++) {
-        const a2 = joResult.record[ja];
-        // - 以 split \r\n 切割多個，然後再 reverse，再用 \n 合併回來
-        a2.bible_text = a2.bible_text.split(/\r?\n\r?/g).reverse().join("\n");
-    }
 }
 
 /**
@@ -128,12 +117,17 @@ function add_book_property_to_bibletext_record(result, is_remove_engs_and_chines
     }
 }
 
-async function get_fhlwh(book, chap) {
-    await Bible_fhlwh_json.s.loadAsync(); // 590KB，只有顯示此譯本時才載入
+/**
+ * 新舊約原文，讀本機嵌 SN 的資料 (tools/gen_bible_orig.mjs 產生)，不打 qsb.php
+ * @param {Bible_fhlwh_json|Bible_bhs_json} json
+ * @param {string} version fhlwh bhs
+ * @param {string} v_name
+ */
+async function get_orig_async(json, version, v_name, book, chap) {
+    await json.loadAsync(); // 新約約 620KB、舊約約 1.4MB，只有顯示此譯本時才載入
 
     // where [0]=bk and [1]=ch
-    const jaBible = Bible_fhlwh_json.s.filecontent["data"].filter(ja => ja[0] == book && ja[1] == chap)
-    // console.log(jaBible);
+    const jaBible = (json.filecontent?.["data"] ?? []).filter(ja => ja[0] == book && ja[1] == chap)
 
     // chap, sec, bible_text
     const jaBible2 = jaBible.map(ja => ({
@@ -144,10 +138,10 @@ async function get_fhlwh(book, chap) {
     }))
     const joResult = {
         "status": "success",
-        "version": "fhlwh",
+        "version": version,
         "record": jaBible2,
         "record_count": jaBible2.length,
-        "v_name": "新約原文"
+        "v_name": v_name
     }
     return joResult
 }

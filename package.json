@@ -13,7 +13,7 @@
     "depgraph": "depcruise index/index.js --no-config --output-type mermaid --output-to docs/dependency-graph.mmd",
     "test": "vitest run",
     "gen:bhs": "node tools/gen_bible_bhs_code.mjs",
-    "gen:fhlwh": "node tools/gen_bible_fhlwh.mjs",
+    "gen:orig": "node tools/gen_bible_orig.mjs",
     "gen:audio": "node tools/gen_audio_bible_index.mjs"
   }
 }
