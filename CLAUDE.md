@@ -88,6 +88,7 @@ Raw Bible text
 | `docs/z260926a(搜尋重構-依閱讀位置選範圍與dialog).md` | Search: default scope by the book being read (same book → same author/group → testament → all), SearchApi / SearchSession / SearchDialog, API pitfalls (Chinese) |
 | `docs/z260927a(原文搜尋-信望愛內碼與新舊約).md` | Greek / Hebrew search: FHL stores original text in an internal ASCII code, not Unicode; gcode_2 / umscode, ssn.php (NT), bible_bhs_code.json.gz (OT), oxia vs tonos pitfalls (Chinese) |
 | `docs/z260927b(典藏清單篩選-chip與可收合).md` | 典藏 (ob) list filters: category chips, language chips + text box, table/card, collapsible; client-side filtering, faceted counts, partial repaint while typing, `--ob-*` css vars (Chinese) |
+| `docs/z260927c(原文字典-高亮正在讀的經文).md` | Dictionary dialog highlights refs matching the verse being read (active address): same verse / same chapter (incl. whole-chapter refs), where each entry point gets its activeAddr, `--ref-act-*` css vars (Chinese) |
 | `docs/z260222e(串珠規畫).md` | Chain reference (串珠) format & plan |
 | `docs/DialogHtml使用心得.md` | DialogHtml tips: initial position relative to a dom, initial width (was `readmeRD.md`) |
 | `docs/z250928a(hash與網址列).md` | Hash/routing architecture notes |

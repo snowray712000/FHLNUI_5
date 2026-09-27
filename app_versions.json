@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.7.3",
+        "last": "6.8.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -22,6 +22,15 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.8.1",
+                "na2":
+                [
+                    "🆕 新功能: 原文字典會把「正在讀的經文」高亮。例：讀雅4:5 查 G5355 (嫉妒)，字典中的 #雅4:5| 以黃底標出並自動捲到那裡，一眼看到這節被歸在哪個義項",
+                    "🆕 新功能: 承上，字典沒有引用這一節，但有引用同一章的其它節 (或整章) 時，以淡黃底＋虛線標出。例：讀雅4:2 查 G5355，#雅4:5| 以淡色標出",
+                    "📈 優化: 承上，從搜尋結果點 SN 時，高亮的是那筆搜尋結果的經文；從即時SN 點 SN 時，是滑鼠所在的那一節",
+                    "📝 工程師筆記: index/highlightActiveRefs.es2023.js；queryDictionaryAndShowAtDialogAsync 多了可選的 activeAddr，沒給就用 ps 目前閱讀位置；顏色走 --ref-act-* css 變數。見 docs/z260927c"
                 ]
             },{
                 "na": "6.7.3",

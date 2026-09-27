@@ -158,7 +158,10 @@ export class SearchDialog {
             const text = row.find('.sd-text').text()
             copy_text_to_clipboard(async () => `${addr} ${text}`)
         }).on('click', '.seSN', function (e) {
-            queryDictionaryAndShowAtDialogAsync({ sn: $(this).attr('sn'), isOld: $(this).attr('tp') == 'H' })
+            // 字典中要高亮的是「這筆搜尋結果」的經文，而不是 ps 目前閱讀位置
+            const addr$ = $(this).closest('.sd-verse').find('.sd-addr')
+            const activeAddr = addr$.length ? { book: parseInt(addr$.attr('ibook')) + 1, chap: addr$.attr('chap'), verse: addr$.attr('sec') } : undefined
+            queryDictionaryAndShowAtDialogAsync({ sn: $(this).attr('sn'), isOld: $(this).attr('tp') == 'H', activeAddr })
             e.stopPropagation()
         }).on('mouseenter', '.sn', function () {
             const ps = TPPageState.s
