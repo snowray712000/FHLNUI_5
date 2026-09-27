@@ -24,6 +24,11 @@ const OB_STYLE_SELS_GB = [
     { t: "全部" }, { t: "白话（官话）" }, { t: "深文理" }, { t: "浅文理" },
     { t: "少数民族及各地方言" }, { t: "外文" }, { t: "双语" },
 ]
+// 清單篩選/呈現;設計取自 FHLNUI_6/src/ob/demo/ui-pv-catalog-browse.ts
+const OB_NO_DIV = "__none__" // ob.php 的 div 可能是空字串(未分類)
+const OB_LANG_CHIP_MAX = 10 // 語言有數十種,只列本章最常見的幾個當 chip,其餘靠文字框
+const OB_LIST_MODE_KEY = "fhlObListMode"
+const OB_FILTERS_OPEN_KEY = "fhlObFiltersOpen"
 
 // 局部縮放圖片檢視器的縮放範圍,以及顯示寬度超過小圖原始寬度多少倍才自動換上原圖。
 // 取自 FHLNUI_6/src/ob/demo/ui-pv-image-zoom.ts 的雛型設計。
@@ -65,6 +70,8 @@ export class FhlInfoOb {
     // sob.php 系列查詢的請求序號,只增不減。放在 state 之外是因為本 singleton 會跨越
     // 「切到別的分頁再切回來」存活,若歸零可能與舊一輪的過期回應編號撞在一起。
     #reqSeq = 0
+    // sob.php book=all(本章有哪些書目)的請求序號,與 #reqSeq 分開,兩種查詢會同時在飛
+    #listSeq = 0
     #paintQueued = false
 
     // ob.php 回傳的是與目前經節無關的全域書目清單,只跟語系(isgb)有關,
@@ -110,24 +117,64 @@ export class FhlInfoOb {
         // (#viewer 是獨立於 state 的欄位,本來就不會被這裡動到)。
         const changed = next.ibook !== this.props.ibook || next.ichap !== this.props.ichap
             || next.isec !== this.props.isec || next.isgb !== this.props.isgb
+        // 清單是「本章有資料的書目」,換書/換章/換語系就要重查;只換節不影響清單。
+        const listChanged = next.ibook !== this.props.ibook || next.ichap !== this.props.ichap
+            || next.isgb !== this.props.isgb
+        // 分類/語言篩選存的是 API 回傳的字串,繁簡不同(聖經珍藏/圣经珍藏),換語系要清掉
+        if (next.isgb !== this.props.isgb)
+            Object.assign(this.state, { div_set: "", lang_set: "" })
         if (changed) {
             this.#query_sob_from_ajax_book_chap_sec(next.ibook, next.ichap, next.isec)
         }
         this.props = next
+        if (listChanged) this.#set_obdata_from_ajax()
         this.#paintNow(true)
     }
 
     registerEvents() {
         const d = this.dom
         if (d == null) return
-        d.off('click', '.yearitem').on('click', '.yearitem', ev =>
-            this.#set_year_range($(ev.currentTarget).attr('data-yy')))
-        d.off('click', '.styleitem').on('click', '.styleitem', ev => {
-            const tt = $(ev.currentTarget).attr('data-tt')
-            this.#set_style(tt === "全部" ? "" : tt)
+        // 篩選全部在前端做(資料只跟書/章/語系有關),點選類的整頁重繪;
+        // 打字類只重繪清單與 chip(#paintListPart),否則輸入框會被換掉、失去焦點。
+        d.off('click', '.ob_div_chip').on('click', '.ob_div_chip', ev => {
+            const key = $(ev.currentTarget).attr('data-key')
+            this.#setState({ div_set: this.state.div_set === key ? "" : key })
         })
-        d.off('click', 'td.list_item_read').on('click', 'td.list_item_read', ev => {
-            this.#set_book_id($(ev.currentTarget).attr('data-id'))
+        d.off('click', '.ob_lang_chip').on('click', '.ob_lang_chip', ev => {
+            const key = $(ev.currentTarget).attr('data-key')
+            this.#setState({ lang_set: this.state.lang_set === key ? "" : key })
+        })
+        d.off('input', '.ob_lang_input').on('input', '.ob_lang_input', ev => {
+            this.state.lang_set = ev.currentTarget.value.trim()
+            this.#paintListPart()
+        })
+        d.off('input', '.ob_kw_input').on('input', '.ob_kw_input', ev => {
+            this.state.keyword = ev.currentTarget.value.trim()
+            this.#paintListPart()
+        })
+        d.off('change', '.ob_year_select').on('change', '.ob_year_select', ev =>
+            this.#setState({ year_set: ev.currentTarget.value }))
+        d.off('change', '.ob_style_select').on('change', '.ob_style_select', ev =>
+            this.#setState({ style_idx: Number(ev.currentTarget.value) }))
+        d.off('click', '.ob_clear_filters').on('click', '.ob_clear_filters', () =>
+            this.#setState({ div_set: "", lang_set: "", keyword: "", year_set: "0-9999", style_idx: 0 }))
+        d.off('click', '.ob_filters_toggle').on('click', '.ob_filters_toggle', () => {
+            const open = !this.state.filters_open
+            try { localStorage.setItem(OB_FILTERS_OPEN_KEY, open ? "1" : "0") } catch { }
+            this.#setState({ filters_open: open })
+        })
+        d.off('click', '.ob_listmode button').on('click', '.ob_listmode button', ev => {
+            const mode = $(ev.currentTarget).attr('data-mode')
+            try { localStorage.setItem(OB_LIST_MODE_KEY, mode) } catch { }
+            this.#setState({ list_mode: mode })
+        })
+        d.off('click', '.ob_more').on('click', '.ob_more', ev => {
+            ev.stopPropagation()
+            const id = $(ev.currentTarget).attr('data-id')
+            this.#setState({ expanded_id: this.state.expanded_id === id ? null : id })
+        })
+        d.off('click', '[data-read-id]').on('click', '[data-read-id]', ev => {
+            this.#set_book_id($(ev.currentTarget).attr('data-read-id'))
             this.#set_content_type("read")
         })
         d.off('click', '.read_button').on('click', '.read_button', ev => {
@@ -147,10 +194,17 @@ export class FhlInfoOb {
 
     #getInitialState() {
         return {
-            obdata: [],
+            obdata: [], // 本章有資料的書目(未篩選);篩選在 #filtered() 即時算
+            obListLoaded: false,
             err_msg: "",
+            div_set: "", // "" 全部 | OB_NO_DIV 未分類 | 分類名
+            lang_set: "", // 子字串比對,chip 與文字框共用
+            keyword: "", // 書名/作者 子字串
             year_set: "0-9999",
-            style_set: "",
+            style_idx: 0, // OB_STYLE_SELS 的索引,0 = 全部;存索引才不受繁簡影響
+            list_mode: this.#loadListMode(), // table | card
+            filters_open: this.#loadFiltersOpen(), // 篩選區展開/收合
+            expanded_id: null, // 卡片「看更多」展開的書目 id
             content_type: "list", // list | read
             idxbook: 257, // 香港聖經公會 新舊約全書 1959
             page: -1,
@@ -222,43 +276,214 @@ export class FhlInfoOb {
         return `<div data-ob-root="1">not support content_type</div>`
     }
 
-    #html_top() {
+    #loadListMode() {
+        try { return localStorage.getItem(OB_LIST_MODE_KEY) === "card" ? "card" : "table" } catch { return "table" }
+    }
+
+    // 預設展開,讓第一次用的人看得到有哪些篩選;之後記住使用者的選擇
+    #loadFiltersOpen() {
+        try { return localStorage.getItem(OB_FILTERS_OPEN_KEY) !== "0" } catch { return true }
+    }
+
+    // skip: 算某一組 chip 的計數時,不套用該組自己的篩選(faceted count),
+    // 否則選了「英文」之後,其它語言 chip 都會變成 0。
+    #passes(r, skip = "") {
+        const st = this.state
+        const [y1, y2] = st.year_set.split('-', 2)
+        // age 是 API 回傳的字串,y1/y2 也是字串;維持字串比較,不要轉數字(見規劃文件說明)
+        if (!(r.age >= y1 && r.age <= y2)) return false
+        if (st.style_idx > 0) {
+            const styleSels = this.props.isgb ? OB_STYLE_SELS_GB : OB_STYLE_SELS
+            if (r.style !== styleSels[st.style_idx]?.t) return false
+        }
+        if (st.keyword.length > 0 && !`${r.title}`.includes(st.keyword) && !`${r.author}`.includes(st.keyword)) return false
+        if (skip !== "lang" && st.lang_set.length > 0 && !`${r.lang}`.includes(st.lang_set)) return false
+        if (skip !== "div" && st.div_set.length > 0) {
+            const div = r.div.length > 0 ? r.div : OB_NO_DIV
+            if (div !== st.div_set) return false
+        }
+        return true
+    }
+
+    #filtered() { return this.state.obdata.filter(r => this.#passes(r)) }
+
+    #hasFilter() {
+        const st = this.state
+        return st.div_set !== "" || st.lang_set !== "" || st.keyword !== "" || st.year_set !== "0-9999" || st.style_idx !== 0
+    }
+
+    #chip(cls, key, label, count, active) {
+        return `<button type="button" class="ob_chip ${cls}${active ? ' is-active' : ''}" data-key="${this.#esc(key)}"` +
+            ` aria-pressed="${active}">${this.#esc(label)}（${count}）</button>`
+    }
+
+    #html_div_chips() {
         const isgb = this.props.isgb
+        const counts = new Map()
+        this.state.obdata.filter(r => this.#passes(r, "div")).forEach(r => {
+            const k = r.div.length > 0 ? r.div : OB_NO_DIV
+            counts.set(k, (counts.get(k) ?? 0) + 1)
+        })
+        const total = [...counts.values()].reduce((a, b) => a + b, 0)
+        // 分類順序照 ob.php 全書目的出現順序(聖經珍藏、信仰著作…),不隨本章計數跳動
+        const all = this.#obListCache.get(isgb) ?? this.state.obdata
+        const keys = [...new Set(all.map(r => r.div.length > 0 ? r.div : OB_NO_DIV))]
+        keys.sort((a, b) => (a === OB_NO_DIV) - (b === OB_NO_DIV))
+        const cur = this.state.div_set
+        return this.#chip("ob_div_chip", "", "全部", total, cur === "") +
+            keys.filter(k => (counts.get(k) ?? 0) > 0 || k === cur)
+                .map(k => this.#chip("ob_div_chip", k, k === OB_NO_DIV ? (isgb ? "未分类" : "未分類") : k, counts.get(k) ?? 0, cur === k))
+                .join('')
+    }
+
+    // 語言 chip:本章(套用其它篩選後)出現最多的前幾名;目前選的若不在前幾名也補上
+    #html_lang_chips() {
+        const counts = new Map()
+        this.state.obdata.filter(r => this.#passes(r, "lang")).forEach(r => {
+            if (r.lang.length === 0) return
+            counts.set(r.lang, (counts.get(r.lang) ?? 0) + 1)
+        })
+        const freq = [...counts.entries()].sort((a, b) => b[1] - a[1])
+        const top = freq.slice(0, OB_LANG_CHIP_MAX)
+        const cur = this.state.lang_set
+        if (cur !== "" && counts.has(cur) && !top.some(([k]) => k === cur)) top.push([cur, counts.get(cur)])
+        return top.map(([k, n]) => this.#chip("ob_lang_chip", k, k, n, cur === k)).join('')
+    }
+
+    #html_count() {
+        const isgb = this.props.isgb
+        const n = this.#filtered().length
+        const total = this.state.obdata.length
+        const clear = this.#hasFilter()
+            ? `<button type="button" class="ob_link ob_clear_filters">${isgb ? "清除筛选" : "清除篩選"}</button>` : ""
+        return `${isgb ? "本章有资料" : "本章有資料"} ${total} ${isgb ? "笔" : "筆"}${n !== total ? `,符合 ${n}` : ""}${clear}`
+    }
+
+    #html_results() {
+        const isgb = this.props.isgb
+        if (!this.state.obListLoaded) return `<div class="ob_empty">${isgb ? "查询中…" : "查詢中…"}</div>`
+        const records = this.#filtered()
+        if (records.length === 0) {
+            const msg = this.state.obdata.length === 0
+                ? (isgb ? "本章没有典藏资料" : "本章沒有典藏資料")
+                : (isgb ? "没有符合条件的典藏" : "沒有符合條件的典藏")
+            return `<div class="ob_empty">${msg}</div>`
+        }
+        return this.state.list_mode === "card" ? this.#html_cards(records) : this.#html_table(records)
+    }
+
+    #ageText(r) { return `${r.age}${r.agec?.length > 0 ? `(${r.agec})` : ''}` }
+
+    #html_table(records) {
+        const isgb = this.props.isgb
+        const titles = isgb ? ["年代", "书名", "作者/译者", "语言", ""] : ["年代", "書名", "作者/譯者", "語言", ""]
+        const readLabel = isgb ? "阅读" : "閱讀"
+        const head = `<thead><tr>${titles.map(t => `<th>${this.#esc(t)}</th>`).join('')}</tr></thead>`
+        const rows = records.map(a1 =>
+            `<tr class="ob_row" data-read-id="${this.#esc(a1.id)}"><td>${this.#esc(a1.age)}</td>` +
+            `<td class="ob_row_title">${this.#esc(a1.title)}</td><td>${this.#esc(a1.author)}</td>` +
+            `<td>${this.#esc(a1.lang)}</td><td class="list_item_read">${readLabel}</td></tr>`
+        ).join('')
+        return `<table class="ob_table">${head}<tbody>${rows}</tbody></table>`
+    }
+
+    #html_cards(records) {
+        const isgb = this.props.isgb
+        const cards = records.map(r => {
+            const id = String(r.id)
+            const expanded = this.state.expanded_id === id
+            const meta = [r.author, r.lang, r.style].filter(s => s != null && s.length > 0).map(s => this.#esc(s)).join(' · ')
+            const intro = r.intro?.length > 0 ? r.intro : (isgb ? "(无简介)" : "(無簡介)")
+            const detail = expanded
+                ? `<div class="ob_card_detail">${this.#esc(r.copyright)}` +
+                `${r.provider?.length > 0 ? `<br>${isgb ? "提供单位" : "提供單位"}:${this.#esc(r.provider)}` : ""}` +
+                `${r.remark?.length > 0 ? `<br>${this.#esc(r.remark)}` : ""}</div>`
+                : ""
+            return `<article class="ob_card">` +
+                `<div class="ob_card_top"><span class="ob_badge">${this.#esc(r.div.length > 0 ? r.div : (isgb ? "未分类" : "未分類"))}</span>` +
+                `<span>${this.#esc(this.#ageText(r))}</span></div>` +
+                `<h4 class="ob_card_title" data-read-id="${this.#esc(id)}">${this.#esc(r.title)}</h4>` +
+                `<div class="ob_card_meta">${meta}</div>` +
+                `<p class="ob_card_intro${expanded ? ' is-expanded' : ''}">${this.#esc(intro)}</p>` +
+                detail +
+                `<div class="ob_card_actions">` +
+                `<button type="button" class="ob_read_btn" data-read-id="${this.#esc(id)}">${isgb ? "阅读" : "閱讀"}</button>` +
+                `<button type="button" class="ob_link ob_more" data-id="${this.#esc(id)}">${expanded ? "收合" : "看更多"}</button>` +
+                `</div></article>`
+        }).join('')
+        return `<div class="ob_cards">${cards}</div>`
+    }
+
+    // 打字時只換掉 chip、筆數、清單,輸入框本身不動(保留焦點與輸入法組字)
+    #paintListPart() {
+        if (this.dom == null || !this.#hasRootMarker() || this.state.content_type !== "list") return
+        this.dom.find('.ob_div_chips').html(this.#html_div_chips())
+        this.dom.find('.ob_lang_chips').html(this.#html_lang_chips())
+        this.dom.find('.ob_count').html(this.#html_count())
+        this.dom.find('.ob_filters_summary').html(this.#html_filters_summary())
+        this.dom.find('.ob_results').html(this.#html_results())
+    }
+
+    // 收合時標題列上顯示目前套用的條件,不用展開也知道清單被篩過
+    #html_filters_summary() {
+        const isgb = this.props.isgb
+        const st = this.state
+        const parts = []
+        if (st.div_set !== "") parts.push(st.div_set === OB_NO_DIV ? (isgb ? "未分类" : "未分類") : st.div_set)
+        if (st.lang_set !== "") parts.push(st.lang_set)
+        if (st.keyword !== "") parts.push(`「${st.keyword}」`)
+        if (st.year_set !== "0-9999") {
+            const yearSels = isgb ? OB_YEAR_SELS_GB : OB_YEAR_SELS
+            parts.push(yearSels.find(a1 => a1.y === st.year_set)?.t ?? st.year_set)
+        }
+        if (st.style_idx > 0) parts.push((isgb ? OB_STYLE_SELS_GB : OB_STYLE_SELS)[st.style_idx].t)
+        if (parts.length === 0) return st.filters_open ? "" : `<span class="ob_filters_none">${isgb ? "未设定" : "未設定"}</span>`
+        return parts.map(t => `<span class="ob_filters_tag">${this.#esc(t)}</span>`).join('')
+    }
+
+    #html_filters() {
+        const isgb = this.props.isgb
+        const st = this.state
         const yearSels = isgb ? OB_YEAR_SELS_GB : OB_YEAR_SELS
         const styleSels = isgb ? OB_STYLE_SELS_GB : OB_STYLE_SELS
-        const styleSetForCompare = this.state.style_set === "" ? "全部" : this.state.style_set
+        // 語言值若正好是 chip 之一,文字框就留空,避免 chip 與文字框看起來是兩個條件
+        const langIsChip = st.obdata.some(r => r.lang === st.lang_set)
+        const yearOpts = yearSels.map(a1 =>
+            `<option value="${this.#esc(a1.y)}"${a1.y === st.year_set ? ' selected' : ''}>${this.#esc(a1.t)}</option>`).join('')
+        const styleOpts = styleSels.map((a1, i) =>
+            `<option value="${i}"${i === st.style_idx ? ' selected' : ''}>${this.#esc(a1.t)}</option>`).join('')
+        const label = (t) => `<span class="ob_filter_label">${t}</span>`
+        // 版面比照 demo:每組標題獨立一行在上,chip 在下;關鍵字/年代/文體各自有標題,
+        // 否則兩個下拉都顯示「全部」分不出是哪個。
+        const field = (t, control) => `<label class="ob_field">${label(t)}${control}</label>`
 
-        const yearSpans = yearSels.map(a1 => {
-            const active = a1.y === this.state.year_set
-            return `<span class="yearitem${active ? ' selected' : ''}" data-yy="${this.#esc(a1.y)}">${this.#esc(a1.t)}</span>`
-        }).join('')
-        const styleSpans = styleSels.map(a1 => {
-            const active = a1.t === styleSetForCompare
-            return `<span class="styleitem${active ? ' selected' : ''}" data-tt="${this.#esc(a1.t)}">${this.#esc(a1.t)}</span>`
-        }).join('')
-
-        return `<div>${yearSpans}</div><div>${styleSpans}</div>`
+        const open = st.filters_open
+        return `<div class="ob_filters${open ? ' is-open' : ''}">` +
+            `<button type="button" class="ob_filters_toggle" aria-expanded="${open}">` +
+            `<span class="ob_filters_title">${isgb ? "筛选" : "篩選"}</span>` +
+            `<span class="ob_filters_summary">${this.#html_filters_summary()}</span>` +
+            `<span class="ob_filters_chevron" aria-hidden="true">▾</span></button>` +
+            `<div class="ob_filters_body"${open ? '' : ' hidden'}>` +
+            `<div class="ob_filter_group">${label(isgb ? "分类" : "分類")}<div class="ob_chips ob_div_chips">${this.#html_div_chips()}</div></div>` +
+            `<div class="ob_filter_group">${label(isgb ? "语言" : "語言")}<div class="ob_chips ob_lang_chips">${this.#html_lang_chips()}</div>` +
+            `<input type="search" class="ob_lang_input" placeholder="${isgb ? "或直接输入语言,例如:客家话" : "或直接輸入語言,例如:客家話"}" value="${langIsChip ? "" : this.#esc(st.lang_set)}"></div>` +
+            `<div class="ob_filter_row">` +
+            field(isgb ? "关键字(书名/作者)" : "關鍵字(書名/作者)",
+                `<input type="search" class="ob_kw_input" placeholder="${isgb ? "例如:马礼逊" : "例如:馬禮遜"}" value="${this.#esc(st.keyword)}">`) +
+            field("年代", `<select class="ob_year_select">${yearOpts}</select>`) +
+            field(isgb ? "文体" : "文體", `<select class="ob_style_select">${styleOpts}</select>`) +
+            `</div></div></div>`
     }
 
     #html_list() {
         const isgb = this.props.isgb
-        const titles = isgb ? ["年代", "作者/译者", "书名", "语言", "阅读"] : ["年代", "作者/譯者", "書名", "語言", "閱讀"]
-        const readLabel = isgb ? "阅读" : "閱讀"
-        const records = this.state.obdata
-
-        let bodyRows = ""
-        if (records != null) {
-            const headerRow = `<tr>${titles.map(t => `<td>${this.#esc(t)}</td>`).join('')}</tr>`
-            const dataRows = records.map(a1 =>
-                `<tr><td>${this.#esc(a1.age)}</td><td>${this.#esc(a1.author)}</td><td>${this.#esc(a1.title)}</td>` +
-                `<td>${this.#esc(a1.lang)}</td><td class="list_item_read" data-id="${this.#esc(a1.id)}">${readLabel}</td></tr>`
-            ).join('')
-            bodyRows = headerRow + dataRows
-        }
-
-        return `<div data-ob-root="1" style="height:${this.props.cy}px;overflow-y:auto">` +
-            `<div>${this.#html_top()}</div>` +
-            `<div><table class="obtable"><tbody>${bodyRows}</tbody></table></div>` +
+        const mode = this.state.list_mode
+        const seg = (m, t) => `<button type="button" data-mode="${m}" aria-pressed="${mode === m}">${t}</button>`
+        return `<div data-ob-root="1" class="ob_list" style="height:${this.props.cy}px;overflow-y:auto">` +
+            this.#html_filters() +
+            `<div class="ob_list_bar"><span class="ob_count">${this.#html_count()}</span>` +
+            `<span class="ob_listmode" role="group">${seg("table", "表格")}${seg("card", "卡片")}</span></div>` +
+            `<div class="ob_results">${this.#html_results()}</div>` +
             `</div>`
     }
 
@@ -301,8 +526,8 @@ export class FhlInfoOb {
         // 原生的拖曳圖片接管,平移失效)。棋盤格背景在圖片載入前/邊界外可見,標示出畫布範圍。
         const viewerHeight = Math.max(240, this.props.cy - 90)
         const boxStyle = `position:relative;overflow:hidden;height:${viewerHeight}px;touch-action:none;cursor:grab;outline:none` +
-            `;border:1px solid #d0d7de;border-radius:4px` +
-            `;background:repeating-conic-gradient(#f6f8fa 0% 25%, #ffffff 0% 50%) 50% / 20px 20px`
+            `;border:1px solid var(--ob-border, #d0d7de);border-radius:4px` +
+            `;background:repeating-conic-gradient(var(--ob-bg-subtle, #f6f8fa) 0% 25%, var(--ob-bg, #ffffff) 0% 50%) 50% / 20px 20px`
         const imgStyle = `position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none;-webkit-user-drag:none;user-select:none`
         const img = `<div class="ob_divimg" style="${boxStyle}" tabindex="0">` +
             `<img class="ob_divimg__img" style="${imgStyle}" draggable="false" alt="${this.#esc(rec.name)}">` +
@@ -556,16 +781,6 @@ export class FhlInfoOb {
         return `<div data-ob-root="1"><div>${top}</div></div>`
     }
 
-    #set_year_range(years) {
-        this.#setState({ year_set: years })
-        this.#set_obdata_from_ajax()
-    }
-
-    #set_style(styleTitle) {
-        this.#setState({ style_set: styleTitle })
-        this.#set_obdata_from_ajax()
-    }
-
     #set_content_type(contentType) {
         if (contentType === "list" || contentType === "read")
             this.#setState({ content_type: contentType })
@@ -611,13 +826,15 @@ export class FhlInfoOb {
     }
 
     // obRecords 是 ob.php 的全域書目清單(可能來自快取);再依目前經節查有哪些書卷有資料,
-    // 交集後套用年代/文體篩選,寫入 state.obdata。
+    // 交集後寫入 state.obdata(不篩選;年代/文體等篩選在 #filtered() 即時算)。
     #query_book_all_and_set_obdata(obRecords) {
         let url2 = "sob.php" + (this.props.isgb ? "?gb=1" : "?gb=0")
         url2 += "&book=all"
         url2 += "&engs=" + fhl.g_book_all[this.props.ibook][0]
         url2 += "&chap=" + this.props.ichap
+        const mySeq = ++this.#listSeq
         fhl.json_api_text(url2, (jstr2) => {
+            if (this.#listSeq !== mySeq) return // 快速換章時的過期回應,忽略
             let juc2
             try {
                 juc2 = JSON.parse(jstr2)
@@ -630,19 +847,11 @@ export class FhlInfoOb {
                 return
             }
 
-            const books2 = juc2.record.map(a1 => a1.book)
-            const years = this.state.year_set.split('-', 2)
-            const y1 = years[0]
-            const y2 = years[1]
-            const styles = this.state.style_set
-
-            // age 是 API 回傳的字串,y1/y2 也是字串;維持字串比較,不要轉數字(見規劃文件說明)
-            const re = obRecords
-                .filter(a1 => a1.age >= y1 && a1.age <= y2 && (styles.length == 0 || styles == a1.style))
-                .filter(a1 => books2.includes(a1.id))
-
-            this.#setState({ obdata: re, err_msg: "" })
+            const books2 = new Set(juc2.record.map(a1 => a1.book))
+            const re = obRecords.filter(a1 => books2.has(a1.id))
+            this.#setState({ obdata: re, obListLoaded: true, err_msg: "" })
         }, (msg) => {
+            if (this.#listSeq !== mySeq) return
             this.#setState({ err_msg: msg })
         }, null, true)
     }
