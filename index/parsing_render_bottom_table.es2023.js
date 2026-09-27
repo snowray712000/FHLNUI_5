@@ -164,7 +164,10 @@ export function parsing_render_bottom_table(jsonObj, tp) {
 
             // 瑪拉基書4:5，有 SN136
             // 瑪拉基書4:5，有空白 SN 136
-            let remark_sn = r.remark.replace(/SN ?([0-9]+a?)/gi, fn_sn_remark)
+            // 彼前4:13 2526 備註是 `<!καθό!>= <! καθ᾽ ὅ!>`，<!...!> 是信望愛標原文字的記號
+            // 若留著，放進 html 時 <!...> 會被當成註解吃掉，變成 `καθό!>= καθ᾽ ὅ!>`
+            let remark_sn = r.remark.replace(/<!\s*(.*?)\s*!>/g, ' $1 ').replace(/ {2,}/g, ' ').trim()
+            remark_sn = remark_sn.replace(/SN ?([0-9]+a?)/gi, fn_sn_remark)
 
             let remark_linker = do_remark(remark_sn)
             let remark_orig = charHG(remark_linker)
