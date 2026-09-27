@@ -73,6 +73,50 @@ function fhlmap_dispose() {
   if (div != null) div.remove();
 }
 
+/**
+ * 點地名 label 的選單：聖光聖經地理 (用和合本名 cname 最吻合，其查詢是「包含」比對，但不接受「•」)
+ * @param {string} nameTrad 繁體和合本地名 (gb=1 時 cname 是簡體，聖光查不到，所以另取繁體)
+ * @param {string} nameShow 顯示用地名
+ */
+function fhlmap_createLinksPopup(nameTrad, nameShow, ps) {
+  var q = nameTrad.replace(/•/g, "");
+  var bookShort = BibleConstantHelperEs6Js().getBookNameArrayChineseShort(false)[ps.bookIndex - 1]; // 聖光是繁體
+  var hl = "https://biblegeography.holylight.org.tw/index/condensedbible_list?";
+  var links = [
+    ["聖光：查「" + q + "」", hl + new URLSearchParams({ name: q, range: "id" })],
+    ["聖光：" + bookShort + " " + ps.chap + " 的所有地名", hl + new URLSearchParams({ select1: ps.bookIndex, select2: ps.chap, range: "id" })],
+    ["Google：" + q + " " + bookShort + " " + ps.chap, "https://www.google.com/search?" + new URLSearchParams({ q: q + " " + bookShort + " " + ps.chap + " site:biblegeography.holylight.org.tw" })],
+  ];
+  var div = document.createElement("div");
+  var title = document.createElement("b");
+  title.textContent = nameShow;
+  div.appendChild(title);
+  links.forEach(function (a) {
+    var el = document.createElement("a");
+    el.textContent = a[0];
+    el.href = a[1];
+    el.target = "_blank";
+    el.rel = "noopener";
+    el.style.display = "block";
+    div.appendChild(el);
+  });
+  return div;
+}
+
+/** 讓 permanent tooltip (label) 與圖形本身都可點，點了開 popup 選單 */
+function fhlmap_bindLinks(layer, nameTrad, nameShow, ps) {
+  layer.bindPopup(fhlmap_createLinksPopup(nameTrad, nameShow, ps));
+  var tooltip = layer.getTooltip();
+  var el = tooltip && tooltip.getElement();
+  if (el == null) return;
+  el.style.pointerEvents = "auto";
+  el.style.cursor = "pointer";
+  L.DomEvent.on(el, "click", function (e) {
+    L.DomEvent.stop(e); // 不讓 map 收到 click (會把 popup 關掉)
+    layer.openPopup(tooltip.getLatLng());
+  });
+}
+
 function fhlmap_render(ps, dom) {
   /// <summary> 整合到 index 的 code 放在這裡, 可以集中上面的全域變數. 比較好理解 </summary>
 
@@ -90,8 +134,14 @@ function fhlmap_render(ps, dom) {
     const engss = bibleConstantHelper.getBookNameArrayEnglishNormal()
     const engs = engss[ps.bookIndex - 1] // 轉成 engs
 
-    fhl.json_api_text_post("sobj.php?engs=" + engs + "&chap=" + ps.chap + "&gb="+ps.gb, null, function (jstr) {
-      var jr1 = JSON.parse(jstr);
+    var chapNow = ps.chap, bookNow = ps.bookIndex;
+    var api = function (gb) { return fhl.json_api_text_post("sobj.php?engs=" + engs + "&chap=" + ps.chap + "&gb=" + gb, null, function (t) { return t; }, null); };
+    // 聖光只有繁體可查；簡體時另取一次繁體，以 id 對應繁體地名
+    Promise.all([api(ps.gb), ps.gb == 1 ? api(0) : null]).then(function (rs) {
+      if (chapNow != fhlmap_chap_prev || bookNow != fhlmap_engs_prev || rfhlmap == null) return; // 已切到別章或離開地圖
+      var jr1 = JSON.parse(rs[0]);
+      var tradNames = {};
+      (rs[1] ? JSON.parse(rs[1]) : jr1).record.forEach(function (a) { tradNames[a.id] = a.cname; });
 
       // remove 上次的結果
       markersLast.forEach(element => {
@@ -120,6 +170,7 @@ function fhlmap_render(ps, dom) {
               direction: 'top',
               opacity: 0.6,
             })
+            fhlmap_bindLinks(marker, tradNames[a1.id] || a1.cname, a1.cname, ps)
             mymap.setView(r1[0])
           } else if (a1.otype == 1) {
             // sample - 河流
@@ -135,6 +186,7 @@ function fhlmap_render(ps, dom) {
               direction: 'center',
               opacity: 0.6
             })
+            fhlmap_bindLinks(polyline, tradNames[a1.id] || a1.cname, a1.cname, ps)
             markersLast.push(polyline);
           } else if (a1.otype == 2) {
             // sample - 區域
@@ -152,6 +204,7 @@ function fhlmap_render(ps, dom) {
               direction: 'center',
               opacity: 0.6
             })
+            fhlmap_bindLinks(polygon, tradNames[a1.id] || a1.cname, a1.cname, ps)
             markersLast.push(polygon);
           }
         }
@@ -160,7 +213,7 @@ function fhlmap_render(ps, dom) {
       if (ptsAllForAutoZoom.length != 0)
         mymap.fitBounds(ptsAllForAutoZoom);
       // rfhlmap.set_data(jr1.record);
-    }, function (er) {});
+    }).catch(function (er) { console.error(er); });
     fhlmap_engs_prev = ps.bookIndex
     fhlmap_chap_prev = ps.chap;
   }
