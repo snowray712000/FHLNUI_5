@@ -255,6 +255,8 @@ export class FhlInfoContent {
         if (dom == null) dom = this.dom
 
         var that = this;
+        if (fhlmap_titleId_prev === "fhlInfoMap" && ps.titleId !== "fhlInfoMap")
+            fhlmap_dispose() // 地圖留下的 leaflet 事件會讓其它分頁無法捲動
         switch (ps.titleId) {
             case "fhlInfoParsing":
                 parsing_render_async()

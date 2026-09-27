@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.8.1",
+        "last": "6.8.3",
         "historys": [
             {
                 "na": "TODOs",
@@ -22,6 +22,13 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.8.3",
+                "na2":
+                [
+                    "✅ Bug: 切到「地圖」後再切回其它分頁 (例如註釋)，內容很長卻無法用滾輪／觸控板往下捲",
+                    "📝 工程師筆記: 原本 leaflet 直接拿 #fhlInfoContent 當 map container，切走後 wheel 的 preventDefault 與 touch-action:none 還留著。改為建在子 div #fhlmapContainer，切離地圖時 fhlmap_dispose() 移除。見 docs/z260927d"
                 ]
             },{
                 "na": "6.8.1",

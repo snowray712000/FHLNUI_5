@@ -59,14 +59,29 @@ function objpath2coordinate(objpathStr) {
   return re
 }
 
+/**
+ * 切離地圖分頁時呼叫。地圖建在 #fhlInfoContent 內的子 div，這裡把 map 與子 div 一起移除，
+ * 否則 leaflet 的 wheel(preventDefault)、touch-action:none 會留著，其它分頁 (如註釋) 就無法捲動
+ */
+function fhlmap_dispose() {
+  if (rfhlmap != null) {
+    rfhlmap.remove();
+    rfhlmap = null;
+  }
+  markersLast = [];
+  var div = document.getElementById("fhlmapContainer");
+  if (div != null) div.remove();
+}
+
 function fhlmap_render(ps, dom) {
   /// <summary> 整合到 index 的 code 放在這裡, 可以集中上面的全域變數. 比較好理解 </summary>
 
   var dom2 = document.getElementById("fhlInfoContent");
   if (dom2 != null && rfhlmap == null || fhlmap_titleId_prev != "fhlInfoMap") {
-    if (rfhlmap != null) // 切完功能回來, 若沒先 remove 掉原本的 map container 會出現錯誤
-      rfhlmap.remove();
-    rfhlmap = generateMap(dom2);
+    fhlmap_dispose(); // 切完功能回來, 若沒先 remove 掉原本的 map container 會出現錯誤
+    // 不直接拿 #fhlInfoContent 當 map container (leaflet 會改它的 class 與事件)
+    dom2.innerHTML = "<div id='fhlmapContainer' style='width:100%; height:100%;'></div>";
+    rfhlmap = generateMap(document.getElementById("fhlmapContainer"));
     fhlmap_chap_prev = -1; // 為了trigger 下面的 set 函式, 當「rfhlmap_titleId_prev != "fhlInfoMap"」時必須用到, 因為它重新create了
   }
 
