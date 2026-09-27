@@ -35,6 +35,7 @@ import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
 import { rtAsync } from './rtAsync.js'
 import { fetchJsonAsync } from './fetchAsync.es2023.js'
 import { SearchTool } from './SearchTool.es2023.js'
+import { normalizeActiveAddr, highlightActiveRefs } from './highlightActiveRefs.es2023.js'
 
 /*
 若有 2 個譯本，並且是併排方式
@@ -1442,6 +1443,10 @@ function mouseenter_sn_dialog(e) {
                     SearchTool.s.search(hgSn)
                 })
 
+                // hover 的那一節 (active address)，同節/同章的經文引用高亮
+                const activeAddr = normalizeActiveAddr(re_dict.one ?? one)
+                highlightActiveRefs(dlg, activeAddr)
+
                 dlg.on('click', '.ref', a1 => {
                     console.log($(a1.target));
 
@@ -1457,6 +1462,7 @@ function mouseenter_sn_dialog(e) {
                         var jo = {
                             sn: r2.attr('sn'),
                             isOld: isOld,
+                            activeAddr, // 字典中，高亮 hover 的那一節
                         }
 
                         // BUG:

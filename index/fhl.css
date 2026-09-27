@@ -58,6 +58,25 @@ span.bibtext
     color: blue;
     cursor: pointer;
 }
+/* 原文字典中，與「正在讀的經文」(active address) 相同的引用。見 highlightActiveRefs.es2023.js
+   顏色一律走 css 變數，將來換 theme 只要覆寫這些。 */
+:root {
+    --ref-act-verse-bg: #ffe27a;   /* 同一節 */
+    --ref-act-chap-bg: #fff5cc;    /* 同一章 (含整章引用) */
+    --ref-act-chap-border: #d4a300;
+}
+.ref.ref-act-verse {
+    /* 同一節 */
+    background-color: var(--ref-act-verse-bg);
+    box-shadow: 0 0 0 2px var(--ref-act-verse-bg);
+    border-radius: 2px;
+    font-weight: bold;
+}
+.ref.ref-act-chap {
+    /* 同一章，但節不同；或整章引用 */
+    background-color: var(--ref-act-chap-bg);
+    border-bottom: 1px dashed var(--ref-act-chap-border);
+}
 .greek {
   font-family: COBSGreekWeb;
   font-weight: 700;

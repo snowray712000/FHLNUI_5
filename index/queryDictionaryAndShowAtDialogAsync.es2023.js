@@ -6,13 +6,16 @@ import { DialogHtml } from "./DialogHtml.es2023.js"
 import { cvtDTextsToHtml } from "./cvtDTextsToHtml.es2023.js"
 import { queryReferenceAndShowAtDialogAsync } from "./queryReferenceAndShowAtDialogAsync.es2023.js"
 import { SearchTool } from "./SearchTool.es2023.js"
+import { getDefaultActiveAddr, normalizeActiveAddr, highlightActiveRefs, scrollRefIntoView } from "./highlightActiveRefs.es2023.js"
 
 /**
  * 開發給 原字Parsing時，點擊原文字，要跳出字典內容
- * @param {{sn:string;isOld:boolean}} jo 
+ * @param {{sn:string;isOld:boolean;activeAddr?:{book:number,chap:number,verse:number}}} jo 
+ * activeAddr: 使用者正在讀的那一節，字典內容中同節/同章的經文引用會被高亮。沒給就用目前閱讀位置 (ps)
  * @returns {Promise<void>}
  */
 export function queryDictionaryAndShowAtDialogAsync(jo) {
+    const activeAddr = normalizeActiveAddr(jo.activeAddr) ?? getDefaultActiveAddr()
     qDataAsync(jo).then(html => {
         let dlg = new DialogHtml()
         dlg.showDialog({
@@ -57,6 +60,9 @@ export function queryDictionaryAndShowAtDialogAsync(jo) {
                     // 先關掉所有 dialog 再搜尋，否則剛開的搜尋 dialog 也會被關掉
                     SearchTool.s.search(hgSn)
                 })
+
+                // 高亮與 active address 同節/同章的經文引用，並捲到第一個
+                scrollRefIntoView(dlg[0], highlightActiveRefs(dlg, activeAddr))
 
                 dlg.on('click', '.ref', a1 => {
                     
