@@ -7,6 +7,13 @@
   font-family: COBSHebrew;
   src:url(./static/font/cobsh.ttf);
 }
+/* 彎引號 ‘’“” 用西文字型畫。原型簡義的 Pi‘el、Hif‘il 用的是 U+2018，
+   落到 微軟正黑體 / Zen Maru Gothic 會變成全形。unicode-range 讓其它字不受影響 */
+@font-face {
+  font-family: LatinQuotes;
+  src: local('Times New Roman'), local('TimesNewRomanPSMT'), local('Arial'), local('ArialMT'), local('Helvetica'), local('Liberation Serif'), local('DejaVu Sans');
+  unicode-range: U+2018-201F;
+}
 .twcbhdic{
     white-space: normal;
 }
@@ -137,7 +144,7 @@ body {
     margin: 0px;
     overflow: hidden;
     background-color: #A0A0A0;
-    font-family: 'Zen Maru Gothic','GenSenRounded' !important;
+    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded' !important;
 }
 #mainWindow {
     position: absolute;
@@ -1431,7 +1438,7 @@ nav#fhlTopMenu {
     border-width: 1px 1px 0px;
 }
 #lecMain {
-    font-family: 'Zen Maru Gothic','GenSenRounded' !important;
+    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded' !important;
     position: absolute;
     top: 30px;
     left: 0px;
@@ -1550,7 +1557,7 @@ nav#fhlTopMenu {
   bottom: 0px;
   /*font: 18px/24px bold ,Microsoft JhengHei;*/
   font: 10pt/15pt bold;
-  font-family: 'Zen Maru Gothic','GenSenRounded', "Microsoft JhengHei" !important;
+  font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Microsoft JhengHei" !important;
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
   padding-right:0px;/*15px*/
@@ -1741,7 +1748,7 @@ nav#fhlTopMenu {
     text-decoration: underline;
 }
 #commentContent {
-    font-family: 'Zen Maru Gothic';
+    font-family: LatinQuotes,'Zen Maru Gothic';
     position: absolute; 
     top: 0px; 
     left: 0px; 
