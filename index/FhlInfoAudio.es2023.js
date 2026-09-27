@@ -7,13 +7,15 @@ import { BookSelect } from './BookSelect.es2023.js'
 import { FhlLecture } from './FhlLecture.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
 import { ViewHistory } from './ViewHistory.es2023.js'
+import { MediaNowPlaying } from './MediaNowPlaying.es2023.js'
+import { el, icon } from './auDom.es2023.js'
 
 /**
  * 有聲聖經分頁 (FhlInfoContent 的 fhlInfoAudio，第一次切到時才載入)
  *
  * - AudioBiblePlayer：常駐。只有一個 <video>，mp3 也用它播 (聲音模式時藏在 body 下的 holder)。
  *   不放在 #fhlInfoContent 裡，因為其它分頁 render 時會 .html() 清掉內容，media 被移出 document 就會暫停；
- *   這樣切到別的分頁也不會中斷，#fhlInfo 下方出現迷你播放列。
+ *   這樣切到別的分頁也不會中斷。迷你播放列、同時只播一個、鎖定畫面控制在 MediaNowPlaying (講道也用)。
  * - 跟著閱讀：經文換章 ('go' 事件) → 播放器換章 (播放中就接著播)；播完接下一章 → 經文也翻到下一章。
  * - FhlInfoAudio：分頁畫面，每次 render 重建，狀態都在 player。
  * - 顏色一律走 css 變數 --au-* (index/AudioBible.css)。
@@ -31,24 +33,6 @@ function loadIndexAsync() {
     return indexLoading
 }
 
-/**
- * @param {string} tag
- * @param {Record<string, any>} [attrs] class、text、title、on{事件} 以外的直接 setAttribute
- * @param  {...(Node|string|null|false)} children
- */
-function el(tag, attrs = {}, ...children) {
-    const re = document.createElement(tag)
-    for (const [k, v] of Object.entries(attrs)) {
-        if (v == null || v === false) continue
-        if (k == 'class') re.className = v
-        else if (k == 'text') re.textContent = v
-        else if (k.startsWith('on')) re.addEventListener(k.slice(2), v)
-        else re.setAttribute(k, v === true ? '' : v)
-    }
-    for (const c of children) if (c != null && c !== false) re.append(c)
-    return re
-}
-const icon = name => el('i', { class: `fa fa-${name}`, 'aria-hidden': 'true' })
 
 function bookName(bid) {
     const names = TPPageState.s.gb == 1 ? BibleConstant.CHINESE_BOOK_NAMES_GB : BibleConstant.CHINESE_BOOK_NAMES
@@ -70,8 +54,6 @@ export class AudioBiblePlayer {
     media
     /** 聲音模式時 media 放這裡 */
     holder
-    /** #fhlInfo 下方的迷你播放列 */
-    mini
     v = AUDIO_VERSION_DEFAULT
     variant = ''
     bid = 1
@@ -80,8 +62,6 @@ export class AudioBiblePlayer {
     mode = 'audio'
     rate = 1
     autoNext = true
-    /** 按過播放才顯示迷你播放列；按 ✕ 關掉 */
-    started = false
     /** 版本清單是否展開 (分頁重建時保留) */
     isListOpen = false
     /** @type {''|'none'|'error'} none: 這個版本沒有這章 */
@@ -103,15 +83,21 @@ export class AudioBiblePlayer {
         document.body.append(this.holder)
 
         const m = this.media
-        m.addEventListener('play', () => { this.started = true; this.#changed() })
+        m.addEventListener('play', () => this.#changed())
         m.addEventListener('pause', () => this.#changed())
         m.addEventListener('loadedmetadata', () => { m.playbackRate = this.rate; this.#time() })
         m.addEventListener('timeupdate', () => this.#time())
         m.addEventListener('ended', () => { if (this.autoNext) this.step(1, true); else this.#changed() })
         m.addEventListener('error', () => { if (m.getAttribute('src')) { this.problem = 'error'; this.#changed() } })
 
-        this.#initMini()
-        this.#initMediaSession()
+        MediaNowPlaying.s.register({
+            tabId: TAB_ID,
+            media: m,
+            miniText: () => `${bookShort(this.bid)} ${this.chap}・${this.versionText}`,
+            meta: () => ({ title: this.refText, artist: this.versionText, album: '信望愛有聲聖經' }),
+            prev: () => this.step(-1),
+            next: () => this.step(1),
+        })
 
         // 經文換章 → 播放器跟著換 (播放中就接著播)
         $(document).on('go', (_, addr) => {
@@ -121,7 +107,6 @@ export class AudioBiblePlayer {
         // 離開分頁前把 video 移回 holder，否則其它分頁清內容時會被移出 document 而暫停
         $(document).on('InfoTitleChanged', (_, e) => {
             if (e.titleId != TAB_ID) this.holder.append(this.media)
-            this.#updateMini()
         })
     }
 
@@ -184,11 +169,6 @@ export class AudioBiblePlayer {
         if (!this.media.getAttribute('src')) return
         this.media.play().catch(err => { if (err.name != 'AbortError') console.warn('有聲聖經播放失敗', err) })
     }
-    stop() {
-        this.media.pause()
-        this.started = false
-        this.#updateMini()
-    }
     /** @param {number} ratio 0~1 */
     seek(ratio) {
         const d = this.media.duration
@@ -227,7 +207,6 @@ export class AudioBiblePlayer {
             if (startTime > 0) m.addEventListener('loadedmetadata', () => { m.currentTime = startTime }, { once: true })
             if (play) this.play()
         } else if (play && m.paused) this.play()
-        this.#updateMediaSession()
         this.#changed()
         this.#time()
     }
@@ -251,7 +230,7 @@ export class AudioBiblePlayer {
     }
     #changed() {
         this.onChange?.()
-        this.#updateMini()
+        MediaNowPlaying.s.update()
     }
     #time() { this.onTime?.() }
 
@@ -262,42 +241,6 @@ export class AudioBiblePlayer {
         const ver = this.version
         if (ver == null) return ''
         return ver.sub ? `${ver.label}・${ver.sub}` : ver.label
-    }
-
-    #initMini() {
-        const btn = el('button', { class: 'au-mini-btn', type: 'button', onclick: () => this.toggle() })
-        const text = el('button', {
-            class: 'au-mini-text', type: 'button', title: '回到有聲分頁',
-            onclick: () => $('#' + TAB_ID).trigger('click'),
-        })
-        const close = el('button', { class: 'au-mini-btn', type: 'button', 'aria-label': '停止', title: '停止', onclick: () => this.stop() }, icon('times'))
-        this.mini = el('div', { class: 'au-mini', hidden: true }, btn, text, close)
-        this.mini._btn = btn
-        this.mini._text = text
-        $('#fhlInfo').append(this.mini)
-    }
-    #updateMini() {
-        const show = this.started && TPPageState.s.titleId != TAB_ID
-        this.mini.hidden = !show
-        if (!show) return
-        this.mini._btn.replaceChildren(icon(this.isPlaying ? 'pause' : 'play'))
-        this.mini._btn.setAttribute('aria-label', this.isPlaying ? '暫停' : '播放')
-        this.mini._text.textContent = `${bookShort(this.bid)} ${this.chap}・${this.versionText}`
-    }
-
-    #initMediaSession() {
-        const ms = navigator.mediaSession
-        if (ms == null) return
-        const set = (action, fn) => { try { ms.setActionHandler(action, fn) } catch { /* 不支援的 action */ } }
-        set('play', () => this.play())
-        set('pause', () => this.media.pause())
-        set('previoustrack', () => this.step(-1))
-        set('nexttrack', () => this.step(1))
-    }
-    #updateMediaSession() {
-        const ms = navigator.mediaSession
-        if (ms == null || typeof MediaMetadata == 'undefined') return
-        ms.metadata = new MediaMetadata({ title: this.refText, artist: this.versionText, album: '信望愛有聲聖經' })
     }
 }
 

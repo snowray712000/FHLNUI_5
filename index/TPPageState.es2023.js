@@ -93,6 +93,8 @@ export class TPPageState {
     this.audioAutoNext = 1
     /** @type {'audio'|'video'} 有聲聖經：聲音 或 投影片 (有 mp4 的版本才有效) */
     this.audioMode = 'audio'
+    /** @type {number} 講道播放速度 */
+    this.preachRate = 1
     /** @type {string} 程式版本 */
     this.swVer = "0.0.0"
     /** @type {0|1|2} 0是早期顯示版本，1是併排，2是交錯 */

@@ -74,7 +74,7 @@
     };
     AppVersion.s = new AppVersion();
 
-    var currentSWVer = "6.10.1" // 發版本要改
+    var currentSWVer = "6.10.3" // 發版本要改
     // 原本新版本第一次載入會 location.reload(true) 強迫更新其他檔案，但 Chrome 忽略 true，
     // 且重新整理只重新驗證 html 本身，子資源照用快取；還讓每位新使用者第一次進站多載一次。
     // 改由 build 時替舊式檔案網址加版本號（vite.config.js versionLegacyUrls）處理。
@@ -85,7 +85,7 @@
 
 
 
-  <!-- React 0.13（static/libs/react）已不使用：講道、播放器、版權宣告、有聲聖經版本選單改為純 JS（static/commonR/h.js） -->
+  <!-- React 0.13（static/libs/react）已不使用。講道、有聲聖經改為 ES module（index/FhlInfoPreach、FhlInfoAudio）；版權宣告改為純 JS -->
 
   <!-- <script src="ijnjs/ijnjs.js"></script> -->
   <script src="libs/ijnjs/ijnjs.js"></script>
@@ -109,9 +109,6 @@
   <!-- <link rel=stylesheet href=index/fhl.css> -->
   <link rel=stylesheet href=static/libs/icons/css/font-awesome.css>
   <script src=static/libs/jquery.hotkeys.js></script>
-  <script src=static/commonR/h.js></script>
-  <script src=static/commonR/processbar.js></script>
-  <script src=static/commonR/audio.js></script>
   <link href=static/ob_api/ob_api.css rel=stylesheet>
   <link href=static/ob_api/ob_table.css rel=stylesheet>
   <script src=static/search_api/abvphp_api.js></script>
@@ -119,7 +116,6 @@
   <link href=index/Search.css rel=stylesheet>
   <link href=index/AudioBible.css rel=stylesheet>
   <script src=static/qsb_api/qsb.qsbapi.js></script>
-  <script src=static/preach_api/preach_api.js></script>
   <script src=static/copyright_api/copyright_api.js></script>
 
   <script src="./FHL.linq.js"></script>

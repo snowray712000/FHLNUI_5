@@ -42,7 +42,6 @@ document.head.appendChild(Object.assign(document.createElement('link'), {
 }))
 import './load_json_gz_Async.es2023.js' // 設定 window.Sd_same_json；SN 資料改為用到時才載入（ensureSnDataAsync）
 
-import { do_preach } from './do_preach.es2023.js' // 講道
 import { SnBranchRender } from './SnBranchRender.es2023.js' // 樹狀圖(羅馬書才有)
 
 import { FhlInfo } from './FhlInfo.es2023.js' // fhlInfoContent 用
@@ -101,7 +100,6 @@ import { Hash_Changed } from './Hash_Changed.js'
     window.queryDictionaryAndShowAtDialogAsync = queryDictionaryAndShowAtDialogAsync
     // window.FhlLectureEs6Js = () => FhlLecture // 不需要，別人只用到實體 window.fhlLecture
     window.SnBranchRender = SnBranchRender // 樹狀圖(羅馬書才有)
-    window.do_preach = do_preach // 講道
     window.fhlInfo = FhlInfo.s // fhlInfoContent 用
     window.fhlInfoTitle = FhlInfoTitle.s // fhlInfoContent 用
     window.fhlInfoContent = FhlInfoContent.s // fhlInfoContent 用
@@ -413,8 +411,6 @@ function doReadyStep2() {
 //   'index/fhl.css',
 //   'static/libs/icons/css/font-awesome.css',
 //   'static/libs/jquery.hotkeys.js',
-//   'static/commonR/processbar.js',
-//   'static/commonR/audio.js',
 //   'static/ob_api/ob_api.css',
 //   'static/ob_api/ob_table.css',
 //   'static/ob_api/obphp.js',
@@ -433,7 +429,6 @@ function doReadyStep2() {
 //   'static/qsb_api/qsb.qsbapi.js',
 //   'static/tsk_api/tsk.tskapi.js',
 //   'static/tsk_api/tsk.R.frame.oneref.js',
-//   'static/preach_api/preach_api.js',
 //   'static/copyright_api/copyright_api.js',
 //   './FHL.linq.js',
 //   './FHL.tools.js',

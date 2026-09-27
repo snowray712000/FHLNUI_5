@@ -54,6 +54,7 @@ const lazyTsk = lazyModule(() => import('./tsks/renderTsk.js')) // 串珠
 const lazyOb = lazyModule(() => import('./FhlInfoOb.es2023.js')) // 典藏
 const lazyAi = lazyModule(() => import('./ai_render_tools_es2023.js')) // AI
 const lazyAudio = lazyModule(() => import('./FhlInfoAudio.es2023.js')) // 有聲聖經
+const lazyPreach = lazyModule(() => import('./FhlInfoPreach.es2023.js')) // 講道
 
 // leaflet（地圖用）原本在 index.html 一開始就載入。只有地圖分頁用得到，改為第一次切到地圖時才載入
 let leafletLoading
@@ -266,7 +267,8 @@ export class FhlInfoContent {
                 lazyComment.run(ps.titleId, m => m.comment_render_async())
                 break
             case "fhlInfoPreach":
-                do_preach(ps, dom);
+                // 講道（播放器常駐，切到別的分頁也繼續播）
+                lazyPreach.run(ps.titleId, m => m.FhlInfoPreach.s.render(ps, dom))
                 break;
             case "fhlInfoTsk":
                 // 串珠 snow

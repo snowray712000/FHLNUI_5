@@ -1,4 +1,4 @@
-/* 有聲聖經分頁 (index/FhlInfoAudio.es2023.js)
+/* 有聲聖經分頁 (index/FhlInfoAudio.es2023.js)、講道分頁 (index/FhlInfoPreach.es2023.js，.pr-*)
    顏色一律走 css 變數，將來換 theme 只要覆寫這些。預設與典藏 --ob-* 相同 (GitHub Primer 色系)。 */
 :root {
     --au-fg: #1f2328;
@@ -231,6 +231,76 @@
     text-align: center;
 }
 .au-foot a { color: inherit; }
+
+/* 空狀態：這節沒有講道、載入中 */
+.au-empty {
+    padding: 24px 12px;
+    color: var(--au-fg-muted);
+    text-align: center;
+}
+.au-panel .au-link:disabled {
+    color: var(--au-disabled);
+    cursor: default;
+}
+
+/* ===== 講道 ===== */
+.pr-cards { display: flex; flex-direction: column; gap: 12px; }
+.pr-slot:empty { display: none; }
+.pr-slot.pr-loading { opacity: 0.5; }
+.pr-card {
+    border: 1px solid var(--au-border);
+    border-radius: 10px;
+    background: var(--au-bg);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.pr-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+.pr-speaker { font-size: 16px; font-weight: 500; }
+.pr-range { color: var(--au-fg-muted); font-size: 13px; }
+.pr-outline {
+    color: var(--au-fg-muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+.pr-tracks { display: flex; flex-direction: column; gap: 6px; }
+.pr-track {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: var(--au-bg-subtle);
+}
+.pr-track.on { background: var(--au-accent-bg); }
+.au-panel .pr-play {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--au-accent);
+    color: var(--au-on-accent);
+    font-size: 14px;
+}
+.au-panel .pr-play .fa-play { margin-left: 2px; }
+.pr-track-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pr-track-label { font-size: 14px; }
+.pr-track.on .pr-track-label { color: var(--au-accent); }
+.pr-err { color: var(--au-warn-fg); }
+.pr-prog { gap: 8px; }
+.pr-dl { flex: none; padding: 6px; }
+.pr-now .pr-track { border: 1px solid var(--au-accent); }
+.pr-nav {
+    display: flex;
+    justify-content: space-between;
+}
 
 /* 迷你播放列：切到其它分頁時，在 #fhlInfo 左下 */
 .au-mini {
