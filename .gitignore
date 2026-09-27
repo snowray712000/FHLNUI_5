@@ -1,6 +1,8 @@
 # ---- 可重新產生的 ----
 node_modules/
 dist/
+# tools/gen_*.mjs 下載的原始資料 (bible_parsing.zip 等)
+tools/.cache/
 
 # ---- 作業系統 / 當機雜檔 ----
 .DS_Store

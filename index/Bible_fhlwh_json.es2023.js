@@ -14,9 +14,11 @@ export class Bible_fhlwh_json extends BaseJson {
     return super._filecontent; // 原始資料
   }
   /** @typedef {number,number,number,string} DOneRow book,chap,sec,內容*/
-  /** 
-   * @typedef {Object<string, string>} DBible_fhlwh_json 
-   * @property {string[]} col 描述欄位，應該就是 ["book","chap","sec","content"]，不太會用到這個值
+  /**
+   * 由 tools/gen_bible_fhlwh.mjs 產生 (npm run gen:fhlwh)
+   * @typedef {Object<string, string>} DBible_fhlwh_json
+   * @property {string[]} col 描述欄位 ["book","chap","sec","text"]，不太會用到這個值
+   * @property {string} ver 來源 bible_parsing.db 的 version.dt，判斷要不要重新產生用
    * @property {DOneRow[]} data 聖經資料，這個是最重要的欄位，裡面有 SN 的資料。
   */
 }
