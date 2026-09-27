@@ -32,8 +32,8 @@ npm run dev
 | `npm run preview` | 預覽 `dist/` (5175) |
 | `npm test` | Vitest 單元測試 (`tests/**/*.test.js`) |
 | `npm run depgraph` | 重新產生模組依賴圖 `docs/dependency-graph.mmd` |
-| `npm run gen:bhs` | 重新產生舊約希伯來文搜尋資料 `index/bible_bhs_code.json.gz` |
-| `npm run gen:orig` | 從信望愛公開的 `bible_parsing.zip` 重新產生新舊約原文 (嵌 SN) `index/bible_fhlwh.json.gz`、`index/bible_bhs.json.gz` |
+| `npm run gen:orig` | 從信望愛公開的 `bible_parsing.zip` 重新產生新舊約原文 (嵌 SN) `index/bible_fhlwh.json.gz`、`index/bible_bhs.json.gz`，與舊約希伯來文搜尋資料 `index/bible_bhs_code.json.gz` |
+| `npm run check:data` | 檢查上面這些資料檔是否已過期 (信望愛更新了 zip)，只送 HEAD 不下載 |
 
 部署時上傳 `dist/` 的內容，注意事項見 [docs/z260925b(dev、build與上傳注意事項).md](docs/z260925b(dev、build與上傳注意事項).md)。
 

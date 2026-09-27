@@ -1,6 +1,8 @@
 // 產生新舊約原文、每個字後面嵌入 SN 的資料 (讀經選「新約原文」「舊約馬索拉原文」時載入)
 // - index/bible_fhlwh.json.gz：新約，形如 `ἀλλὰ<WG235> καθὸ<WG2526> ...`
 // - index/bible_bhs.json.gz：舊約，形如 `בְּרֵאשִׁית<WH7225> בָּרָא<WH1254> ...`
+// - index/bible_bhs_code.json.gz：舊約整節的信望愛內碼 (不含 SN)，舊約原文搜尋用
+//   (以前用 se.php 產生；它缺 出16:36、代上22:19，parsing 的比較完整，其餘節內碼完全相同)
 // 執行：npm run gen:orig (需要網路；zip 約 40MB，會快取在 tools/.cache/)
 //
 // - 來源：信望愛公開的 https://ftp.fhl.net/FHL/COBS/data/bible_parsing.zip (sqlite)，表 fhlwhparsing (新約)、lparsing (舊約)
@@ -11,7 +13,7 @@
 //   - 舊約用 word (信望愛內碼) 逐行 umscode：umscode 會把整串反轉，uword 是整節一次轉的，多行時行序顛倒 (創1:1 第一個字跑到最後)
 // - 對齊比較時忽略重音、氣號、母音點、大小寫、括號、maqaf，所以 `(κατα)καίεται` 對得到逐字的 `κατακαίεται`，`אֶת־הָרָקִיעַ` 對得到 2 個逐字
 // - 對不上的寫到 tools/.cache/gen_bible_orig_report.txt，並印出統計
-// - 輸出多了 ver：資料庫 version.dt，之後判斷要不要重新產生用
+// - 輸出多了 ver：資料庫 version.dt；src：zip 的網址與 Last-Modified。npm run check:data 比對 src 判斷要不要重新產生
 import fs from 'node:fs'
 import zlib from 'node:zlib'
 import { DatabaseSync } from 'node:sqlite'
@@ -48,12 +50,13 @@ const TESTAMENTS = [
 ]
 
 fs.mkdirSync(DIR_CACHE, { recursive: true })
-await ensureDbAsync()
+const src = await ensureDbAsync()
 
 const db = new DatabaseSync(fileURLToPath(PATH_DB), { readOnly: true })
 const ver = db.prepare('SELECT dt FROM version').get()?.dt ?? ''
 const report = [`bible_parsing.db version: ${ver}`]
 for (const t of TESTAMENTS) gen(t)
+gen_bhs_code()
 db.close()
 fs.writeFileSync(PATH_REPORT, report.join('\n') + '\n')
 console.log(`資料版本 ${ver}，報告見 ${fileURLToPath(PATH_REPORT)}`)
@@ -88,11 +91,23 @@ function gen(t) {
     }
     data.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2])
 
-    const json = JSON.stringify({ col: ['book', 'chap', 'sec', 'text'], ver, data })
+    const json = JSON.stringify({ col: ['book', 'chap', 'sec', 'text'], ver, src, data })
     fs.writeFileSync(t.out, zlib.gzipSync(json, { level: 9 }))
     report.push('', `## ${t.name} ${JSON.stringify(cnt)}`, ...msgs)
     console.log(`${t.name} ${data.length} 節 → ${fileURLToPath(t.out)} (${fs.statSync(t.out).size} bytes)`)
     console.log(`  ${JSON.stringify(cnt)}，對不上 ${msgs.length} 筆`)
+}
+
+/** 舊約整節內碼，格式同以前 se.php 產生的：{col, data: [[book(1based), chap, sec, 內碼], ...]} */
+function gen_bhs_code() {
+    const out = new URL('../index/bible_bhs_code.json.gz', import.meta.url)
+    const data = db.prepare('SELECT engs, chap, sec, word FROM lparsing WHERE wid = 0').all()
+        .filter(r => r.word != null)
+        .map(r => [OT_ENGS.indexOf(r.engs.trim()) + 1, r.chap, r.sec, r.word.replace(/\r\n?/g, '\n').trim()])
+    if (data.some(a1 => a1[0] < 1)) throw new Error('不認得的舊約書卷')
+    data.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2])
+    fs.writeFileSync(out, zlib.gzipSync(JSON.stringify({ col: ['book', 'chap', 'sec', 'code'], ver, src, data }), { level: 9 }))
+    console.log(`舊約內碼 ${data.length} 節 → ${fileURLToPath(out)} (${fs.statSync(out).size} bytes)`)
 }
 
 /**
@@ -215,17 +230,21 @@ function similar(a, b) {
     return d[a.length][b.length] <= 2
 }
 
-/** 下載 zip (遠端 Last-Modified 沒變就用快取)，解出 bible_parsing.db */
+/**
+ * 下載 zip (遠端 Last-Modified 沒變就用快取)，解出 bible_parsing.db
+ * @returns {Promise<{url: string, lastModified: string}>} 記到輸出檔的 src
+ */
 async function ensureDbAsync() {
     const head = await fetch(URL_ZIP, { method: 'HEAD' })
     if (!head.ok) throw new Error(`HEAD ${URL_ZIP} ${head.status}`)
     const remote = { lastModified: head.headers.get('last-modified'), size: +head.headers.get('content-length') }
+    const src = { url: URL_ZIP, lastModified: remote.lastModified }
     const cached = fs.existsSync(PATH_ZIP_META) ? JSON.parse(fs.readFileSync(PATH_ZIP_META, 'utf8')) : null
     const isSame = cached != null && cached.lastModified == remote.lastModified && cached.size == remote.size
         && fs.existsSync(PATH_ZIP) && fs.existsSync(PATH_DB)
     if (isSame) {
         console.log(`用快取 ${fileURLToPath(PATH_ZIP)} (${remote.lastModified})`)
-        return
+        return src
     }
 
     console.log(`下載 ${URL_ZIP} (${(remote.size / 1e6).toFixed(1)}MB, ${remote.lastModified})`)
@@ -235,6 +254,7 @@ async function ensureDbAsync() {
     fs.writeFileSync(PATH_ZIP, buf)
     fs.writeFileSync(PATH_DB, unzip_one(buf, 'bible_parsing.db'))
     fs.writeFileSync(PATH_ZIP_META, JSON.stringify(remote))
+    return src
 }
 
 /**

@@ -29,6 +29,24 @@
   - `index.html` 的 `currentSWVer`
   - `app_versions.json`
 
+## 資料檔更新 (信望愛的原文資料)
+
+`index/` 裡有幾個檔案是從信望愛公開的 [bible_parsing.zip](https://ftp.fhl.net/FHL/COBS/data/)（sqlite）產生的，信望愛更新資料後，要重新產生、build、上傳：
+
+| 檔案 | 用途 |
+|---|---|
+| `bible_fhlwh.json.gz` | 讀經「新約原文」，每個字嵌 SN |
+| `bible_bhs.json.gz` | 讀經「舊約馬索拉原文」，每個字嵌 SN |
+| `bible_bhs_code.json.gz` | 舊約希伯來文搜尋 (信望愛內碼) |
+
+1. **`npm run check:data`**：只送 HEAD 比對 zip 的 Last-Modified，全部 ✓ 就不用做下面的步驟。發版前順手跑一次。
+2. **`npm run gen:orig`**：下載 zip（約 40MB，快取在 `tools/.cache/`，不進 git），產生上面 3 個檔。
+   - 會印出新舊約各自「對不上」的筆數，細節在 `tools/.cache/gen_bible_orig_report.txt`。平常新約約 7 筆、舊約約 6 筆（上游的錯字、重複字）；突然變多，表示資料格式變了，先別上傳。
+3. `npm test`，再 `npm run dev` 抽看幾節（新約原文、舊約原文、希伯來文搜尋）。
+4. commit，`npm run build`，上傳 `dist/index/` 裡這 3 個檔（不必重傳 `assets/`，除非程式也有改）。
+
+`index/audio_bible_index.json`（`npm run gen:audio`）來源是 API，沒有可比對的日期，`check:data` 不會檢查它。
+
 ## 上傳
 
 ### 哪些要傳
