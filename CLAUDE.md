@@ -89,9 +89,10 @@ Raw Bible text
 | `docs/z260927a(原文搜尋-信望愛內碼與新舊約).md` | Greek / Hebrew search: FHL stores original text in an internal ASCII code, not Unicode; gcode_2 / umscode, ssn.php (NT), bible_bhs_code.json.gz (OT), oxia vs tonos pitfalls (Chinese) |
 | `docs/z260927b(典藏清單篩選-chip與可收合).md` | 典藏 (ob) list filters: category chips, language chips + text box, table/card, collapsible; client-side filtering, faceted counts, partial repaint while typing, `--ob-*` css vars (Chinese) |
 | `docs/z260222e(串珠規畫).md` | Chain reference (串珠) format & plan |
-| `readmeRD.md` | DialogHtml component API |
-| `z250928a.md` | Hash/routing architecture notes |
-| `readme.md` | PlantUML component diagrams |
+| `docs/DialogHtml使用心得.md` | DialogHtml tips: initial position relative to a dom, initial width (was `readmeRD.md`) |
+| `docs/z250928a(hash與網址列).md` | Hash/routing architecture notes |
+| `readme.md` | Project README for humans (features, dev/build, layout) |
+| `docs/使用說明.md` | User guide (Chinese), task-oriented. Update it when a release adds or changes a user-visible feature |
 | `docs/dependency-graph.mmd` | Module import graph (mermaid), from `index.js` entry point. Regenerate after large restructuring with `npm run depgraph` |
 
 ## Data Files

@@ -46,6 +46,7 @@ const LEGACY_COPY = [
   'FHL.tools.js',
   'fhl_bible.ico',
   'frmUpdated.html',
+  'docs/使用說明.md', // 工具列「?」讀這份 (Help.es2023.js)；docs/ 其餘是開發文件，不上傳
 ]
 
 function copyLegacyFiles() {

@@ -26,7 +26,7 @@
   - 私有方法 `#getIdOfDialog()`：自動找一個沒被用過的 `#iddlgN` id，動態 append 一個 `<div>` 到 `<body>` —— **同一頁可同時疊多層 dialog**，巢狀交互參照就是靠這個機制疊出多層彈窗。
 - `closeDialogViaTriggerCloseButton()`：透過模擬點擊「關閉鈕」關閉（而非直接呼叫 `.dialog('close')`），確保 `dialogclose` 事件與清理邏輯照常觸發。
 
-配套文件 `readmeRD.md` 是作者對 `DialogHtml` 的心得：強調「初始位置」用 `of: $(jo.event.target)` 相對定位很好用；「初始大小」只能用 px（無法用 em），通常用視窗比例設定，height 用 auto。
+配套文件 `docs/DialogHtml使用心得.md`（原 `readmeRD.md`） 是作者對 `DialogHtml` 的心得：強調「初始位置」用 `of: $(jo.event.target)` 相對定位很好用；「初始大小」只能用 px（無法用 em），通常用視窗比例設定，height 用 auto。
 
 ### 新專案設計建議
 - 保留「動態產生獨立 DOM 容器 + 遞增 id」以支援巢狀彈窗的思路。

@@ -1,5 +1,53 @@
 import { FhlHelpingPopUp } from './HelpingPopUp.es2023.js';
 import { DialogHtml } from './DialogHtml.es2023.js';
+import { fetchTextAsync } from './fetchAsync.es2023.js';
+
+/** 使用說明，與 repo 裡給人看的是同一份；build 時由 vite.config.js 的 LEGACY_COPY 複製到 dist/ */
+const GUIDE_URL = 'docs/使用說明.md'
+const MARKDOWN_IT_URL = 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
+
+let markdownItLoading
+/** markdown-it 只有說明用得到，第一次按「?」才載入 */
+function ensureMarkdownItAsync() {
+    if (markdownItLoading) return markdownItLoading
+    markdownItLoading = import(/* @vite-ignore */ MARKDOWN_IT_URL)
+        .then(m => m.default({ html: false, linkify: true }))
+        .catch(err => {
+            markdownItLoading = undefined // 下次再試
+            throw err
+        })
+    return markdownItLoading
+}
+
+/**
+ * md 裡的相對路徑 (例 ../images/xxx.png) 是相對於 md 檔，放進頁面後要改成相對於頁面。
+ * 外部連結另開分頁，才不會離開聖經工具。
+ * @param {string} html
+ * @returns {string}
+ */
+function fixLinks(html) {
+    const base = new URL(GUIDE_URL, location.href)
+    const div = document.createElement('div')
+    div.innerHTML = html
+    for (const img of div.querySelectorAll('img[src]')) {
+        img.src = new URL(img.getAttribute('src'), base).href
+        img.style.maxWidth = '100%'
+    }
+    for (const a of div.querySelectorAll('a[href]')) {
+        const href = a.getAttribute('href')
+        if (href.startsWith('#')) continue
+        a.href = new URL(href, base).href
+        a.target = '_blank'
+        a.rel = 'noopener'
+    }
+    return div.innerHTML
+}
+
+async function renderGuideAsync() {
+    const [md, text] = await Promise.all([ensureMarkdownItAsync(), fetchTextAsync(GUIDE_URL)])
+    return fixLinks(md.render(text))
+}
+
 export class Help {
     static #s = null
     /** @returns {Help} */
@@ -13,146 +61,28 @@ export class Help {
         FhlHelpingPopUp.s.init(ps, $('#helpingPopUp'));
     }
     render(ps, dom) {
-        var html = "";
-        html += '?';
-        dom.html(html);
+        dom.html('?');
         this.registerEvents(ps);
     }
     registerEvents(ps) {
-        this.dom.on('click', function () {                
-            const dlg = new DialogHtml()
-
-            // 快速鍵清單
-            // Alt + Shift + z: 設定視窗開關 (左邊)
-            // Alt + Shift + c: 輔助視窗開關 (右邊)
-            // Alt + Shift + /: 幫助，跳出 (這個視窗)
-            // Alt + Shift + L: 全螢幕 (目前有Bug, 全營幕後，即時功能失效)
-            // Alt + Shift + F: 游標移到搜尋框
-            // Alt + Shift + S: 快速選章 (失效)
-            const div_shortcut = $('<div>').append(
-                $("<h3>").text('快速鍵清單'),
-                $('<ul>').append(
-                    $('<li>').text('Alt + Shift + z: 設定視窗開關 (左邊)'),
-                    $('<li>').text('Alt + Shift + c: 輔助視窗開關 (右邊)'),
-                    $('<li>').text('Alt + Shift + /: 幫助，跳出 (這個視窗)'),
-                    $('<li>').text('Alt + Shift + L: 全螢幕 (目前有Bug, 全螢幕後，即時功能失效)'),
-                    $('<li>').text('Alt + Shift + F: 游標移到搜尋框'),
-                    $('<li>').text('Alt + Shift + S: 快速選章 (失效)')
-                )
-            );
-
-            // 即時顯示功能，說明
-            const div_realtime_help = $('<div>').append(
-                $("<h3>").text('即時顯示功能: 設定->即時顯示'),
-                $('<img>').attr('src', './images/help_realtime_disappear.png').css('width', '100%'),
-                $("<a>").attr('href', './images/help_realtime_disappear.png').attr('target', '_blank').text('放大圖片')
-            );
-
-            // 最終
-            const div_final = $('<div>').append(
-                div_shortcut,
-                "<hr/>",
-                div_realtime_help
-            );
-
-            dlg.showDialog({
-                html: div_final.html(),
-                getTitle: () => "幫助",
-                registerEventWhenShowed: dlg => {
-                    // helpingPopUp.registerEvents(ps);
-                }
+        // Alt + Shift + / 也會觸發這裡 (registerEvents_doc.es2023.js)
+        this.dom.on('click', async () => {
+            let html
+            try {
+                html = `<div class="markdown-body">${await renderGuideAsync()}</div>`
+            } catch (ex) {
+                console.error(ex)
+                html = `<div>說明載入失敗，請稍後再試。(${ex.message})</div>`
+            }
+            new DialogHtml().showDialog({
+                html,
+                getTitle: () => "使用說明",
+                width: Math.min(window.innerWidth * 0.95, 900),
+                maxWidth: window.innerWidth * 0.95,
+                height: window.innerHeight * 0.85,
+                maxHeight: window.innerHeight * 0.9,
+                registerEventWhenShowed: () => { },
             })
-
-            // if ($('#helpingPopUp').css('opacity') == 1) {
-            //     $('#helpingPopUp').css({
-            //         'visibility': 'hidden',
-            //         'opacity': '0'
-            //     });
-            // } else {
-            //     $('#helpingPopUp').css({
-            //         'visibility': 'visible',
-            //         'opacity': '1'
-            //     });
-            // }
-        });        
+        });
     }
 }
-
-// (function (root) {
-//     root.help = {
-//         init: function (ps, dom) {
-//             this.dom = dom;
-//             this.render(ps, this.dom);
-//             helpingPopUp.init(ps, $('#helpingPopUp'));
-//         },
-
-//         registerEvents: function (ps) {
-            
-//             this.dom.on('click', function () {                
-//                 const DialogHtml = DialogHtmlEs6Js()
-//                 const dlg = new DialogHtml()
-
-//                 // 快速鍵清單
-//                 // Alt + Shift + z: 設定視窗開關 (左邊)
-//                 // Alt + Shift + x: 搜尋視窗開關 (下方)
-//                 // Alt + Shift + c: 輔助視窗開關 (右邊)
-//                 // Alt + Shift + /: 幫助，跳出 (這個視窗)
-//                 // Alt + Shift + L: 全螢幕 (目前有Bug, 全營幕後，即時功能失效)
-//                 // Alt + Shift + F: 搜尋 (失效)
-//                 // Alt + Shift + S: 快速選章 (失效)
-//                 const div_shortcut = $('<div>').append(
-//                     $("<h3>").text('快速鍵清單'),
-//                     $('<ul>').append(
-//                         $('<li>').text('Alt + Shift + z: 設定視窗開關 (左邊)'),
-//                         $('<li>').text('Alt + Shift + x: 搜尋視窗開關 (下方)'),
-//                         $('<li>').text('Alt + Shift + c: 輔助視窗開關 (右邊)'),
-//                         $('<li>').text('Alt + Shift + /: 幫助，跳出 (這個視窗)'),
-//                         $('<li>').text('Alt + Shift + L: 全螢幕 (目前有Bug, 全螢幕後，即時功能失效)'),
-//                         $('<li>').text('Alt + Shift + F: 搜尋 (失效)'),
-//                         $('<li>').text('Alt + Shift + S: 快速選章 (失效)')
-//                     )
-//                 );
-
-//                 // 即時顯示功能，說明
-//                 const div_realtime_help = $('<div>').append(
-//                     $("<h3>").text('即時顯示功能: 設定->即時顯示'),
-//                     $('<img>').attr('src', './images/help_realtime_disappear.png').css('width', '100%'),
-//                     $("<a>").attr('href', './images/help_realtime_disappear.png').attr('target', '_blank').text('放大圖片')
-//                 );
-
-//                 // 最終
-//                 const div_final = $('<div>').append(
-//                     div_shortcut,
-//                     "<hr/>",
-//                     div_realtime_help
-//                 );
-
-//                 dlg.showDialog({
-//                     html: div_final.html(),
-//                     getTitle: () => "幫助",
-//                     registerEventWhenShowed: dlg => {
-//                         // helpingPopUp.registerEvents(ps);
-//                     }
-//                 })
-
-//                 // if ($('#helpingPopUp').css('opacity') == 1) {
-//                 //     $('#helpingPopUp').css({
-//                 //         'visibility': 'hidden',
-//                 //         'opacity': '0'
-//                 //     });
-//                 // } else {
-//                 //     $('#helpingPopUp').css({
-//                 //         'visibility': 'visible',
-//                 //         'opacity': '1'
-//                 //     });
-//                 // }
-//             });
-//         },
-//         render: function (ps, dom) {
-//             var html = "";
-//             html += '?';
-//             dom.html(html);
-//             this.registerEvents(ps);
-//         }
-//     };
-// })(this)
