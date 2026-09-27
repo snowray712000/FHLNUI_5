@@ -86,6 +86,7 @@ Raw Bible text
 | `docs/z260925a(vite化緣由與過程).md` | Why/how the Vite build was added, the three loading worlds (ES module / legacy classic scripts / ijnjs eval), don't-touch list (Chinese) |
 | `docs/z260925b(dev、build與上傳注意事項).md` | Cautions for dev / build / deploying `dist/` (what to upload, order, cache) (Chinese) |
 | `docs/z260926a(搜尋重構-依閱讀位置選範圍與dialog).md` | Search: default scope by the book being read (same book → same author/group → testament → all), SearchApi / SearchSession / SearchDialog, API pitfalls (Chinese) |
+| `docs/z260927a(原文搜尋-信望愛內碼與新舊約).md` | Greek / Hebrew search: FHL stores original text in an internal ASCII code, not Unicode; gcode_2 / umscode, ssn.php (NT), bible_bhs_code.json.gz (OT), oxia vs tonos pitfalls (Chinese) |
 | `docs/z260222e(串珠規畫).md` | Chain reference (串珠) format & plan |
 | `readmeRD.md` | DialogHtml component API |
 | `z250928a.md` | Hash/routing architecture notes |
