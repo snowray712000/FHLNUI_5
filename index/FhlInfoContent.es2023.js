@@ -53,6 +53,7 @@ const lazyComment = lazyModule(() => import('./comment_render_es2023.js')) // �
 const lazyTsk = lazyModule(() => import('./tsks/renderTsk.js')) // 串珠
 const lazyOb = lazyModule(() => import('./FhlInfoOb.es2023.js')) // 典藏
 const lazyAi = lazyModule(() => import('./ai_render_tools_es2023.js')) // AI
+const lazyAudio = lazyModule(() => import('./FhlInfoAudio.es2023.js')) // 有聲聖經
 
 // leaflet（地圖用）原本在 index.html 一開始就載入。只有地圖分頁用得到，改為第一次切到地圖時才載入
 let leafletLoading
@@ -276,28 +277,8 @@ export class FhlInfoContent {
                 lazyOb.run(ps.titleId, m => m.FhlInfoOb.s.render(ps, dom));
                 break;
             case "fhlInfoAudio":
-
-                // 有聲聖經 snow
-                {
-                    assert(ps?.bookIndex != null)
-
-                    var pfn_callback = function fn_after_set(ibook, ichap) {
-
-                        ps.chap = ichap + 1; //因為是0-based 與 1-based
-                        ps.sec = 1;
-                        BookSelect.s.render();
-                        FhlLecture.s.render();
-                        FhlInfo.s.render(pageState);
-                    };
-                    const book0based = ps?.bookIndex - 1
-
-                    // add 2015.12.10(四) snow, 若是沒加這個條件, (前兩個, 點到節的時候會重播...但根本是同一章,不該重播), (第3個...若只加前2個條件, 不加第3個, 在從其它功能(例如典藏...切回來有聲...就不會render了)
-                    if (audiobible.g_audiobible.m_ibook != book0based || audiobible.g_audiobible.m_ichap != ps.chap - 1 || ps.titleId != ps.titleIdold) {
-                        //ps.chap; // 1-based
-                        audiobible.g_audiobible.set_book_chap(book0based, ps.chap - 1, dom[0]);
-                        audiobible.g_audiobible.m_pfn_after_set = pfn_callback;
-                    }
-                }
+                // 有聲聖經（播放器常駐，切到別的分頁也繼續播）
+                lazyAudio.run(ps.titleId, m => m.FhlInfoAudio.s.render(ps, dom))
                 break;
             case "fhlInfoMap":
                 // 地圖 map（第一次切到地圖時才載入 leaflet）

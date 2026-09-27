@@ -16,8 +16,6 @@ export const APP_SKELETON_HTML = `<div><nav id="fhlTopMenu"><div><img id="logoFH
 <li><a target="_blank" href="http://a2z.fhl.net/bible/"> 專卷研經</a></li></ul></li>
 <li><a href="#"><span>教學</span></a>
 <ul class="menu-hover"><li><a target="_blank" href="http://bible.fhl.net/kim/index.php"> 原文解經(new)</a></li>
-<li><a target="_blank" href="https://bible.fhl.net/new/audio_hb.php?version=7"> 希伯來文朗讀</a></li>
-<li><a target="_blank" href="http://bible.fhl.net/kim/HebrewBibleSong.fsp.mp4/"> 希臘文朗讀</a></li>
 <li><a target="_blank" href="http://bible.fhl.net/kim/HebrewBibleSong.fsp.mp4/"> 希伯來文歌</a></li>
 <li><a target="_blank" href="https://bible.fhl.net/annouce/annouce84.html"> 中國教會史</a></li>
 <li><a target="_blank" href="https://bible.fhl.net/isa/isa1.html"> 聖經課程</a></li>

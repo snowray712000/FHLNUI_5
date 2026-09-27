@@ -1,0 +1,272 @@
+/* 有聲聖經分頁 (index/FhlInfoAudio.es2023.js)
+   顏色一律走 css 變數，將來換 theme 只要覆寫這些。預設與典藏 --ob-* 相同 (GitHub Primer 色系)。 */
+:root {
+    --au-fg: #1f2328;
+    --au-fg-muted: #57606a;
+    --au-fg-subtle: #888888;
+    --au-bg: #ffffff;
+    --au-bg-subtle: #f6f8fa;
+    --au-bg-hover: #f3f4f6;
+    --au-border: #d0d7de;
+    --au-accent: #0969da;
+    --au-accent-bg: #ddf4ff;     /* 選中的 chip、清單項目 */
+    --au-on-accent: #ffffff;
+    --au-disabled: #b0b7be;
+    --au-warn-bg: #fff8c5;       /* 本章沒有錄音 */
+    --au-warn-fg: #7d4e00;
+    --au-stage-bg: #000000;      /* 投影片底色 */
+    --au-mini-bg: #1f2328;       /* 迷你播放列 */
+    --au-mini-fg: #ffffff;
+    --au-mini-hover: rgba(255, 255, 255, 0.15);
+    --au-shadow: rgba(0, 0, 0, 0.25);
+}
+
+/* 常駐的 media，聲音模式時藏在這裡 (display:none 不影響播放) */
+.au-holder { display: none; }
+
+.au-panel {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px;
+    color: var(--au-fg);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.au-panel button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+.au-panel button:focus-visible {
+    outline: 2px solid var(--au-accent);
+    outline-offset: 2px;
+}
+.au-panel [hidden] { display: none !important; }
+
+.au-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.au-ref {
+    font-size: 20px;
+    font-weight: 500;
+}
+.au-panel .au-ver-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 60%;
+    padding: 4px 12px;
+    border: 1px solid var(--au-border);
+    border-radius: 999px;
+    background: var(--au-bg);
+    color: var(--au-accent);
+    white-space: nowrap;
+}
+.au-ver-btn span { overflow: hidden; text-overflow: ellipsis; }
+.au-panel .au-ver-btn:hover { background: var(--au-bg-hover); }
+
+/* chip：聲音/投影片、速度、朗讀版本 */
+.au-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.au-panel .au-chip {
+    padding: 2px 10px;
+    border: 1px solid var(--au-border);
+    border-radius: 999px;
+    background: var(--au-bg);
+    color: var(--au-fg-muted);
+    font-size: 13px;
+}
+.au-panel .au-chip:hover { background: var(--au-bg-hover); }
+.au-panel .au-chip.on {
+    background: var(--au-accent-bg);
+    border-color: var(--au-accent);
+    color: var(--au-accent);
+}
+
+.au-stage {
+    background: var(--au-stage-bg);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.au-stage video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+
+.au-msg {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--au-warn-bg);
+    color: var(--au-warn-fg);
+    font-size: 13px;
+}
+
+.au-ctrl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+.au-panel .au-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--au-fg-muted);
+    font-size: 18px;
+}
+.au-panel .au-icon-btn:hover { background: var(--au-bg-hover); color: var(--au-fg); }
+.au-panel .au-play {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--au-accent);
+    color: var(--au-on-accent);
+    font-size: 24px;
+}
+.au-panel .au-play .fa-play { margin-left: 4px; } /* 三角形視覺置中 */
+.au-panel .au-play:disabled {
+    background: var(--au-disabled);
+    cursor: not-allowed;
+}
+
+.au-prog {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.au-time {
+    min-width: 3.2em;
+    color: var(--au-fg-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+.au-time:last-child { text-align: right; }
+.au-bar {
+    flex: 1;
+    accent-color: var(--au-accent);
+    cursor: pointer;
+}
+
+.au-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.au-label {
+    min-width: 2.5em;
+    color: var(--au-fg-subtle);
+    font-size: 12px;
+}
+.au-spacer { flex: 1; }
+.au-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--au-fg-muted);
+    font-size: 13px;
+    cursor: pointer;
+}
+.au-check input { accent-color: var(--au-accent); margin: 0; }
+.au-panel .au-link,
+.au-panel a.au-link {
+    color: var(--au-fg-muted);
+    font-size: 13px;
+    text-decoration: none;
+}
+.au-panel .au-link:hover { color: var(--au-accent); }
+
+/* 版本清單 */
+.au-list {
+    border: 1px solid var(--au-border);
+    border-radius: 8px;
+    background: var(--au-bg);
+    padding: 4px 8px 8px;
+}
+.au-group-name {
+    margin: 8px 4px 2px;
+    color: var(--au-fg-subtle);
+    font-size: 12px;
+}
+.au-panel .au-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    text-align: left;
+}
+.au-panel .au-item:hover { background: var(--au-bg-hover); }
+.au-panel .au-item.on {
+    background: var(--au-accent-bg);
+    color: var(--au-accent);
+}
+.au-panel .au-item.off { color: var(--au-disabled); }
+.au-item-name { flex: 1; }
+.au-item-name small {
+    margin-left: 6px;
+    color: var(--au-fg-subtle);
+    font-size: 12px;
+}
+.au-item-mp4, .au-item-cov {
+    color: var(--au-fg-subtle);
+    font-size: 12px;
+}
+
+.au-foot {
+    margin-top: 4px;
+    color: var(--au-fg-subtle);
+    font-size: 12px;
+    text-align: center;
+}
+.au-foot a { color: inherit; }
+
+/* 迷你播放列：切到其它分頁時，在 #fhlInfo 左下 */
+.au-mini {
+    position: absolute;
+    left: 12px;  /* 靠左：註釋分頁右下角有「書卷背景」 */
+    bottom: 10px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    max-width: calc(100% - 24px);
+    padding: 4px 6px;
+    border-radius: 999px;
+    background: var(--au-mini-bg);
+    color: var(--au-mini-fg);
+    font-size: 13px;
+    box-shadow: 0 2px 8px var(--au-shadow);
+}
+.au-mini[hidden] { display: none; }
+.au-mini button {
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.au-mini-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+}
+.au-mini-btn:hover, .au-mini-text:hover { background: var(--au-mini-hover); }
+.au-mini-text {
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

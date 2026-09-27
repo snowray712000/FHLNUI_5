@@ -76,7 +76,15 @@ class TPPageState {
     this.commentBackgroundSec = 1
     this.leftBtmWinShow = true
     this.searchTitleMsg = ""
-    this.audio = 0
+    this.audio = 0 // 舊版有聲聖經用的，已不用 (舊的 localStorage 仍有此 key，留著免得出現警告)
+    /** @type {number} 有聲聖經版本，au.php 的 version，見 AudioBibleVersions.es2023.js */
+    this.audioVer = 0
+    /** @type {number} 有聲聖經播放速度 */
+    this.audioRate = 1
+    /** @type {0|1} 有聲聖經播完接下一章 */
+    this.audioAutoNext = 1
+    /** @type {'audio'|'video'} 有聲聖經：聲音 或 投影片 (有 mp4 的版本才有效) */
+    this.audioMode = 'audio'
     /** @type {string} 程式版本 */
     this.swVer = "0.0.0"
     /** @type {0|1|2} 0是早期顯示版本，1是併排，2是交錯 */

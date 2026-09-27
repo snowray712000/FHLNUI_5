@@ -91,6 +91,7 @@ Raw Bible text
 | `docs/z260927c(原文字典-高亮正在讀的經文).md` | Dictionary dialog highlights refs matching the verse being read (active address): same verse / same chapter (incl. whole-chapter refs), where each entry point gets its activeAddr, `--ref-act-*` css vars (Chinese) |
 | `docs/z260927d(地圖分頁-切走後其它分頁無法捲動).md` | Map tab: leaflet lives in child div `#fhlmapContainer`, `fhlmap_dispose()` when leaving; otherwise leaflet's wheel preventDefault / `touch-action:none` stay on the shared `#fhlInfoContent` and other tabs can't scroll (Chinese) |
 | `docs/z260927e(地圖地名-連到聖光聖經地理).md` | Map tab: clicking a place label opens a popup linking to 聖光聖經地理 (biblegeography.holylight.org.tw) name search / chapter list / Google site search; which sobj.php name field matches best (`cname`, strip `•`), gb=1 fetches traditional names by id, clickable permanent tooltips in leaflet 1.3.4 (Chinese) |
+| `docs/z260927f(有聲聖經-重寫與新版本).md` | Audio tab rewrite: 22 audio versions + mp4 slides, coverage from `new/audio_hb.php` (au.php always returns a URL), URL rule, alternate readers (bid `1A`), one persistent `<video>` kept outside `#fhlInfoContent` so playback survives tab switches, mini player, follow-reading, `--au-*` css vars (Chinese) |
 | `docs/z260222e(串珠規畫).md` | Chain reference (串珠) format & plan |
 | `docs/DialogHtml使用心得.md` | DialogHtml tips: initial position relative to a dom, initial width (was `readmeRD.md`) |
 | `docs/z250928a(hash與網址列).md` | Hash/routing architecture notes |
@@ -102,6 +103,7 @@ Raw Bible text
 
 - `index/bible_fhlwh.json` / `.json.gz` — Bible text index (gzip via pako)
 - `index/bible_bhs_code.json.gz` — whole OT Hebrew (bhs) in FHL's internal ASCII code, for Hebrew search. Regenerate with `npm run gen:bhs`
+- `index/audio_bible_index.json` — which chapters each audio bible version has (and which have mp4 slides). Regenerate with `npm run gen:audio`
 - `index/sd_cnt.json`, `index/sd_same.json` — Strong's Number data
 - `app_versions.json` — Version changelog (update `currentSWVer` in `index.html` on release)
 

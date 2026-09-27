@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.9.1",
+        "last": "6.10.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -22,6 +22,17 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.10.1",
+                "na2":
+                [
+                    "✨ 有聲聖經: 全新介面，版本從 8 個增加為 22 個，依語言分組 (華語、台語、客語、粵語、福州話、原文、族語)，標示新舊約 / 新約 / 部分，本卷沒有錄音的版本顯示灰色",
+                    "✨ 有聲聖經: 現代台語譯本、現代客語譯本、達悟語可看投影片 (有經文字幕的影片)，可全螢幕",
+                    "✨ 有聲聖經: 可調速度 (0.75× ~ 2×)、點進度條跳轉、選同一章的其它朗讀者、下載 mp3",
+                    "✨ 有聲聖經: 播放中切到註釋等其它分頁不會中斷，左下角有迷你播放列；播完接下一章時經文也跟著翻頁；手機鎖定畫面可控制",
+                    "🔧 教學選單移除「希伯來文朗讀」「希臘文朗讀」外連 (已內建於有聲分頁；希臘文那個連結原本是錯的)",
+                    "📝 工程師筆記: au.php 不檢查檔案是否存在，覆蓋度改由 new/audio_hb.php 列表頁產生 index/audio_bible_index.json (npm run gen:audio)。見 docs/z260927f"
                 ]
             },{
                 "na": "6.9.1",

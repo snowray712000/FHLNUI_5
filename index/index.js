@@ -434,7 +434,6 @@ function doReadyStep2() {
 //   'static/tsk_api/tsk.tskapi.js',
 //   'static/tsk_api/tsk.R.frame.oneref.js',
 //   'static/preach_api/preach_api.js',
-//   'static/bible_audio_api/audiobible_api.js',
 //   'static/copyright_api/copyright_api.js',
 //   './FHL.linq.js',
 //   './FHL.tools.js',

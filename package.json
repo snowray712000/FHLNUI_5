@@ -12,6 +12,7 @@
     "preview": "vite preview --port 5175 --strictPort",
     "depgraph": "depcruise index/index.js --no-config --output-type mermaid --output-to docs/dependency-graph.mmd",
     "test": "vitest run",
-    "gen:bhs": "node tools/gen_bible_bhs_code.mjs"
+    "gen:bhs": "node tools/gen_bible_bhs_code.mjs",
+    "gen:audio": "node tools/gen_audio_bible_index.mjs"
   }
 }
