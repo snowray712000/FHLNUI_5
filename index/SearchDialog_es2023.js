@@ -10,6 +10,7 @@ import { FhlLecture } from './FhlLecture.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 import { SN_Act_Color } from './SN_Act_Color.es2023.js'
+import { SnFilter } from './SnFilter.es2023.js'
 import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
 import { greekLooseRegexSource } from './greekToFhlCode.es2023.js'
 import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
@@ -266,7 +267,9 @@ export class SearchDialog {
 
         const isMultiVersion = session.kind == 'sn' ? false : session.versions.length > 1
         const keys = session.kind == 'sn' ? { sn: session.sn } : { words: session.kind == 'keyword' ? session.keyword : '' }
-        results$.append(rows.map(row => renderRow(row, isMultiVersion, keys, session.gb)))
+        const rows$ = rows.map(row => renderRow(row, isMultiVersion, keys, session.gb))
+        for (const r$ of rows$) SnFilter.s.apply(r$, { offShowsAll: true }) // 搜 SN 時會強制帶 SN，SN 關閉也要顯示
+        results$.append(rows$)
 
         // 還沒有捲軸 (內容太少)，繼續取
         const el = results$[0]
@@ -334,7 +337,8 @@ export function colorBibleText(bible_text, keys) {
         const sn = `${parseInt(sNum)}${sA}`
         const str1 = sT.toUpperCase() == 'T' ? `(${sn})` : `<${sn}>`
         const str2 = braceL != null ? `{${str1}}` : str1
-        const span = $('<span class="seSN sebutton sn">').text(str2).attr({ sn, tp: sHG.toUpperCase() })
+        const span = $('<span class="seSN sebutton sn">').text(str2).attr({ sn, tp: sHG.toUpperCase(), tp2: `W${sT.toUpperCase()}${sHG.toUpperCase()}` })
+        if (braceL != null) span.addClass('isCurly')
         if (sT.toUpperCase() != 'T' && keys.sn != null && keys.sn == sn) span.addClass('seKey')
         return span[0].outerHTML
     })

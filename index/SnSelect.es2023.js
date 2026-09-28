@@ -2,6 +2,8 @@ import { FhlLecture } from "./FhlLecture.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
+import { SnFilter } from "./SnFilter.es2023.js";
+import { SnFilterDialog } from "./SnFilterDialog.es2023.js";
 
 export class SnSelect {
     static #s = null
@@ -33,13 +35,18 @@ export class SnSelect {
                 }
                 triggerGoEventWhenPageStateAddressChange(ps);
                 ps.saveToLocalStorage();
+                SnFilter.s.applyAll(); // 搜尋結果、交互參照對話框
+                SnFilterDialog.s.render();
             });
+        $('#snFilterBtn').off('click').on('click', () => SnFilterDialog.s.open());
     }
     render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
         
-        var html = "<div>" + gbText("原文編號", ps.gb) + ":</div>";
+        var html = "<div>" + gbText("原文編號", ps.gb)
+            + '<span id="snFilterBtn" class="sn-filter-btn" title="' + gbText("SN 篩選：只顯示指定的 SN", ps.gb) + '"><i class="fa fa-filter"></i></span>'
+            + ":</div>";
         html += '<div class="onOffSwitch">\
                               <input type="checkbox" name="snOnOffSwitch" class="onOffSwitch-checkbox" id="snOnOffSwitch">\
                               <label class="onOffSwitch-label" for="snOnOffSwitch">\
@@ -49,5 +56,6 @@ export class SnSelect {
                           </div>';
         dom.html(html);
         $('#snOnOffSwitch').attr("checked", (ps.strong == 1) ? true : false);
+        $('#snFilterBtn').toggleClass('active', SnFilter.s.mode == 'filter');
     }
 }

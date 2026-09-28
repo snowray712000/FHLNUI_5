@@ -62,6 +62,9 @@ export function cvtDTextsToHtml(dtexts) {
                     }
                     tmp.attr('n', a1.tp == 'G' ? "0" : "1")
                     tmp.attr('sn', a1.sn)
+                    if (a1.tp != null) tmp.attr('tp', a1.tp)
+                    if (a1.tp2 != null) tmp.attr('tp2', a1.tp2) // WTG 時態碼、WAH 標記，SnFilter 要分辨
+                    if (a1.isCurly == 1) tmp.addClass('isCurly')
 
                     re += tmp[0].outerHTML
                 } 

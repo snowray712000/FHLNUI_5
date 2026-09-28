@@ -1508,6 +1508,73 @@ nav#fhlTopMenu {
 .fn-search-sn:hover {
     color: lightblue;
 }
+/* SN 篩選 (docs/z260928e) */
+.sn-dim {
+    opacity: 0.3;
+}
+.fn-sn-pin {
+    cursor: pointer;
+    margin-left: 0.5em;
+    opacity: 0.35;
+    filter: grayscale(1);
+}
+.fn-sn-pin:hover, .fn-sn-pin.active {
+    opacity: 1;
+    filter: none;
+}
+.sn-filter-btn {
+    cursor: pointer;
+    margin-left: 0.3em;
+    color: #999;
+}
+.sn-filter-btn:hover {
+    color: #555;
+}
+.sn-filter-btn.active {
+    color: #d9534f;
+}
+.snf-dlg .snf-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25em 1em;
+    margin: 0.4em 0;
+}
+.snf-dlg .snf-lbl {
+    font-weight: bold;
+}
+.snf-dlg .snf-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+.snf-dlg .snf-tm {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.3em 0.7em 0.2em;
+    margin: 0.6em 0;
+}
+.snf-dlg .snf-tm legend {
+    width: auto;
+    font-size: 0.9em;
+    padding: 0 0.3em;
+    margin: 0;
+}
+.snf-dlg .snf-sns {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: monospace;
+}
+.snf-dlg .snf-disabled {
+    opacity: 0.5;
+}
+.snf-dlg .snf-note {
+    font-size: 0.85em;
+    color: #777;
+}
 
 #fhlInfo {
   position: absolute;

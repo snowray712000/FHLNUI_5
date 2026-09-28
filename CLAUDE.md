@@ -96,6 +96,7 @@ Raw Bible text
 | `docs/z260928b(註釋交互參照-資料漏了#的偵測).md` | Commentary cross refs: data sometimes lacks the leading `#`, uses full-width `＃` / `｜`, or lacks the closing `|`; `REGEX_COMMENT_REF` in `index/comments/convertDocToDText.js`, checked against the whole `bible_comm.zip` (Chinese) |
 | `docs/z260928c(七十士譯本-由新約字形推SN).md` | LXX SN: no word data, so SN is inferred from the NT parsing form → SN table (`npm run gen:lxx`), coverage and what's left untagged, `<G…>` label only for lxx, LXX-Rahlfs-1935 licensing, why 原文直譯 (cbol) can't get SN the same way (Chinese) |
 | `docs/z260928d(SN滑鼠移過去-註釋與搜尋結果也active).md` | Active SN on hover (`SN_Act_Color`, `.snAct` / `.snAct2`) in comments and search results: comment mouseenter read the event instead of `this`; `.search-dlg .seSN` grey outranked `.snAct`; searched SN now purple (Chinese) |
+| `docs/z260928e(SN篩選顯示-規畫).md` | SN filter (show only chosen SNs): plan for L1 SN list / L2 lexical POS / L3 per-word morphology (和合本 `{<WG…>}` untranslated, `<WTG5656>` tense codes; parsing db pro/wform), presets for NT/OT, `SnFilter` / `SnFilterDialog`, `tp2` attr on `.sn`, phases P1–P4 (Chinese) |
 | `docs/z260222e(串珠規畫).md` | Chain reference (串珠) format & plan |
 | `docs/DialogHtml使用心得.md` | DialogHtml tips: initial position relative to a dom, initial width (was `readmeRD.md`) |
 | `docs/z250928a(hash與網址列).md` | Hash/routing architecture notes |

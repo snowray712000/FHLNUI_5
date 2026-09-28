@@ -6,6 +6,8 @@ import { DialogHtml } from "./DialogHtml.es2023.js"
 import { cvtDTextsToHtml } from "./cvtDTextsToHtml.es2023.js"
 import { queryReferenceAndShowAtDialogAsync } from "./queryReferenceAndShowAtDialogAsync.es2023.js"
 import { SearchTool } from "./SearchTool.es2023.js"
+import { SnFilter } from "./SnFilter.es2023.js"
+import { SnFilterDialog } from "./SnFilterDialog.es2023.js"
 import { getDefaultActiveAddr, normalizeActiveAddr, highlightActiveRefs, scrollRefIntoView } from "./highlightActiveRefs.es2023.js"
 
 /**
@@ -36,8 +38,24 @@ export function queryDictionaryAndShowAtDialogAsync(jo) {
                     .append('<span>原文字典</span>')
                     .append(`<span> ${sn} </span>`)
                     .append(domAutoSearch)
+                    .append($('<span>').addClass('fn-sn-pin').text('📌'))
                     [0].outerHTML
                 )
+
+                // 📌 加入或移出 SN 篩選清單 (docs/z260928e)
+                const tpPin = (isOld == true || isOld == 1 || isOld == "1" || isOld == "true") ? 'H' : 'G'
+                const pin$ = domtitle.find('.fn-sn-pin')
+                const renderPin = () => {
+                    const isIn = SnFilter.s.hasSn(tpPin, sn)
+                    pin$.toggleClass('active', isIn)
+                        .attr('title', isIn ? '從 SN 篩選清單移出' : '加入 SN 篩選清單 (SN 設為「只顯示指定的」時作用)')
+                }
+                renderPin()
+                pin$.on('click', () => {
+                    SnFilter.s.toggleSn(tpPin, sn)
+                    renderPin()
+                    SnFilterDialog.s.render()
+                })
 
                 // 加入 .fnAutoSearch click callback // 
                 domtitle.find('.fn-search-sn')

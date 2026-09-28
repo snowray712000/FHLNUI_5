@@ -224,6 +224,9 @@ function render_sn(snData) {
     if (snData?.sn) {
         $span.attr('sn', snData.sn);
     }
+    if (snData?.tp2) {
+        $span.attr('tp2', snData.tp2); // WTG 時態碼、WAH 標記，SnFilter 要分辨
+    }
 
     // Determine text content
     let text;

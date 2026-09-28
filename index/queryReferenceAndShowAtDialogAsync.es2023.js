@@ -3,6 +3,7 @@
 import { splitReference } from "./splitReference.es2023.js" // 經文章節，成為ref
 import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml } from "./DialogHtml.es2023.js"
+import { SnFilter } from "./SnFilter.es2023.js"
 import { cvtDTextsToHtml } from "./cvtDTextsToHtml.es2023.js"
 import { cvtAddrsToRef } from "./cvtAddrsToRef.es2023.js"
 import { BibleConstant } from "./BibleConstant.es2023.js"
@@ -177,11 +178,11 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
 
             let html = cvtDTextsToHtmlForReference(dtexts_prepared)
 
-            // html dialog, .sn 都加上 .sn-hidden，使用 jquery
-            // 將字串轉成暫時容器，修改後再取回 html 字串
-            const $container = $('<div>').append($(html));
+            // SN 與主經文一致：關閉就隱藏，篩選就只顯示指定的 (docs/z260928e)
+            // .sn-filter-scope：設定改變時 SnFilter.applyAll 會重新套用
+            const $container = $('<div>').append($('<div class="sn-filter-scope">').append($(html)));
 
-            $container.find('.sn').addClass('sn-hidden');
+            SnFilter.s.apply($container);
             html = $container.html();
 
             let dlg = new DialogHtml()
@@ -240,12 +241,8 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
 }
 
 function add_sn_hidden_if_need(text_jq) {
-    // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
-    const ps = TPPageState.s;
-    if (ps.strong == 0) {
-        // 將 text 轉為 jQuery，然後將 .sn 的 span 加入 .hidden
-        text_jq.find('.sn').addClass('sn-hidden')
-    }
+    // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏；篩選時只顯示指定的
+    SnFilter.s.apply(text_jq)
 }
 
 /**

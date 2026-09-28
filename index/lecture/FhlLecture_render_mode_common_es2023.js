@@ -5,6 +5,7 @@
 import { charHG } from "../charHG.es2023.js"
 import { TPPageState } from "../TPPageState.es2023.js";
 import { add_sn_text } from "../add_sn_text.js";
+import { SnFilter } from "../SnFilter.es2023.js";
 
 /**
  * @typedef DAddress
@@ -136,11 +137,8 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
 
 
     function add_sn_hidden_if_need(text_jq, ps) {
-        // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
-        if (ps.strong == 0) {
-            // 將 text 轉為 jQuery，然後將 .sn 的 span 加入 .hidden
-            text_jq.find('.sn').addClass('sn-hidden')
-        }
+        // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏；篩選時只顯示指定的 (docs/z260928e)
+        SnFilter.s.apply(text_jq)
     }
     /**
      * 用 string replace 處理，將 WTH WH WAH 等 sn 轉換成 span tag
@@ -173,7 +171,8 @@ export function parseBibleText(text, ps, isOld, bibleVersion) {
             // 新增一個 span tag, 使用 jquery
             let span = $("<span></span>")
             // 加上 class, sn, tp
-            span.addClass('sn').attr('sn', sn).attr('tp', sHG)
+            span.addClass('sn').attr('sn', sn).attr('tp', sHG).attr('tp2', `W${sAT ?? ''}${sHG}`)
+            if (isExistBrace) span.addClass('isCurly')
             // 顯示內容
             var text = isUseParentheses ? `(${sn})` : `<${sn}>`
             // 如果有 { } 就加上

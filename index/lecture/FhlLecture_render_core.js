@@ -36,13 +36,10 @@ import { grouping_by_paragraph_for_dtexts_with_addr } from '../grouping_by_parag
 
 import { queryFootsAsync } from "../queryFootsAsync.js"
 import { render_dtexts } from "../render_dtexts.js";
+import { SnFilter } from "../SnFilter.es2023.js";
 function add_sn_hidden_if_need(text_jq) {
-    // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏
-    const ps = TPPageState.s;
-    if (ps.strong == 0) {
-        // 將 text 轉為 jQuery，然後將 .sn 的 span 加入 .hidden
-        text_jq.find('.sn').addClass('sn-hidden')
-    }
+    // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏；篩選時只顯示指定的 (docs/z260928e)
+    SnFilter.s.apply(text_jq)
 }
 function is_merge_with_prev_verse(dtexts_with_addr2) {
     // 例如歌羅西書2:21節，會有一筆資料是 sec=21，bible_text="a"，這筆資料的內容是「併入上節」，它的 verse number 是 21，但實際上它應該是併入上一節的，所以在 render 的時候，要把它的 verse number 隱藏掉。
