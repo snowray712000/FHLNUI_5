@@ -1,5 +1,5 @@
 import { DialogHtml } from "./DialogHtml.es2023.js";
-import { SnFilter, parseSnList } from "./SnFilter.es2023.js";
+import { SnFilter, SN_PRESETS, parseSnList } from "./SnFilter.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { el } from "./auDom.es2023.js";
@@ -28,7 +28,8 @@ export class SnFilterDialog {
         const dlgHtml = this.#dlgHtml = new DialogHtml()
         dlgHtml.showDialog({
             html: '<div class="snf-dlg"></div>',
-            width: isNarrow ? window.innerWidth - 16 : 520,
+            width: isNarrow ? window.innerWidth - 16 : 560,
+            height: Math.min(720, window.innerHeight * 0.85),
             getTitle: () => gbText('SN 篩選顯示', TPPageState.s.gb),
             registerEventWhenShowed: dlg => {
                 this.#root = dlg.find('.snf-dlg')[0]
@@ -56,25 +57,44 @@ export class SnFilterDialog {
             radio('mode', 'filter', '只顯示指定的', f.mode == 'filter', () => this.#setMode('filter')),
         )
 
-        const boxes = {}
+        const boxes = { sns: {}, exclude: {} }
         const testament = (key, legend, example) => {
             const cfg = f[key]
             const tp = key == 'ot' ? 'H' : 'G'
-            const ta = boxes[key] = el('textarea', {
-                class: 'snf-sns', rows: 2, spellcheck: 'false',
-                placeholder: t('例') + ': ' + example,
-                oninput: () => this.#onSnsInput(boxes, false),
-                onchange: () => this.#onSnsInput(boxes, true),
-            })
-            ta.value = cfg.sns.map(sn => tp + sn).join(' ')
+            const snBox = (prop, placeholder) => {
+                const ta = boxes[prop][key] = el('textarea', {
+                    class: 'snf-sns', rows: 1, spellcheck: 'false', placeholder,
+                    oninput: () => this.#onSnsInput(boxes[prop], prop, false),
+                    onchange: () => this.#onSnsInput(boxes[prop], prop, true),
+                })
+                ta.value = cfg[prop].map(sn => tp + sn).join(' ')
+                return ta
+            }
             const check = (prop, text) => el('label', { class: 'snf-opt' },
                 el('input', {
                     type: 'checkbox', checked: cfg[prop],
                     onchange: e => { cfg[prop] = e.target.checked; this.#changed() },
                 }), t(text))
+            const chip = p => el('label', { class: 'snf-chip', title: p.tip ? t(p.tip) : null },
+                el('input', {
+                    type: 'checkbox', checked: cfg.presets.includes(p.id),
+                    onchange: e => {
+                        cfg.presets = cfg.presets.filter(id => id != p.id)
+                        if (e.target.checked) cfg.presets.push(p.id)
+                        this.#changed()
+                    },
+                }), t(p.name))
+            const leitwort = el('select', {
+                onchange: e => { cfg.leitwort = parseInt(e.target.value); this.#changed() },
+            }, ...[0, 2, 3, 4, 5, 8].map(n => el('option', { value: n, selected: cfg.leitwort == n, text: n == 0 ? t('不用') : `≥ ${n} ${t('次')}` })))
             return el('fieldset', { class: 'snf-tm' },
                 el('legend', { text: t(legend) }),
-                ta,
+                el('div', { class: 'snf-chips' }, ...SN_PRESETS.filter(p => p.only == null || p.only == tp).map(chip)),
+                el('div', { class: 'snf-row' },
+                    el('span', { text: t('本章主導詞') }), leitwort,
+                    el('span', { class: 'snf-note', text: t('本章 (和合本) 出現多次的名詞、動詞、形容詞') })),
+                el('div', { class: 'snf-field' }, el('span', { text: t('另外加') }), snBox('sns', t('例') + ': ' + example)),
+                el('div', { class: 'snf-field' }, el('span', { text: t('排除') }), snBox('exclude', t('例') + ': ' + (tp == 'H' ? 'H853' : 'G846 G3588'))),
                 el('div', { class: 'snf-row' },
                     check('includeCurly', '含未譯出的 {<…>}'),
                     check('showTvm', '顯示動詞時態碼 (…)')),
@@ -94,7 +114,7 @@ export class SnFilterDialog {
                 testament('nt', '新約 (希臘文 G，含七十士譯本)', 'G1063 G1161 G3767'),
                 testament('ot', '舊約 (希伯來文 H)', 'H3068 H430 H3588'),
                 hideRow,
-                el('div', { class: 'snf-note', text: t('可貼上 G1063、<1063>；沒寫 G、H 的，依所在的框。原文字典標題的「📌」可把該字加入或移出清單。') }),
+                el('div', { class: 'snf-note', text: t('勾選的詞類、主導詞、另外加的 SN，符合任一就顯示；排除的一定不顯示。詞類以原文字典形判斷 (同一字可能兼兩種詞類)。SN 可貼上 G1063、<1063>，沒寫 G、H 的依所在的框。原文字典標題的「📌」可把該字加入或移出「另外加」。') }),
             ),
         )
     }
@@ -117,19 +137,20 @@ export class SnFilterDialog {
     }
 
     /**
-     * 兩個框一起解析：框中寫了 H 的歸舊約，寫 G 的歸新約
+     * 新約、舊約兩個框一起解析：框中寫了 H 的歸舊約，寫 G 的歸新約
      * @param {Record<'nt'|'ot', HTMLTextAreaElement>} boxes
+     * @param {'sns'|'exclude'} prop
      * @param {boolean} isRewrite 離開框時，改寫成整理過的內容
      */
-    #onSnsInput(boxes, isRewrite) {
+    #onSnsInput(boxes, prop, isRewrite) {
         const f = SnFilter.s
         const all = [...parseSnList(boxes.nt.value, 'G'), ...parseSnList(boxes.ot.value, 'H')]
-        f.nt.sns = [...new Set(all.filter(a => a.tp == 'G').map(a => a.sn))]
-        f.ot.sns = [...new Set(all.filter(a => a.tp == 'H').map(a => a.sn))]
+        f.nt[prop] = [...new Set(all.filter(a => a.tp == 'G').map(a => a.sn))]
+        f.ot[prop] = [...new Set(all.filter(a => a.tp == 'H').map(a => a.sn))]
         this.#changed()
         if (isRewrite) {
-            boxes.nt.value = f.nt.sns.map(sn => 'G' + sn).join(' ')
-            boxes.ot.value = f.ot.sns.map(sn => 'H' + sn).join(' ')
+            boxes.nt.value = f.nt[prop].map(sn => 'G' + sn).join(' ')
+            boxes.ot.value = f.ot[prop].map(sn => 'H' + sn).join(' ')
         }
     }
 

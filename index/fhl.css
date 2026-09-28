@@ -1563,6 +1563,37 @@ nav#fhlTopMenu {
     padding: 0 0.3em;
     margin: 0;
 }
+.snf-dlg .snf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3em;
+    margin: 0.3em 0;
+}
+.snf-dlg .snf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2em;
+    margin: 0;
+    padding: 0.05em 0.6em 0.05em 0.4em;
+    border: 1px solid #bbb;
+    border-radius: 999px;
+    font-weight: normal;
+    cursor: pointer;
+}
+.snf-dlg .snf-chip:has(input:checked) {
+    background: #fde8e7;
+    border-color: #d9534f;
+}
+.snf-dlg .snf-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0.3em 0;
+}
+.snf-dlg .snf-field > span {
+    flex: none;
+    width: 3.5em;
+}
 .snf-dlg .snf-sns {
     width: 100%;
     box-sizing: border-box;

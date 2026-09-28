@@ -1,14 +1,51 @@
 import { TPPageState } from "./TPPageState.es2023.js";
+import { Sn_pos_json } from "./Sn_pos_json.es2023.js";
+import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js";
 
 /**
  * SN 篩選顯示：SN 開啟時，只顯示指定的 SN。見 docs/z260928e
  *
  * 所有 SN 本來就在 DOM 中 (.sn)，這裡只決定每個 .sn 要不要加 .sn-hidden (或 .sn-dim)
  * - 模式: ps.strong == 0 → 關；isOn → 篩選；否則全部
+ * - 顯示：排除清單優先；否則在 SN 清單、符合任一預設組合 (字典詞性，sn_pos.json.gz)、或是本章主導詞
  * - 時態碼 (5656) 跟著它前面的字
  *
- * @typedef {{sns: string[], includeCurly: boolean, showTvm: boolean}} DSnFilterOfTestament
+ * @typedef {Object} DSnFilterOfTestament
+ * @property {string[]} sns 指定的 SN
+ * @property {string[]} exclude 排除的 SN (優先於其它規則)
+ * @property {string[]} presets 預設組合 id，見 SN_PRESETS
+ * @property {number} leitwort 本章主導詞：本章出現 ≥ 此次數的實詞；0 = 不用
+ * @property {boolean} includeCurly 含未譯出的 {<…>}
+ * @property {boolean} showTvm 顯示動詞時態碼
  */
+
+/** 實詞 (本章主導詞只看這些) */
+const CONTENT_POS = ['n', 'pn', 'v', 'a']
+
+/**
+ * 預設組合。pos 是 sn_pos 的詞性代碼 (符合任一)；sns 是另外列的 SN；only 只用於新約 G 或舊約 H
+ * @type {{id: string, name: string, pos?: string[], sns?: {G?: string[], H?: string[]}, only?: 'G'|'H', tip?: string}[]}
+ */
+export const SN_PRESETS = [
+    { id: 'content', name: '實詞', pos: CONTENT_POS, tip: '名詞、專有名詞、動詞、形容詞' },
+    { id: 'v', name: '動詞', pos: ['v'] },
+    { id: 'n', name: '名詞', pos: ['n'] },
+    { id: 'pn', name: '專有名詞', pos: ['pn'], tip: '人名、地名' },
+    { id: 'a', name: '形容詞', pos: ['a', 'num'] },
+    { id: 'c', name: '連接詞', pos: ['c', 't'], tip: '連接詞與質詞，例 δέ γάρ οὖν ἀλλά ἵνα ὅτι；舊約的 ו 是字首，沒有自己的 SN' },
+    { id: 'pron', name: '代名詞', pos: ['pron', 'rel'], tip: '含關係代名詞、指示詞、疑問詞' },
+    { id: 'p', name: '介系詞', pos: ['p'] },
+    { id: 'd', name: '副詞', pos: ['d'] },
+    { id: 'neg', name: '否定', pos: ['neg'] },
+    { id: 'art', name: '冠詞', pos: ['art'], only: 'G' },
+    { id: 'obj', name: '受詞記號', pos: ['obj'], only: 'H', tip: 'אֵת (853)' },
+    {
+        id: 'god', name: '神的名字', tip: '新約：神 主 耶穌 基督 靈 父；舊約：耶和華 神 主 伊勒 雅 以羅阿 全能者',
+        sns: { G: ['2316', '2962', '2424', '5547', '4151', '3962'], H: ['3068', '3069', '430', '136', '410', '3050', '433', '7706'] },
+    },
+]
+const PRESET_MAP = new Map(SN_PRESETS.map(p => [p.id, p]))
+
 export class SnFilter {
     static #s = null
     /** @returns {SnFilter} */
@@ -19,13 +56,15 @@ export class SnFilter {
     /** @type {'hide'|'dim'} 不符合的 SN 隱藏或變淡 */
     hideMethod = 'hide'
     /** @type {DSnFilterOfTestament} 新約 (希臘文 G，含七十士譯本) */
-    nt = { sns: [], includeCurly: true, showTvm: true }
+    nt = newCfg()
     /** @type {DSnFilterOfTestament} 舊約 (希伯來文 H) */
-    ot = { sns: [], includeCurly: true, showTvm: true }
+    ot = newCfg()
 
     /** 會有經文 SN 的地方；註釋中的 SN 是作者寫的內容，不篩 */
     static SCOPES = ['#fhlLecture', '.search-dlg', '.sn-filter-scope']
     static #KEY = 'snFilter'
+    /** @type {Promise<void>|null} 詞性表、章數統計載入中 */
+    #loading = null
 
     constructor() { this.#load() }
 
@@ -56,11 +95,22 @@ export class SnFilter {
     }
 
     /**
+     * 字典形的詞性；詞性表還沒載入時是 []
+     * @param {'G'|'H'|string} tp @param {string} sn
+     * @returns {string[]}
+     */
+    posOf(tp, sn) {
+        const s = Sn_pos_json.s.filecontent?.pos?.[String(tp).toUpperCase() == 'H' ? 'H' : 'G']?.[normalizeSn(sn)]
+        return s == null || s == '' ? [] : s.split('|')
+    }
+
+    /**
      * @param {JQuery<HTMLElement>|Element|Document} root
      * @param {{offShowsAll?: boolean}} [opt] offShowsAll: 搜尋結果，SN 關閉時仍顯示 (搜 SN 時會強制帶 SN)
      */
     apply(root, opt = {}) {
         const mode = this.mode == 'off' && opt.offShowsAll ? 'all' : this.mode
+        if (mode == 'filter') this.#ensureDataThenApplyAll()
         const spans = $(root).find('.sn')
         let isLastWordShow = false
         for (const e of spans) {
@@ -94,10 +144,38 @@ export class SnFilter {
 
     /** @param {Element} e 不是時態碼的 .sn */
     #isShow(e) {
-        const sn = e.getAttribute('sn') ?? ''
-        const cfg = this.cfgOf(e.getAttribute('tp'))
+        const tp = e.getAttribute('tp') == 'H' ? 'H' : 'G'
+        const sn = normalizeSn(e.getAttribute('sn') ?? '')
+        const cfg = this.cfgOf(tp)
+        if (cfg.exclude.includes(sn)) return false
         if (!cfg.includeCurly && isCurly(e)) return false
-        return cfg.sns.includes(normalizeSn(sn))
+        if (cfg.sns.includes(sn)) return true
+
+        const pos = this.posOf(tp, sn)
+        for (const id of cfg.presets) {
+            const p = PRESET_MAP.get(id)
+            if (p == null || (p.only != null && p.only != tp)) continue
+            if (p.pos?.some(a => pos.includes(a))) return true
+            if (p.sns?.[tp]?.includes(sn)) return true
+        }
+        if (cfg.leitwort > 0 && CONTENT_POS.some(a => pos.includes(a)) && this.#cntInChap(tp, sn) >= cfg.leitwort) return true
+        return false
+    }
+    /** 此 SN 在正在讀的這一章 (和合本) 出現的次數 */
+    #cntInChap(tp, sn) {
+        const ps = TPPageState.s
+        return Sn_cnt_chap_unv_json.s.filecontent?.[tp]?.[sn]?.[ps.bookIndex]?.[ps.chap] ?? 0
+    }
+    /** 用到預設組合或主導詞時，載入詞性表與章數統計，載好再套用一次 */
+    #ensureDataThenApplyAll() {
+        const isNeed = [this.nt, this.ot].some(c => c.presets.length > 0 || c.leitwort > 0)
+        if (!isNeed || this.#loading != null) return
+        const isNeedCnt = [this.nt, this.ot].some(c => c.leitwort > 0)
+        const isLoaded = Sn_pos_json.s.filecontent != null && (!isNeedCnt || Sn_cnt_chap_unv_json.s.filecontent != null)
+        if (isLoaded) return
+        this.#loading = Promise.all([Sn_pos_json.s.loadAsync(), isNeedCnt ? Sn_cnt_chap_unv_json.s.loadAsync() : null])
+            .then(() => this.applyAll())
+            .finally(() => { this.#loading = null })
     }
 
     save() {
@@ -110,15 +188,24 @@ export class SnFilter {
         if (jo == null) return
         this.isOn = jo.isOn == true
         this.hideMethod = jo.hideMethod == 'dim' ? 'dim' : 'hide'
+        const cleanSns = a => Array.isArray(a) ? a.map(normalizeSn).filter(s => s != '') : []
         for (const k of ['nt', 'ot']) {
             const a = jo[k] ?? {}
             this[k] = {
-                sns: Array.isArray(a.sns) ? a.sns.map(normalizeSn).filter(s => s != '') : [],
+                sns: cleanSns(a.sns),
+                exclude: cleanSns(a.exclude),
+                presets: Array.isArray(a.presets) ? a.presets.filter(id => PRESET_MAP.has(id)) : [],
+                leitwort: Number.isInteger(a.leitwort) && a.leitwort > 0 ? a.leitwort : 0,
                 includeCurly: a.includeCurly != false,
                 showTvm: a.showTvm != false,
             }
         }
     }
+}
+
+/** @returns {DSnFilterOfTestament} */
+function newCfg() {
+    return { sns: [], exclude: [], presets: [], leitwort: 0, includeCurly: true, showTvm: true }
 }
 
 /**
