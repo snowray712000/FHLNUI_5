@@ -3,6 +3,7 @@ import { Sn_pos_json } from "./Sn_pos_json.es2023.js";
 import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js";
 import { Sn_morph_nt_json, Sn_morph_ot_json } from "./Sn_morph_json.es2023.js";
 import { fetchJsonAsync } from "./fetchAsync.es2023.js";
+import { gbText } from "./gbText.es2023.js";
 
 /**
  * SN 篩選顯示：SN 開啟時，只顯示指定的 SN。見 docs/z260928e
@@ -120,6 +121,65 @@ export const SN_LENSES = [
     { id: 'content', name: '實詞', nt: { presets: ['content'] }, ot: { presets: ['content'] } },
 ]
 
+/** sn_pos 詞性代碼的名稱 (字的提示用) */
+export const POS_NAMES = {
+    n: '名詞', pn: '專有名詞', v: '動詞', a: '形容詞', num: '數詞', d: '副詞', neg: '否定詞', c: '連接詞', p: '介系詞',
+    art: '冠詞', pron: '代名詞', rel: '關係代名詞', t: '質詞', i: '感嘆詞', obj: '受詞記號',
+}
+
+/**
+ * 字上色 (P4，見 docs/z260928g)：字 (.sn-text) 加 class snc-{id}
+ * - pos 詞類：依字典形詞性，列在前面的優先 (例 οὐ 是 d|neg → 否定)
+ * - verb 動詞形態：新約依語氣、舊約依形式；對不準 (候選代碼分屬不同類) 的用 vx
+ * @type {{pos: {id: string, name: string, pos: string[]}[], verb: Record<'G'|'H', {id: string, name: string, codes: string[]}[]>}}
+ */
+export const WORD_COLORS = {
+    pos: [
+        { id: 'neg', name: '否定', pos: ['neg'] },
+        { id: 'c', name: '連接詞', pos: ['c', 't'] },
+        { id: 'p', name: '介系詞', pos: ['p'] },
+        { id: 'v', name: '動詞', pos: ['v'] },
+        { id: 'pn', name: '專有名詞', pos: ['pn'] },
+    ],
+    verb: {
+        G: [
+            { id: 'ind', name: '直說', codes: ['i'] },
+            { id: 'sub', name: '假設', codes: ['s'] },
+            { id: 'vol', name: '命令、祈願', codes: ['d', 'o'] },
+            { id: 'inf', name: '不定詞', codes: ['n'] },
+            { id: 'ptc', name: '分詞', codes: ['p'] },
+        ],
+        H: [
+            { id: 'wy', name: '敘述式', codes: ['wy'] },
+            { id: 'pf', name: '完成式', codes: ['pf'] },
+            { id: 'impf', name: '未完成式', codes: ['impf'] },
+            { id: 'wq', name: '連續式', codes: ['wq'] },
+            { id: 'vol', name: '意志式', codes: ['imv', 'jus', 'coh'] },
+            { id: 'inf', name: '不定詞', codes: ['infc', 'infa'] },
+            { id: 'ptc', name: '分詞', codes: ['ptc', 'ptcp'] },
+        ],
+    },
+}
+/** 動詞，但這個字的形態分不出是哪一類 */
+const COLOR_VX = { id: 'vx', name: '動詞 (形態不確定)' }
+const SNC_CLASSES = [...new Set([
+    ...WORD_COLORS.pos.map(a => a.id), ...WORD_COLORS.verb.G.map(a => a.id), ...WORD_COLORS.verb.H.map(a => a.id), COLOR_VX.id,
+])].map(id => 'snc-' + id)
+
+/**
+ * 形態代碼 → 文字，例 pap → 現在 主動 分詞、q:wy → Qal 敘述式
+ * @param {'G'|'H'} tp @param {string} code
+ */
+export function morphName(tp, code) {
+    const parts = splitMorph(tp, code)
+    const names = MORPH_GROUPS[tp].slice().sort((a, b) => a.at - b.at).map(g => {
+        const v = parts[g.at]
+        if (tp == 'H' && v == 'ptcp') return '被動分詞'
+        return (g.opts.find(o => o.codes.length == 1 && o.codes[0] == v) ?? g.opts.find(o => o.id == v))?.name ?? v
+    })
+    return names.join(' ')
+}
+
 /**
  * @typedef {{addr: string|null, ver: string|null, total: Map<string, number>, nth: Map<Element, number>, tvm: Map<Element, string>}} DVerseOfSn
  * 一節 (一個譯本) 中的 SN：位址、譯本、各 SN 共出現幾次、每個 .sn 是這節中第幾次出現 (0 起算)、字後面的時態碼
@@ -179,6 +239,8 @@ export class SnFilter {
     ot = newCfg()
     /** @type {{name: string, nt: DSnFilterOfTestament, ot: DSnFilterOfTestament}[]} 使用者存的組合 */
     custom = []
+    /** @type {'off'|'pos'|'verb'} 字上色 (與 SN 顯示無關，SN 關閉時也有作用)，見 WORD_COLORS */
+    colorBy = 'off'
 
     /** 會有經文 SN 的地方；註釋中的 SN 是作者寫的內容，不篩 */
     static SCOPES = ['#fhlLecture', '.search-dlg', '.sn-filter-scope']
@@ -234,9 +296,11 @@ export class SnFilter {
      */
     apply(root, opt = {}) {
         const mode = this.mode == 'off' && opt.offShowsAll ? 'all' : this.mode
-        if (mode == 'filter') this.#ensureDataThenApplyAll()
-        const els = $(root).find('.sn, .lec[book], [data-vaddr]').toArray()
-        const verseOf = mode == 'filter' ? groupByVerse(els, opt) : null
+        if (mode == 'filter' || this.colorBy != 'off') this.#ensureDataThenApplyAll()
+        const all = $(root).find('.sn, .sn-text, .lec[book], [data-vaddr]').toArray()
+        const els = all.filter(e => !isWord(e))
+        const verseOf = mode == 'filter' || this.colorBy != 'off' ? groupByVerse(els, opt) : null
+        this.#colorWords(all, verseOf)
         let isLastWordShow = false
         for (const e of els) {
             if (!e.classList.contains('sn')) continue
@@ -298,10 +362,26 @@ export class SnFilter {
      * @param {DVerseOfSn} verse
      */
     #isMorphMatch(e, tp, sn, verse, nth, cfg) {
-        if (verse.addr == null) return false
+        const codes = this.#morphCodesOf(e, tp, sn, verse, nth)
+        if (codes.length == 0) return false
+        const groups = MORPH_GROUPS[tp].filter(g => (cfg.morph[g.id] ?? []).length > 0)
+        return codes.some(code => {
+            const parts = splitMorph(tp, code)
+            return groups.every(g => cfg.morph[g.id].some(id => g.opts.find(o => o.id == id)?.codes.includes(parts[g.at])))
+        })
+    }
+    /**
+     * 這個字可能的動詞形態代碼 (不是動詞、或資料沒載入時是 [])
+     * 原文譯本 (fhlwh bhs) 是逐字對應，第 nth 次出現的 SN 對第 nth 個；
+     * 其它 (和合本)：此節這個 SN 出現次數與原文相同時，也依順序對應，不同時是全部候選
+     * @param {Element} e .sn @param {'G'|'H'} tp @param {string} sn 已 normalizeSn @param {DVerseOfSn} verse @param {number} nth
+     * @returns {string[]}
+     */
+    #morphCodesOf(e, tp, sn, verse, nth) {
+        if (verse?.addr == null) return []
         const data = (tp == 'H' ? Sn_morph_ot_json : Sn_morph_nt_json).s.filecontent?.data
         const all = (data?.[verse.addr] ?? '').split(' ').filter(a => a.startsWith(sn + ':')).map(a => a.slice(sn.length + 1))
-        if (all.length == 0) return false
+        if (all.length == 0) return []
         const isOrig = ['fhlwh', 'bhs'].includes(verse.ver ?? '')
         const isSameCnt = verse.total.get(tp + sn) == all.length
         let codes = (isOrig || isSameCnt) && nth < all.length ? [all[nth]] : all
@@ -312,12 +392,51 @@ export class SnFilter {
             const both = codes.filter(c => byTvm.includes(c))
             codes = both.length > 0 ? both : byTvm
         }
-        const groups = MORPH_GROUPS[tp].filter(g => (cfg.morph[g.id] ?? []).length > 0)
-        return codes.some(code => {
-            const parts = splitMorph(tp, code)
-            return groups.every(g => cfg.morph[g.id].some(id => g.opts.find(o => o.id == id)?.codes.includes(parts[g.at])))
-        })
+        return [...new Set(codes)]
     }
+
+    /**
+     * 字上色與提示：每個 .sn-text 對到它後面同 SN 的 .sn (中間可能夾著 WAH 標記)
+     * @param {Element[]} all 依文件順序，含 .sn-text
+     * @param {Map<Element, DVerseOfSn>|null} verseOf
+     */
+    #colorWords(all, verseOf) {
+        const gb = TPPageState.s.gb
+        /** @type {Element|null} 還沒對到 SN 的字 */
+        let word = null
+        for (const e of all) {
+            if (isWord(e)) {
+                clearWordColor(e)
+                word = e
+                continue
+            }
+            if (!e.classList.contains('sn')) { word = null; continue }
+            if (word == null || isTvm(e) || isMarker(e)) continue
+            const tp = e.getAttribute('tp') == 'H' ? 'H' : 'G'
+            const sn = normalizeSn(e.getAttribute('sn') ?? '')
+            if (normalizeSn(word.getAttribute('sn') ?? '') != sn || (word.getAttribute('tp') ?? tp) != tp) continue
+            const w = word
+            word = null
+            if (this.colorBy == 'off') continue
+
+            const pos = this.posOf(tp, sn)
+            const verse = verseOf?.get(e)
+            const codes = this.#morphCodesOf(e, tp, sn, verse, verse?.nth.get(e) ?? 0)
+            let color = null
+            if (this.colorBy == 'pos') {
+                color = WORD_COLORS.pos.find(c => c.pos.some(a => pos.includes(a)))
+            } else if (codes.length > 0) {
+                const at = tp == 'H' ? 1 : 2
+                const cats = [...new Set(codes.map(c => WORD_COLORS.verb[tp].find(a => a.codes.includes(splitMorph(tp, c)[at]))))]
+                color = cats.length == 1 && cats[0] != null ? cats[0] : COLOR_VX
+            }
+            if (color != null) w.classList.add('snc-' + color.id)
+            const label = [tp + sn, pos.map(a => POS_NAMES[a] ?? a).join('、'), codes.map(c => morphName(tp, c)).join(' / ')]
+            w.setAttribute('title', gbText(label.filter(a => a != '').join(' '), gb))
+            w.setAttribute('data-snc', '')
+        }
+    }
+
     /** 此 SN 在正在讀的這一章 (和合本) 出現的次數 */
     #cntInChap(tp, sn) {
         const ps = TPPageState.s
@@ -328,12 +447,16 @@ export class SnFilter {
         if (this.#loading != null) return
         /** @type {import('./BaseJson.es2023.js').BaseJson[]} */
         const need = []
-        if ([this.nt, this.ot].some(c => c.presets.length > 0 || c.leitwort > 0)) need.push(Sn_pos_json.s)
-        if ([this.nt, this.ot].some(c => c.leitwort > 0)) need.push(Sn_cnt_chap_unv_json.s)
-        if (isMorphOn(this.nt)) need.push(Sn_morph_nt_json.s)
-        if (isMorphOn(this.ot)) need.push(Sn_morph_ot_json.s)
+        const isFilter = this.mode == 'filter'
+        const isColor = this.colorBy != 'off'
+        if (isColor || (isFilter && [this.nt, this.ot].some(c => c.presets.length > 0 || c.leitwort > 0))) need.push(Sn_pos_json.s)
+        if (isFilter && [this.nt, this.ot].some(c => c.leitwort > 0)) need.push(Sn_cnt_chap_unv_json.s)
+        const isMorphNt = this.colorBy == 'verb' || (isFilter && isMorphOn(this.nt))
+        const isMorphOt = this.colorBy == 'verb' || (isFilter && isMorphOn(this.ot))
+        if (isMorphNt) need.push(Sn_morph_nt_json.s)
+        if (isMorphOt) need.push(Sn_morph_ot_json.s)
         const toLoad = need.filter(a => a._filecontent == null)
-        const isNeedTvm = (isMorphOn(this.nt) || isMorphOn(this.ot)) && this.#tvmTable == null
+        const isNeedTvm = (isMorphNt || isMorphOt) && this.#tvmTable == null
         if (toLoad.length == 0 && !isNeedTvm) return
         const loadTvm = async () => {
             try { this.#tvmTable = (await fetchJsonAsync('./index/tvm_table.json')).table } catch (e) { console.error(e) }
@@ -388,7 +511,7 @@ export class SnFilter {
     }
 
     save() {
-        const jo = { isOn: this.isOn, hideMethod: this.hideMethod, nt: this.nt, ot: this.ot, custom: this.custom }
+        const jo = { isOn: this.isOn, hideMethod: this.hideMethod, nt: this.nt, ot: this.ot, custom: this.custom, colorBy: this.colorBy }
         try { localStorage.setItem(SnFilter.#KEY, JSON.stringify(jo)) } catch { }
     }
     #load() {
@@ -397,6 +520,7 @@ export class SnFilter {
         if (jo == null) return
         this.isOn = jo.isOn == true
         this.hideMethod = jo.hideMethod == 'dim' ? 'dim' : 'hide'
+        this.colorBy = ['pos', 'verb'].includes(jo.colorBy) ? jo.colorBy : 'off'
         this.nt = cleanCfg('G', jo.nt)
         this.ot = cleanCfg('H', jo.ot)
         this.custom = (Array.isArray(jo.custom) ? jo.custom : [])
@@ -493,4 +617,15 @@ function isMarker(e) {
 /** 未譯出 { } @param {Element} e */
 function isCurly(e) {
     return e.classList.contains('isCurly') || (e.textContent ?? '').startsWith('{')
+}
+/** 經文的字 (SN 前面那段文字) @param {Element} e */
+function isWord(e) {
+    return e.classList.contains('sn-text') && !e.classList.contains('sn')
+}
+/** 清掉 #colorWords 加的 class 與提示 @param {Element} e */
+function clearWordColor(e) {
+    if (!e.hasAttribute('data-snc')) return
+    e.classList.remove(...SNC_CLASSES)
+    e.removeAttribute('title')
+    e.removeAttribute('data-snc')
 }

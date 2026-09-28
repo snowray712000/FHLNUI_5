@@ -1,5 +1,5 @@
 import { DialogHtml } from "./DialogHtml.es2023.js";
-import { SnFilter, SN_PRESETS, MORPH_GROUPS, SN_LENSES, parseSnList, splitHelpSections } from "./SnFilter.es2023.js";
+import { SnFilter, SN_PRESETS, MORPH_GROUPS, SN_LENSES, WORD_COLORS, parseSnList, splitHelpSections } from "./SnFilter.es2023.js";
 import { ensureMarkdownItAsync, fixLinks } from "./Help.es2023.js";
 import { fetchTextAsync } from "./fetchAsync.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
@@ -135,6 +135,22 @@ export class SnFilterDialog {
             radio('hide', 'dim', '變淡', f.hideMethod == 'dim', () => { f.hideMethod = 'dim'; this.#changed() }),
         )
 
+        const swatch = a => el('span', { class: 'snf-swatch snc-' + a.id, text: t(a.name) })
+        const legend = f.colorBy == 'pos' ? [el('div', { class: 'snf-legend' }, ...WORD_COLORS.pos.map(swatch))]
+            : f.colorBy == 'verb' ? [
+                el('div', { class: 'snf-legend' }, el('span', { class: 'snf-note', text: t('新約') }), ...WORD_COLORS.verb.G.map(swatch)),
+                el('div', { class: 'snf-legend' }, el('span', { class: 'snf-note', text: t('舊約') }), ...WORD_COLORS.verb.H.map(swatch),
+                    swatch({ id: 'vx', name: '不確定' })),
+            ] : []
+        const colorRow = el('div', { class: 'snf-color' },
+            el('div', { class: 'snf-row' },
+                el('span', { class: 'snf-lbl', text: t('字上色') }),
+                radio('color', 'off', '關', f.colorBy == 'off', () => this.#setColorBy('off')),
+                radio('color', 'pos', '詞類', f.colorBy == 'pos', () => this.#setColorBy('pos')),
+                radio('color', 'verb', '動詞形態', f.colorBy == 'verb', () => this.#setColorBy('verb')),
+                el('span', { class: 'snf-note', text: t('SN 關閉時也可用；滑鼠停在字上看 SN、詞類、形態') })),
+            ...legend)
+
         const isFilter = f.mode == 'filter'
         const activeId = isFilter ? f.activeLensId : null
         const help = id => el('span', {
@@ -186,6 +202,7 @@ export class SnFilterDialog {
             lensRow,
             customRow,
             el('div', { class: isFilter ? '' : 'snf-disabled' }, hideRow),
+            colorRow,
             detail,
         )
     }
@@ -211,6 +228,9 @@ export class SnFilterDialog {
             ...f.custom.map((a, i) => item(a.name, 'u' + i == activeId, () => this.#useLens('u' + i))),
             el('hr'),
             item(t('全部 SN'), f.mode == 'all', () => this.#setMode('all')),
+            el('hr'),
+            item(t('字上色：詞類'), f.colorBy == 'pos', () => this.#setColorBy(f.colorBy == 'pos' ? 'off' : 'pos')),
+            item(t('字上色：動詞形態'), f.colorBy == 'verb', () => this.#setColorBy(f.colorBy == 'verb' ? 'off' : 'verb')),
             item(t('設定…'), false, () => this.open()),
         )
         document.body.append(menu)
@@ -218,6 +238,13 @@ export class SnFilterDialog {
         menu.style.left = `${Math.max(4, Math.min(r.left, window.innerWidth - menu.offsetWidth - 4))}px`
         menu.style.top = `${Math.min(r.bottom + 4, window.innerHeight - menu.offsetHeight - 4)}px`
         setTimeout(() => document.addEventListener('pointerdown', onOutside, true))
+    }
+
+    /** @param {'off'|'pos'|'verb'} colorBy */
+    #setColorBy(colorBy) {
+        SnFilter.s.colorBy = colorBy
+        this.#changed()
+        this.render()
     }
 
     /** 套用組合，並開啟篩選 @param {string} id */

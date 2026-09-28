@@ -1491,6 +1491,33 @@ nav#fhlTopMenu {
 .sn-text {
     cursor: pointer;
 }
+/* 字上色 (SnFilter.colorBy，docs/z260928g)；放在 .snAct 前面，滑鼠移過去的紅色優先 */
+:root {
+    --snc-v: #e8590c;    /* 動詞、直說、敘述式：與 Parsing 的 .parsing-verb 同色系 */
+    --snc-c: firebrick;  /* 連接詞 (同 .parsing-conj) */
+    --snc-p: sienna;     /* 介系詞 (同 .parsing-prep) */
+    --snc-neg: #862e9c;
+    --snc-pn: #1864ab;
+    --snc-pf: #2b8a3e;
+    --snc-impf: #7048e8; /* 未完成式、假設 */
+    --snc-wq: #5c7f0d;
+    --snc-vol: #d6336c;  /* 命令、祈願、意志式 */
+    --snc-inf: #0c8599;
+    --snc-ptc: #1971c2;
+    --snc-vx: #868e96;
+}
+.snc-v, .snc-ind, .snc-wy { color: var(--snc-v); }
+.snc-c { color: var(--snc-c); }
+.snc-p { color: var(--snc-p); }
+.snc-neg { color: var(--snc-neg); }
+.snc-pn { color: var(--snc-pn); }
+.snc-pf { color: var(--snc-pf); }
+.snc-impf, .snc-sub { color: var(--snc-impf); }
+.snc-wq { color: var(--snc-wq); }
+.snc-vol { color: var(--snc-vol); }
+.snc-inf { color: var(--snc-inf); }
+.snc-ptc { color: var(--snc-ptc); }
+.snc-vx { color: var(--snc-vx); text-decoration: underline dotted; }
 
 .sn:hover,.snParse:hover,.searchBibleVerse:hover,.searchSN:hover {
   color: red;
@@ -1619,6 +1646,22 @@ nav#fhlTopMenu {
 .snf-dlg .snf-note {
     font-size: 0.85em;
     color: #777;
+}
+/* 字上色的圖例 (docs/z260928g) */
+.snf-dlg .snf-color {
+    border-top: 1px solid #ddd;
+    margin-top: 6px;
+    padding-top: 6px;
+}
+.snf-dlg .snf-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    align-items: baseline;
+    margin: 2px 0 2px 1em;
+}
+.snf-dlg .snf-swatch {
+    font-weight: bold;
 }
 /* 讀經組合 (docs/z260928f) */
 .snf-dlg .snf-lenses {
