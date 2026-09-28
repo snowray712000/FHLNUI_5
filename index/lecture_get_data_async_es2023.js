@@ -1,5 +1,6 @@
 import { Bible_fhlwh_json } from "./Bible_fhlwh_json.es2023.js";
 import { Bible_bhs_json } from "./Bible_bhs_json.es2023.js";
+import { Bible_lxx_json } from "./Bible_lxx_json.es2023.js";
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { getAjaxUrl } from "./getAjaxUrl.es2023.js";
 import { isRDLocation } from "./isRDLocation.es2023.js";
@@ -21,6 +22,8 @@ export async function lecture_get_data_async() {
             return get_orig_async(Bible_fhlwh_json.s, "fhlwh", "新約原文", book, chap)
         } else if (ver == "bhs") {
             return get_orig_async(Bible_bhs_json.s, "bhs", "舊約馬索拉原文", book, chap)
+        } else if (ver == "lxx" && book <= 39) {
+            return get_orig_async(Bible_lxx_json.s, "lxx", "七十士譯本", book, chap)
         } else {
             return get_from_qsb_php_async(book, chap, gb, ver)
         }
@@ -118,13 +121,13 @@ function add_book_property_to_bibletext_record(result, is_remove_engs_and_chines
 }
 
 /**
- * 新舊約原文，讀本機嵌 SN 的資料 (tools/gen_bible_orig.mjs 產生)，不打 qsb.php
- * @param {Bible_fhlwh_json|Bible_bhs_json} json
- * @param {string} version fhlwh bhs
+ * 新舊約原文、七十士譯本，讀本機嵌 SN 的資料 (tools/gen_bible_orig.mjs、gen_bible_lxx.mjs 產生)，不打 qsb.php
+ * @param {Bible_fhlwh_json|Bible_bhs_json|Bible_lxx_json} json
+ * @param {string} version fhlwh bhs lxx
  * @param {string} v_name
  */
 async function get_orig_async(json, version, v_name, book, chap) {
-    await json.loadAsync(); // 新約約 620KB、舊約約 1.4MB，只有顯示此譯本時才載入
+    await json.loadAsync(); // 新約約 620KB、舊約約 1.4MB、七十士約 1.7MB，只有顯示此譯本時才載入
 
     // where [0]=bk and [1]=ch
     const jaBible = (json.filecontent?.["data"] ?? []).filter(ja => ja[0] == book && ja[1] == chap)

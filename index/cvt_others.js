@@ -63,11 +63,14 @@ function cvt_one(record_with_addr, version) {
     // - 新約原文 + 韋式 + 聯式 +，要在 add_sn_text 前後各作一步
     if (version === 'fhlwh') dtexts_with_addr[3] = split_wu_plus(dtexts_with_addr[3]);
 
-    if (['unv', 'kjv', 'rcuv', 'fhlwh', 'bhs'].indexOf(version) != -1) {
+    if (['unv', 'kjv', 'rcuv', 'fhlwh', 'bhs', 'lxx'].indexOf(version) != -1) {
         add_sn_text(dtexts_with_addr, version);
     }
 
     if (version === 'fhlwh') dtexts_with_addr[3] = add_wu_label(dtexts_with_addr[3]);
+
+    // - 七十士譯本的 SN 顯示 <G2250>：它在舊約，並排的和合本、馬索拉原文是希伯來文 SN，只有數字會誤會是同一個字
+    if (version === 'lxx') add_tp_to_sn_label(dtexts_with_addr[3]);
 
     addParentheses(dtexts_with_addr);
     addReference(dtexts_with_addr, version);
@@ -76,6 +79,17 @@ function cvt_one(record_with_addr, version) {
     }
 
     return dtexts_with_addr
+}
+
+/**
+ * SN 標記的文字 <2250> 變 <G2250> (就地修改)
+ * @param {DText[]} dtexts
+ */
+function add_tp_to_sn_label(dtexts) {
+    for (const dt of dtexts) {
+        if (dt.children != null) add_tp_to_sn_label(dt.children);
+        else if (dt.tp2 != null && dt.sn != null && dt.w != null) dt.w = dt.w.replace(dt.sn, dt.tp + dt.sn);
+    }
 }
 
 function add_sn_text(dtexts_with_addr, version) {

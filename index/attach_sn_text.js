@@ -89,8 +89,8 @@ export function attach_sn_text(dtexts, bibleVersion) {
   const dtextsClone = structuredClone(dtexts);
   if (!Array.isArray(dtexts) || dtexts.length === 0) return dtextsClone ?? [];
 
-  // 只有這幾個譯本，才會可能有 sn ["unv", "kjv", "rcuv", "fhlwh", "bhs"]
-  assert(['unv', 'kjv', 'rcuv', 'fhlwh', 'bhs'].includes(bibleVersion));
+  // 只有這幾個譯本，才會可能有 sn ["unv", "kjv", "rcuv", "fhlwh", "bhs", "lxx"]
+  assert(['unv', 'kjv', 'rcuv', 'fhlwh', 'bhs', 'lxx'].includes(bibleVersion));
 
   // 暫時不將「所有譯本」的標點符號都分離，只分離要作這件事的。
   split_punctuation(dtextsClone);
