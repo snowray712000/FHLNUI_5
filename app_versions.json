@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.10.3",
+        "last": "6.10.5",
         "historys": [
             {
                 "na": "TODOs",
@@ -11,8 +11,6 @@
                     "🆕 新功能: 舊約原文, 用程式從 Parsing 整合入 SN",
                     "🆕 新功能: 自訂段落",
                     "📈 優化: 譯本併排時, 寬度比例自動調整",
-                    "✅ Bug: 原文Parsing, 彼前4:13 2526 備註",
-                    "✅ Bug: 複製彼前4:13新約原文時，該有的空白沒空白。",
                     "📈 優化: 加入說明，什麼是 Strong Number ， Strong Number 可能可以怎麼用的情境",
                     "📈 優化: 加入說明，什麼是同源字，同源字工具可能可以怎麼用的情境",
                     "📈 優化: 搜尋結果，滑鼠移過去，也要能夠顯示active",
@@ -22,6 +20,17 @@
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.10.5",
+                "na2":
+                [
+                    "✨ 舊約原文: 每個希伯來文字都有 SN，滑鼠移過去，本章同一個原文字 (和並排的和合本) 會一起標出，與新約原文相同",
+                    "✨ 舊約原文: 多行的經節，行的順序正確 (以前第一個字可能跑到最後)；改讀本機資料，不必每章打 API",
+                    "✅ Bug: 新約原文有約 180 節與信望愛經文不同 (缺標點，例 彼前4:13 παθήμασιν 後的逗號；錯字，例 彼前2:25 ἦτε 變 ὴτε)，複製時也跟著錯。已改由信望愛最新 parsing 資料重新產生，SN 也更新為現行編號",
+                    "✅ Bug: 原文 Parsing，彼前4:13 SN 2526 的備註顯示成「καθό!>= καθ᾽ ὅ!>」，現在是「καθό = καθ᾽ ὅ」",
+                    "✅ Bug: 希伯來文搜尋找不到 出16:36、代上22:19",
+                    "📝 工程師筆記: 新舊約原文 (嵌 SN) 與舊約搜尋內碼，改由信望愛公開的 bible_parsing.zip 產生 (npm run gen:orig，取代 gen:bhs)；npm run check:data 檢查是否過期。見 docs/z260928a"
                 ]
             },{
                 "na": "6.10.3",
