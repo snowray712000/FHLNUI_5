@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.10.9",
+        "last": "6.10.11",
         "historys": [
             {
                 "na": "TODOs",
@@ -12,12 +12,19 @@
                     "📈 優化: 譯本併排時, 寬度比例自動調整",
                     "📈 優化: 加入說明，什麼是 Strong Number ， Strong Number 可能可以怎麼用的情境",
                     "📈 優化: 加入說明，什麼是同源字，同源字工具可能可以怎麼用的情境",
-                    "📈 優化: 搜尋結果，滑鼠移過去，也要能夠顯示active",
                     "🆕 新功能: 搜尋貼上交互參照，可跳出。",
                     "加入推廣) 希伯來文文法_王維瑩_2025買下授權_https://bible.fhl.net/hebook/index.html",
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.10.11",
+                "na2":
+                [
+                    "📈 優化: 註釋中的 SN，滑鼠移過去，經文與註釋中同一個字會一起標紅 (例: 創1:1 註釋)",
+                    "📈 優化: 搜尋結果中的 SN，滑鼠移過去也會標紅 (主畫面經文也會)；搜尋的 SN 改為紫色，與標紅的區分",
+                    "📝 工程師筆記: 註釋的 mouseenter 原本誤把 event 當元素取 sn；搜尋結果是 .search-dlg .seSN 的灰色蓋過 .snAct，於 Search.css 補 .seSN.snAct / .snAct2"
                 ]
             },{
                 "na": "6.10.9",

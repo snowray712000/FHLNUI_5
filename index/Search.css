@@ -179,7 +179,10 @@
     color: #808080;
     font-size: 0.8em;
 }
-.search-dlg .seSN.seKey { font-size: 1em; }
+.search-dlg .seSN.seKey { font-size: 1em; color: #8e24aa !important; } /* 查詢的 SN 用紫色，與滑鼠移過去的 active 紅色區分 */
+/* 滑鼠移過去的 SN (SN_Act_Color)，要蓋過上面 .seSN 灰色與 .seKey 紫色 */
+.search-dlg .seSN.snAct { color: red !important; }
+.search-dlg .seSN.snAct2 { color: darkred !important; }
 
 @media (max-width: 600px) {
     .search-dlg { padding: 6px 8px 0; }

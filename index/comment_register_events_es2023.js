@@ -52,10 +52,10 @@ export function comment_register_events() {
     })
 
     // sn mouseenter mouseleave 事件
-    $('#fhlInfoContent').off('mouseenter', '.sn').on('mouseenter', '.sn', function (target) {
+    $('#fhlInfoContent').off('mouseenter', '.sn').on('mouseenter', '.sn', function () {
         const ps = TPPageState.s;
 
-        var r2 = $(target)
+        var r2 = $(this) // 是 .sn 本身；原本 $(event) 取不到 sn、tp，註釋中 hover 不會變色
         var sn = r2.attr('sn')
         const tp = r2.attr('tp') // 'G' or 'H'
         // var N = r2.attr('tp') == 'H' ? 1 : 0
