@@ -48,6 +48,7 @@ export function cvtDTextsToHtml(dtexts) {
                         class: 'ref',
                     })
                     tmp.attr('addr-data', JSON.stringify(a1.refAddresses))
+                    if (a1.vaddr != null) tmp.attr('data-vaddr', a1.vaddr) // 節號，SN 篩選的動詞形態用
                     re += tmp[0].outerHTML
                 } else if (a1.sn != null){
                     let tmp = $('<span>', {

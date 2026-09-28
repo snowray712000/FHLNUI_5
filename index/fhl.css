@@ -1584,6 +1584,20 @@ nav#fhlTopMenu {
     background: #fde8e7;
     border-color: #d9534f;
 }
+.snf-dlg .snf-sub {
+    margin: 0.5em 0 0.1em;
+    font-size: 0.85em;
+    color: #777;
+}
+.snf-dlg .snf-morph-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+}
+.snf-dlg .snf-morph-lbl {
+    flex: none;
+    width: 2.5em;
+}
 .snf-dlg .snf-field {
     display: flex;
     align-items: center;

@@ -310,7 +310,8 @@ function renderRow(row, isMultiVersion, keys, gb) {
 
     const texts$ = $('<div class="sd-texts">').appendTo(verse$)
     for (const t of row.texts) {
-        const row$ = $('<div class="sd-text-row">').appendTo(texts$)
+        // data-vaddr data-ver：SN 篩選的動詞形態要知道是哪一節、哪個譯本
+        const row$ = $('<div class="sd-text-row">').attr({ 'data-vaddr': `${row.ibook + 1}.${row.chap}.${row.sec}`, 'data-ver': t.ver }).appendTo(texts$)
         if (isMultiVersion) {
             $('<span class="sd-ver">').text(abvphp.get_cname_from_book(t.ver, gb == 1) || t.ver).appendTo(row$)
         }

@@ -15,6 +15,8 @@
     "gen:orig": "node tools/gen_bible_orig.mjs",
     "gen:lxx": "node tools/gen_bible_lxx.mjs",
     "gen:snpos": "node tools/gen_sn_pos.mjs",
+    "gen:snmorph": "node tools/gen_sn_morph.mjs",
+    "gen:tvm": "node tools/gen_tvm_table.mjs",
     "check:data": "node tools/check_data.mjs",
     "gen:audio": "node tools/gen_audio_bible_index.mjs"
   }

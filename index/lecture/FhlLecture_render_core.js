@@ -37,9 +37,13 @@ import { grouping_by_paragraph_for_dtexts_with_addr } from '../grouping_by_parag
 import { queryFootsAsync } from "../queryFootsAsync.js"
 import { render_dtexts } from "../render_dtexts.js";
 import { SnFilter } from "../SnFilter.es2023.js";
-function add_sn_hidden_if_need(text_jq) {
+/**
+ * @param {JQuery<HTMLElement>} text_jq 一節的內容 (還沒放進 .lec)
+ * @param {{addr?: string, ver?: string}} [verseInfo] 動詞形態篩選要知道是哪一節、哪個譯本
+ */
+function add_sn_hidden_if_need(text_jq, verseInfo = {}) {
     // 因為現在所有資料都包含 sn，所以若 strong=0，則要隱藏；篩選時只顯示指定的 (docs/z260928e)
-    SnFilter.s.apply(text_jq)
+    SnFilter.s.apply(text_jq, verseInfo)
 }
 function is_merge_with_prev_verse(dtexts_with_addr2) {
     // 例如歌羅西書2:21節，會有一筆資料是 sec=21，bible_text="a"，這筆資料的內容是「併入上節」，它的 verse number 是 21，但實際上它應該是併入上一節的，所以在 render 的時候，要把它的 verse number 隱藏掉。
@@ -120,7 +124,7 @@ function render_paragraph_div(item) {
         // render_dtexts 需要原始 dtexts_with_addr 格式 [book, chap, sec, dtexts[]]
         const dtexts_with_addr2 = [verse.book, verse.chap, verse.sec, verse.dtexts]
         const htmlContentOfVerse = render_dtexts([dtexts_with_addr2], version)
-        add_sn_hidden_if_need(htmlContentOfVerse)
+        add_sn_hidden_if_need(htmlContentOfVerse, { addr: `${verse.book}.${verse.chap}.${verse.sec}`, ver: version })
 
         span_verseContent.append(htmlContentOfVerse)
         span_lec.append(span_verseContent)

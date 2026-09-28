@@ -58,7 +58,7 @@ function build_continuous(dtexts_with_addr) {
         // 加入經節號
         const book_na = BibleConstantHelper.getBookNameArrayChineseShort()[book - 1];
         const verse_str = `${verse}`;
-        const verse_ref = { w: verse_str, refDescription: `${book_na}:${chap}`, isRef: 1, refAddresses: BibleConstantHelper.generateAddressesTpF(book,chap) };
+        const verse_ref = { w: verse_str, refDescription: `${book_na}:${chap}`, isRef: 1, refAddresses: BibleConstantHelper.generateAddressesTpF(book,chap), vaddr: `${book}.${chap}.${verse}` };
         dtexts.push(verse_ref);
         dtexts.push(dtext_space);
 
@@ -136,7 +136,7 @@ function build_easily(dtexts_with_addr) {
         const addr_str = `${book_na} ${data[1]}:${data[2]}`;
         const addrs = BibleConstantHelper.generateAddressesTpF(data[0], data[1]); // 產生整章，這樣點擊了，才能有上下文。
 
-        const dtext_addr = { w: addr_str, refDescription: addr_str, isRef: 1, refAddresses: addrs };
+        const dtext_addr = { w: addr_str, refDescription: addr_str, isRef: 1, refAddresses: addrs, vaddr: `${data[0]}.${data[1]}.${data[2]}` };
         const dtext_space = { w: " " };
         dtexts.push(dtext_addr, dtext_space);
 

@@ -1,5 +1,5 @@
 import { DialogHtml } from "./DialogHtml.es2023.js";
-import { SnFilter, SN_PRESETS, parseSnList } from "./SnFilter.es2023.js";
+import { SnFilter, SN_PRESETS, MORPH_GROUPS, parseSnList } from "./SnFilter.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { el } from "./auDom.es2023.js";
@@ -87,9 +87,25 @@ export class SnFilterDialog {
             const leitwort = el('select', {
                 onchange: e => { cfg.leitwort = parseInt(e.target.value); this.#changed() },
             }, ...[0, 2, 3, 4, 5, 8].map(n => el('option', { value: n, selected: cfg.leitwort == n, text: n == 0 ? t('不用') : `≥ ${n} ${t('次')}` })))
+            const morphChip = (g, o) => el('label', { class: 'snf-chip', title: o.tip ? t(o.tip) : null },
+                el('input', {
+                    type: 'checkbox', checked: (cfg.morph[g.id] ?? []).includes(o.id),
+                    onchange: e => {
+                        const a = (cfg.morph[g.id] ?? []).filter(id => id != o.id)
+                        if (e.target.checked) a.push(o.id)
+                        cfg.morph[g.id] = a
+                        this.#changed()
+                    },
+                }), t(o.name))
+            const morphRows = MORPH_GROUPS[tp].map(g => el('div', { class: 'snf-morph-row' },
+                el('span', { class: 'snf-morph-lbl', text: t(g.name) }),
+                el('div', { class: 'snf-chips' }, ...g.opts.map(o => morphChip(g, o)))))
             return el('fieldset', { class: 'snf-tm' },
                 el('legend', { text: t(legend) }),
+                el('div', { class: 'snf-sub', text: t('詞類') }),
                 el('div', { class: 'snf-chips' }, ...SN_PRESETS.filter(p => p.only == null || p.only == tp).map(chip)),
+                el('div', { class: 'snf-sub', text: t('動詞形態 (依每個字實際的形態；同一列任一、不同列都要符合，例：分詞 + 現在 = 現在分詞)') }),
+                ...morphRows,
                 el('div', { class: 'snf-row' },
                     el('span', { text: t('本章主導詞') }), leitwort,
                     el('span', { class: 'snf-note', text: t('本章 (和合本) 出現多次的名詞、動詞、形容詞') })),

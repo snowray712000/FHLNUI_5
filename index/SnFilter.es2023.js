@@ -1,13 +1,18 @@
 import { TPPageState } from "./TPPageState.es2023.js";
 import { Sn_pos_json } from "./Sn_pos_json.es2023.js";
 import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js";
+import { Sn_morph_nt_json, Sn_morph_ot_json } from "./Sn_morph_json.es2023.js";
+import { fetchJsonAsync } from "./fetchAsync.es2023.js";
 
 /**
  * SN 篩選顯示：SN 開啟時，只顯示指定的 SN。見 docs/z260928e
  *
  * 所有 SN 本來就在 DOM 中 (.sn)，這裡只決定每個 .sn 要不要加 .sn-hidden (或 .sn-dim)
  * - 模式: ps.strong == 0 → 關；isOn → 篩選；否則全部
- * - 顯示：排除清單優先；否則在 SN 清單、符合任一預設組合 (字典詞性，sn_pos.json.gz)、或是本章主導詞
+ * - 顯示：排除清單優先；否則在 SN 清單、符合任一預設組合 (字典詞性，sn_pos.json.gz)、本章主導詞、或動詞形態
+ * - 動詞形態 (sn_morph_*.json.gz)：以「同一節、同一個 SN」對應；原文譯本用第幾次出現對第幾個；
+ *   和合本 / KJV 另有逐字的時態碼 (5723)，用 tvm_table.json 換成形態代碼，與同節對應取交集
+ *   節的位址：主經文 .lec[book][chap][sec]、其它 [data-vaddr="book.chap.sec"]，或 apply 的 opt.addr
  * - 時態碼 (5656) 跟著它前面的字
  *
  * @typedef {Object} DSnFilterOfTestament
@@ -15,6 +20,7 @@ import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js";
  * @property {string[]} exclude 排除的 SN (優先於其它規則)
  * @property {string[]} presets 預設組合 id，見 SN_PRESETS
  * @property {number} leitwort 本章主導詞：本章出現 ≥ 此次數的實詞；0 = 不用
+ * @property {Object<string,string[]>} morph 動詞形態，組 id → 選項 id (見 MORPH_GROUPS)；同組任一、不同組都要符合
  * @property {boolean} includeCurly 含未譯出的 {<…>}
  * @property {boolean} showTvm 顯示動詞時態碼
  */
@@ -46,6 +52,100 @@ export const SN_PRESETS = [
 ]
 const PRESET_MAP = new Map(SN_PRESETS.map(p => [p.id, p]))
 
+/**
+ * 動詞形態的組與選項。codes 是 sn_morph 代碼中該位置的值
+ * 新約代碼 3 碼：時態 語態 語氣；舊約代碼「詞幹:形式」
+ * @type {{G: {id: string, name: string, at: number, opts: {id: string, name: string, codes: string[], tip?: string}[]}[], H: {id: string, name: string, at: number, opts: {id: string, name: string, codes: string[], tip?: string}[]}[]}}
+ */
+export const MORPH_GROUPS = {
+    G: [
+        {
+            id: 'mood', name: '語氣', at: 2, opts: [
+                { id: 'fin', name: '限定動詞', codes: ['i', 's', 'o', 'd'], tip: '直說、假設、祈願、命令 (不是分詞、不定詞)' },
+                { id: 'i', name: '直說', codes: ['i'] }, { id: 's', name: '假設', codes: ['s'] }, { id: 'o', name: '祈願', codes: ['o'] },
+                { id: 'd', name: '命令', codes: ['d'] }, { id: 'n', name: '不定詞', codes: ['n'] }, { id: 'p', name: '分詞', codes: ['p'] },
+            ]
+        },
+        {
+            id: 'tense', name: '時態', at: 0, opts: [
+                { id: 'p', name: '現在', codes: ['p'] }, { id: 'i', name: '未完成', codes: ['i'] }, { id: 'f', name: '未來', codes: ['f'] },
+                { id: 'a', name: '簡單過去', codes: ['a'] }, { id: 'x', name: '完成', codes: ['x'] }, { id: 'y', name: '過去完成', codes: ['y'] },
+            ]
+        },
+        {
+            id: 'voice', name: '語態', at: 1, opts: [
+                { id: 'a', name: '主動', codes: ['a'] }, { id: 'm', name: '中間', codes: ['m'], tip: '含中間異態' },
+                { id: 'p', name: '被動', codes: ['p'], tip: '含被動異態' },
+            ]
+        },
+    ],
+    H: [
+        {
+            id: 'form', name: '形式', at: 1, opts: [
+                { id: 'wy', name: '敘述式', codes: ['wy'], tip: 'wayyiqtol，敘事的主線' },
+                { id: 'pf', name: '完成式', codes: ['pf'] }, { id: 'impf', name: '未完成式', codes: ['impf'] },
+                { id: 'wq', name: '連續式', codes: ['wq'], tip: 'weqatal，律法、預言、程序' },
+                { id: 'vol', name: '意志式', codes: ['imv', 'jus', 'coh'], tip: '祈使式、祈願式、鼓勵式' },
+                { id: 'imv', name: '祈使式', codes: ['imv'] }, { id: 'jus', name: '祈願式', codes: ['jus'] }, { id: 'coh', name: '鼓勵式', codes: ['coh'] },
+                { id: 'infc', name: '不定詞附屬形', codes: ['infc'] }, { id: 'infa', name: '不定詞獨立形', codes: ['infa'], tip: '常用來加強語氣' },
+                { id: 'ptc', name: '分詞', codes: ['ptc', 'ptcp'] },
+            ]
+        },
+        {
+            id: 'stem', name: '詞幹', at: 0, opts: [
+                { id: 'q', name: 'Qal', codes: ['q'] }, { id: 'N', name: 'Nif‘al', codes: ['N'], tip: '被動、反身' },
+                { id: 'p', name: 'Pi‘el', codes: ['p'], tip: '加強' }, { id: 'P', name: 'Pu‘al', codes: ['P'], tip: 'Pi‘el 的被動' },
+                { id: 'h', name: 'Hif‘il', codes: ['h'], tip: '使役' }, { id: 'H', name: 'Hof‘al', codes: ['H'], tip: 'Hif‘il 的被動' },
+                { id: 't', name: 'Hitpa‘el', codes: ['t'], tip: '反身、相互' }, { id: 'o', name: '其它', codes: ['o'], tip: 'Polel 等，及亞蘭文 Peal、Haphel 等' },
+            ]
+        },
+    ],
+}
+
+/**
+ * @typedef {{addr: string|null, ver: string|null, total: Map<string, number>, nth: Map<Element, number>, tvm: Map<Element, string>}} DVerseOfSn
+ * 一節 (一個譯本) 中的 SN：位址、譯本、各 SN 共出現幾次、每個 .sn 是這節中第幾次出現 (0 起算)、字後面的時態碼
+ */
+/**
+ * 依節分組：節的標記是 .lec[book][chap][sec] 或 [data-vaddr]；時態碼、標記不算
+ * @param {Element[]} els 依文件順序
+ * @param {{addr?: string, ver?: string}} opt 第一個標記之前的節
+ * @returns {Map<Element, DVerseOfSn>}
+ */
+function groupByVerse(els, opt) {
+    const re = new Map()
+    /** @type {DVerseOfSn} */
+    let verse = { addr: opt.addr ?? null, ver: opt.ver ?? null, total: new Map(), nth: new Map(), tvm: new Map() }
+    let lastWord = null
+    for (const e of els) {
+        if (!e.classList.contains('sn')) {
+            const addr = e.hasAttribute('data-vaddr') ? e.getAttribute('data-vaddr') : `${e.getAttribute('book')}.${e.getAttribute('chap')}.${e.getAttribute('sec')}`
+            verse = { addr, ver: e.getAttribute('ver') ?? e.getAttribute('data-ver') ?? verse.ver, total: new Map(), nth: new Map(), tvm: new Map() }
+            lastWord = null
+            continue
+        }
+        re.set(e, verse)
+        if (isTvm(e)) {
+            if (lastWord != null) verse.tvm.set(lastWord, normalizeSn(e.getAttribute('sn') ?? ''))
+            lastWord = null
+            continue
+        }
+        lastWord = null
+        if (isMarker(e)) continue
+        lastWord = e
+        const k = (e.getAttribute('tp') == 'H' ? 'H' : 'G') + normalizeSn(e.getAttribute('sn') ?? '')
+        const n = verse.total.get(k) ?? 0
+        verse.nth.set(e, n)
+        verse.total.set(k, n + 1)
+    }
+    return re
+}
+
+/** 此約有沒有勾動詞形態 @param {DSnFilterOfTestament} cfg */
+function isMorphOn(cfg) { return Object.values(cfg.morph).some(a => a.length > 0) }
+/** 代碼拆成各組的值 @param {'G'|'H'} tp @param {string} code */
+function splitMorph(tp, code) { return tp == 'H' ? code.split(':') : [...code] }
+
 export class SnFilter {
     static #s = null
     /** @returns {SnFilter} */
@@ -65,6 +165,8 @@ export class SnFilter {
     static #KEY = 'snFilter'
     /** @type {Promise<void>|null} 詞性表、章數統計載入中 */
     #loading = null
+    /** @type {{G: Object<string,string>, H: Object<string,string>}|null} 時態碼 → 形態代碼 (以空白分隔)，npm run gen:tvm */
+    #tvmTable = null
 
     constructor() { this.#load() }
 
@@ -106,14 +208,18 @@ export class SnFilter {
 
     /**
      * @param {JQuery<HTMLElement>|Element|Document} root
-     * @param {{offShowsAll?: boolean}} [opt] offShowsAll: 搜尋結果，SN 關閉時仍顯示 (搜 SN 時會強制帶 SN)
+     * @param {{offShowsAll?: boolean, addr?: string, ver?: string}} [opt]
+     *   offShowsAll: 搜尋結果，SN 關閉時仍顯示 (搜 SN 時會強制帶 SN)
+     *   addr "book.chap.sec"、ver 譯本：root 還沒放進 .lec 時 (主經文逐節產生時) 由呼叫端給
      */
     apply(root, opt = {}) {
         const mode = this.mode == 'off' && opt.offShowsAll ? 'all' : this.mode
         if (mode == 'filter') this.#ensureDataThenApplyAll()
-        const spans = $(root).find('.sn')
+        const els = $(root).find('.sn, .lec[book], [data-vaddr]').toArray()
+        const verseOf = mode == 'filter' ? groupByVerse(els, opt) : null
         let isLastWordShow = false
-        for (const e of spans) {
+        for (const e of els) {
+            if (!e.classList.contains('sn')) continue
             e.classList.remove('sn-hidden', 'sn-dim')
             if (mode == 'all') continue
 
@@ -126,7 +232,7 @@ export class SnFilter {
                 if (isTvm(e)) {
                     isShow = isLastWordShow && this.cfgOf(e.getAttribute('tp')).showTvm
                 } else {
-                    isShow = this.#isShow(e)
+                    isShow = this.#isShow(e, verseOf.get(e))
                     isLastWordShow = isShow
                 }
                 if (e.classList.contains('seKey')) isShow = isLastWordShow = true
@@ -142,8 +248,11 @@ export class SnFilter {
         }
     }
 
-    /** @param {Element} e 不是時態碼的 .sn */
-    #isShow(e) {
+    /**
+     * @param {Element} e 不是時態碼的 .sn
+     * @param {DVerseOfSn} verse 所在的節
+     */
+    #isShow(e, verse) {
         const tp = e.getAttribute('tp') == 'H' ? 'H' : 'G'
         const sn = normalizeSn(e.getAttribute('sn') ?? '')
         const cfg = this.cfgOf(tp)
@@ -159,21 +268,57 @@ export class SnFilter {
             if (p.sns?.[tp]?.includes(sn)) return true
         }
         if (cfg.leitwort > 0 && CONTENT_POS.some(a => pos.includes(a)) && this.#cntInChap(tp, sn) >= cfg.leitwort) return true
+        if (isMorphOn(cfg) && this.#isMorphMatch(e, tp, sn, verse, verse.nth.get(e) ?? 0, cfg)) return true
         return false
+    }
+    /**
+     * 這個字的動詞形態是否符合：每個有勾的組都要符合
+     * 原文譯本 (fhlwh bhs) 是逐字對應，第 nth 次出現的 SN 對第 nth 個；
+     * 其它 (和合本)：此節這個 SN 出現次數與原文相同時，也依順序對應 (翻譯大致保留語序，例 創1:5 兩個「稱」，一個敘述式一個完成式)，不同時任一個符合就算
+     * @param {DVerseOfSn} verse
+     */
+    #isMorphMatch(e, tp, sn, verse, nth, cfg) {
+        if (verse.addr == null) return false
+        const data = (tp == 'H' ? Sn_morph_ot_json : Sn_morph_nt_json).s.filecontent?.data
+        const all = (data?.[verse.addr] ?? '').split(' ').filter(a => a.startsWith(sn + ':')).map(a => a.slice(sn.length + 1))
+        if (all.length == 0) return false
+        const isOrig = ['fhlwh', 'bhs'].includes(verse.ver ?? '')
+        const isSameCnt = verse.total.get(tp + sn) == all.length
+        let codes = (isOrig || isSameCnt) && nth < all.length ? [all[nth]] : all
+        // 和合本的時態碼是逐字的：新約幾乎一對一；舊約不分敘述式/未完成式、連續式/完成式，所以取交集
+        const tvm = verse.tvm.get(e)
+        const byTvm = tvm == null ? null : this.#tvmTable?.[tp]?.[tvm]?.split(' ')
+        if (byTvm != null) {
+            const both = codes.filter(c => byTvm.includes(c))
+            codes = both.length > 0 ? both : byTvm
+        }
+        const groups = MORPH_GROUPS[tp].filter(g => (cfg.morph[g.id] ?? []).length > 0)
+        return codes.some(code => {
+            const parts = splitMorph(tp, code)
+            return groups.every(g => cfg.morph[g.id].some(id => g.opts.find(o => o.id == id)?.codes.includes(parts[g.at])))
+        })
     }
     /** 此 SN 在正在讀的這一章 (和合本) 出現的次數 */
     #cntInChap(tp, sn) {
         const ps = TPPageState.s
         return Sn_cnt_chap_unv_json.s.filecontent?.[tp]?.[sn]?.[ps.bookIndex]?.[ps.chap] ?? 0
     }
-    /** 用到預設組合或主導詞時，載入詞性表與章數統計，載好再套用一次 */
+    /** 用到預設組合、主導詞、動詞形態時，載入需要的資料，載好再套用一次 */
     #ensureDataThenApplyAll() {
-        const isNeed = [this.nt, this.ot].some(c => c.presets.length > 0 || c.leitwort > 0)
-        if (!isNeed || this.#loading != null) return
-        const isNeedCnt = [this.nt, this.ot].some(c => c.leitwort > 0)
-        const isLoaded = Sn_pos_json.s.filecontent != null && (!isNeedCnt || Sn_cnt_chap_unv_json.s.filecontent != null)
-        if (isLoaded) return
-        this.#loading = Promise.all([Sn_pos_json.s.loadAsync(), isNeedCnt ? Sn_cnt_chap_unv_json.s.loadAsync() : null])
+        if (this.#loading != null) return
+        /** @type {import('./BaseJson.es2023.js').BaseJson[]} */
+        const need = []
+        if ([this.nt, this.ot].some(c => c.presets.length > 0 || c.leitwort > 0)) need.push(Sn_pos_json.s)
+        if ([this.nt, this.ot].some(c => c.leitwort > 0)) need.push(Sn_cnt_chap_unv_json.s)
+        if (isMorphOn(this.nt)) need.push(Sn_morph_nt_json.s)
+        if (isMorphOn(this.ot)) need.push(Sn_morph_ot_json.s)
+        const toLoad = need.filter(a => a._filecontent == null)
+        const isNeedTvm = (isMorphOn(this.nt) || isMorphOn(this.ot)) && this.#tvmTable == null
+        if (toLoad.length == 0 && !isNeedTvm) return
+        const loadTvm = async () => {
+            try { this.#tvmTable = (await fetchJsonAsync('./index/tvm_table.json')).table } catch (e) { console.error(e) }
+        }
+        this.#loading = Promise.all([...toLoad.map(a => a.loadAsync()), isNeedTvm ? loadTvm() : null])
             .then(() => this.applyAll())
             .finally(() => { this.#loading = null })
     }
@@ -196,6 +341,7 @@ export class SnFilter {
                 exclude: cleanSns(a.exclude),
                 presets: Array.isArray(a.presets) ? a.presets.filter(id => PRESET_MAP.has(id)) : [],
                 leitwort: Number.isInteger(a.leitwort) && a.leitwort > 0 ? a.leitwort : 0,
+                morph: cleanMorph(k == 'ot' ? 'H' : 'G', a.morph),
                 includeCurly: a.includeCurly != false,
                 showTvm: a.showTvm != false,
             }
@@ -205,7 +351,16 @@ export class SnFilter {
 
 /** @returns {DSnFilterOfTestament} */
 function newCfg() {
-    return { sns: [], exclude: [], presets: [], leitwort: 0, includeCurly: true, showTvm: true }
+    return { sns: [], exclude: [], presets: [], leitwort: 0, morph: {}, includeCurly: true, showTvm: true }
+}
+/** localStorage 讀回的 morph，只留認得的組與選項 @param {'G'|'H'} tp */
+function cleanMorph(tp, morph) {
+    const re = {}
+    for (const g of MORPH_GROUPS[tp]) {
+        const a = morph?.[g.id]
+        re[g.id] = Array.isArray(a) ? a.filter(id => g.opts.some(o => o.id == id)) : []
+    }
+    return re
 }
 
 /**
