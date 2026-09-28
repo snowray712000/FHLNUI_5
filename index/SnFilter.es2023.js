@@ -330,6 +330,8 @@ export class SnFilter {
         for (const sel of SnFilter.SCOPES) {
             $(sel).each((i, e) => this.apply(e, { offShowsAll: sel == '.search-dlg' }))
         }
+        // 併排模式各節的高度是 render 時固定的，SN 顯示多少變了，要重新對齊 (否則會擠在一起)
+        window.fhlLecture?.reshape?.(TPPageState.s)
     }
 
     /**
