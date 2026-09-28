@@ -7,8 +7,8 @@ const GUIDE_URL = 'docs/使用說明.md'
 const MARKDOWN_IT_URL = 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
 
 let markdownItLoading
-/** markdown-it 只有說明用得到，第一次按「?」才載入 */
-function ensureMarkdownItAsync() {
+/** markdown-it 只有說明用得到，第一次按「?」才載入 (SN 讀經組合的說明也用) */
+export function ensureMarkdownItAsync() {
     if (markdownItLoading) return markdownItLoading
     markdownItLoading = import(/* @vite-ignore */ MARKDOWN_IT_URL)
         .then(m => m.default({ html: false, linkify: true }))
@@ -21,12 +21,13 @@ function ensureMarkdownItAsync() {
 
 /**
  * md 裡的相對路徑 (例 ../images/xxx.png) 是相對於 md 檔，放進頁面後要改成相對於頁面。
- * 外部連結另開分頁，才不會離開聖經工具。
+ * 外部連結另開分頁，才不會離開聖經工具。# 開頭的 (例 #/bible/約1:1) 不動
  * @param {string} html
+ * @param {string} mdUrl md 檔的路徑 (相對於頁面)
  * @returns {string}
  */
-function fixLinks(html) {
-    const base = new URL(GUIDE_URL, location.href)
+export function fixLinks(html, mdUrl = GUIDE_URL) {
+    const base = new URL(mdUrl, location.href)
     const div = document.createElement('div')
     div.innerHTML = html
     for (const img of div.querySelectorAll('img[src]')) {

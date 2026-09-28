@@ -103,6 +103,24 @@ export const MORPH_GROUPS = {
 }
 
 /**
+ * 讀經組合：一個組合 = 一個要問經文的問題，套用時整組取代新約、舊約的細項設定 (未列的用 newCfg 的預設)。
+ * 說明在 docs/SN讀經組合說明.md 的「## 名稱 (id)」一節。only：只對新約 G 或舊約 H 有意義 (另一約不顯示 SN)
+ * @typedef {{presets?: string[], morph?: Object<string,string[]>, leitwort?: number, showTvm?: boolean}} DLensPart
+ * @type {{id: string, name: string, nt?: DLensPart, ot?: DLensPart, only?: 'G'|'H'}[]}
+ */
+export const SN_LENSES = [
+    { id: 'conj', name: '連接詞', nt: { presets: ['c'] }, ot: { presets: ['c'] } },
+    { id: 'main', name: '主要動詞', nt: { morph: { mood: ['fin'] } }, ot: { morph: { form: ['wy', 'pf', 'impf', 'wq', 'vol'] } } },
+    { id: 'nonfin', name: '分詞、不定詞', nt: { morph: { mood: ['n', 'p'] } }, ot: { morph: { form: ['infc', 'infa', 'ptc'] } } },
+    { id: 'will', name: '命令與意願', nt: { morph: { mood: ['d', 'o'] } }, ot: { morph: { form: ['vol'] } } },
+    { id: 'narr', name: '敘事主線', ot: { morph: { form: ['wy'] } }, only: 'H' },
+    { id: 'perf', name: '完成時態', nt: { morph: { tense: ['x', 'y'] } }, only: 'G' },
+    { id: 'god', name: '神的名號', nt: { presets: ['god'] }, ot: { presets: ['god'] } },
+    { id: 'leit', name: '本章主導詞', nt: { leitwort: 3 }, ot: { leitwort: 3 } },
+    { id: 'content', name: '實詞', nt: { presets: ['content'] }, ot: { presets: ['content'] } },
+]
+
+/**
  * @typedef {{addr: string|null, ver: string|null, total: Map<string, number>, nth: Map<Element, number>, tvm: Map<Element, string>}} DVerseOfSn
  * 一節 (一個譯本) 中的 SN：位址、譯本、各 SN 共出現幾次、每個 .sn 是這節中第幾次出現 (0 起算)、字後面的時態碼
  */
@@ -159,6 +177,8 @@ export class SnFilter {
     nt = newCfg()
     /** @type {DSnFilterOfTestament} 舊約 (希伯來文 H) */
     ot = newCfg()
+    /** @type {{name: string, nt: DSnFilterOfTestament, ot: DSnFilterOfTestament}[]} 使用者存的組合 */
+    custom = []
 
     /** 會有經文 SN 的地方；註釋中的 SN 是作者寫的內容，不篩 */
     static SCOPES = ['#fhlLecture', '.search-dlg', '.sn-filter-scope']
@@ -323,8 +343,52 @@ export class SnFilter {
             .finally(() => { this.#loading = null })
     }
 
+    /**
+     * 讀經組合或使用者組合，換成完整的新約、舊約設定
+     * @param {string} id SN_LENSES 的 id，或 'u' + custom 的 index
+     * @returns {{nt: DSnFilterOfTestament, ot: DSnFilterOfTestament}|null}
+     */
+    lensCfgs(id) {
+        if (id.startsWith('u')) {
+            const c = this.custom[parseInt(id.slice(1))]
+            return c == null ? null : { nt: structuredClone(c.nt), ot: structuredClone(c.ot) }
+        }
+        const lens = SN_LENSES.find(a => a.id == id)
+        if (lens == null) return null
+        /** @param {'G'|'H'} tp @param {DLensPart} part */
+        const full = (tp, part) => ({ ...newCfg(), ...structuredClone(part ?? {}), morph: cleanMorph(tp, part?.morph) })
+        return { nt: full('G', lens.nt), ot: full('H', lens.ot) }
+    }
+    /** 套用組合 (篩選開啟；ps.strong 由呼叫端處理) @param {string} id */
+    useLens(id) {
+        const cfgs = this.lensCfgs(id)
+        if (cfgs == null) return
+        this.nt = cfgs.nt
+        this.ot = cfgs.ot
+        this.isOn = true
+        this.save()
+    }
+    /** 目前的設定與哪個組合相同 @returns {string|null} id (同 lensCfgs) */
+    get activeLensId() {
+        const cur = cfgKey(this.nt) + cfgKey(this.ot)
+        const ids = [...this.custom.map((a, i) => 'u' + i), ...SN_LENSES.map(a => a.id)] // 與內建相同時，亮我的組合
+        return ids.find(id => { const c = this.lensCfgs(id); return cfgKey(c.nt) + cfgKey(c.ot) == cur }) ?? null
+    }
+    /** 把目前的設定存成組合；同名的覆蓋 @param {string} name */
+    saveCustom(name) {
+        const c = { name, nt: structuredClone(this.nt), ot: structuredClone(this.ot) }
+        const i = this.custom.findIndex(a => a.name == name)
+        if (i == -1) this.custom.push(c); else this.custom[i] = c
+        this.save()
+    }
+    /** @param {number} idx */
+    removeCustom(idx) {
+        this.custom.splice(idx, 1)
+        this.save()
+    }
+
     save() {
-        const jo = { isOn: this.isOn, hideMethod: this.hideMethod, nt: this.nt, ot: this.ot }
+        const jo = { isOn: this.isOn, hideMethod: this.hideMethod, nt: this.nt, ot: this.ot, custom: this.custom }
         try { localStorage.setItem(SnFilter.#KEY, JSON.stringify(jo)) } catch { }
     }
     #load() {
@@ -333,25 +397,37 @@ export class SnFilter {
         if (jo == null) return
         this.isOn = jo.isOn == true
         this.hideMethod = jo.hideMethod == 'dim' ? 'dim' : 'hide'
-        const cleanSns = a => Array.isArray(a) ? a.map(normalizeSn).filter(s => s != '') : []
-        for (const k of ['nt', 'ot']) {
-            const a = jo[k] ?? {}
-            this[k] = {
-                sns: cleanSns(a.sns),
-                exclude: cleanSns(a.exclude),
-                presets: Array.isArray(a.presets) ? a.presets.filter(id => PRESET_MAP.has(id)) : [],
-                leitwort: Number.isInteger(a.leitwort) && a.leitwort > 0 ? a.leitwort : 0,
-                morph: cleanMorph(k == 'ot' ? 'H' : 'G', a.morph),
-                includeCurly: a.includeCurly != false,
-                showTvm: a.showTvm != false,
-            }
-        }
+        this.nt = cleanCfg('G', jo.nt)
+        this.ot = cleanCfg('H', jo.ot)
+        this.custom = (Array.isArray(jo.custom) ? jo.custom : [])
+            .filter(a => typeof a?.name == 'string' && a.name != '')
+            .map(a => ({ name: a.name, nt: cleanCfg('G', a.nt), ot: cleanCfg('H', a.ot) }))
     }
 }
 
 /** @returns {DSnFilterOfTestament} */
 function newCfg() {
     return { sns: [], exclude: [], presets: [], leitwort: 0, morph: {}, includeCurly: true, showTvm: true }
+}
+/** localStorage 讀回的一約設定 @param {'G'|'H'} tp @returns {DSnFilterOfTestament} */
+function cleanCfg(tp, a) {
+    a = a ?? {}
+    const cleanSns = x => Array.isArray(x) ? x.map(normalizeSn).filter(s => s != '') : []
+    return {
+        sns: cleanSns(a.sns),
+        exclude: cleanSns(a.exclude),
+        presets: Array.isArray(a.presets) ? a.presets.filter(id => PRESET_MAP.has(id)) : [],
+        leitwort: Number.isInteger(a.leitwort) && a.leitwort > 0 ? a.leitwort : 0,
+        morph: cleanMorph(tp, a.morph),
+        includeCurly: a.includeCurly != false,
+        showTvm: a.showTvm != false,
+    }
+}
+/** 比較兩個設定是否相同用 (清單不計順序) @param {DSnFilterOfTestament} c */
+export function cfgKey(c) {
+    const sorted = a => [...a].sort()
+    const morph = Object.keys(c.morph).sort().filter(k => c.morph[k].length > 0).map(k => `${k}=${sorted(c.morph[k])}`)
+    return JSON.stringify([sorted(c.sns), sorted(c.exclude), sorted(c.presets), c.leitwort, morph, c.includeCurly, c.showTvm])
 }
 /** localStorage 讀回的 morph，只留認得的組與選項 @param {'G'|'H'} tp */
 function cleanMorph(tp, morph) {
@@ -385,6 +461,21 @@ export function parseSnList(str, defaultTp) {
     for (const m of String(str).matchAll(/([GH]?)0*(\d+)([aA]?)/gi)) {
         const tp = m[1] == '' ? defaultTp : /** @type {'G'|'H'} */ (m[1].toUpperCase())
         re.push({ tp, sn: normalizeSn(m[2] + m[3]) })
+    }
+    return re
+}
+
+/**
+ * 讀經組合說明 md (docs/SN讀經組合說明.md) 依「## 名稱 (id)」分節
+ * @param {string} text
+ * @returns {{id: string, name: string, body: string}[]}
+ */
+export function splitHelpSections(text) {
+    const re = []
+    for (const part of text.split(/^(?=## )/m)) {
+        const m = /^## (.+?)\s*\((\w+)\)\s*$/m.exec(part.split('\n')[0])
+        if (m == null) continue
+        re.push({ id: m[2], name: m[1], body: part.slice(part.indexOf('\n') + 1) })
     }
     return re
 }

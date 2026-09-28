@@ -1,12 +1,18 @@
 import { DialogHtml } from "./DialogHtml.es2023.js";
-import { SnFilter, SN_PRESETS, MORPH_GROUPS, parseSnList } from "./SnFilter.es2023.js";
+import { SnFilter, SN_PRESETS, MORPH_GROUPS, SN_LENSES, parseSnList, splitHelpSections } from "./SnFilter.es2023.js";
+import { ensureMarkdownItAsync, fixLinks } from "./Help.es2023.js";
+import { fetchTextAsync } from "./fetchAsync.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { el } from "./auDom.es2023.js";
 
+/** 讀經組合的說明；build 時由 vite.config.js 的 LEGACY_COPY 複製到 dist/ */
+const LENS_HELP_URL = 'docs/SN讀經組合說明.md'
+
 /**
- * SN 篩選顯示的設定對話框。見 docs/z260928e
+ * SN 篩選顯示的設定對話框。見 docs/z260928e、docs/z260928f
  * 改了立即套用 (SnFilter.applyAll) 並存 localStorage
+ * 上方是讀經組合 (點一下套用，? 看說明) 與我的組合，細項收合在下面
  */
 export class SnFilterDialog {
     static #s = null
@@ -17,6 +23,12 @@ export class SnFilterDialog {
     #dlgHtml = null
     /** @type {HTMLElement} */
     #root = null
+    /** 細項展開 (render 重畫時保留) */
+    #isDetailOpen = false
+    /** @type {DialogHtml} 組合說明 */
+    #helpDlg = null
+    /** @type {Promise<string>|null} 說明 md */
+    #helpText = null
 
     open() {
         if (this.#dlgHtml?.dlg != null) {
@@ -29,7 +41,7 @@ export class SnFilterDialog {
         dlgHtml.showDialog({
             html: '<div class="snf-dlg"></div>',
             width: isNarrow ? window.innerWidth - 16 : 560,
-            height: Math.min(720, window.innerHeight * 0.85),
+            maxHeight: window.innerHeight * 0.85, // 高度依內容 (細項預設收合)
             getTitle: () => gbText('SN 篩選顯示', TPPageState.s.gb),
             registerEventWhenShowed: dlg => {
                 this.#root = dlg.find('.snf-dlg')[0]
@@ -124,15 +136,148 @@ export class SnFilterDialog {
         )
 
         const isFilter = f.mode == 'filter'
-        this.#root.replaceChildren(
-            modeRow,
-            el('div', { class: 'snf-body' + (isFilter ? '' : ' snf-disabled') },
+        const activeId = isFilter ? f.activeLensId : null
+        const help = id => el('span', {
+            class: 'snf-q', text: '?', title: t('說明'),
+            onclick: e => { e.stopPropagation(); this.#showHelpAsync(id) },
+        })
+        const lensRow = el('div', { class: 'snf-row snf-lenses' },
+            el('span', { class: 'snf-lbl' }, t('讀經組合'), help('intro')),
+            el('div', { class: 'snf-chips' }, ...SN_LENSES.map(a => el('span', {
+                class: 'snf-lens' + (a.id == activeId ? ' active' : ''),
+                title: a.only == null ? null : t(a.only == 'G' ? '只用於新約' : '只用於舊約'),
+                onclick: () => this.#useLens(a.id),
+            }, t(a.name), help(a.id)))))
+        const customRow = el('div', { class: 'snf-row snf-lenses' },
+            el('span', { class: 'snf-lbl', text: t('我的組合') }),
+            el('div', { class: 'snf-chips' },
+                ...f.custom.map((a, i) => el('span', {
+                    class: 'snf-lens' + ('u' + i == activeId ? ' active' : ''),
+                    onclick: () => this.#useLens('u' + i),
+                }, a.name, el('span', {
+                    class: 'snf-q', text: '×', title: t('刪除'),
+                    onclick: e => {
+                        e.stopPropagation()
+                        if (!confirm(t('刪除「') + a.name + t('」？'))) return
+                        f.removeCustom(i)
+                        this.render()
+                    },
+                }))),
+                el('span', {
+                    class: 'snf-lens snf-add', text: '+ ' + t('把目前設定存成組合'),
+                    onclick: () => this.#saveCustom(),
+                })))
+        const detail = el('details', {
+            class: 'snf-detail', open: this.#isDetailOpen,
+            ontoggle: e => {
+                this.#isDetailOpen = e.target.open
+                const dlg = this.#dlgHtml?.dlg
+                dlg?.dialog('option', 'position', dlg.dialog('option', 'position')) // 高度變了，重新定位，才不會超出視窗下緣
+            },
+        },
+            el('summary', { text: t('細項設定') }),
+            el('div', { class: isFilter ? '' : 'snf-disabled' },
                 testament('nt', '新約 (希臘文 G，含七十士譯本)', 'G1063 G1161 G3767'),
                 testament('ot', '舊約 (希伯來文 H)', 'H3068 H430 H3588'),
-                hideRow,
                 el('div', { class: 'snf-note', text: t('勾選的詞類、主導詞、另外加的 SN，符合任一就顯示；排除的一定不顯示。詞類以原文字典形判斷 (同一字可能兼兩種詞類)。SN 可貼上 G1063、<1063>，沒寫 G、H 的依所在的框。原文字典標題的「📌」可把該字加入或移出「另外加」。') }),
-            ),
+            ))
+        this.#root.replaceChildren(
+            modeRow,
+            lensRow,
+            customRow,
+            el('div', { class: isFilter ? '' : 'snf-disabled' }, hideRow),
+            detail,
         )
+    }
+
+    /**
+     * 快速切換選單 (不必開對話框)：讀經組合、我的組合、顯示全部、設定
+     * @param {HTMLElement} anchor
+     */
+    openQuickMenu(anchor) {
+        document.querySelector('.snf-menu')?.remove()
+        const f = SnFilter.s
+        const t = s => gbText(s, TPPageState.s.gb)
+        const activeId = f.mode == 'filter' ? f.activeLensId : null
+        const close = () => { menu.remove(); document.removeEventListener('pointerdown', onOutside, true) }
+        const onOutside = e => { if (!menu.contains(e.target)) close() }
+        const item = (text, isActive, onclick) => el('div', {
+            class: 'snf-menu-item' + (isActive ? ' active' : ''), text,
+            onclick: () => { close(); onclick() },
+        })
+        const menu = el('div', { class: 'snf-menu' },
+            ...SN_LENSES.map(a => item(t(a.name), a.id == activeId, () => this.#useLens(a.id))),
+            f.custom.length > 0 ? el('hr') : null,
+            ...f.custom.map((a, i) => item(a.name, 'u' + i == activeId, () => this.#useLens('u' + i))),
+            el('hr'),
+            item(t('全部 SN'), f.mode == 'all', () => this.#setMode('all')),
+            item(t('設定…'), false, () => this.open()),
+        )
+        document.body.append(menu)
+        const r = anchor.getBoundingClientRect()
+        menu.style.left = `${Math.max(4, Math.min(r.left, window.innerWidth - menu.offsetWidth - 4))}px`
+        menu.style.top = `${Math.min(r.bottom + 4, window.innerHeight - menu.offsetHeight - 4)}px`
+        setTimeout(() => document.addEventListener('pointerdown', onOutside, true))
+    }
+
+    /** 套用組合，並開啟篩選 @param {string} id */
+    #useLens(id) {
+        SnFilter.s.useLens(id)
+        this.#setMode('filter')
+    }
+    #saveCustom() {
+        const f = SnFilter.s
+        const t = s => gbText(s, TPPageState.s.gb)
+        const cur = f.activeLensId
+        const def = cur?.startsWith('u') ? f.custom[parseInt(cur.slice(1))].name : ''
+        const name = prompt(t('組合名稱 (同名的會覆蓋)'), def)?.trim()
+        if (name == null || name == '') return
+        f.saveCustom(name)
+        this.render()
+    }
+
+    /**
+     * 組合的說明 (md 中「## 名稱 (id)」那一節)；經文位置的連結 (#/bible/…) 點了會跳過去並套用組合
+     * @param {string} id SN_LENSES 的 id，或 'intro'
+     */
+    async #showHelpAsync(id) {
+        const t = s => gbText(s, TPPageState.s.gb)
+        let title = t('讀經組合'), body
+        try {
+            this.#helpText ??= fetchTextAsync(LENS_HELP_URL).catch(e => { this.#helpText = null; throw e })
+            const [md, text] = await Promise.all([ensureMarkdownItAsync(), this.#helpText])
+            const sec = splitHelpSections(text).find(a => a.id == id)
+            if (sec == null) throw new Error(`沒有 ${id} 的說明`)
+            title = t(sec.name)
+            body = fixLinks(md.render(sec.body), LENS_HELP_URL)
+        } catch (ex) {
+            console.error(ex)
+            body = `<div>${t('說明載入失敗，請稍後再試。')} (${ex.message})</div>`
+        }
+        this.#helpDlg?.dlg?.dialog('close')
+        const isLens = SN_LENSES.some(a => a.id == id)
+        const dlgHtml = this.#helpDlg = new DialogHtml()
+        dlgHtml.showDialog({
+            html: '<div class="snf-help markdown-body"></div>',
+            width: Math.min(window.innerWidth - 16, 520),
+            height: Math.min(560, window.innerHeight * 0.75),
+            // 放在設定對話框右邊 (空間不夠時 jQuery UI 會往內移)
+            position: this.#dlgHtml?.dlg == null ? undefined : { my: 'left top', at: 'right+8 top', of: this.#dlgHtml.dlg.parent(), collision: 'fit' },
+            getTitle: () => title,
+            registerEventWhenShowed: dlg => {
+                const div = dlg.find('.snf-help')[0]
+                div.innerHTML = body
+                if (isLens) {
+                    div.prepend(el('button', {
+                        class: 'snf-apply', text: t('套用這個組合'),
+                        onclick: () => this.#useLens(id),
+                    }))
+                    // 經文位置：套用組合，再由 hashchange 跳過去
+                    $(div).on('click', 'a[href^="#/bible/"]', () => this.#useLens(id))
+                }
+                dlg.on('dialogclose', () => { if (this.#helpDlg == dlgHtml) this.#helpDlg = null })
+            },
+        })
     }
 
     /** @param {'off'|'all'|'filter'} mode */
@@ -175,3 +320,4 @@ export class SnFilterDialog {
         SnFilter.s.applyAll()
     }
 }
+

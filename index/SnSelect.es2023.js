@@ -38,14 +38,18 @@ export class SnSelect {
                 SnFilter.s.applyAll(); // 搜尋結果、交互參照對話框
                 SnFilterDialog.s.render();
             });
-        $('#snFilterBtn').off('click').on('click', () => SnFilterDialog.s.open());
+        $('#snFilterBtn').off('click').on('click', () => SnFilterDialog.s.open())
+            .off('contextmenu').on('contextmenu', ev => { // 右鍵、手機長按：快速切換讀經組合
+                ev.preventDefault();
+                SnFilterDialog.s.openQuickMenu(ev.currentTarget);
+            });
     }
     render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
         
         var html = "<div>" + gbText("原文編號", ps.gb)
-            + '<span id="snFilterBtn" class="sn-filter-btn" title="' + gbText("SN 篩選：只顯示指定的 SN", ps.gb) + '"><i class="fa fa-filter"></i></span>'
+            + '<span id="snFilterBtn" class="sn-filter-btn" title="' + gbText("SN 篩選：只顯示指定的 SN (右鍵、長按：切換讀經組合)", ps.gb) + '"><i class="fa fa-filter"></i></span>'
             + ":</div>";
         html += '<div class="onOffSwitch">\
                               <input type="checkbox" name="snOnOffSwitch" class="onOffSwitch-checkbox" id="snOnOffSwitch">\
