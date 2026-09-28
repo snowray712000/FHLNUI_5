@@ -5,6 +5,23 @@
 */
 
 import { splitStringByRegex } from './../splitStringByRegex.es2023.js'
+import { BibleConstant } from './../BibleConstant.es2023.js'
+
+/** 書卷縮寫 (繁、簡)，長的在前，例 林前 要比 林 先試 */
+const BOOKS = [...new Set([...BibleConstant.CHINESE_BOOK_ABBREVIATIONS, ...BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB])]
+    .sort((a, b) => b.length - a.length).join('|')
+/** 一個參照：可有書卷，章:節 或 節，後面可接 -12、,5、:3 */
+const ONE_REF = `(?:(?:${BOOKS})\\s*)?\\d+(?:\\s*:\\s*\\d+)?(?:\\s*[-,]\\s*\\d+(?:\\s*:\\s*\\d+)?)*`
+
+/**
+ * 註釋中的交互參照，形如 `#太 7:14-20|`、`#6|`
+ * - 第 1 組：正常的，# 開頭 | 結尾；也接受全形 ＃ (路24:50、太6:5)、全形 ｜ (創19:1)
+ *   - 中間不跨過 #：資料偶有 # 後漏了 | (創7:6 `#7:21都`)，以前會一路吞到下一個 |，把後面真正的參照也吃掉
+ * - 第 2 組：資料漏了 #，只有 | 結尾，例 徒20:7 `「講論」徒 20:7|`、帖前2:5 `;徒 18:3;20:34|`。
+ *   要看起來像經文位置 (至少有一個 章:節，多個用 ; 分隔) 才算，避免誤判
+ * - 全部註釋 (信望愛公開的 bible_comm.zip) 漏 # 或用全形 ＃ 的共 10 處 (2026-09 查)
+ */
+export const REGEX_COMMENT_REF = new RegExp(`[#＃]([^|｜#＃]+)[|｜]|((?=[^|｜]*:)${ONE_REF}(?:\\s*;\\s*${ONE_REF})*)[|｜]`, 'g')
 
 /**
  * @param {DocNode[]} docNode 
@@ -154,7 +171,7 @@ function parse_ref_in_Comment(dtexts, address) {
         if (dtext.w == null) {
             results.push(dtext)
         } else {
-            const reg1 = splitStringByRegex(dtext.w, /#([^|]+)\|/g)
+            const reg1 = splitStringByRegex(dtext.w, REGEX_COMMENT_REF)
             if (reg1 == null) {
                 results.push(dtext)
             } else {
@@ -164,7 +181,7 @@ function parse_ref_in_Comment(dtexts, address) {
                         dtext_clone.w = reg1a.w
                         results.push(dtext_clone)
                     } else {
-                        const raw = reg1a.exec[1]
+                        const raw = (reg1a.exec[1] ?? reg1a.exec[2]).trim()
                         dtext_clone.w = raw
                         dtext_clone.isRef = 1
                         dtext_clone.refDescription = raw
