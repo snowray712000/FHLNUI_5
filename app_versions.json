@@ -24,7 +24,7 @@
                 [
                     "📈 優化: 註釋中的 SN，滑鼠移過去，經文與註釋中同一個字會一起標紅 (例: 創1:1 註釋)",
                     "📈 優化: 搜尋結果中的 SN，滑鼠移過去也會標紅 (主畫面經文也會)；搜尋的 SN 改為紫色，與標紅的區分",
-                    "📝 工程師筆記: 註釋的 mouseenter 原本誤把 event 當元素取 sn；搜尋結果是 .search-dlg .seSN 的灰色蓋過 .snAct，於 Search.css 補 .seSN.snAct / .snAct2"
+                    "📝 工程師筆記: 註釋的 mouseenter 原本誤把 event 當元素取 sn；搜尋結果是 .search-dlg .seSN 的灰色蓋過 .snAct，於 Search.css 補 .seSN.snAct / .snAct2。見 docs/z260928d"
                 ]
             },{
                 "na": "6.10.9",
