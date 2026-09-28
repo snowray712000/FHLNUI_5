@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.10.5",
+        "last": "6.10.7",
         "historys": [
             {
                 "na": "TODOs",
@@ -16,10 +16,17 @@
                     "📈 優化: 搜尋結果，滑鼠移過去，也要能夠顯示active",
                     "🆕 新功能: 搜尋貼上交互參照，可跳出。",
                     "加入推廣) 希伯來文文法_王維瑩_2025買下授權_https://bible.fhl.net/hebook/index.html",
-                    "✅ Bug: 注釋，徒20:13，有的交互參照沒被偵測到。",
                     "參照，<a href='https://www.stepbible.org/'>https://www.stepbible.org/</a> ",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.10.7",
+                "na2":
+                [
+                    "✅ Bug: 註釋中有的交互參照沒被偵測到，不能點，例 徒20:7「講論」徒 20:7| (連 | 都露出來)、路24:50、帖前2:5、林前13:4 等 10 處。原因是資料少了 # 或用了全形 ＃",
+                    "✅ Bug: 註釋中參照的 # 後漏了 | 時 (例 創7:6)，會把一大段文字變成錯的連結，並吃掉後面真正的參照",
+                    "📝 工程師筆記: index/comments/convertDocToDText.js 的 REGEX_COMMENT_REF；用全部註釋 (信望愛公開的 bible_comm.zip) 比對，原本的參照都在，多救回 17 個。見 docs/z260928b"
                 ]
             },{
                 "na": "6.10.5",
