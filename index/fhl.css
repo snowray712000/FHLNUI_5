@@ -1093,59 +1093,112 @@ nav#fhlTopMenu {
 .onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
     right: 0px; 
 }
-#fontSizeTool{
-    /*margin: 0px 0px 0px 10px;*/
+/* 字型大小：側邊欄 A− 數字 A+ ⚙，按鈕寬度、數字寬度固定，按了不會移動 */
+#settings .fs-ctl {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
-.FontSizeButtonLargeSmaller {
-    position: relative;
-    margin: 0px 11px 0px -5px;
-    padding: 1px 0px 0px 4px;
-    width: 20px;
-    line-height: 12pt;
-    font-size: 8pt;
+.fs-btn {
+    flex: none;
+    width: 2.2em;
+    height: 1.7em;
+    padding: 0;
+    font-size: 10pt;
+    line-height: 1;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #e0e0e0;
+    cursor: pointer;
+}
+.fs-btn.fs-big,
+.fs-dlg .fs-btn.fs-big {
+    font-size: 12pt;
+}
+.fs-btn:hover {
+    background: #f4f4f4;
+}
+.fs-btn:active {
+    background: #ccc;
+}
+#settings .fs-val {
+    width: 2em;
     text-align: center;
-    box-shadow: 1px 1px 1px #888888;
-    border-radius: 3px;
-    background-color: #E0E0E0;
+    font-variant-numeric: tabular-nums;
+}
+.fs-gear {
+    margin-left: 4px;
+    font-size: 14pt;
+    color: #555;
     cursor: pointer;
 }
-.FontSizeButtonLargeSmaller :hover{
-    box-shadow: inset 1px 1px 1px #888888;
-    top: 1px;
-    left: 1px;
+.fs-gear:hover {
+    color: #000;
 }
-.FontSizeButtonLargeSmaller span {
-    position: relative;
-    font-size: 3pt;
-    top: -5px;
-    left: -2px;
+/* 字型大小對話框 (組合樣式沿用 .snf-dlg)
+   對話框內容原本跟著 --fontsize (.ui-dialog-content)，這裡固定，拖曳時控制項才不會跟著變大跑走；預覽區仍跟著 */
+.fs-dlg {
+    font-size: 15px;
 }
-#fhlLectureFontSizeSmaller, #fhlLectureFontSizeLarger{
-    position: relative;
-    margin: 0px 11px 0px -5px;
-    padding: 1px 0px 0px 4px;
-    width: 20px;
-    line-height: 12pt;
-    font-size: 8pt;
-    text-align: center;
-    box-shadow: 1px 1px 1px #888888;
-    border-radius: 3px;
-    background-color: #E0E0E0;
+.fs-dlg .fs-btn {
+    font-size: 10pt;
+}
+.fs-dlg hr {
+    margin: 0.5em 0;
+}
+.fs-dlg .fs-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0.35em 0;
+}
+.fs-dlg .fs-lbl {
+    flex: none;
+    width: 7em;
+}
+.fs-dlg .fs-main .fs-lbl {
+    font-weight: bold;
+}
+.fs-dlg .fs-range {
+    flex: 1;
+    min-width: 60px;
     cursor: pointer;
 }
-#fhlLectureFontSizeSmaller:hover, #fhlLectureFontSizeLarger:hover{
-    box-shadow: inset 1px 1px 1px #888888;
-    top: 1px;
-    left: 1px;
+.fs-dlg .fs-num {
+    width: 3.5em;
 }
-#fhlLectureFontSizeSmaller span, #fhlLectureFontSizeLarger span{
-    position: relative;
-    font-size: 3pt;
-    top: -5px;
-    left: -2px;
+.fs-dlg .fs-link {
+    margin: 0.2em 0 0.1em 7em;
+    padding-left: 6px;
 }
-#fhlLectureFontSizeSliderBar{
-    cursor: pointer;
+.fs-dlg .fs-sub {
+    margin-left: 1em;
+    padding-left: 0.5em;
+    border-left: 3px solid #ddd;
+}
+.fs-dlg .fs-sub.fs-linked {
+    border-left-color: #d9534f;
+}
+.fs-dlg .fs-sub .fs-lbl {
+    width: calc(7em - 1.5em - 3px);
+}
+.fs-dlg .fs-preview {
+    margin: 0.6em 0 0.4em;
+    padding: 0.4em 0.7em;
+    max-height: 40vh;
+    overflow: auto;
+    border: 1px dashed #bbb;
+    border-radius: 6px;
+    background: #fafafa;
+}
+.fs-dlg .fs-pv-main {
+    font-size: var(--fontsize);
+}
+.fs-dlg .fs-sn {
+    margin-left: 0.2em;
+    color: blue;
+    font-weight: bold;
+    font-size: var(--fontsize-sn);
 }
 /* 新版的 version select, 用 dialog 方式 */
 #versionSelect2{

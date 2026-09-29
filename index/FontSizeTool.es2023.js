@@ -1,89 +1,54 @@
-
 import { FhlLecture } from "./FhlLecture.es2023.js";
+import { FontSize } from "./FontSize.es2023.js";
+import { FontSizeDialog } from "./FontSizeDialog.es2023.js";
+import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from './gbText.es2023.js';
+import { el, icon } from "./auDom.es2023.js";
 
+/**
+ * 側邊欄「設定」中的字型大小：A− 數字 A+ ⚙
+ * - A− A+ 調「經文」(原文、SN 預設跟著等比例)；⚙ 開對話框，右鍵、長按快速切換組合
+ * - 原文、SN 各自的大小改到對話框 (原本側邊欄有 4 列，見 FontSizeDialog)
+ */
 export class FontSizeTool {
     static #s = null
     /** @returns {FontSizeTool} */
     static get s() { if (this.#s == null) this.#s = new FontSizeTool(); return this.#s }
 
-    dom = null
+    /** @type {HTMLElement} */
+    #val = null
+    #isSubscribed = false
 
+    /** @param {TPPageState} ps @param {JQuery<HTMLElement>} dom */
     init(ps, dom) {
-        this.dom = dom;
-        this.render(ps, this.dom);
-        this.registerEvents(ps);
+        this.render(ps, dom)
+        this.registerEvents(ps)
     }
 
     registerEvents(ps) {
-        const makeSureSizeBetween6and60 = () => {
-            const fontSizeInput = $('#fhlLectureFontSize');
-            if (fontSizeInput.val() > 60) {
-                fontSizeInput.val(60);
-            } else if (fontSizeInput.val() < 6) {
-                fontSizeInput.val(6);
-            }
-        };
-
-        const onFontSizeToolSizeChanged = (sz, ps) => {
-            $('#fhlLectureFontSizeSliderBar').val(sz);
-
-            $('#fhlLecture .lec').css({
-                'margin': sz * 1.25 - 15 + 'px 0px'
-            });
-            $('#commentScrollDiv').css({
-                'margin': sz * 1.25 - 15 + 'px 0px'
-            });
-
-            $('#fhlLecture .lecContent.bhs.hebrew').css({
-                'margin': sz * 1.25 - 15 + 'px 0px'
-            });
-
-            ps.fontSize = sz;
-            ps.saveToLocalStorage();
-
-            document.body.style.setProperty("--fontsize", ps.fontSize + "pt");
-            // 原本這裡呼叫的 renderTsk 是舊版 React 串珠，會把新版串珠（index/tsks）蓋掉；新版不隨字級變化，不需重畫
-        };
-
-        $('#fhlLectureFontSizeSliderBar').off('change').on('change', function () {
-            $("#fhlLectureFontSize").val($('#fhlLectureFontSizeSliderBar').val());
-            makeSureSizeBetween6and60();
-            onFontSizeToolSizeChanged(parseInt($('#fhlLectureFontSize').val()), ps);
-            FhlLecture.s.reshape(ps);
-        });
-
-        $('#fhlLectureFontSize').off('change').on('change', function () {
-            makeSureSizeBetween6and60();
-            onFontSizeToolSizeChanged(parseInt($('#fhlLectureFontSize').val()), ps);
-            FhlLecture.s.reshape(ps);
-        });
-
-        $('#fhlLectureFontSizeSmaller').off('click').on('click', function () {
-            $('#fhlLectureFontSize').val(parseInt($('#fhlLectureFontSize').val()) - 2);
-            makeSureSizeBetween6and60();
-            onFontSizeToolSizeChanged(parseInt($('#fhlLectureFontSize').val()), ps);
-            FhlLecture.s.reshape(ps);
-        });
-
-        $('#fhlLectureFontSizeLarger').off('click').on('click', function () {
-            $('#fhlLectureFontSize').val(parseInt($('#fhlLectureFontSize').val()) + 2);
-            makeSureSizeBetween6and60();
-            onFontSizeToolSizeChanged(parseInt($('#fhlLectureFontSize').val()), ps);
-            FhlLecture.s.reshape(ps);
-        });
+        if (this.#isSubscribed) return
+        this.#isSubscribed = true
+        FontSize.s.onChange(isSettled => {
+            if (this.#val != null) this.#val.textContent = FontSize.s.sizes.main
+            if (isSettled) FhlLecture.s.reshape(TPPageState.s) // 併排時，重新對齊各節高度
+        })
     }
 
     render(ps, dom) {
-        const html = `
-            <div>${gbText("字體大小", ps.gb)}:</div>
-            <div id="fhlLectureFontSizeSmaller">A<span>-</span></div>
-            <div id="fhlLectureFontSizeLarger">A<span>+</span></div>
-            <div style="display: block; margin-top: 5px; height: 30px;">
-                <input id="fhlLectureFontSizeSliderBar" type="range" min="6" max="60" value="${ps.fontSize}" step="1" style="width: 95px;"/>
-                <input id="fhlLectureFontSize" type="text" value="${ps.fontSize}" style="width:2em;"/>
-            </div>
-        `;
-        dom.html(html);
+        const fs = FontSize.s
+        const t = s => gbText(s, ps.gb)
+        this.#val = el('span', { class: 'fs-val', text: fs.sizes.main, title: t('經文字型大小 (pt)') })
+        const gear = el('span', {
+            class: 'fs-gear', title: t('原文、SN 大小與組合 (右鍵、長按：切換組合)'),
+            onclick: () => FontSizeDialog.s.open(),
+            oncontextmenu: e => { e.preventDefault(); FontSizeDialog.s.openQuickMenu(gear) },
+        }, icon('cog'))
+        dom[0].replaceChildren(
+            el('div', { text: t('字體大小') + ':' }),
+            el('div', { class: 'fs-ctl' },
+                el('button', { type: 'button', class: 'fs-btn', text: 'A−', title: t('小一點'), onclick: () => fs.step('main', -1) }),
+                this.#val,
+                el('button', { type: 'button', class: 'fs-btn fs-big', text: 'A+', title: t('大一點'), onclick: () => fs.step('main', 1) }),
+                gear))
     }
 }

@@ -5,7 +5,6 @@ import { ShowMode } from "./Show_mode.es2023.js";
 import { MapTool } from "./MapTool.es2023.js";
 import { ImageTool } from "./ImageTool.es2023.js";
 import { FontSizeTool } from "./FontSizeTool.es2023.js";
-import { FontSizeToolBase } from "./FontSizeToolBase.es2023.js";
 import { LeftWindowTool } from "./LeftWindowTool.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
@@ -116,25 +115,6 @@ export class Settings {
         ImageTool.s.init(ps, $('#imageTool'));
         ImageTool.s.registerEvents(ps);
         FontSizeTool.s.init(ps, $('#fontSizeTool'));
-        FontSizeTool.s.registerEvents(ps);
-
-        // add by snow. 2021.07
-        // 字體大小，希伯來文獨立出來設定
-        var fontSizeHebrewTool = new FontSizeToolBase("Hebrew")
-        $('#settingsScrollDiv ul').append("<li><div id='" + fontSizeHebrewTool.getId() + "'></div></li>")
-        fontSizeHebrewTool.init(ps, $('#' + fontSizeHebrewTool.getId()))
-
-        // add by snow. 2021.07
-        // 字體大小，希臘文獨立出來設定
-        var fontSizeGreekTool = new FontSizeToolBase("Greek")
-        $('#settingsScrollDiv ul').append("<li><div id='" + fontSizeGreekTool.getId() + "'></div></li>")
-        fontSizeGreekTool.init(ps, $('#' + fontSizeGreekTool.getId()))
-
-        // add by snow. 2021.07
-        // 字體大小，StrongNumber文獨立出來設定
-        var fontSizeStrongNumberTool = new FontSizeToolBase("Sn")
-        $('#settingsScrollDiv ul').append("<li><div id='" + fontSizeStrongNumberTool.getId() + "'></div></li>")
-        fontSizeStrongNumberTool.init(ps, $('#' + fontSizeStrongNumberTool.getId()))
 
         // reference method
         $('#settingsScrollDiv ul').append("<li><div id='reference_method_tool'></div></li>");
