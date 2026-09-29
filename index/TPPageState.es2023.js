@@ -76,9 +76,9 @@ export class TPPageState {
     /** @type {TPFhlTitleId} 原文 parsing 註釋 comment 講道 preach 串珠 tsk 典藏 ob 地圖 map 樹狀圖 sn branch */
     this.titleId = "fhlInfoComment"
     /**
-     * @type {{ chineses: TPCHINESE_BOOK_ABBREVIATIONS|TPCHINESE_BOOK_ABBREVIATIONS_GB, chap: number }[]} 左側的歷史紀錄，創1 創2
+     * @type {{ book: number, chap: number, sec: number }[]} 左側的歷史紀錄，創1 創2
      */
-    this.history = [{ chineses: "創", chap: 1 }]
+    this.history = [{ book: 1, chap: 1, sec: 1 }]
     /** @type {number} 按下「注釋」中的「書卷背景」時，.chap 會變為 0，但可能是在任何一章按「書卷背景」，這個參數就是記得，當時按下「書卷背景」時是什麼「章節」。這樣若在此時按「上一章」才會可以計算正確的章節。 */
     this.commentBackgroundChap = 1
     this.commentBackgroundSec = 1

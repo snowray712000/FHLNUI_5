@@ -76,7 +76,7 @@ export function initPageStateFlow(currentSWVer) {
       fontSizeStrongNumber: 14, // add by snow. 2021.07
       // book 別以為是 bookIndex, 因為 book 先被注釋用掉了 sc.php 參數
       book: 3, N: 0, k: "", cname: ["FHL和合本"], realTimePopUp: 0, titleId: "fhlInfoComment",
-      history: [{ chineses: "創", chap: 1 }], fontSize: 12, commentBackgroundChap: 1, commentBackgroundSec: 1,
+      history: [{ book: 1, chap: 1, sec: 1 }], fontSize: 12, commentBackgroundChap: 1, commentBackgroundSec: 1,
       leftBtmWinShow: true, searchTitleMsg: "", audio: 0, swVer: "0.0.0",
       ispho: false, ispos: false
     }

@@ -9,13 +9,27 @@ import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPa
 import { assert } from './assert_es2023.js';
 import { DocumentCustomListenerState } from './DocumentCustomListenerState_es2023.js';
 import { ViewHistoryData } from './ViewHistoryData_es2023.js';
+import { BibleConstant } from './BibleConstant.es2023.js';
 export function makeSure_ps_history_not_empty(){
     assert(TPPageState.s != null && TPPageState.s.history != null, "TPPageState.s.history is null");
+    // 舊的預設值是 { chineses: "創", chap: 1 } 沒有 book，清單會顯示 NaN，所以用 chineses 補上 book，補不了的就丟掉
+    TPPageState.s.history = TPPageState.s.history.map(a1 => {
+        let book = parseInt(a1.book, 10);
+        if (!(book >= 1 && book <= 66) && a1.chineses != null) {
+            let idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(a1.chineses);
+            if (idx == -1) idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB.indexOf(a1.chineses);
+            book = idx + 1;
+        }
+        const chap = parseInt(a1.chap, 10);
+        const sec = parseInt(a1.sec, 10) || 1;
+        return { book, chap, sec };
+    }).filter(a1 => a1.book >= 1 && a1.book <= 66 && a1.chap >= 1);
+
     if (TPPageState.s.history.length == 0) {
         TPPageState.s.history = [{
-            chineses: TPPageState.s.chineses,
-            chap: TPPageState.s.chap,
-            book: TPPageState.s.bookIndex
+            book: parseInt(TPPageState.s.bookIndex, 10) || 1,
+            chap: parseInt(TPPageState.s.chap, 10) || 1,
+            sec: parseInt(TPPageState.s.sec, 10) || 1
         }];
     }
 }
