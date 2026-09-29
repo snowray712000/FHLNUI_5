@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.11.9",
+        "last": "6.11.11",
         "historys": [
             {
                 "na": "TODOs",
@@ -14,6 +14,15 @@
                     "加入推廣) 希伯來文文法_王維瑩_2025買下授權_https://bible.fhl.net/hebook/index.html",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.11.11",
+                "na2":
+                [
+                    "📈 優化: 設定中的字體大小由 4 列改為一列「A− 數字 A+ ⚙」，按鈕不再跑走；A− A+ 調經文，原文與 SN 預設跟著等比例放大縮小",
+                    "🆕 新功能: 按 ⚙ 開「字型大小」視窗：一鍵套用組合 (預設、研讀、分享投影、精簡)、存成「我的組合」、分別調希伯來文、希臘文、原文編號，滑桿拖曳時即時預覽",
+                    "📈 優化: 右鍵 (手機長按) ⚙ 可快速切換字型組合",
+                    "📝 工程師筆記: FontSize (狀態、比例) / FontSizeDialog / FontSizeTool，值仍存在 ps 與 --fontsize… css 變數。見 docs/z260930a"
                 ]
             },{
                 "na": "6.11.9",
