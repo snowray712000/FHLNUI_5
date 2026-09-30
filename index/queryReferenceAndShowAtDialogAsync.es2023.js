@@ -3,6 +3,7 @@
 import { splitReference } from "./splitReference.es2023.js" // 經文章節，成為ref
 import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml } from "./DialogHtml.es2023.js"
+import { ColWidth } from "./ColWidth.es2023.js"
 import { SnFilter } from "./SnFilter.es2023.js"
 import { renderVerseGrid } from "./VerseGrid.es2023.js"
 import { cvtAddrsToRef } from "./cvtAddrsToRef.es2023.js"
@@ -194,9 +195,11 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
                 // 並排：譯本多就寬一點 (標籤欄 + 每個譯本約 320px)
                 width: isSide && cntVer > 1 ? Math.min(window.innerWidth * 0.95, 120 + 320 * cntVer) : undefined,
                 registerEventWhenShowed: dlg => {
+                    applyColWidth(dlg[0])
                     dlg.on('change', '.ref-first-only', ev => {
                         writeFirstOnly(/** @type {HTMLInputElement} */ (ev.currentTarget).checked)
                         dlg.find('.ref-dlg').replaceWith(htmlOf())
+                        applyColWidth(dlg[0])
                     })
                     // 節碼：看整章；也接受只有 addr-desc 的 .ref (注腳裡的交互參照)
                     dlg.on('click', '.ref', ev => {
@@ -215,6 +218,21 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         }
     }
 
+}
+
+/**
+ * 並排多譯本時的欄寬 (自動 / 拖表頭自訂 / 雙擊回自動，與經文區、搜尋結果共用紀錄)；單欄時清掉
+ * @param {HTMLElement} host 對話框內容 (--vg-tpl 放這裡)
+ */
+function applyColWidth(host) {
+    const grid = host.querySelector('.verse-grid.vg-side')
+    const getHeadCells = () => [...host.querySelectorAll('.vg-head[data-ver]')]
+    const heads = getHeadCells()
+    if (!grid || heads.length < 2) {
+        host.style.removeProperty('--vg-tpl')
+        return
+    }
+    new ColWidth({ host, varName: '--vg-tpl', versions: heads.map(h => h.dataset.ver), labelTpl: 'max-content ', getHeadCells, measureRoot: grid }).apply()
 }
 
 const FIRST_ONLY_KEY = 'fhlRefDlgFirstOnly'

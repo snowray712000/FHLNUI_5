@@ -361,6 +361,16 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - `VerseGrid`：加 `snOpt`（搜尋時 `offShowsAll`）、`cellExtra`、`labelWidth`、`renderVerseGridHeader()`、`effectiveLayout()`（單一譯本時交錯也用並排；交互參照也適用）
 - 已測（瀏覽器）：`摩西`（unv / kjv / csb，並排、KJV 不列、捲動載入第二批欄寬一致、表頭 sticky）、`G80`（只有和合本、SN 關著也顯示、查詢的 SN 標紫）、`羅1:3`（全部譯本）、交錯模式、`λόγος`（新約原文 / 七十士並排，只標同字形，同以前）；複製、點 SN 開字典、點經文位置跳轉；console 無錯誤；build 成功
 
+### 欄寬共用（2026-09-30，P6 之後）
+
+- 新增 `index/ColWidth.es2023.js`：自動量寬（`.lec[ver]` 每行寬度加總，0.6–1.8 倍）、拖表頭分隔線自訂、雙擊回自動；欄寬寫成 css 變數放在 host 上
+- **三處共用同一份自訂紀錄**（`localStorage.fhlLecColWidth`，依譯本組合、排序後的 key）：在任一處拖好，另兩處同組合就套用
+- 經文區：`LecColWidth` 變成薄包裝（grid 偵測、`#lecMainTitle` 對齊），host `#fhlLecture`、變數 `--lec-cols-tpl`
+- 交互參照：host 是對話框內容，變數 `--vg-tpl`，標籤欄 `max-content`；切換「只顯示第一個譯本」時重新套用 / 清掉
+- 搜尋結果：host `.sd-results`，變數 `--vg-tpl`，標籤欄 `6.5em`；**每個範圍只在第一批載入後量一次**，之後各批沿用（不會一直跳）；換範圍 / 新搜尋先清掉舊的
+- `VerseGrid`：並排多欄的 grid 用 `var(--vg-tpl, 等寬)`；表頭格加 `data-ver`；匯出 `labelTemplate()`
+- 已測（瀏覽器）：經文區自動（unv / kjv / fhlwh）；交互參照自動；搜尋 `摩西`（unv / rcuv / csb）第一批後量寬、捲動第二批欄寬相同；在搜尋結果拖曳 → 存紀錄 → 經文區同組合套用（藍色分隔線）；經文區雙擊 → 紀錄清掉回自動
+
 ## 六、決議（2026-09-30）與仍待決定
 
 ### 1. 表頭

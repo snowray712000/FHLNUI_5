@@ -14,7 +14,8 @@ import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
 import { greekLooseRegexSource } from './greekToFhlCode.es2023.js'
 import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
 import { cvt_others } from './cvt_others.js'
-import { renderVerseGrid, renderVerseGridHeader, effectiveLayout } from './VerseGrid.es2023.js'
+import { renderVerseGrid, renderVerseGridHeader, effectiveLayout, labelTemplate } from './VerseGrid.es2023.js'
+import { ColWidth } from './ColWidth.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -52,6 +53,8 @@ export class SearchDialog {
     /** 目前範圍 @type {{group_name: string, ibook: number | null}} */ filter = { group_name: '整卷聖經', ibook: null }
     /** 取經文中 (每次取都是新的 token，範圍改變時清掉，舊的回來就不會影響新的) @type {object | null} */
     #loadingToken = null
+    /** 欄寬：這個範圍還沒量過時才有，第一批載入後 apply 一次 @type {ColWidth | null} */
+    #colWidth = null
 
     /** @returns {JQuery<HTMLElement>} */
     get #dlg() { return this.#dlgHtml?.dlg ?? $() }
@@ -244,10 +247,18 @@ export class SearchDialog {
         }
         this.#setStatus(`${session.kind == 'reference' ? '' : `${session.verses.length} ${gbText('節')}`}${hint}`)
         this.#setResultsHtml('')
-        // 並排、多譯本：譯本名放在捲動區最上面 (sticky)，各批 grid 用同一個欄樣板
+        // 並排、多譯本：譯本名放在捲動區最上面 (sticky)，各批 grid 用同一個欄樣板 (--vg-tpl)
         const opt = gridOpt(session)
+        const results = this.#dlg.find('.sd-results')[0]
+        results.style.removeProperty('--vg-tpl')
+        this.#colWidth = null
         if (effectiveLayout(opt) == 'side' && opt.versions.length > 1) {
-            this.#dlg.find('.sd-results').append(renderVerseGridHeader(opt))
+            $(results).append(renderVerseGridHeader(opt))
+            // 欄寬：第一批載入後量一次 (之後各批沿用，不會一直跳)；自訂紀錄與經文區、交互參照共用
+            this.#colWidth = new ColWidth({
+                host: results, varName: '--vg-tpl', versions: opt.versions.map(v => v.version), labelTpl: labelTemplate(opt),
+                getHeadCells: () => [...results.querySelectorAll('.vg-head-row .vg-head[data-ver]')], measureRoot: results,
+            })
         }
         this.#loadingToken = null
         await this.#loadMoreAsync()
@@ -279,6 +290,10 @@ export class SearchDialog {
         $grid.find('.sn').addClass('seSN sebutton') // 搜尋結果的 SN 樣式 (灰、小)、點了開字典
         markSearchKeys($grid, keys)
         results$.append($grid)
+        if (this.#colWidth) { // 這個範圍的第一批：量欄寬
+            this.#colWidth.apply()
+            this.#colWidth = null
+        }
 
         // 還沒有捲軸 (內容太少)，繼續取
         const el = results$[0]

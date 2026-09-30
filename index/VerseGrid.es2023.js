@@ -54,10 +54,18 @@ function renderParagraph(verses, v, opt) {
     return $p
 }
 
-/** 欄的樣板：標籤欄 (固定寬或 max-content) + 經文欄 @param {GridOpt} opt @param {number} n 經文欄數 */
+/**
+ * 欄的樣板：標籤欄 (固定寬或 max-content) + 經文欄；並排多欄時先看容器上的 --vg-tpl (ColWidth 設的欄寬，表頭與各批 grid 一起變)
+ * @param {GridOpt} opt @param {number} n 經文欄數
+ */
 function columnsTemplate(opt, n) {
-    const label = (opt.isLabel ?? true) ? `${opt.labelWidth ?? 'max-content'} ` : ''
-    return `${label}repeat(${n}, minmax(0, 1fr))`
+    const label = labelTemplate(opt)
+    const tpl = `${label}repeat(${n}, minmax(0, 1fr))`
+    return n > 1 ? `var(--vg-tpl, ${tpl})` : tpl
+}
+/** 標籤欄的樣板 (含結尾空白，沒有標籤欄時是空字串)；ColWidth 的 labelTpl 用 @param {GridOpt} opt */
+export function labelTemplate(opt) {
+    return (opt.isLabel ?? true) ? `${opt.labelWidth ?? 'max-content'} ` : ''
 }
 
 /**
@@ -68,7 +76,7 @@ function columnsTemplate(opt, n) {
 export function renderVerseGridHeader(opt) {
     const $grid = $('<div>').addClass('verse-grid vg-side vg-head-row').css('grid-template-columns', columnsTemplate(opt, opt.versions.length))
     if (opt.isLabel ?? true) $grid.append($('<div>').addClass('vg-head'))
-    for (const v of opt.versions) $grid.append($('<div>').addClass('vg-head').text(v.name))
+    for (const v of opt.versions) $grid.append($('<div>').addClass('vg-head').attr('data-ver', v.version).text(v.name))
     return $grid
 }
 /** 只有一個譯本時，交錯也用並排 (標籤欄放經文位置，不必每列再寫譯本名) @param {GridOpt} opt */
@@ -113,7 +121,7 @@ export function renderVerseGrid(opt) {
         const r0 = opt.isHeader ? 2 : 1
         if (opt.isHeader) {
             if (isLabel) $grid.append($('<div>').addClass('vg-head').css({ 'grid-column': '1', 'grid-row': '1' }))
-            versions.forEach((v, i) => $grid.append($('<div>').addClass('vg-head').text(v.name).css({ 'grid-column': String(c0 + i), 'grid-row': '1' })))
+            versions.forEach((v, i) => $grid.append($('<div>').addClass('vg-head').attr('data-ver', v.version).text(v.name).css({ 'grid-column': String(c0 + i), 'grid-row': '1' })))
         }
         // 標籤欄放在經文前面 (不可選取，反白不會被它打斷)
         if (isLabel) rows.forEach((row, i) => $grid.append($label(row.label, r0 + i, 1, row.labelAttrs)))

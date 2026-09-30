@@ -2332,3 +2332,8 @@ body.lec-col-resizing, body.lec-col-resizing * {
     user-select: none;
     -webkit-user-select: none;
 }
+/* 對話框 (交互參照、搜尋結果) 表頭的欄寬分隔線 (index/ColWidth.es2023.js)：淺色表頭用深色細線 */
+.verse-grid .vg-head { position: sticky; } /* 已是 sticky；分隔線 absolute 以它為準 */
+.verse-grid .vg-head .lec-col-handle:not(.custom):not(:hover)::after {
+    background: var(--vg-col-handle, rgba(0, 0, 0, 0.22));
+}
