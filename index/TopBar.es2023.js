@@ -7,10 +7,12 @@
  * ≡ logo 信望愛聖經工具 v… ⟳ | 書卷章 ▼ | 搜尋 ▦ ? ⛶ ✉ ⋮ ▥
  *
  * - ≡ / ▥ 開關左、右側欄 (#fhlLeftWindowControl / #fhlInfoWindowControl，事件在 WindowControl)
- * - ▦ 信望愛資源 (原本滑過才出現的 7 組連結)，改成點了才開，不會擋到其它功能
+ * - ▦ 信望愛資源 (原本滑過才出現的 7 組連結)，改成點了才開，不會擋到其它功能；連結與「?」說明在 Resources.es2023.js
  * - 窄的時候 (見 fhl.css 的 @media)，.tb-wide 的按鈕收進 ⋮，搜尋框收成 🔍 (按了才展開蓋住整列)
  * - 版面寬窄全交給 css，這裡只處理開關
  */
+import { ensureResourceHelpAsync } from './Resources.es2023.js'
+
 export class TopBar {
     static #s = null
     /** @returns {TopBar} */
@@ -88,6 +90,7 @@ export class TopBar {
         $p.prop('hidden', false)
         $('#tbBackdrop').prop('hidden', false)
         $(btn).addClass('open')
+        if (panel == '#resourcesPanel') ensureResourceHelpAsync($p[0]) // 連結旁的「?」，第一次開才讀說明
         // 面板右緣對齊按鈕右緣；太寬 (手機) 就由 css 的 max-width 限制，靠右
         const btnRight = $(btn)[0].getBoundingClientRect().right
         const right = Math.max(4, window.innerWidth - btnRight)

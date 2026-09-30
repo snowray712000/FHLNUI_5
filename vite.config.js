@@ -48,6 +48,7 @@ const LEGACY_COPY = [
   'frmUpdated.html',
   'docs/使用說明.md', // 工具列「?」讀這份 (Help.es2023.js)；docs/ 其餘是開發文件，不上傳
   'docs/SN讀經組合說明.md', // SN 篩選「讀經組合」的「?」讀這份 (SnFilterDialog.es2023.js)
+  'docs/信望愛資源說明.md', // ▦ 信望愛資源面板連結旁的「?」讀這份 (Resources.es2023.js)
 ]
 
 function copyLegacyFiles() {
