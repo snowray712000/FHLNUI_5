@@ -10,10 +10,11 @@ import { FhlLecture } from './FhlLecture.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 import { SN_Act_Color } from './SN_Act_Color.es2023.js'
-import { SnFilter } from './SnFilter.es2023.js'
 import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
 import { greekLooseRegexSource } from './greekToFhlCode.es2023.js'
 import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
+import { cvt_others } from './cvt_others.js'
+import { renderVerseGrid, renderVerseGridHeader, effectiveLayout } from './VerseGrid.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -29,14 +30,14 @@ import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
   <div.sd-groups> 分類 (整卷聖經、舊約、新約、摩西五經 …)，只列有結果的 </div>
   <div.sd-books> 目前分類下，有結果的書卷 </div>
   <div#searchDlgResults.sd-results>
-    <div.sd-verse>
-      <a.sd-addr>雅 1:2</a>
-      <div.sd-texts>
-        <div.sd-text-row> <span.sd-ver>和合本</span> <span.sd-text>…</span> <span.sd-copy/> </div>
-      </div>
+    <div.verse-grid.vg-head-row> 譯本名 (並排、多譯本時；sticky) </div>
+    <div.verse-grid> 一批 (SearchSession.BATCH 節) 一個 grid，與經文區、交互參照共用 VerseGrid (docs/z260930d P6)
+      <div.vg-label data-goto>雅 1:2</div>  (標籤欄固定寬，各批才對齊)
+      <div.vercol ver> <div.paragraph> <span.lec> … </span> <span.sd-copy/> </div> </div>
     </div>
   </div>
 </div>
+每列只放「找到關鍵字的譯本」，沒找到的格子留空
 */
 export class SearchDialog {
     static #s = null
@@ -151,17 +152,20 @@ export class SearchDialog {
             that.filter = { group_name: that.filter.group_name, ibook }
             that.#renderGroups()
             that.#applyFilterAsync()
-        }).on('click', '.sd-addr', function () {
-            that.#goto(parseInt($(this).attr('ibook')), parseInt($(this).attr('chap')), parseInt($(this).attr('sec')))
+        }).on('click', '[data-goto]', function () {
+            const [book, chap, sec] = JSON.parse($(this).attr('data-goto'))
+            that.#goto(book - 1, chap, sec)
         }).on('click', '.sd-copy', function () {
-            const row = $(this).closest('.sd-text-row')
-            const addr = row.closest('.sd-verse').find('.sd-addr').text()
-            const text = row.find('.sd-text').text()
+            const p = $(this).closest('.paragraph')
+            const lec = p.find('.lec')
+            const names = BibleConstantHelper.getBookNameArrayChineseShort()
+            const addr = `${names[lec.attr('book') - 1]} ${lec.attr('chap')}:${lec.attr('sec')}`
+            const text = p.find('.verseContent').get().map(e => e.innerText.trim()).join(' ') // innerText：隱藏的 SN 不算
             copy_text_to_clipboard(async () => `${addr} ${text}`)
         }).on('click', '.seSN', function (e) {
             // 字典中要高亮的是「這筆搜尋結果」的經文，而不是 ps 目前閱讀位置
-            const addr$ = $(this).closest('.sd-verse').find('.sd-addr')
-            const activeAddr = addr$.length ? { book: parseInt(addr$.attr('ibook')) + 1, chap: addr$.attr('chap'), verse: addr$.attr('sec') } : undefined
+            const lec = $(this).closest('.lec')
+            const activeAddr = lec.length ? { book: parseInt(lec.attr('book')), chap: lec.attr('chap'), verse: lec.attr('sec') } : undefined
             queryDictionaryAndShowAtDialogAsync({ sn: $(this).attr('sn'), isOld: $(this).attr('tp') == 'H', activeAddr })
             e.stopPropagation()
         }).on('mouseenter', '.sn', function () {
@@ -240,6 +244,11 @@ export class SearchDialog {
         }
         this.#setStatus(`${session.kind == 'reference' ? '' : `${session.verses.length} ${gbText('節')}`}${hint}`)
         this.#setResultsHtml('')
+        // 並排、多譯本：譯本名放在捲動區最上面 (sticky)，各批 grid 用同一個欄樣板
+        const opt = gridOpt(session)
+        if (effectiveLayout(opt) == 'side' && opt.versions.length > 1) {
+            this.#dlg.find('.sd-results').append(renderVerseGridHeader(opt))
+        }
         this.#loadingToken = null
         await this.#loadMoreAsync()
     }
@@ -265,11 +274,11 @@ export class SearchDialog {
         this.#loadingToken = null
         if (rows == null) return
 
-        const isMultiVersion = session.kind == 'sn' ? false : session.versions.length > 1
         const keys = session.kind == 'sn' ? { sn: session.sn } : { words: session.kind == 'keyword' ? session.keyword : '' }
-        const rows$ = rows.map(row => renderRow(row, isMultiVersion, keys, session.gb))
-        for (const r$ of rows$) SnFilter.s.apply(r$, { offShowsAll: true }) // 搜 SN 時會強制帶 SN，SN 關閉也要顯示
-        results$.append(rows$)
+        const $grid = renderVerseGrid({ ...gridOpt(session), rows: toVerseRows(rows) })
+        $grid.find('.sn').addClass('seSN sebutton') // 搜尋結果的 SN 樣式 (灰、小)、點了開字典
+        markSearchKeys($grid, keys)
+        results$.append($grid)
 
         // 還沒有捲軸 (內容太少)，繼續取
         const el = results$[0]
@@ -295,62 +304,97 @@ export class SearchDialog {
 }
 
 /**
- * @param {SearchRow} row
- * @param {boolean} isMultiVersion
- * @param {{sn?: string, words?: string}} keys
- * @param {0|1} gb
+ * 搜尋結果的 grid 設定：譯本 (SN 搜尋只有和合本)、並排 / 交錯照目前的顯示模式、標籤欄固定寬 (各批才對齊)
+ * @param {SearchSession} session
+ * @returns {import('./VerseGrid.es2023.js').GridOpt}
  */
-function renderRow(row, isMultiVersion, keys, gb) {
-    const names = BibleConstantHelper.getBookNameArrayChineseShort()
-    const verse$ = $('<div class="sd-verse">')
-    $('<a class="sd-addr">')
-        .attr({ ibook: row.ibook, chap: row.chap, sec: row.sec })
-        .text(`${names[row.ibook]} ${row.chap}:${row.sec}`)
-        .appendTo(verse$)
-
-    const texts$ = $('<div class="sd-texts">').appendTo(verse$)
-    for (const t of row.texts) {
-        // data-vaddr data-ver：SN 篩選的動詞形態要知道是哪一節、哪個譯本
-        const row$ = $('<div class="sd-text-row">').attr({ 'data-vaddr': `${row.ibook + 1}.${row.chap}.${row.sec}`, 'data-ver': t.ver }).appendTo(texts$)
-        if (isMultiVersion) {
-            $('<span class="sd-ver">').text(abvphp.get_cname_from_book(t.ver, gb == 1) || t.ver).appendTo(row$)
-        }
-        $('<span class="sd-text">').attr('dir', t.ver == 'bhs' ? 'rtl' : null).html(colorBibleText(t.bible_text, keys)).appendTo(row$)
-        $('<span class="sd-copy" title="copy"><i class="fa fa-files-o"></i></span>').appendTo(row$)
+function gridOpt(session) {
+    const ps = TPPageState.s
+    const failed = new Set(session.failedVersions.map(a => a.ver))
+    // 整次搜尋都沒找到的譯本不列欄 (例 中文關鍵字時的 KJV)；經文查詢 (reference) 沒有 verses，全列
+    const found = session.kind == 'reference' ? null : new Set(session.verses.flatMap(v => v.vers))
+    const vers = (session.kind == 'sn' ? ['unv'] : session.versions).filter(v => !failed.has(v) && (found == null || found.has(v)))
+    return {
+        versions: vers.map(ver => ({ version: ver, name: abvphp.get_cname_from_book(ver, session.gb == 1) || ver, isRtl: ver == 'bhs' })),
+        layout: ps.show_mode == 2 || ps.show_mode == 4 ? 'interleaved' : 'side',
+        isLabel: true,
+        labelWidth: '6.5em',
+        snOpt: { offShowsAll: true }, // 搜 SN 時會強制帶 SN，SN 關閉也要顯示
+        cellExtra: () => $('<span class="sd-copy" title="copy"><i class="fa fa-files-o"></i></span>'),
     }
-    return verse$
 }
 
 /**
- * 經文中的 SN 轉為可點的 span，關鍵字上色
- * 取代 qsbphp.create_color_span_from_bible_text
- * @param {string} bible_text qsb 回傳的，可能含 `<WG80>`、`<WTG5661>`、`{<WG3752>}`
- * @param {{sn?: string, words?: string}} keys sn 例 `80` `652a`；words 以空白分隔
- * @returns {string} html
+ * qsb 的經文 → VerseGrid 的列 (一節一列)；每個譯本一次 cvt_others
+ * @param {SearchRow[]} rows
+ * @returns {import('./VerseGrid.es2023.js').VerseRow[]}
  */
-export function colorBibleText(bible_text, keys) {
-    const reSn = /(\{)?<W(T?)([HG])(\d+)(a?)>(\})?/gi
-    let html = bible_text.replace(reSn, (s0, braceL, sT, sHG, sNum, sA, braceR) => {
-        if ((braceL != null) != (braceR != null)) {
-            // 大括號不成對，當成一般文字處理
-            braceL = braceR = undefined
+function toVerseRows(rows) {
+    const names = BibleConstantHelper.getBookNameArrayChineseShort()
+    /** @type {Map<string, [number, number, number, string][]>} */
+    const recordsOfVer = new Map()
+    for (const row of rows) {
+        for (const t of row.texts) {
+            if (!recordsOfVer.has(t.ver)) recordsOfVer.set(t.ver, [])
+            recordsOfVer.get(t.ver).push([row.ibook + 1, row.chap, row.sec, t.bible_text])
         }
-        const sn = `${parseInt(sNum)}${sA}`
-        const str1 = sT.toUpperCase() == 'T' ? `(${sn})` : `<${sn}>`
-        const str2 = braceL != null ? `{${str1}}` : str1
-        const span = $('<span class="seSN sebutton sn">').text(str2).attr({ sn, tp: sHG.toUpperCase(), tp2: `W${sT.toUpperCase()}${sHG.toUpperCase()}` })
-        if (braceL != null) span.addClass('isCurly')
-        if (sT.toUpperCase() != 'T' && keys.sn != null && keys.sn == sn) span.addClass('seKey')
-        return span[0].outerHTML
+    }
+    /** @type {Map<string, import('./DText.js').DText[]>} "ver|book.chap.sec" → DText[] */
+    const dtextsOf = new Map()
+    for (const [ver, records] of recordsOfVer) {
+        for (const [book, chap, sec, dtexts] of cvt_others(ver, records)) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
+    }
+
+    return rows.map(row => {
+        const book = row.ibook + 1
+        const cells = {}
+        for (const t of row.texts) {
+            let dtexts = dtextsOf.get(`${t.ver}|${book}.${row.chap}.${row.sec}`) ?? []
+            if (dtexts.length == 1 && dtexts[0].w == 'a') dtexts = [{ w: gbText('（併入上節）'), class: 'vg-merged' }]
+            // 標籤欄已有經文位置，格內不再寫節碼
+            cells[t.ver] = [{ book, chap: row.chap, sec: row.sec, dtexts, hideVerseNumber: true }]
+        }
+        return {
+            label: `${names[row.ibook]} ${row.chap}:${row.sec}`,
+            labelAttrs: { 'data-goto': JSON.stringify([book, row.chap, row.sec]), title: gbText('經文區跳到這裡') },
+            cells,
+        }
     })
+}
 
-    const words = (keys.words ?? '').split(/[\s\u05be]+/)
+/**
+ * 查詢的 SN、關鍵字加 .seKey (渲染後在 DOM 上標，SN 的數字不動)
+ * @param {JQuery<HTMLElement>} $root
+ * @param {{sn?: string, words?: string}} keys sn 例 `80` `652a`；words 以空白分隔
+ */
+export function markSearchKeys($root, keys) {
+    if (keys.sn != null) {
+        $root.find('.sn').each((i, e) => {
+            if (e.getAttribute('sn') == keys.sn && !/^WT/.test(e.getAttribute('tp2') ?? '')) e.classList.add('seKey')
+        })
+    }
+
+    const words = (keys.words ?? '').split(/[\s־]+/)
         .filter(w => w.length > 0 && !/^(and|or|not)$/i.test(w))
-    if (words.length == 0) return html
+    if (words.length == 0) return
+    const re = new RegExp(words.map(w => isHebrewKeyword(w) ? hebLooseRegexSource(w) : greekLooseRegexSource(w)).join('|'), 'gi')
 
-    // 只換標籤以外的文字，避免改到 <span sn="..."> 之類的屬性
-    const reWords = new RegExp(words.map(w => isHebrewKeyword(w) ? hebLooseRegexSource(w) : greekLooseRegexSource(w)).join('|'), 'gi')
-    return html.split(/(<[^>]*>)/).map(part =>
-        part.startsWith('<') ? part : part.replace(reWords, m => `<span class="seKey">${m}</span>`)
-    ).join('')
+    for (const content of $root.find('.verseContent').get()) {
+        const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT)
+        const nodes = []
+        for (let n = walker.nextNode(); n != null; n = walker.nextNode()) nodes.push(n)
+        for (const n of nodes) {
+            if (n.parentElement?.closest('.sn')) continue
+            const matches = [...n.data.matchAll(re)].filter(m => m[0].length > 0)
+            if (matches.length == 0) continue
+            const frag = document.createDocumentFragment()
+            let last = 0
+            for (const m of matches) {
+                frag.append(n.data.slice(last, m.index), $('<span class="seKey">').text(m[0])[0])
+                last = m.index + m[0].length
+            }
+            frag.append(n.data.slice(last))
+            n.replaceWith(frag)
+        }
+    }
 }

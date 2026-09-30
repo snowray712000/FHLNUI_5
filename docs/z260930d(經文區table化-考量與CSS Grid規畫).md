@@ -326,7 +326,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 不和經文區同一批改：經文區波及已大；搜尋還有關鍵字上色、分組 / 書卷篩選、`.sd-copy`。不連續節也碰不到經文區最麻煩的併節 / 段落 / `reshape`。順序：
 
 - P5：交互參照 dialog 改用核心，支援多譯本（✅ 2026-09-30，見下方「P5 實作」）
-- P6：搜尋結果改走 DText + 核心，關鍵字上色移到 DText，提供並排 / 交錯
+- P6：搜尋結果改走 DText + 核心，關鍵字上色移到 DText，提供並排 / 交錯（✅ 2026-09-30，見下方「P6 實作」）
 - P7：複製對照表擴及搜尋與交互參照；SnFilter 移除 `[data-vaddr]` 分支
 
 ---
@@ -347,6 +347,19 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
   - 移除舊的 `prepare_dtexts_for_html(…, 2)` + `cvtDTextsToHtml` 路徑（`prepare_dtexts_for_html.js` 與它的測試已刪除）
 - 原文譯本（fhlwh / bhs / lxx）在對話框仍走 `qsb`（經文區讀本機 json）；bhs 的行序問題未處理
 - 已測（瀏覽器）：`羅3:23-25;6:23;西2:20-22` × unv / kjv / csb 並排（三組、併節 20-21、表頭、標籤欄）；交錯模式；單一譯本（無表頭）；點經文位置經文區跳過去；點節碼開整章（先問方式，同以前）；經文區不受影響；console 無錯誤；build 成功
+
+### P6 實作（2026-09-30）：搜尋結果
+
+- `SearchDialog_es2023.js`：`renderRow` + `colorBibleText`（對 qsb 字串 regex）→ `toVerseRows`（每個譯本一次 `cvt_others`）+ `renderVerseGrid`
+  - 一節一列，標籤欄是經文位置（`[data-goto]`，點了經文區跳過去，dialog 留著）；格內不寫節碼
+  - 每列只放「找到關鍵字的譯本」，沒找到的格留空；**整次搜尋都沒找到的譯本不列欄**（例 中文關鍵字時的 KJV）；經文查詢（reference）列全部
+  - 並排 / 交錯照目前顯示模式；單一譯本（SN 搜尋只有和合本）一律並排
+  - 分批載入（`SearchSession.BATCH`）：一批一個 `.verse-grid`，標籤欄固定 `6.5em`，各批欄寬才一樣；表頭是獨立的 `renderVerseGridHeader()`，放在 `.sd-results` 最上面 sticky
+  - 關鍵字、查詢的 SN：渲染後在 DOM 上加 `.seKey`（`markSearchKeys`；文字節點用同一個 loose regex，SN 看 `[sn]`、排除時態碼）；SN 加 `.seSN`，灰色小字、點了開字典（activeAddr 取 `.lec`）、紫色、hover 紅色都照舊
+  - 複製鈕 `.sd-copy` 在每格最後（`cellExtra`），複製「位置 + 看得到的字」
+  - 併入上節（`a`）顯示「（併入上節）」灰字
+- `VerseGrid`：加 `snOpt`（搜尋時 `offShowsAll`）、`cellExtra`、`labelWidth`、`renderVerseGridHeader()`、`effectiveLayout()`（單一譯本時交錯也用並排；交互參照也適用）
+- 已測（瀏覽器）：`摩西`（unv / kjv / csb，並排、KJV 不列、捲動載入第二批欄寬一致、表頭 sticky）、`G80`（只有和合本、SN 關著也顯示、查詢的 SN 標紫）、`羅1:3`（全部譯本）、交錯模式、`λόγος`（新約原文 / 七十士並排，只標同字形，同以前）；複製、點 SN 開字典、點經文位置跳轉；console 無錯誤；build 成功
 
 ## 六、決議（2026-09-30）與仍待決定
 

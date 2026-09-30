@@ -18,7 +18,7 @@ import { SnFilter } from './SnFilter.es2023.js'
  * 一節一譯本
  * @param {VerseItem} verse
  * @param {string} version
- * @param {{ numberDText?: DText }} [opt] numberDText：節碼改用這個 DText 畫 (例：交互參照的節碼是 .ref，點了看整章)
+ * @param {{ numberDText?: DText, snOpt?: object }} [opt] numberDText：節碼改用這個 DText 畫 (例：交互參照的節碼是 .ref，點了看整章)；snOpt：給 SnFilter.apply (例 搜尋 SN 時 offShowsAll)
  * @returns {JQuery<HTMLElement>}
  */
 export function renderVerseLec(verse, version, opt = {}) {
@@ -38,45 +38,78 @@ export function renderVerseLec(verse, version, opt = {}) {
 
     const $content = render_dtexts([[verse.book, verse.chap, verse.sec, verse.dtexts]], version)
     // 所有資料都含 SN，strong=0 時隱藏；篩選時只顯示指定的 (docs/z260928e)
-    SnFilter.s.apply($content, { addr: `${verse.book}.${verse.chap}.${verse.sec}`, ver: version })
+    SnFilter.s.apply($content, { ...opt.snOpt, addr: `${verse.book}.${verse.chap}.${verse.sec}`, ver: version })
     return $lec.append($('<span>').addClass('verseContent').append($content))
 }
 
 /**
  * 一格：一個譯本的一段 (多節接在一起)
- * @param {VerseItem[]} verses @param {VersionCol} v @param {{ numberDTextOf?: (verse: VerseItem) => DText }} opt
+ * @param {VerseItem[]} verses @param {VersionCol} v @param {GridOpt} opt
  */
 function renderParagraph(verses, v, opt) {
     const $p = $('<div>').addClass('paragraph').attr('ver', v.version)
     if (v.isRtl) $p.css({ 'text-align': 'right', direction: 'rtl' })
-    for (const verse of verses) $p.append(renderVerseLec(verse, v.version, { numberDText: opt.numberDTextOf?.(verse) }))
+    for (const verse of verses) $p.append(renderVerseLec(verse, v.version, { numberDText: opt.numberDTextOf?.(verse), snOpt: opt.snOpt }))
+    if (verses.length && opt.cellExtra) $p.append(opt.cellExtra(verses, v))
     return $p
 }
 
+/** 欄的樣板：標籤欄 (固定寬或 max-content) + 經文欄 @param {GridOpt} opt @param {number} n 經文欄數 */
+function columnsTemplate(opt, n) {
+    const label = (opt.isLabel ?? true) ? `${opt.labelWidth ?? 'max-content'} ` : ''
+    return `${label}repeat(${n}, minmax(0, 1fr))`
+}
+
 /**
- * @param {{
+ * 只有表頭 (譯本名) 的 grid：分批載入 (搜尋結果) 時放在捲動區最上面 (sticky)；各批 grid 用同一個欄樣板 (labelWidth 要固定) 才對得齊
+ * @param {GridOpt} opt
+ * @returns {JQuery<HTMLElement>} div.verse-grid.vg-head-row
+ */
+export function renderVerseGridHeader(opt) {
+    const $grid = $('<div>').addClass('verse-grid vg-side vg-head-row').css('grid-template-columns', columnsTemplate(opt, opt.versions.length))
+    if (opt.isLabel ?? true) $grid.append($('<div>').addClass('vg-head'))
+    for (const v of opt.versions) $grid.append($('<div>').addClass('vg-head').text(v.name))
+    return $grid
+}
+/** 只有一個譯本時，交錯也用並排 (標籤欄放經文位置，不必每列再寫譯本名) @param {GridOpt} opt */
+export function effectiveLayout(opt) {
+    return opt.versions.length > 1 && opt.layout == 'interleaved' ? 'interleaved' : 'side'
+}
+
+/**
+ * @typedef {{
  *   versions: VersionCol[],
- *   rows: VerseRow[],
+ *   rows?: VerseRow[],
  *   layout: 'side' | 'interleaved',
  *   isHeader?: boolean,
  *   isLabel?: boolean,
+ *   labelWidth?: string,
  *   numberDTextOf?: (verse: VerseItem) => DText,
- * }} opt
+ *   snOpt?: object,
+ *   cellExtra?: (verses: VerseItem[], v: VersionCol) => (Node | JQuery<HTMLElement>),
+ * }} GridOpt
  *   side：一個譯本一欄，一列 = rows 的一列；isHeader 時第一列是譯本名 (sticky)
- *   interleaved：一欄經文；每列前一條「經文位置」，再各譯本一列 (標籤欄放譯本名)
+ *   interleaved：一欄經文；每列前一條「經文位置」，再各譯本一列 (標籤欄放譯本名)；只有一個譯本時改用 side
+ *   labelWidth：標籤欄寬 (css)，預設 max-content；分批的 grid 要固定寬才對齊
+ *   cellExtra：每格最後加的東西 (例 搜尋結果的複製鈕)
+ */
+/**
+ * @param {GridOpt} opt
  * @returns {JQuery<HTMLElement>} div.verse-grid
  */
 export function renderVerseGrid(opt) {
-    const { versions, rows } = opt
+    const { versions } = opt
+    const rows = opt.rows ?? []
     const isLabel = opt.isLabel ?? true
-    const $grid = $('<div>').addClass('verse-grid ' + (opt.layout == 'side' ? 'vg-side' : 'vg-interleaved'))
+    const layout = effectiveLayout(opt)
+    const $grid = $('<div>').addClass('verse-grid ' + (layout == 'side' ? 'vg-side' : 'vg-interleaved'))
     const c0 = isLabel ? 2 : 1 // 第一個經文欄
 
     const $label = (text, row, col, attrs) => $('<div>').addClass('vg-label').text(text ?? '')
         .attr(attrs ?? {}).css({ 'grid-column': String(col), 'grid-row': String(row) })
 
-    if (opt.layout == 'side') {
-        $grid.css('grid-template-columns', `${isLabel ? 'max-content ' : ''}repeat(${versions.length}, minmax(0, 1fr))`)
+    if (layout == 'side') {
+        $grid.css('grid-template-columns', columnsTemplate(opt, versions.length))
         const r0 = opt.isHeader ? 2 : 1
         if (opt.isHeader) {
             if (isLabel) $grid.append($('<div>').addClass('vg-head').css({ 'grid-column': '1', 'grid-row': '1' }))
@@ -97,7 +130,7 @@ export function renderVerseGrid(opt) {
     }
 
     // 交錯：| 譯本名 | 經文 |，每組前一條經文位置
-    $grid.css('grid-template-columns', `${isLabel ? 'max-content ' : ''}minmax(0, 1fr)`)
+    $grid.css('grid-template-columns', columnsTemplate(opt, 1))
     const $vercol = $('<div>').addClass('vercol').appendTo($grid)
     let r = 1
     rows.forEach((row, iRow) => {
