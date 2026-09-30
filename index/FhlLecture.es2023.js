@@ -644,6 +644,9 @@ function reshape_for_align_each_sec() {
         return
     }
 
+    // CSS Grid 版 (.lec-grid) 列高由 grid 對齊，不用量 (docs/z260930d)
+    if ($lecMain.children('.lec-grid').length) return
+
     const cols = $lecMain.children('.vercol') // 原程式用 children 會包含到 div#div_copyright，所以改用 .vercol
 
     var qcols = Enumerable.from(cols);

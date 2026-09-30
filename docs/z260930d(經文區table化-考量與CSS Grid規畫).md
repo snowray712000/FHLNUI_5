@@ -248,11 +248,23 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 
 ### 分階段
 
-1. **P1 版面**：mode 1/3 改 grid + `display: contents`；`reshape` 在 grid 時 no-op；併節 span；表頭先維持 `#lecMainTitle`。以 feature flag（例如 `ps` 或 localStorage）可切回舊版。**模型、單節渲染、grid 版面寫成不依賴 `#lecMain` 的模組**（第五節），表頭、列標籤欄是選項
+1. **P1 版面**（✅ 2026-09-30 完成，見下方「P1 實作」）：mode 1/3 改 grid + `display: contents`；`reshape` 在 grid 時 no-op；併節 span；表頭先維持 `#lecMainTitle`。以 feature flag（例如 `ps` 或 localStorage）可切回舊版。**模型、單節渲染、grid 版面寫成不依賴 `#lecMain` 的模組**（第五節），表頭、列標籤欄是選項
 2. **P2 表頭（可延後）**：經文區要不要改用 grid 內 sticky 表頭、移除 `#lecMainTitle` 寬度算式，到時再決定；交錯模式可開列標籤欄
 3. **P3 複製對照表**：原型已在 div 版（`index/LecCopyTable.es2023.js`）；改 grid 後確認仍可用，取字可改從資料模型
 4. **P4 清理**：移除 `reshape_for_align_each_sec` 與各呼叫點、`isMergePlaceholder` 在 mode 1/3 的路徑、flag
 5. **P5–P7**：交互參照、搜尋結果改用同一核心（第五節）
+
+### P1 實作（2026-09-30）
+
+- `index/lecture/FhlLecture_render_core.js` `render_grid()`：mode 1/3 產生 `#lecMain > .lec-grid > .vercol[ver] (display: contents) > .paragraph`，`.paragraph` 用 inline `grid-column` / `grid-row` 定位，帶 `data-row`（列，0 起）
+- 整段都是併入上節的 placeholder → 不產生元素，上一段 `grid-row: r / span n`
+- `isLecGridEnabled()`：`localStorage.fhlLecLayout = 'div'` 切回舊版（inline-block + reshape）
+- `reshape_for_align_each_sec()` 遇到 `.lec-grid` 直接 return（呼叫點都還在，P4 再清）
+- 版權宣告仍 append 在 `#lecMain`，在 `.lec-grid` 外面，不必處理 grid 位置
+- 原本 `.vercol` 的 `margin-top`（依字型大小）改成 `.lec-grid` 的 `padding-top`；邊框改畫在 `.paragraph`（`fhl.css`）
+- 表頭仍是 `#lecMainTitle`（沒動）；mode 2/4 仍走舊的交錯版
+- `LecCopyTable` 一段一列改看 `data-row`（grid 版 index 會因省略 placeholder 而錯位）
+- 已測（瀏覽器）：西 2（unv / rcuv / csb）mode 1、3 各列對齊、併節 span；改 `--fontsize`、縮窄 `#lecMain` 後不呼叫 reshape 仍對齊；複製對照表 mode 1 / 3；點選節、`selectLecture` 捲到選取節；創 1（unv / bhs / csb）RTL、無橫向溢出；切回 div 版；console 無錯誤。**平板、SN 篩選、注腳直接載入、pos/pho 尚未實測**
 
 ### 驗證（每階段）
 

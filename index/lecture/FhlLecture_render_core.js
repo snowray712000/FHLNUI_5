@@ -65,6 +65,9 @@ export async function FhlLecture_render_core(rspApp, mode) {
     const ps = TPPageState.s
 
     const contentVm = await build_view_model(rspApp, mode)
+    if ((mode === 1 || mode === 3) && isLecGridEnabled()) {
+        return render_grid(contentVm, ps.fontSize)
+    }
     const copyDir = (mode === 1 || mode === 3) ? "col" : "row"
     const layoutVm = build_layout_vm(contentVm, mode, copyDir)
 
@@ -82,6 +85,53 @@ export async function FhlLecture_render_core(rspApp, mode) {
     }
 
     return htmlContent;
+}
+
+/**
+ * 並排 (mode 1/3) 用 CSS Grid (docs/z260930d 第四節)；localStorage fhlLecLayout = 'div' 可切回舊版 (inline-block + reshape 量高度)
+ * @returns {boolean}
+ */
+export function isLecGridEnabled() {
+    try { return localStorage.getItem('fhlLecLayout') != 'div' } catch { return true }
+}
+
+/**
+ * 並排的 CSS Grid 版：
+ * - .lec-grid (grid) > .vercol (display: contents，一個譯本一個) > .paragraph (grid item)
+ * - DOM 仍是一欄一欄 (欄優先)，原生反白沿欄往下；各欄第 i 段在同一列 → 列高由 grid 對齊，不用 reshape
+ * - 整段都是「併入上節」的 placeholder → 不產生元素，上一段往下跨列 (grid-row: r / span n)
+ * - .paragraph 帶 data-row (列，0 起)，LecCopyTable 一段一列時用
+ * @param {ContentVm} contentVm
+ * @param {number} fontSizeOfPs ps.fontSize
+ * @returns {JQuery<HTMLElement>} 外層是暫時的 div#lecMain (呼叫端取 .html())
+ */
+function render_grid(contentVm, fontSizeOfPs) {
+    const versions = contentVm.versions
+    const $htmlContent = $("<div id='lecMain'></div>")
+    const $grid = $("<div class='lec-grid'></div>")
+        .css({ '--lec-cols': String(Math.max(versions.length, 1)), 'padding-top': `${Math.max(fontSizeOfPs * 1.25 - 15, 0)}px` })
+        .appendTo($htmlContent)
+
+    versions.forEach((v, iCol) => {
+        const $vercol = $("<div class='vercol'></div>").attr('ver', v.version).appendTo($grid)
+        /** @type {{$p: JQuery<HTMLElement>, row: number, span: number} | null} */
+        let last = null
+        v.paragraphs.forEach((paragraph, iRow) => {
+            if (paragraph.verses.length && paragraph.verses.every(a => a.hideVerseContent)) {
+                if (last) {
+                    last.span++
+                    last.$p.css('grid-row', `${last.row + 1} / span ${last.span}`)
+                }
+                return
+            }
+            const $p = render_paragraph_div({ version: v.version, isRtl: v.isRtl, paragraph })
+                .css({ margin: '', padding: '', height: '', 'grid-column': String(iCol + 1), 'grid-row': String(iRow + 1) }) // 字串：避免 jQuery 補 px
+                .attr('data-row', iRow)
+                .appendTo($vercol)
+            last = { $p, row: iRow, span: 1 }
+        })
+    })
+    return $htmlContent
 }
 
 /**

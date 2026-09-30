@@ -256,15 +256,17 @@ function columnsByVerse(versions, all, hitSet, lo, hi) {
     })
 }
 /**
- * 如所見一段一列 (mode 3 並排)：各欄第 i 個 .paragraph 在畫面上是同一列 (reshape 對齊)
+ * 如所見一段一列 (mode 3 並排)：各欄第 i 個 .paragraph 在畫面上是同一列 (grid 版看 data-row；div 版 reshape 對齊)
  * @param {string[]} versions @param {HTMLElement[]} hit 起訖節之間真的選到的
  * @returns {Cell[][]}
  */
 function columnsByParagraph(versions, hit) {
     /** @param {HTMLElement} lec */
     const rowOf = lec => {
-        const p = lec.closest('.paragraph')
-        return p ? [...p.parentElement.children].filter(a => a.classList.contains('paragraph')).indexOf(p) : -1
+        const p = /** @type {HTMLElement} */ (lec.closest('.paragraph'))
+        if (!p) return -1
+        if (p.dataset.row != null) return +p.dataset.row // grid 版：併入上節的段不產生元素，不能用 index
+        return [...p.parentElement.children].filter(a => a.classList.contains('paragraph')).indexOf(p)
     }
     const rowIds = [...new Set(hit.map(rowOf))].sort((a, b) => a - b)
     return versions.map(ver => rowIds.map(row => ({ lecs: hit.filter(a => a.getAttribute('ver') == ver && rowOf(a) == row), rs: 1 })))

@@ -2048,6 +2048,22 @@ body {
   user-select: none;           /* Non-prefixed version, currently
                                   not supported by any browser */
 }
+/* 並排 (mode 1/3) CSS Grid 版 (index/lecture/FhlLecture_render_core.js render_grid, docs/z260930d)
+   .vercol 是 display: contents：DOM 仍一欄一欄 (原生反白沿欄走)，font-size 等仍會繼承，邊框改畫在 .paragraph */
+#lecMain > .lec-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--lec-cols), minmax(0, 1fr)); /* minmax(0,…)：長字、表格不撐破欄寬 */
+    align-items: stretch;
+}
+#lecMain > .lec-grid > .vercol {
+    display: contents;
+}
+#lecMain > .lec-grid .paragraph {
+    min-width: 0;
+    padding: 7px 0.25rem;
+    border-left: 1px dashed lightgray;
+    border-right: 1px dashed lightgray;
+}
 .vercol {
     border-right-width: 1px;
     border-right-style: dashed;
