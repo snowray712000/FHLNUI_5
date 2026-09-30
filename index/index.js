@@ -72,6 +72,7 @@ import { registerEvents_doc } from './registerEvents_doc.es2023.js'
 import { ParagraphData } from './ParagraphData_es2023.js'
 import { addViewHistoryEvents } from './addViewHistoryEvents_es2023.js'
 import { SearchDialog } from './SearchDialog_es2023.js'
+import { LecCopyTable } from './LecCopyTable.es2023.js' // 經文反白後的「複製對照表」(docs/z260930d)
 import { hash_change_on_initial } from './hash_change_on_initial.js'
 import { Hash_Changed } from './Hash_Changed.js'
 (function (root) {
@@ -146,6 +147,7 @@ import { Hash_Changed } from './Hash_Changed.js'
     ParagraphData.s.isReadyAndStartingIfNeed()
 
     window.fhlLecture = FhlLecture.s
+    LecCopyTable.s.init()
 
     // 原本 testIsLastVersion() 以同步 ajax 取 app_versions.json，會卡住整頁
     AppVersion.s.testIsLastVersionAsync().then(isLastVersion => {

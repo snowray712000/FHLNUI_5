@@ -2195,3 +2195,31 @@ body {
     color: #d9534f;
     font-weight: bold;
 }
+
+/* 經文反白後的「複製對照表」浮動按鈕 (index/LecCopyTable.es2023.js, docs/z260930d) */
+:root {
+    --lct-bg: #1a7fd4;
+    --lct-fg: #fff;
+    --lct-hl: rgba(0, 120, 215, 0.28); /* 跨欄時，實際要複製的那塊 */
+}
+/* 跨欄：原生反白照 DOM 順序畫 (第一欄到底、中間整欄)，會誤導 → 透明，改畫實際複製的範圍 */
+#lecMain.lct-crossed ::selection { background: transparent; }
+::highlight(lec-copy) { background-color: var(--lct-hl); }
+#lecMain.lct-crossed .lct-cell { background: var(--lct-hl); } /* 不支援 CSS Custom Highlight 時 */
+.lec-copy-table {
+    position: fixed;
+    z-index: 2000;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 14px;
+    background: var(--lct-bg);
+    color: var(--lct-fg);
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+.lec-copy-table[hidden] { display: none; }
