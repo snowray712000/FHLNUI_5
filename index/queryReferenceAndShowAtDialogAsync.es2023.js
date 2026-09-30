@@ -176,8 +176,15 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
                 byVer.set(ver, m)
             }
 
-            const html = render_reference_grid(order, byVer, ok.map(a => a.ver), ps)
-            const cntVer = ok.length
+            const all = ok.map(a => a.ver)
+            // 「只顯示第一個譯本」(記在 localStorage)；多譯本時才有這個選項
+            const isFirstOnly = () => all.length > 1 && readFirstOnly()
+            const htmlOf = () => render_reference_grid(order, byVer, isFirstOnly() ? all.slice(0, 1) : all, ps)
+            const bar = all.length > 1
+                ? `<label class="ref-dlg-bar"><input type="checkbox" class="ref-first-only"${isFirstOnly() ? ' checked' : ''}> 只顯示第一個譯本</label>`
+                : ''
+            const html = `<div>${bar}${htmlOf()}</div>`
+            const cntVer = isFirstOnly() ? 1 : all.length
             const isSide = !(ps.show_mode == 2 || ps.show_mode == 4)
 
             let dlg = new DialogHtml()
@@ -187,6 +194,10 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
                 // 並排：譯本多就寬一點 (標籤欄 + 每個譯本約 320px)
                 width: isSide && cntVer > 1 ? Math.min(window.innerWidth * 0.95, 120 + 320 * cntVer) : undefined,
                 registerEventWhenShowed: dlg => {
+                    dlg.on('change', '.ref-first-only', ev => {
+                        writeFirstOnly(/** @type {HTMLInputElement} */ (ev.currentTarget).checked)
+                        dlg.find('.ref-dlg').replaceWith(htmlOf())
+                    })
                     // 節碼：看整章；也接受只有 addr-desc 的 .ref (注腳裡的交互參照)
                     dlg.on('click', '.ref', ev => {
                         const $t = $(ev.currentTarget)
@@ -204,6 +215,16 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         }
     }
 
+}
+
+const FIRST_ONLY_KEY = 'fhlRefDlgFirstOnly'
+/** 交互參照對話框「只顯示第一個譯本」 */
+function readFirstOnly() {
+    try { return localStorage.getItem(FIRST_ONLY_KEY) == '1' } catch { return false }
+}
+/** @param {boolean} isOn */
+function writeFirstOnly(isOn) {
+    try { localStorage.setItem(FIRST_ONLY_KEY, isOn ? '1' : '0') } catch { /* 無痕等，不記也能用 */ }
 }
 
 /**

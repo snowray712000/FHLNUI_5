@@ -341,9 +341,10 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
   - 譯本 = 目前顯示的（`ps.version`，新參數 `jo.versions`）；以前寫死 `unv`（FhlLecture 點 `.ref` 傳的 `version: "unv"` 已拿掉）
   - 各譯本並行 `qsb`，查詢順序為準；連續的節（同書同章、節 +1）合成一列（像 mode 3 一段一列）；併入上節 → 上一節節碼 `20-21`
   - 並排 / 交錯照目前顯示模式（1/3 並排、2/4 交錯）；多譯本並排時對話框加寬（標籤欄 + 每譯本約 320px）
+  - 多譯本時上方有「只顯示第一個譯本」勾選（`localStorage.fhlRefDlgFirstOnly`），切換時在原對話框重畫；各譯本仍都查詢，所以切換不必重查
   - 節碼仍是 `.ref`（點了看整章）；左側經文位置 `[data-goto]` 點了經文區跳過去
   - `qsb` 的 `bookDefault` 改傳 1-based 數字（以前傳英文縮寫，qsb 裡當 index 用會變 undefined）
-  - 移除舊的 `prepare_dtexts_for_html(…, 2)` + `cvtDTextsToHtml` 路徑（`prepare_dtexts_for_html.js` 已沒有人用，檔案還在）
+  - 移除舊的 `prepare_dtexts_for_html(…, 2)` + `cvtDTextsToHtml` 路徑（`prepare_dtexts_for_html.js` 與它的測試已刪除）
 - 原文譯本（fhlwh / bhs / lxx）在對話框仍走 `qsb`（經文區讀本機 json）；bhs 的行序問題未處理
 - 已測（瀏覽器）：`羅3:23-25;6:23;西2:20-22` × unv / kjv / csb 並排（三組、併節 20-21、表頭、標籤欄）；交錯模式；單一譯本（無表頭）；點經文位置經文區跳過去；點節碼開整章（先問方式，同以前）；經文區不受影響；console 無錯誤；build 成功
 

@@ -2321,3 +2321,14 @@ body.lec-col-resizing, body.lec-col-resizing * {
 .verse-grid [data-goto]:hover { text-decoration: underline; }
 .verse-grid .vg-group { font-weight: bold; }
 .verse-grid.vg-interleaved .vg-label { font-size: 0.85em; color: #666; }
+.ref-dlg-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 4px;
+    font-size: 0.9em;
+    color: #555;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
