@@ -43,19 +43,12 @@ export class FhlLeftWindow {
 
                     // 初始化
                     renderVersionSelect2()
-                    renderVersionSelect3()
 
                     initSetVersionDialogAsync()
                     LeftWindowTool.s.closeSettings()
                     res()
                 }, 300);
             })
-            function renderVersionSelect3() {
-                $('<span>', {
-                    id: 'versionSelect3',
-                }).append($('<i class="bi-layout-three-columns"></i>'))
-                    .prependTo($('#windowControlButtons'))
-            }
             function renderVersionSelect2() {
                 // <div id=versionSelect2><p>聖經版本選擇</</           
                 var r1 = $('<div>', {
@@ -116,7 +109,6 @@ export class FhlLeftWindow {
 
 
                         $('#versionSelect2').on('click', open)
-                        $('#versionSelect3').on('click', open)
 
                         return
                         function open() {

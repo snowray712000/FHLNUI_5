@@ -121,6 +121,9 @@ export class BookSelect {
             html = bookName + "： 第" + BibleConstant.CHINESE_NUMBERS[ps.chap] + "章";
         }
 
+        // 窄的時候 (fhl.css 的 @media) 只顯示縮寫，例「創 1」
+        const bookShort = BibleConstantHelper.getBookNameArrayChineseShort()[ps.bookIndex - 1]
+        html = `<span class="bs-full">${html}</span><span class="bs-short">${bookShort} ${ps.chap}</span>`
         html += '&nbsp;&#9660;';
         dom.html(html);
         this.registerEvents(ps);

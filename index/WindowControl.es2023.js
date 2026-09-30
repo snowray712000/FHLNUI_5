@@ -5,23 +5,13 @@
 /// <reference path="../libs/jsdoc/jquery.ui.touch-punch.js" />
 
 /*
-- span#versionSelect3，選擇譯本
-- span#fhlLeftWindowControl，左側顯示與隱藏
-- span#fhlInfoWindowControl，右側顯示與隱藏，右側有許多功能，串珠、Parsing、註釋等等
-- span#fullscreenControl，螢幕全螢幕顯示與隱藏，但通常會自動換行所以看不到，算是Bug
-- i#windowControlIcon，決定 div#windowControlButtons 的顯示與隱藏 ... 很窄的時候，會自動隱藏
+工具列上開關左右側欄、全螢幕的按鈕 (按鈕在 appSkeleton.es2023.js，版面見 TopBar.es2023.js)
+- button#fhlLeftWindowControl，≡ 左側顯示與隱藏
+- button#fhlInfoWindowControl，右側顯示與隱藏，右側有許多功能，串珠、Parsing、註釋等等
+- button#fullscreenControl，全螢幕 (窄的時候在 ⋮ 選單)
 
-```html
-<div#windowControl>
-  <i#windowControlIcon></i> ... 很窄的時候，會自動隱藏
-  <div#windowControlButtons>
-    <span#versionSelect3>
-    <span#fhlLeftWindowControl>
-    <span#fhlInfoWindowControl>
-    <span#fullscreenControl>
-  </div>
-</div>
-```
+原本還有 i#windowControlIcon (收合這組按鈕) 與 span#versionSelect3 (選擇譯本)。
+選擇譯本改成點經文上方的譯本名稱，或左側欄的「聖經版本選擇」
 */
 
 import { FhlLecture } from "./FhlLecture.es2023.js";
@@ -41,33 +31,6 @@ export class WindowControl {
     this.registerEvents(ps);
   }
   registerEvents(ps) {
-    // 決定顯示控制項與否
-    $('#windowControlIcon').on('click',
-      /**
-       * @param {Event} e 
-       */
-      function (e) {
-        const that = $(e.currentTarget);
-
-        if (that.hasClass('selected')) {
-          that.animate({ left: '0px' });
-          $("#windowControl").animate({ width: '30px' }, function () {
-            that.removeClass('selected');
-          });
-          $("#windowControlButtons").animate({ opacity: 0 }, 100);
-        }
-        else {
-
-          that.animate({ left: '20px' });
-          $("#windowControl").animate({ width: '350px' }, function () {
-            that.addClass('selected');
-          });
-          $("#windowControlButtons").animate({ opacity: 1 }, 800);
-        }
-        e.stopPropagation();
-      }
-    );
-
     // 第1個功能 左側顯示與隱藏
     $('#fhlLeftWindowControl').on('click',
       function (e) {
@@ -115,13 +78,8 @@ export class WindowControl {
       }
     )
 
-    // 其它
-    $('#windowControl').on('click', function (e) {
-      e.stopPropagation();
-    });
   }
   render(ps, dom) {
-    var html = "<i id='windowControlIcon' class='fa fa-tv fa-fw selected'></i><div id='windowControlButtons'><span id='fhlLeftWindowControl' class='selected' ><i class='fa fa-wrench fa-fw'></i></span><span id='fhlInfoWindowControl' class='selected'><i class='fa fa-file-text-o fa-fw'></i></span><space style='margin: 0px 10px; cursor: default; color: #D0D0D0;'>|</space><span id='fullscreenControl'><i class='fa fa-arrows-alt fa-fw'></i></span></div>";
-    dom.html(html);
+    // 按鈕已在骨架裡
   }
 }

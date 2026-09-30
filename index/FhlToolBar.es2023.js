@@ -3,6 +3,7 @@ import { WindowControl } from './WindowControl.es2023.js';
 import { BookSelect } from './BookSelect.es2023.js';
 import { SearchTool } from './SearchTool.es2023.js';
 import { TPPageState } from './TPPageState.es2023.js';
+import { TopBar } from './TopBar.es2023.js';
 export class FhlToolBar {
     static #s = null
     /** @returns {FhlToolBar} */
@@ -11,6 +12,7 @@ export class FhlToolBar {
     init(ps = null){
         if (ps == null) ps = TPPageState.s
         
+        TopBar.s.init();
         Help.s.init(ps, $('#help'));
         WindowControl.s.init(ps, $('#windowControl'));
         // windowControl.registerEvents(ps); // mark by snow. 2021.07 init 裡就有呼叫了

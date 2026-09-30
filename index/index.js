@@ -58,6 +58,7 @@ import { LeftWindowTool } from './LeftWindowTool.es2023.js'
 import { FhlLeftWindow } from './FhlLeftWindow.es2023.js'
 
 import { FhlToolBar } from './FhlToolBar.es2023.js'
+import { TopBar } from './TopBar.es2023.js'
 import { FhlMidWindow } from './FhlMidWindow.es2023.js'
 import { windowAdjust } from './windowAdjust.es2023.js'
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
@@ -374,7 +375,7 @@ function doReadyStep2() {
 
     $(function () {
         // $('#problemsReport').attr("href", "mailto:sean@fhl.net,tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
-        $('#problemsReport').attr("href", "mailto:tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
+        TopBar.s.setReportHref("mailto:tjm@fhl.net,snowray712000@gmail.com?subject=[問題回報] 信望愛聖經工具NUI");
 
         FhlToolBar.s.init(TPPageState.s);
         FhlLeftWindow.s.init(TPPageState.s);
@@ -382,9 +383,8 @@ function doReadyStep2() {
         FhlInfo.s.init(TPPageState.s);
         registerEvents_doc(TPPageState.s);
 
-        $('#title')[0].firstChild.nodeValue = TPPageState.s.gb === 1 ? "信望爱圣经工具 " : "信望愛聖經工具 ";
-        // console.log($('#title')[0].childNodes[1]);
-        $('#title')[0].childNodes[1].textContent = "v" + TPPageState.s.swVer;
+        TopBar.s.setTitle(TPPageState.s.gb);
+        TopBar.s.setVersion(TPPageState.s.swVer);
         checkHtmlVersion() // checkHtmlVersion.js
 
         // add by snow. 2021.07

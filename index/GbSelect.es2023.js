@@ -6,6 +6,7 @@ import { BookSelectName } from './BookSelectName.es2023.js';
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from './gbText.es2023.js';
+import { TopBar } from './TopBar.es2023.js';
 
 
 export class GbSelect {
@@ -32,7 +33,7 @@ export class GbSelect {
                     BookSelectName.s.init(ps, $('#bookSelectName'));
                     BookSelectName.s.registerEvents(ps);
 
-                    $('#title')[0].firstChild.nodeValue = "信望爱圣经工具 ";
+                    TopBar.s.setTitle(1);
                     alert('重新載入後生效')
                 }
                 else {
@@ -41,7 +42,7 @@ export class GbSelect {
                     FhlInfoTitle.s.render(ps, FhlInfoTitle.s.dom);
                     FhlInfoTitle.s.registerEvents(ps);
                     FhlInfo.s.render(ps);
-                    $('#title')[0].firstChild.nodeValue = "信望愛聖經工具 ";
+                    TopBar.s.setTitle(0);
                     BookSelectName.s.init(ps, $('#bookSelectName'));
                     BookSelectName.s.registerEvents(ps);
                     alert('重新載入後生效')

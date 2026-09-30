@@ -6,7 +6,7 @@
 
 export function windowAdjust() {
     if (!document.mozFullScreen && !document.webkitIsFullScreen) {
-        $("#mainWindow").css({ top: "40px" });
+        $("#mainWindow").css({ top: "" }); // 回到 css 的值 (工具列高度)
         //$("#bookSelectPopUp").css({top: "100px"});
     }
 

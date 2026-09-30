@@ -167,337 +167,253 @@ body {
 }
 #mainWindow {
     position: absolute;
-    top: 40px;
+    top: var(--tb-h);
     bottom: 0px;
     left: 0px;
     right: 0px;
     background-color: #A0A0A0;
 }
+/* ===== 上方一列的工具列，見 TopBar.es2023.js (原本是標題列 + 工具列兩列) =====
+   寬：≡ logo 信望愛聖經工具 v… ⟳ | 書卷章 | 搜尋 ▦ ? ⛶ ✉ ▥
+   ≤ 1000px 標題縮成「聖經工具」；≤ 760px ▦ ? ⛶ ✉ 與版本收進 ⋮；≤ 560px 只剩 logo、書卷縮寫、搜尋收成 🔍 */
+:root {
+    --tb-h: 44px;       /* 工具列高度，#mainWindow 從這裡開始 */
+    --win-top: 8px;     /* 左中右三個視窗，距離工具列 */
+    --tb-bg: #404040;
+    --tb-fg: #D0D0D0;
+    --tb-hover: #00A0FF;
+    --tb-on-bg: rgba(255, 255, 255, 0.14); /* 側欄開著時，按鈕的底色 */
+}
 #fhlTopMenu {
-  position: fixed;
-  top: 0px;
-  left: 0px;  
-  width: 100%;
-  height: 40px;
-  font: 10pt/14pt bold ,Microsoft JhengHei;
-  z-index: 2;/*Layer 1*/
-    
-  /* 2015.10.04 added by sean */
-  /*border-bottom: 1px solid #000000;*/
-  background: linear-gradient(#808080, #A0A0A0);
-}
-
-#fhlTopMenu .menu{
-    /* 上面那條紫色的 */
-    opacity: 0;
-    transition: all 0.2s ease-in-out; 
-    /* add by snow. 2021.07, 當畫面太窄時, 顯示出來的 menu 會防礙功能 */
-    display: inline-flex;
-}
-
-#fhlTopMenu .menu:hover {
-    opacity: 1;
-}
-
-#logoFHL {
-    width: auto;
-    height: 2rem;
-    position: absolute;
-    top: 0.5rem;
-    left: 0.5rem;
-    background-color: rgba(0, 0, 0, 0);
-    border-radius: 0.5rem;
-
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    cursor: default;
-}
-
-#title {
-    font-size: 1.5rem;
     position: fixed;
-    left: 3rem;
-    top: 1rem;
-    font-weight: 800;
-    
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    cursor: default;
-}
-
-#title span{
-    font-size: 8pt;
-}
-
-nav#fhlTopMenu {
-    height: 40px;
-    z-index: 1;
-}
-
-#fhlTopMenu .menu{
-    position: absolute;
-    top: 0px;
-    right: 70px;
-    /*transform: translate(-50%, 0%);*/
-    width: 4rem;
-    margin: 0px;
-    padding: 0px;
-}
-#fhlTopMenu .menu:hover{
-    width: auto;
-}
-
-#problemsReport{
-    position: absolute;
-    top: 0.25rem;
-    right: 0px;
-    /* width: 60px; */
-    /* height: 50px; */
-    margin: 0px;
-    padding: 0px;
-}
-
-#problemsReport:hover{
-    color: #0050DD;
-    cursor: pointer;
-}
-
-#fhlTopMenu .menu li{
-    list-style: none;
-    float: left;
-    position: relative;
-    min-width: 4rem;
-    font-size: 1rem;
-    /* width: 120px; */
-    height: 40px;
-}
-
-#fhlTopMenu .menu>li{
-    /* 2015.10.04 deleted by sean */
-    /*background-color: #a82222;
-    background-image: -webkit-linear-gradient(#a82222, #670000);
-    background-image: -moz-linear-gradient(#a82222, #670000);
-    background-image: -o-linear-gradient(#a82222, #670000);
-    background-image: linear-gradient(#a82222, #670000);
-    border-left: 1px solid #5f5f5f;
-    border-right: 1px solid #7e0000;*/
-    
-    /* 2015.10.04 added by sean */
-    background: #905090;
-    margin: 8px 15px 10px 15px;
-    height: 30px;
-    border-radius: 5px;
-    border: 1px solid #A0A0FF;
-    box-shadow: 2px 2px 2px 0px rgba(80, 80, 80, 0.9);
-    
-    -webkit-transition: all 0.2s ease-in-out;
-    -moz-transition: all 0.2s ease-in-out;
-    -o-transition: all 0.2s ease-in-out;
-    transition: all 0.2s ease-in-out; 
-}
-
-/*#fhlTopMenu .menu li:first-child{
-    border-radius: 3px 0px 0px 3px;
-    border-left: none;
-}
-
-#fhlTopMenu .menu li:last-child{
-    border-radius: 0px 3px 3px 0px;
-    border-right: none;
-}*/
-
-#fhlTopMenu .menu a{
-    display: block;
-    text-decoration: none;
-    color: white;
-    padding: 0 10px;
-    font-family: 'Verdana', arial;
-    margin: 0;
-    position: relative;
-    font-size: 12pt;
-    text-align: center;
-    
-    /* 2015.10.04 modified by sean */
-    line-height: 30px;
-}
-
-
-/* 2015.10.04 deleted by sean */
-/*#fhlTopMenu .menu a span:after{
-    content: "";
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid white;
-    position: absolute;
-    top: 15px;
-    right: 30px;
-
-    -webkit-transition: all 0.2s ease-in-out;
-    -moz-transition: all 0.2s ease-in-out;
-    -o-transition: all 0.2s ease-in-out;
-    transition: all 0.2s ease-in-out; 
-}*/
-
-#fhlTopMenu .menu li:hover{
-    -webkit-box-shadow: inset 0 0 10px #470000;
-    -moz-box-shadow: inset 0 0 10px #470000;
-    box-shadow: inset 0 0 10px #470000;
-    background-color: #a82222;
-    background-image: -webkit-linear-gradient(#911212, #670000);
-    background-image: -moz-linear-gradient(#911212, #670000);
-    background-image: -o-linear-gradient(#911212, #670000);
-    background-image: linear-gradient(#911212, #670000);
-}
-
-/* 2015.10.04 deleted by sean */
-/*#fhlTopMenu .menu li:hover span:after{
-    -webkit-transform: rotate(180deg);
-    -moz-transform: rotate(180deg);
-    transform: rotate(180deg);
-}*/
-
-#fhlTopMenu ul.menu-hover{
-    visibility: hidden;
-    position: absolute;
-    top: 120%;
-    left: -60px;
-    opacity: 0;
-    height: 100%;
-    width: 150px;
-
-    /* 下面從原本的 0.5s 變為 30ms, 太長會影響主功能 by snow  */
-    -webkit-transition: all 30ms ease-in-out; 
-    -moz-transition: all 30ms ease-in-out;
-    -o-transition: all 30ms ease-in-out;
-    transition: all 30ms ease-in-out;
-}
-
-#fhlTopMenu .menu li:hover .menu-hover{
-    visibility: visible;
-    height: 100%;
-    opacity: 1;
-}
-
-#fhlTopMenu .menu-hover li{
-    width: 160px;
-    height: 35px;
-    border-bottom: 1px dotted #696969;
-    background: rgba(200, 200, 200, 0.95);
-    border-left: 2px solid #9E593D;
-    border-right: 2px solid #9E593D;
-    box-shadow: 6px 6px 3px 0px rgba(80, 80, 80, 0.9);
-}
-
-#fhlTopMenu .menu-hover li:hover{
-    background-image: -webkit-linear-gradient(#2a2a2a, #434343);
-    background-image: -moz-linear-gradient(#2a2a2a, #434343);
-    background-image: -o-linear-gradient(#2a2a2a, #434343);
-    background-image: linear-gradient(#2a2a2a, #434343);
-    box-shadow: 6px 6px 3px 0px rgba(80, 80, 80, 0.9);
-}
-
-#fhlTopMenu .menu-hover a{
-    line-height: 35px;
-    color: #503030;
-}
-
-#fhlTopMenu .menu-hover li:hover a{
-    color: white;
-}
-
-#fhlTopMenu .menu-hover li:first-child{
-    border-top: 2px solid #9E593D;
-    border-radius: 5px 5px 0px 0px;
-}
-#fhlTopMenu .menu-hover li:last-child{
-    border-bottom: 2px solid #9E593D;
-    border-radius: 0px 0px 5px 5px;
-}
-
-/* 2015.10.04 deleted by sean */
-/*#fhlTopMenu .menu a:after {
-    background: rgba(255,255,255,.07);
-    content: "";
-    height: 20px;
-    left: 0;
-    position: absolute;
-    width: 100%;
-}*/
-
-@media screen and (max-width: 1300px) {
-    #fhlTopMenu .menu>li{
-        width: 3rem;
-        margin: 1px 1px;
-    }
-}
-
-@media screen and (max-width: 1050px) {
-    #fhlTopMenu .menu>li{
-        width: 1.5rem;
-        margin: 1px 1px;
-    }
-}
-@media screen and (max-width: 640px) {
-    #fhlTopMenu .menu>li{
-        width: 1rem;
-        margin: 1px 1px;
-    }
-}
-
-
-
-
-
-#fhlToolBar {
-    position: absolute;
-    top: 10px;
-    display: block;
-    background-color: #404040;
-    height: 50px;
-    left: 214px;
-    right: 12px;
-    border-radius: 5px;
-    border: solid 1px #909090;
-    border-color: #C0C0C0 #909090 #909090 #C0C0C0;
-    border-width: 1px;
-    box-shadow: 1px 1px 3px #505050;
-}
-#fhlToolBar div{
-    float: left;
-}
-#help{
-    position: absolute;
-    top: 0.75rem;
-    left: 0.25rem;
-    font-size: 1rem;
-    color: #C0C0C0;
-    cursor: pointer;
-    /* 改由 after 來寫 ? 所以，padding 可一致 */
-    padding: 0.5rem;
-    /* padding: 1px 4px 0px; */
-    border: solid 2px #D0D0D0;
-    border-radius: 9999px;    
-    z-index: 1;
-}
-#help::after{
-    content: '?';
-    position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    text-align: center;
-    line-height: 1rem;
+    width: 100%;
+    height: var(--tb-h);
+    z-index: 1;
+    font-family: inherit;
 }
-#help:hover{
-    color: #00A0FF;
+#fhlToolBar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 100%;
+    padding: 0 6px;
+    box-sizing: border-box;
+    background: var(--tb-bg);
+    color: var(--tb-fg);
+    border-bottom: 1px solid #303030;
+    white-space: nowrap;
+}
+#fhlToolBar .tb-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 6px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--tb-fg);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+}
+#fhlToolBar .tb-btn:hover { color: var(--tb-hover); }
+#fhlToolBar .tb-btn.selected,
+#fhlToolBar .tb-btn.open { background: var(--tb-on-bg); color: white; }
+#fhlToolBar .tb-btn.selected:hover { color: var(--tb-hover); }
+#fhlToolBar #fhlLeftWindowControl { font-size: 1.5rem; }
+#fhlToolBar .tb-narrow { display: none; }
+
+#brand {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 4px;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+}
+#logoFHL {
+    height: 28px;
+    width: auto;
+    border-radius: 6px;
+}
+#title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #F0F0F0;
+}
+#title .t-short { display: none; }
+
+#appVer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 6px;
+    font-size: 0.75rem;
+}
+#appVerNum {
+    color: #A0C8FF;
+    text-decoration: underline;
+    cursor: pointer;
+}
+#appVerNum:hover { color: var(--tb-hover); }
+#force-reload { display: inline-block; margin: 0; }
+#force-reload button {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 4px;
+    border: none;
+    background: none;
+    color: #A0A0A0;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+#force-reload button:hover { color: var(--tb-hover); }
+/* 已最新時只有 ⟳，有新版才顯示「更新至 x」 */
+#force-reload .fr-text { display: none; }
+#fhlToolBar.has-new-ver #force-reload button { color: #FFC060; }
+#fhlToolBar.has-new-ver #force-reload .fr-text { display: inline; }
+
+#fhlToolBar #bookSelect {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 8px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 1rem;
+    color: var(--tb-fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+#fhlToolBar #bookSelect:hover { color: var(--tb-hover); background-color: #393939; }
+#bookSelect .bs-short { display: none; }
+
+#searchTool {
+    flex: 0 1 280px;
+    min-width: 150px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 1rem;
+    margin-right: 4px;
+}
+
+/* ▦ 信望愛資源、⋮ 更多：點了才開的面板 */
+#tbBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+}
+#fhlTopMenu .tb-panel {
+    position: absolute;
+    top: calc(var(--tb-h) - 2px);
+    z-index: 3;
+    box-sizing: border-box;
+    max-width: calc(100vw - 8px);
+    max-height: calc(100vh - var(--tb-h) - 8px);
+    overflow: auto;
+    background: #FAFAFA;
+    color: #303030;
+    border: 1px solid #C0C0C0;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    font-size: 0.95rem;
+}
+#fhlTopMenu .tb-panel[hidden] { display: none; }
+#resourcesPanel { width: 960px; padding: 10px 12px; }
+#resourcesPanel .rp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 6px 12px;
+}
+#resourcesPanel h4 {
+    margin: 0 0 4px;
+    padding-bottom: 3px;
+    border-bottom: 2px solid #905090;
+    color: #704070;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+#resourcesPanel ul { list-style: none; margin: 0; padding: 0; }
+#resourcesPanel a {
+    display: block;
+    padding: 3px 4px;
+    border-radius: 4px;
+    color: #303030;
+    text-decoration: none;
+}
+#resourcesPanel a:hover { background: #E8E0F0; color: #0050DD; }
+#moreMenu { width: 210px; padding: 4px; }
+#moreMenu > * {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: #303030;
+    font-size: 0.95rem;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+#moreMenu > *:hover { background: #E8E8E8; color: #0050DD; }
+#moreMenu i { width: 1.2em; font-size: 1.05rem; }
+#moreMenu .mm-ver { color: #808080; font-size: 0.8rem; }
+/* 有新版：⋮ 上加個點 */
+#fhlToolBar.has-new-ver #moreMenuBtn { position: relative; }
+#fhlToolBar.has-new-ver #moreMenuBtn::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #FFA030;
+}
+
+@media screen and (max-width: 1000px) {
+    #title .t-full { display: none; }
+    #title .t-short { display: inline; }
+}
+@media screen and (max-width: 760px) {
+    #fhlToolBar .tb-wide,
+    #appVer { display: none; }
+    #fhlToolBar #moreMenuBtn { display: inline-flex; }
+}
+@media screen and (max-width: 560px) {
+    #title { display: none; }
+    #bookSelect .bs-full { display: none; }
+    #bookSelect .bs-short { display: inline; }
+    #fhlToolBar #searchToggle { display: inline-flex; }
+    #searchTool { display: none; }
+    /* 按 🔍 後，搜尋框蓋住整列 */
+    #fhlToolBar.search-open #searchTool {
+        display: block;
+        position: absolute;
+        left: 6px;
+        right: 6px;
+        top: calc((var(--tb-h) - 32px) / 2);
+        margin: 0;
+        z-index: 1;
+        background: var(--tb-bg);
+        border-radius: 999px;
+    }
 }
 #helpingPopUp{
     visibility: hidden;
@@ -531,18 +447,6 @@ nav#fhlTopMenu {
 }
 
 
-#searchTool{
-    position: absolute;
-    top: 0.125rem;
-    right: 0.125rem;
-    /* right: 12px; */
-    /* transform: translate(0%, -55%); */
-    height: 2rem;
-    line-height: 2rem;
-    font-size:1rem;
-    max-width: 30%;
-    width: 50%;
-}
 #bookSelectPopUp {
   position: fixed;
   top: 0px;
@@ -804,103 +708,11 @@ nav#fhlTopMenu {
   color:white;
 }*/
 
-#fhlToolBar #bookSelect{
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2rem;
-    line-height: 2rem;
-    font-size: 1rem;
-    border-radius: 0.5rem;
-    z-index: 0;
-    text-align: center;
-    background-color: #404040;
-    color: #D0D0D0;
-    /* 暫時 mark 起來 */
-    /* border: solid 1px #606060; */
-    cursor: pointer;
-}
-#fhlToolBar #bookSelect:hover {
-    color: #00A0FF;
-    border: solid 1px #606060;
-    background-color: #393939;
-}
-#fhlToolBar #windowControl{
-    position: absolute;
-    top: 0.25rem;
-    left: 1.75rem;
-    width: 350px;
-    /* transform: translate(0%, -50%); */
-    height: 2rem;
-    line-height: 2rem;
-    text-align: center;
-    overflow: hidden;
-    border-radius: 0.5rem;
-    border: solid 0.125rem #D0D0D0;
-    color: white;
-    z-index: 1;
-    /*padding: 0px;
-    background-color: #404040;
-    border-radius: 5px;
-    border: solid 1px #909090;
-    border-color: #C0C0C0 #909090 #909090 #C0C0C0;
-    border-width: 1px;
-    box-shadow: 1px 1px 3px #505050;*/
-}
-#fhlToolBar #windowControlIcon{
-    position: absolute;
-    left: 20px;
-    top: 0px;
-    line-height: 30px;
-    width: 30px;
-    height: 30px;
-    color: #D0D0D0;
-    font-size: 13pt;
-    cursor: pointer;
-}
-#fhlToolBar #windowControlIcon:hover{
-    color: #00A0FF;
-}
-#fhlToolBar #windowControlIcon.selected{
-    color: #0050FF;
-}
-#fhlToolBar #windowControlIcon.selected:hover{
-    color: #00A0FF;
-}
-#fhlToolBar #windowControlButtons{
-    position: absolute;
-    left: 60px;
-    border: solid 2px #D0D0D0;
-    border-width: 0px 0px 0px 2px;
-}
-#fhlToolBar #windowControl span{
-    position: relative;
-    font-size: 1rem;
-    /* padding: 0px 7px 3px; */
-    cursor: pointer;
-    background-color: transparent;
-    /* margin: 0px 12px; */
-    color: #D0D0D0;
-}
-#fhlToolBar #windowControl span:hover{
-    color: #00A0FF;
-}
-#fhlToolBar #windowControl span.selected{
-    position: relative;
-    font-size: 13pt;
-    padding: 0px 7px 3px;
-    cursor: pointer;
-    margin: 0px 12px;
-    color: #0050FF;
-}
-#fhlToolBar #windowControl span.selected:hover{
-    color: #00A0FF;
-}
 #fhlLeftWindow {
   position: absolute;
   display: block;
   background-color: #E0E0E0;
-  top: 4.75rem;
+  top: var(--win-top);
   left: 0.5rem;
   bottom: 0.5rem;
   /* bottom: 0px; */
@@ -1343,7 +1155,7 @@ nav#fhlTopMenu {
   background-color: #A0A0A0;    
   border-radius: 5px;
   font: 12pt/16pt bold ,Microsoft JhengHei;
-  top: 75px;
+  top: var(--win-top);
   bottom: 12px;
   left: 214px;/*190+12+12*/
   cursor: default;
@@ -1777,7 +1589,7 @@ nav#fhlTopMenu {
 
 #fhlInfo {
   position: absolute;
-  top: 75px;
+  top: var(--win-top);
   bottom: 12px;
   right: 12px;
   /*border: solid 5px black;*/

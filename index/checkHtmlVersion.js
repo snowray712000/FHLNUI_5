@@ -1,5 +1,6 @@
 // 檢查 .html 是否需要更新 (會在 document.ready 之後作)
 // ES module（原本由 index.js 以 ijnjs 下載成文字後 eval）
+import { TopBar } from './TopBar.es2023.js'
 export function checkHtmlVersion(){
     render()
     checkVersionAndSetText()
@@ -9,10 +10,14 @@ export function checkHtmlVersion(){
     function checkVersionAndSetText() {
         getLastVersion(ver => {
             var r1 = '更新至 ' + ver
-            if (ver == window.currentSWVer) {
+            const hasNew = ver != window.currentSWVer
+            if (!hasNew) {
                 r1 = '手動更新' // 已最新
             }
-            $('#force-reload button').text(r1)
+            // 寬的時候是版本號旁的 ⟳ (有新版才顯示文字)，窄的時候在 ⋮ 選單
+            $('#force-reload .fr-text').text(r1)
+            $('#force-reload button').attr('title', r1)
+            TopBar.s.setReloadText(r1, hasNew)
 
             return
         })
@@ -38,22 +43,15 @@ export function checkHtmlVersion(){
         }
     }
     function render() {
-        var r1 = $('#title')
-        // var r3 = $('<button onclick="window.location.reload(true)">檢查更新</button>')
-        // r3.css({ "border": "0", "background-color": "rgba(0,0,0,0)", "text-decoration": "underline", "color": "blue", "font-size": "0.7rem" })
-        // r3.appendTo(r1)
-
         var url = '' // action 不加路徑，就等於「自己網址」
         if (location.port != ""  && window.location.port != 80) { // 應該是 dev 版本
             url = 'https://bkbible.fhl.net/NUI/index.html' // live server extension, 無法支援 post 方法
         }
         var r2 = $('<form action=' + url + ' method="POST" id="force-reload"></form>')
-        r2.css({ "display": "inline-block", "font-size": "0.7rem" })
-        var r3 = $('<button type="button">檢查更新</button>')
-        r3.css({ "border": "0", "background-color": "rgba(0,0,0,0)", "text-decoration": "underline", "color": "blue" })
+        var r3 = $('<button type="button" title="檢查更新"><i class="bi bi-arrow-clockwise"></i><span class="fr-text"></span></button>')
         r3.attr('onclick',"try {window.location.reload(true);} catch (er) { $(this).parent().submit(); }")       
         r3.appendTo(r2)
-        r2.appendTo(r1)
+        r2.appendTo($('#appVer'))
         return;    
     }
 }

@@ -765,7 +765,7 @@ function when_scroll(e) {
 }
 function show_dialog_pick_bible_version() {
     // 與 ios 版，統一操作模式
-    $('#versionSelect3').trigger('click')
+    $('#versionSelect2').trigger('click') // 左側欄的「聖經版本選擇」，左側欄隱藏時也可以
 }
 /**
  * 深黃色，目前選取章節，供 info 使用

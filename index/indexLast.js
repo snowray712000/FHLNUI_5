@@ -16,7 +16,6 @@ export function runIndexLast() {
 function doLast1() {
   addUrlChangedEvents()
   addViewHistoryEvents()
-  removeHelpText()
   addVersionInfosDialog()
   return
 
@@ -36,23 +35,15 @@ function doLast1() {
     });
   }
   // addViewHistoryEvents 重構至獨立檔案
-  function removeHelpText() {
-    /* 改由 after 來寫 ? 所以，padding 可一致 */
-    testThenDoAsync(() => $('#help').length != 0 && $('#help').text().length != 0)
-      .then(() => {
-        $('#help').html('') // 清除掉原本的 ?         
-      })
-  }
   function addVersionInfosDialog() {
     // 會動態載入 .css 檔 (open時才會)
     // 會動態讀入 app_versions.json 資訊 (open時)
-    testThenDoAsync(() => $('#title').length != 0)
+    testThenDoAsync(() => $('#appVerNum').length != 0)
       .then(() => {
         {
-          var r1 = $('#title').children().first()
+          var r1 = $('#appVerNum') // 工具列上的版本號，窄的時候由 ⋮ 選單的「版本變更」觸發
           var r3 = $('<div id="version-infos"><div class="contents"></div></div>')
-          r1.append(r3)
-          r1.css({ "color": 'blue', "text-decoration": "underline", "cursor": "pointer" })
+          $('body').append(r3)
 
           var cy = $(window).height()
           var cx = $(window).width()

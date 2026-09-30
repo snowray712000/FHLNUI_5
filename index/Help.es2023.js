@@ -62,7 +62,7 @@ export class Help {
         FhlHelpingPopUp.s.init(ps, $('#helpingPopUp'));
     }
     render(ps, dom) {
-        dom.html('?');
+        // 按鈕 (? icon) 已在骨架裡
         this.registerEvents(ps);
     }
     registerEvents(ps) {

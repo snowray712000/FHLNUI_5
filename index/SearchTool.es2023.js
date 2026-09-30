@@ -37,6 +37,7 @@ export class SearchTool {
     }
     /** 快速鍵 Alt+Shift+F */
     focus() {
+        $('#fhlToolBar').addClass('search-open') // 窄的時候搜尋框收成 🔍，先展開 (見 TopBar)
         this.#input.trigger('focus').trigger('select')
     }
     registerEvents(ps) {

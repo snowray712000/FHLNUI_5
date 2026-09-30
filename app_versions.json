@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "6.11.11",
+        "last": "6.11.13",
         "historys": [
             {
                 "na": "TODOs",
@@ -14,6 +14,17 @@
                     "加入推廣) 希伯來文文法_王維瑩_2025買下授權_https://bible.fhl.net/hebook/index.html",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "6.11.13",
+                "na2":
+                [
+                    "📈 優化: 上方工具列由兩列合成一列，經文區域變大 (手機上方從約 140px 變 44px)",
+                    "📈 優化: 左上 ≡ 開關左側欄 (譯本、設定、歷史)，右上 ▥ 開關右側欄 (註釋、串珠、原文…)",
+                    "📈 優化: 「讀經、教學、查詢…」信望愛網站連結改放在 ▦ 按鈕，點了才開，不會再滑過就展開擋住功能",
+                    "📈 優化: 畫面窄時，說明、全螢幕、問題回報、版本變更、手動更新收進 ⋮；手機上搜尋收成 🔍，按了才展開",
+                    "📈 優化: 有新版時，版本號旁顯示「更新至 x.y.z」(⋮ 上也有橘點)",
+                    "📝 工程師筆記: TopBar.es2023.js，寬窄全由 css @media 處理 (--tb-h、--win-top)。見 docs/z260930b"
                 ]
             },{
                 "na": "6.11.11",
