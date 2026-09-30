@@ -16,6 +16,7 @@ import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
 import { cvt_others } from './cvt_others.js'
 import { renderVerseGrid, renderVerseGridHeader, effectiveLayout, labelTemplate } from './VerseGrid.es2023.js'
 import { ColWidth } from './ColWidth.es2023.js'
+import { SnFilter } from './SnFilter.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -27,7 +28,7 @@ import { ColWidth } from './ColWidth.es2023.js'
 - 同一時間只有一個；再搜尋時，沿用已開的 dialog
 
 <div.search-dlg>
-  <form.sd-bar> input 關鍵字、搜尋按鈕、狀態 </form>
+  <form.sd-bar> input 關鍵字、搜尋按鈕、譯本對照、狀態 </form>
   <div.sd-groups> 分類 (整卷聖經、舊約、新約、摩西五經 …)，只列有結果的 </div>
   <div.sd-books> 目前分類下，有結果的書卷 </div>
   <div#searchDlgResults.sd-results>
@@ -38,7 +39,7 @@ import { ColWidth } from './ColWidth.es2023.js'
     </div>
   </div>
 </div>
-每列只放「找到關鍵字的譯本」，沒找到的格子留空
+每列只放「找到關鍵字的譯本」，沒找到的格子留空；勾「譯本對照」時每節列出目前所有譯本 (會記住，localStorage fhlSearchCompare)
 */
 export class SearchDialog {
     static #s = null
@@ -77,6 +78,7 @@ export class SearchDialog {
             strong: ps.strong == 1 ? 1 : 0,
             engs: BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1],
         })
+        session.compare = readCompare()
 
         this.#open()
         this.#dlg.dialog('option', 'title', `${gbText('搜尋')}：${keyword}`)
@@ -119,6 +121,7 @@ export class SearchDialog {
                 <form class="sd-bar">
                     <input class="sd-input" type="search" placeholder="${gbText('關鍵字、G80、#羅 1:3|')}">
                     <button class="sd-go" type="submit"><i class="fa fa-search"></i></button>
+                    <label class="sd-compare" title="${gbText('每節都列出目前所有譯本，不只找到關鍵字的')}"><input type="checkbox"${readCompare() ? ' checked' : ''}> ${gbText('譯本對照')}</label>
                     <span class="sd-status"></span>
                 </form>
                 <div class="sd-groups"></div>
@@ -142,6 +145,12 @@ export class SearchDialog {
         dlg.on('submit', '.sd-bar', e => {
             e.preventDefault()
             that.searchAsync(dlg.find('.sd-input').val())
+        }).on('change', '.sd-compare input', function () {
+            writeCompare(this.checked)
+            const session = that.session
+            if (session == null || session.kind == 'reference') return // 經文查詢本來就列所有譯本
+            session.compare = this.checked
+            that.#applyFilterAsync()
         }).on('click', '.sd-group', function () {
             const group_name = $(this).attr('group_name')
             // 點目前分類：若選了單卷，回到整個分類
@@ -289,6 +298,8 @@ export class SearchDialog {
         const $grid = renderVerseGrid({ ...gridOpt(session), rows: toVerseRows(rows) })
         $grid.find('.sn').addClass('seSN sebutton') // 搜尋結果的 SN 樣式 (灰、小)、點了開字典
         markSearchKeys($grid, keys)
+        // 搜尋的 SN：SN 篩選開著、它又不在篩選內時也要顯示 (例 篩選「連接詞」搜 G80 → 連接詞 + G80)；SnFilter 對 .seKey 一律顯示
+        if (keys.sn != null) SnFilter.s.apply($grid, { offShowsAll: true })
         results$.append($grid)
         if (this.#colWidth) { // 這個範圍的第一批：量欄寬
             this.#colWidth.apply()
@@ -318,6 +329,16 @@ export class SearchDialog {
     }
 }
 
+const COMPARE_KEY = 'fhlSearchCompare'
+/** 譯本對照 (會記住) */
+function readCompare() {
+    try { return localStorage.getItem(COMPARE_KEY) == '1' } catch { return false }
+}
+/** @param {boolean} on */
+function writeCompare(on) {
+    try { localStorage.setItem(COMPARE_KEY, on ? '1' : '0') } catch { /* 無痕等，不記也能用 */ }
+}
+
 /**
  * 搜尋結果的 grid 設定：譯本 (SN 搜尋只有和合本)、並排 / 交錯照目前的顯示模式、標籤欄固定寬 (各批才對齊)
  * @param {SearchSession} session
@@ -327,8 +348,10 @@ function gridOpt(session) {
     const ps = TPPageState.s
     const failed = new Set(session.failedVersions.map(a => a.ver))
     // 整次搜尋都沒找到的譯本不列欄 (例 中文關鍵字時的 KJV)；經文查詢 (reference) 沒有 verses，全列
+    // 譯本對照：列出所有譯本 (無法搜尋的譯本也可能取得到經文)
     const found = session.kind == 'reference' ? null : new Set(session.verses.flatMap(v => v.vers))
-    const vers = (session.kind == 'sn' ? ['unv'] : session.versions).filter(v => !failed.has(v) && (found == null || found.has(v)))
+    const vers = session.compare && session.kind != 'reference' ? session.compareVersions
+        : (session.kind == 'sn' ? ['unv'] : session.versions).filter(v => !failed.has(v) && (found == null || found.has(v)))
     return {
         versions: vers.map(ver => ({ version: ver, name: abvphp.get_cname_from_book(ver, session.gb == 1) || ver, isRtl: ver == 'bhs' })),
         layout: ps.show_mode == 2 || ps.show_mode == 4 ? 'interleaved' : 'side',

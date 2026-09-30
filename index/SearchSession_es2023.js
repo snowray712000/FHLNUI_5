@@ -26,6 +26,8 @@ export class SearchSession {
     /** @type {0|1} 經文是否帶 SN */ strong
     /** @type {string} 目前閱讀的書卷，reference 省略書卷時用 */ engs
     /** @type {string} sn 搜尋時，純數字 (上色用) */ sn = null
+    /** @type {string[]} 使用者目前選的譯本 (原文關鍵字時 versions 會被換掉，譯本對照仍用這個) */ userVersions
+    /** 譯本對照：每節都取 compareVersions 全部譯本的經文 (不只找到關鍵字的)；改了要重新 setFilter */ compare = false
 
     /** @type {SearchVerse[]} 已排序 */ verses = []
     /** @type {Object.<number, number>} 0based ibook → 節數 */ cntOfBook = {}
@@ -44,6 +46,7 @@ export class SearchSession {
     constructor(arg) {
         this.keyword = arg.keyword.trim()
         this.versions = arg.versions
+        this.userVersions = arg.versions
         this.gb = arg.gb
         this.strong = arg.strong
         this.engs = arg.engs
@@ -168,10 +171,12 @@ export class SearchSession {
         const batch = this.filtered.slice(this.cursor, this.cursor + SearchSession.BATCH)
         this.cursor += batch.length
 
-        // qsb 一次只能一個譯本；每個譯本只取「在這個譯本找到」的節
+        // qsb 一次只能一個譯本；每個譯本只取「在這個譯本找到」的節 (譯本對照時全取；只是對照的譯本失敗不影響整批)
+        const searched = new Set(this.#searchedVersions)
         const textsPerVer = await Promise.all(this.#versionsOfBatch(batch).map(ver => {
-            const addrs = batch.filter(v => v.vers.includes(ver))
-            return queryQsbAsync(addrsToQstr(addrs, this.gb), { version: ver, engs: this.engs, strong: this.strong, gb: this.gb }, signal)
+            const addrs = this.compare ? batch : batch.filter(v => v.vers.includes(ver))
+            const p = queryQsbAsync(addrsToQstr(addrs, this.gb), { version: ver, engs: this.engs, strong: this.strong, gb: this.gb }, signal)
+            return searched.has(ver) ? p : p.catch(e => { if (!signal.aborted) console.warn(ver, e); return [] })
         }))
         if (seq != this.#filterSeq || signal.aborted) return null
 
@@ -181,15 +186,20 @@ export class SearchSession {
 
         return batch.map(v => ({
             ibook: v.ibook, chap: v.chap, sec: v.sec,
-            texts: v.vers.map(ver => map.get(`${ver}|${v.ibook}:${v.chap}:${v.sec}`)).filter(t => t != null),
+            texts: (this.compare ? this.compareVersions : v.vers).map(ver => map.get(`${ver}|${v.ibook}:${v.chap}:${v.sec}`)).filter(t => t != null),
         }))
     }
 
+    /** 搜尋用的譯本 (SN 搜尋只有和合本) */
+    get #searchedVersions() { return this.kind == 'sn' ? ['unv'] : this.versions }
+    /** 譯本對照時列的譯本：搜尋的譯本在前，再接使用者選的其它譯本 */
+    get compareVersions() { return [...new Set([...this.#searchedVersions, ...this.userVersions])] }
+
     /** 依使用者設定的譯本順序 */
     #versionsOfBatch(batch) {
+        if (this.compare) return this.compareVersions
         const set = new Set(batch.flatMap(v => v.vers))
-        const order = this.kind == 'sn' ? ['unv'] : this.versions
-        return order.filter(ver => set.has(ver))
+        return this.#searchedVersions.filter(ver => set.has(ver))
     }
 }
 

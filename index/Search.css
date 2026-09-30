@@ -83,6 +83,16 @@
     cursor: pointer;
 }
 .search-dlg .sd-go:hover { color: #00A0FF; }
+.search-dlg .sd-compare {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 0;
+    font-size: 0.9em;
+    font-weight: normal;
+    white-space: nowrap;
+    cursor: pointer;
+}
 .search-dlg .sd-status {
     color: #707070;
     font-size: 0.9em;
