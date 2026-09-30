@@ -17,6 +17,9 @@ import { cvt_others } from './cvt_others.js'
 import { renderVerseGrid, renderVerseGridHeader, effectiveLayout, labelTemplate } from './VerseGrid.es2023.js'
 import { ColWidth } from './ColWidth.es2023.js'
 import { SnFilter } from './SnFilter.es2023.js'
+import { queryFootsAsync } from './queryFootsAsync.js'
+import { showFootPopupAsync } from './showFootPopupAsync.es2023.js'
+import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -174,6 +177,14 @@ export class SearchDialog {
             const addr = `${names[lec.attr('book') - 1]} ${lec.attr('chap')}:${lec.attr('sec')}`
             const text = p.find('.verseContent').get().map(e => e.innerText.trim()).join(' ') // innerText：隱藏的 SN 不算
             copy_text_to_clipboard(async () => `${addr} ${text}`)
+        }).on('click', '.ft', e => {
+            showFootPopupAsync(e) // 注腳「點擊顯示」：與經文區相同
+        }).on('click', '.ref', function (e) {
+            // 注腳裡的經文 (中文標準譯本等，「直接載入」時)：與經文區相同，開交互參照
+            const desc = $(this).attr('addr-desc')
+            const data = $(this).attr('addr-data')
+            if (desc?.trim()) queryReferenceAndShowAtDialogAsync({ addrsDescription: desc, event: e })
+            else if (data) queryReferenceAndShowAtDialogAsync({ addrs: JSON.parse(data), event: e })
         }).on('click', '.seSN', function (e) {
             // 字典中要高亮的是「這筆搜尋結果」的經文，而不是 ps 目前閱讀位置
             const lec = $(this).closest('.lec')
@@ -281,9 +292,10 @@ export class SearchDialog {
         const results$ = this.#dlg.find('.sd-results')
         const spinner$ = $('<div class="sd-hint sd-more"><i class="fa fa-spinner fa-pulse"></i></div>').appendTo(results$)
         const token = this.#loadingToken = {}
-        let rows
+        let rows, verseRows
         try {
             rows = await session.loadMoreAsync()
+            if (rows != null) verseRows = await toVerseRowsAsync(rows)
         } catch (e) {
             if (!session.isAborted) console.error(e)
             rows = null
@@ -295,7 +307,7 @@ export class SearchDialog {
         if (rows == null) return
 
         const keys = session.kind == 'sn' ? { sn: session.sn } : { words: session.kind == 'keyword' ? session.keyword : '' }
-        const $grid = renderVerseGrid({ ...gridOpt(session), rows: toVerseRows(rows) })
+        const $grid = renderVerseGrid({ ...gridOpt(session), rows: verseRows })
         $grid.find('.sn').addClass('seSN sebutton') // 搜尋結果的 SN 樣式 (灰、小)、點了開字典
         markSearchKeys($grid, keys)
         // 搜尋的 SN：SN 篩選開著、它又不在篩選內時也要顯示 (例 篩選「連接詞」搜 G80 → 連接詞 + G80)；SnFilter 對 .seKey 一律顯示
@@ -364,10 +376,11 @@ function gridOpt(session) {
 
 /**
  * qsb 的經文 → VerseGrid 的列 (一節一列)；每個譯本一次 cvt_others
+ * 注腳設定「直接載入」時，先取注腳內容 (與經文區、交互參照相同，例 中文標準譯本)
  * @param {SearchRow[]} rows
- * @returns {import('./VerseGrid.es2023.js').VerseRow[]}
+ * @returns {Promise<import('./VerseGrid.es2023.js').VerseRow[]>}
  */
-function toVerseRows(rows) {
+async function toVerseRowsAsync(rows) {
     const names = BibleConstantHelper.getBookNameArrayChineseShort()
     /** @type {Map<string, [number, number, number, string][]>} */
     const recordsOfVer = new Map()
@@ -379,9 +392,12 @@ function toVerseRows(rows) {
     }
     /** @type {Map<string, import('./DText.js').DText[]>} "ver|book.chap.sec" → DText[] */
     const dtextsOf = new Map()
-    for (const [ver, records] of recordsOfVer) {
-        for (const [book, chap, sec, dtexts] of cvt_others(ver, records)) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
-    }
+    const isFootLoad = TPPageState.s.foot_note_show_method == 2
+    await Promise.all([...recordsOfVer].map(async ([ver, records]) => {
+        const dtexts_with_addr = cvt_others(ver, records)
+        if (isFootLoad) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
+        for (const [book, chap, sec, dtexts] of dtexts_with_addr) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
+    }))
 
     return rows.map(row => {
         const book = row.ibook + 1

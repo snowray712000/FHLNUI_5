@@ -19,6 +19,7 @@ import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPa
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
 import { cvt_others } from "./cvt_others.js"
 import { queryFootsAsync } from "./queryFootsAsync.js"
+import { showFootPopupAsync } from "./showFootPopupAsync.es2023.js"
 
 /**
  * @typedef {Object} DQueryReferenceParam
@@ -201,6 +202,8 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
                         dlg.find('.ref-dlg').replaceWith(htmlOf())
                         applyColWidth(dlg[0])
                     })
+                    // 注腳「點擊顯示」：與經文區相同
+                    dlg.on('click', '.ft', ev => showFootPopupAsync(ev))
                     // 節碼：看整章；也接受只有 addr-desc 的 .ref (注腳裡的交互參照)
                     dlg.on('click', '.ref', ev => {
                         const $t = $(ev.currentTarget)

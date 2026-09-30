@@ -380,6 +380,11 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - SnFilter 移除 `[data-vaddr]` 分支（`cvtDTextsToHtml` 也不再輸出 `data-vaddr`）：產生 `vaddr` 的 `prepare_dtexts_for_html` 已刪，三處都是 `.lec[book][chap][sec]`
 - 已測（瀏覽器）：搜尋 `摩西`（unv / kjv 譯本對照）跨欄 → 經文 / 和合本 / KJV 表；交互參照 `羅1:1-3;約3:16` 跨欄 → 兩列（羅 1:1-3 三節接在一起）、只在一欄內 → 只有該譯本；經文區 mode 1 跨欄照舊
 
+### 注腳（2026-09-30，P7 之後）
+
+- 搜尋結果原本沒照注腳設定：「直接載入」時沒取注腳內容、「點擊顯示」時點了沒反應。現在與經文區相同：`toVerseRowsAsync` 在設定為直接載入時呼叫 `queryFootsAsync`（失敗仍顯示經文）；點 `.ft` 開小框、點注腳裡的經文 `.ref` 開交互參照
+- 點注腳的小框抽成 `index/showFootPopupAsync.es2023.js`（原 `FhlLecture` 的 `when_click_on_ft`，順便修掉錯誤處理用到未定義的 `a1` / `url`），經文區、搜尋結果、交互參照共用；在對話框裡時 z-index 設成對話框 +1
+
 ## 六、決議（2026-09-30）與仍待決定
 
 ### 1. 表頭

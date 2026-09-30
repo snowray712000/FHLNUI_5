@@ -17,7 +17,7 @@ import { ViewHistory } from './ViewHistory.es2023.js'
 
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
 
-import { ParsingPopUp } from './ParsingPopUp.es2023.js'
+import { showFootPopupAsync } from './showFootPopupAsync.es2023.js'
 import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { TPPageState } from "./TPPageState.es2023.js";
 import { BookSelect } from './BookSelect.es2023.js'
@@ -33,7 +33,6 @@ import { testThenDoAsync } from './testThenDo.es2023.js'
 import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
 import { assert } from './assert_es2023.js'
 import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
-import { rtAsync } from './rtAsync.js'
 import { fetchJsonAsync } from './fetchAsync.es2023.js'
 import { SearchTool } from './SearchTool.es2023.js'
 import { normalizeActiveAddr, highlightActiveRefs } from './highlightActiveRefs.es2023.js'
@@ -132,7 +131,7 @@ export class FhlLecture {
 
         // .ft 注腳 click
         $lecMain.on({
-            click: e => when_click_on_ft(e)
+            click: e => showFootPopupAsync(e) // 與搜尋結果、交互參照共用
         }, '.ft');
         // .ft 注腳 click
         $lecMain.on({
@@ -1584,42 +1583,3 @@ class Dialog_Sn_Info_Summary {
     }
 }
 
-
-/**
- * 注腳資料顯示
- * @param {Event} e
- * 可使用 呂振中譯本 開發測試
- */
-async function when_click_on_ft(e) {
-    const ps = TPPageState.s
-    const currentTarget = e.currentTarget
-    const $this = $(currentTarget)
-    //console.log(this); //範例: <span class=ft ft=42 ver=tcv chap=2>【42】</span>
-    // http://bkbible.fhl.net/json/rt.php?engs=Gen&chap=2&version=tcv&gb=0&id=42
-
-    var offset = $this.offset();
-    offset.top += $this.height() + 10;
-    ParsingPopUp.s.render(ps, ParsingPopUp.s.dom, offset, "ft");
-
-    var ftid = $this.attr('ft');
-    const book = parseInt($this.attr('book'))
-    var chap = $this.attr('chap');
-    var ver = $this.attr('ver');
-    const engs = BibleConstantHelper.getBookNameArrayEnglishNormal()[book - 1];
-
-    try {
-        const json = await rtAsync({ book, chap, ver, id: ftid, gb: ps.gb });
-        if (json.status == "success" && json.record.length > 0) {
-            var txt = json.record[0].text;
-            $('#parsingPopUpInside').text(txt);
-            $('#parsingPopUpInside').css("width", "100%");
-            $('#parsingPopUpInside').css("max-width", "323px"); //cy:200px乘黃金比例1.618
-            $('#parsingPopUpInside').css("white-space", "normal");
-        }
-        else {
-            $('#parsingPopUpInside').text("錯誤:可回報下訊息- " + a1);
-        }
-    } catch (error) {
-        $('#parsingPopUpInside').text("錯誤:於" + url + "時發生");
-    }
-}
