@@ -4,7 +4,7 @@
  *   用量的不用數字數：中、英、希臘、希伯來字寬差很多；隱藏的 SN 量不到，自然不算。限制在平均的 0.6–1.8 倍
  * - 「自訂」：拖表頭譯本名之間的分隔線；依譯本組合分開記 (localStorage fhlLecColWidth)；雙擊分隔線回到自動
  * - 經文區與表頭 (#lecMainTitle，在 #lecMain 外) 共用 #fhlLecture 上的 --lec-cols-tpl，所以一起變
- * - 呼叫：FhlLecture 每次 render 完 (setCSS 之後) apply()
+ * - 呼叫：FhlLecture 每次 render 完 (setCSS 之後)，以及 reshape() (視窗、左右欄、字型、SN 顯示/篩選改變) 時 apply()：自動時重量，表頭重新對齊
  */
 const STORE_KEY = 'fhlLecColWidth'
 const MIN_RATIO = 0.6, MAX_RATIO = 1.8
@@ -18,7 +18,7 @@ export class LecColWidth {
     /** @type {string[]} 目前各欄的譯本 (畫面順序) */
     #versions = []
 
-    /** render 完呼叫：grid 版才生效，否則還原成原本的等寬表頭 */
+    /** grid 版 (並排) 才生效，否則還原成原本的等寬表頭 */
     apply() {
         const lecture = document.getElementById('fhlLecture')
         const title = document.getElementById('lecMainTitle')
@@ -41,13 +41,6 @@ export class LecColWidth {
         const cells = [...title.children].filter(a => a.classList.contains('lecContent'))
         cells.forEach(a => { a.style.width = '' }) // setCSS 設的等寬百分比，grid 下改由欄寬決定
         cells.slice(0, -1).forEach((cell, i) => cell.append(this.#createHandle(i, custom != null)))
-    }
-
-    /** 視窗、左右欄、字型大小改變時 (FhlLecture.reshape)：表頭 padding 重新對齊經文 grid */
-    realign() {
-        const title = document.getElementById('lecMainTitle')
-        const grid = document.querySelector('#lecMain > .lec-grid')
-        if (title && grid && title.classList.contains('lec-grid-title')) alignTitle(title, grid)
     }
 
     /** @param {number[]} weights 各欄比例 (fr) */

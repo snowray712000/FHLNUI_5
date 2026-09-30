@@ -330,7 +330,7 @@ export class SnFilter {
         for (const sel of SnFilter.SCOPES) {
             $(sel).each((i, e) => this.apply(e, { offShowsAll: sel == '.search-dlg' }))
         }
-        // 併排模式各節的高度是 render 時固定的，SN 顯示多少變了，要重新對齊 (否則會擠在一起)
+        // 併排時 SN 顯示多少變了，各譯本文字長度跟著變：自動欄寬重量 (列高由 CSS Grid 自己對齊)
         window.fhlLecture?.reshape?.(TPPageState.s)
     }
 

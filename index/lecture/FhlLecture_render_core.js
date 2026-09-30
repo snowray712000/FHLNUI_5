@@ -10,23 +10,15 @@ import { ParagraphData } from '../ParagraphData_es2023.js'
 import { grouping_by_paragraph } from "../grouping_by_paragraph.js";
 import { cvt_others } from "../cvt_others.js";
 import { grouping_by_paragraph_for_dtexts_with_addr } from '../grouping_by_paragraph_for_dtexts_with_addr.js'
-// vercol 本來是併排用的，但交錯時，它其實裡面的內容就不是同一譯本了。
-// 新增「段落功能後」，.lec 原本是「單節」的設計，現在多一層 grouped 的概念，新增 .paragraph 的 div 好了。
-// 也就是說 以後 模式4，交錯的話，應該是 <div.paragraph ver='ver1'> </div> <div.paragraph ver='ver2'> </div> 也就是說, 真正確定同個譯本的, 會是 .paragraph，也不是 .vercol。
-
+// 並排 (mode 1/3)：render_grid()，CSS Grid (docs/z260930d)
 // <div#lecMain>
-//     <div.vercol>
-//     <div.lec>...第1節內容...</div>
-//     <div.lec>...第2節內容...</div>
-//     <div.lec>...</div>
+//     <div.lec-grid>
+//         <div.vercol ver=unv> (display: contents) <div.paragraph data-row style="grid-column; grid-row"> <span.lec>… </div> … </div>
+//         <div.vercol ver=kjv> … </div>
 //     </div>
-//     <div.vercol>
-//     <div.lec>...</div>
-//     <div.lec>...</div>
-//     <div.lec>...</div>
-//     </div>
-//     <div#div_copyright.vercol>...</div>
 // </div>
+// 交錯 (mode 2/4)：<div#lecMain> <div.vercol> <div.paragraph ver=unv> <div.paragraph ver=kjv> … </div> </div>
+//   (.vercol 在交錯時只是容器，真正確定譯本的是 .paragraph[ver])
 
 /**
  * @typedef {import("./FhlLecture_render_mode_common_es2023.js").TpResultBibleText} TpResultBibleText
@@ -65,34 +57,30 @@ export async function FhlLecture_render_core(rspApp, mode) {
     const ps = TPPageState.s
 
     const contentVm = await build_view_model(rspApp, mode)
-    if ((mode === 1 || mode === 3) && isLecGridEnabled()) {
-        return render_grid(contentVm, ps.fontSize)
-    }
-    const copyDir = (mode === 1 || mode === 3) ? "col" : "row"
-    const layoutVm = build_layout_vm(contentVm, mode, copyDir)
-
-    const htmlContent = generate_htmlContent_with_VersionColumns(rspApp, ps.fontSize, mode)
-
-    for (const item of layoutVm.vercols) {
-        const div_grouped = render_paragraph_div(item)
-
-        // col 模式：每個譯本對應自己的欄；row 模式：全部放第 0 欄
-        const col_index = (mode === 1 || mode === 3)
-            ? rspApp.findIndex(r => r.version === item.version)
-            : 0
-
-        htmlContent.children().eq(col_index).append(div_grouped)
-    }
-
-    return htmlContent;
+    if (mode === 1 || mode === 3) return render_grid(contentVm, ps.fontSize)
+    return render_interleaved(contentVm, ps.fontSize)
 }
 
 /**
- * 並排 (mode 1/3) 用 CSS Grid (docs/z260930d 第四節)；localStorage fhlLecLayout = 'div' 可切回舊版 (inline-block + reshape 量高度)
- * @returns {boolean}
+ * 交錯 (mode 2/4)：一個 .vercol，同一段 (mode 2 是每節) 的各譯本輪流
+ * @param {ContentVm} contentVm
+ * @param {number} fontSizeOfPs ps.fontSize
+ * @returns {JQuery<HTMLElement>} 外層是暫時的 div#lecMain (呼叫端取 .html())
  */
-export function isLecGridEnabled() {
-    try { return localStorage.getItem('fhlLecLayout') != 'div' } catch { return true }
+function render_interleaved(contentVm, fontSizeOfPs) {
+    const $htmlContent = $("<div id='lecMain'></div>")
+    const $vercol = $("<div class='vercol'></div>")
+        .css({ width: '100%', display: 'inline-block', 'vertical-align': 'top', 'margin-top': `${fontSizeOfPs * 1.25 - 15}px` })
+        .appendTo($htmlContent)
+    const versions = contentVm.versions
+    const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0)
+    for (let pi = 0; pi < maxP; pi++) {
+        for (const v of versions) {
+            const paragraph = v.paragraphs[pi]
+            if (paragraph) $vercol.append(render_paragraph_div({ version: v.version, isRtl: v.isRtl, paragraph }))
+        }
+    }
+    return $htmlContent
 }
 
 /**
@@ -221,7 +209,7 @@ function render_paragraph_div(item) {
  * 只做資料整理，不做畫面 render。
  * 規則：
  * - "a" 併入上節時，上一節 verseLabel 變成 20-21
- * - 同時保留本節 placeholder（便於 mode1/2/row 對齊）
+ * - 同時保留本節 placeholder（hideVerseContent：交錯時略過；並排 grid 時整段都是 placeholder → 上一段 span）
  * @param {TpResultBibleText[]} rspArr
  * @param {number} mode
  * @returns {Promise<ContentVm>}
@@ -323,91 +311,7 @@ async function build_view_model(rspArr, mode) {
 }
 /**
  * @typedef {{ version:string, isRtl:boolean, paragraph:VmParagraph }} VercolItem
- * @typedef {{ mode:number, copyDir:"col"|"row", vercols:VercolItem[] }} LayoutVm
  */
-
-/**
- * 所有 mode 都產生 .vercol 陣列
- * @param {ContentVm} contentVm
- * @param {number} mode
- * @param {"col"|"row"} copyDir
- * @returns {LayoutVm}
- */
-function build_layout_vm(contentVm, mode, copyDir) {
-    const versions = contentVm.versions;
-
-    /** @type {VercolItem[]} */
-    const vercols = [];
-
-    // mode1: fake paragraph（每段通常一節）
-    if (mode === 1) {
-        if (copyDir === "col") {
-            for (const v of versions) {
-                for (const p of v.paragraphs) {
-                    // 每個譯本同一個 .vercol 承載多 paragraph，render 時可按 version 聚合
-                    // 若你偏好先 layout 就聚合，可改成另一種結構
-                    vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
-                }
-            }
-        } else {
-            // row: 以 paragraph index 交錯，仍然每格是 .vercol
-            const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
-            for (let pi = 0; pi < maxP; pi++) {
-                for (const v of versions) {
-                    const p = v.paragraphs[pi];
-                    if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
-                }
-            }
-        }
-        return { mode, copyDir, vercols };
-    }
-
-    // mode2: 單欄交錯（每節一段），但容器仍是 .vercol
-    if (mode === 2) {
-        const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
-        for (let pi = 0; pi < maxP; pi++) {
-            for (const v of versions) {
-                const p = v.paragraphs[pi];
-                if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
-            }
-        }
-        return { mode, copyDir: "col", vercols };
-    }
-
-    // mode3: 真段落
-    if (mode === 3) {
-        if (copyDir === "col") {
-            for (const v of versions) {
-                for (const p of v.paragraphs) {
-                    vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
-                }
-            }
-        } else {
-            const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
-            for (let pi = 0; pi < maxP; pi++) {
-                for (const v of versions) {
-                    const p = v.paragraphs[pi];
-                    if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
-                }
-            }
-        }
-        return { mode, copyDir, vercols };
-    }
-
-    // mode4: 單欄交錯（每段）
-    if (mode === 4) {
-        const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0);
-        for (let pi = 0; pi < maxP; pi++) {
-            for (const v of versions) {
-                const p = v.paragraphs[pi];
-                if (p) vercols.push({ version: v.version, isRtl: v.isRtl, paragraph: p });
-            }
-        }
-        return { mode, copyDir: "col", vercols };
-    }
-
-    return { mode, copyDir, vercols };
-}
 function get_paragraphs(mode, rspApp) {
     // 先假設，內容一定是同一章，同卷書
     if (mode == 3 || mode == 4) {
@@ -447,27 +351,4 @@ function get_paragraphs(mode, rspApp) {
 }
 
 
-/**
- * 
- * @param {TpResultBibleText} rspArr 
- * @param {number} fontSizeOfPs ps.fontSize
- * @returns 
- */
-function generate_htmlContent_with_VersionColumns(rspArr, fontSizeOfPs, mode = 1) {
-    // case1: 不同版本，併排顯示；case2，不同版本，交錯顯示
-    // 注意, 這個變數, 只是暫存的, 它輽出的結果是 html 文字, 不包含自己, 所以lecMain屬性是在另種設定, 不是在這
-    // 不要再從這裡改 <div style=padding:10px 50px></div>, 不會有效果的.
-    let $htmlContent = $("<div id='lecMain'></div>");
-
-    const cnt_version = (mode == 1 || mode == 3) ? rspArr.length : 1;
-    let cx1 = 100 / cnt_version;
-    for (let j = 0; j < cnt_version; j++) {
-        // 分3欄
-        let onever = $("<div class='vercol' style='width:" + cx1 + "%;display:inline-block;vertical-align:top; margin-top: " + (fontSizeOfPs * 1.25 - 15) + "px'></div>");
-
-        $htmlContent.append(onever);
-    }
-
-    return $htmlContent;
-}
 

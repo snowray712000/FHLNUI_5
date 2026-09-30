@@ -11,7 +11,7 @@
  *   所以把原生反白變透明，改用 CSS Custom Highlight 只畫要複製的那塊；Ctrl+C 也改成複製對照表
  * - Ctrl+C (沒跨欄)：仍是反白的內容，但 html 只留顏色 (瀏覽器原生會帶一堆計算後的樣式，貼到 pptx 不換行)
  *
- * 目前的 div 版 (.vercol 一個譯本一欄) DOM 本來就是欄優先，不必等 grid
+ * 並排是 CSS Grid (.lec-grid > .vercol display: contents)，DOM 仍一欄一欄 (欄優先)
  */
 import { el } from './auDom.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
@@ -256,7 +256,7 @@ function columnsByVerse(versions, all, hitSet, lo, hi) {
     })
 }
 /**
- * 如所見一段一列 (mode 3 並排)：各欄第 i 個 .paragraph 在畫面上是同一列 (grid 版看 data-row；div 版 reshape 對齊)
+ * 如所見一段一列 (mode 3 並排)：.paragraph 的 data-row 是 grid 的列
  * @param {string[]} versions @param {HTMLElement[]} hit 起訖節之間真的選到的
  * @returns {Cell[][]}
  */
@@ -264,9 +264,7 @@ function columnsByParagraph(versions, hit) {
     /** @param {HTMLElement} lec */
     const rowOf = lec => {
         const p = /** @type {HTMLElement} */ (lec.closest('.paragraph'))
-        if (!p) return -1
-        if (p.dataset.row != null) return +p.dataset.row // grid 版：併入上節的段不產生元素，不能用 index
-        return [...p.parentElement.children].filter(a => a.classList.contains('paragraph')).indexOf(p)
+        return p?.dataset.row != null ? +p.dataset.row : -1 // 不能用 index：併入上節的段不產生元素
     }
     const rowIds = [...new Set(hit.map(rowOf))].sort((a, b) => a - b)
     return versions.map(ver => rowIds.map(row => ({ lecs: hit.filter(a => a.getAttribute('ver') == ver && rowOf(a) == row), rs: 1 })))

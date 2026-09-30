@@ -39,26 +39,24 @@ import { SearchTool } from './SearchTool.es2023.js'
 import { normalizeActiveAddr, highlightActiveRefs } from './highlightActiveRefs.es2023.js'
 
 /*
-若有 2 個譯本，並且是併排方式
-<div#fhlLecture>
+並排 (mode 1/3)：CSS Grid，列高由 grid 對齊 (docs/z260930d)
+<div#fhlLecture>              --lec-cols-tpl 欄寬 (LecColWidth)
 <div.chapBack></div>
 <div.chapNext></div>
 <div#viewHistoryButton></div>
-<div#lecMainTitle></div>
+<div#lecMainTitle.lec-grid-title>  <div.lecContent> 譯本名 + .lec-col-handle </div> ... </div>
 <div#lecMain>
-    <div.vercol>
-    <div.lec>...第1節內容...</div>
-    <div.lec>...第2節內容...</div>
-    <div.lec>...</div>
+    <div.lec-grid>
+        <div.vercol ver=unv>  (display: contents，DOM 仍一欄一欄)
+            <div.paragraph data-row=0 style="grid-column:1; grid-row:1"> <span.lec>...</span> </div>
+            ...
+        </div>
+        <div.vercol ver=kjv> ... </div>
     </div>
-    <div.vercol>
-    <div.lec>...</div>
-    <div.lec>...</div>
-    <div.lec>...</div>
-    </div>
-    <div#div_copyright.vercol>...</div>
+    <div#div_copyright.lec.copyright>...</div>
 </div>
 </div>
+交錯 (mode 2/4)：#lecMain > div.vercol (只有一個) > div.paragraph (譯本輪流)
 */
 // export class RootBase {
 //     dom = null
@@ -260,13 +258,12 @@ export class FhlLecture {
             }
         }
     }
-    // 沒有這一段，每 cols 內容雖然都有，但不會每一節對齊。
+    /**
+     * 版面變了 (視窗、左右欄、字型大小、SN 顯示/篩選) 時呼叫。
+     * 並排 (mode 1/3) 的列高由 CSS Grid 對齊，不必再量；這裡讓欄寬 (自動時重量文字長度) 與表頭跟上
+     */
     reshape(ps) {
-        /// <summary> 目前主要是 mode=1 時, align 要重新排過, 會用到的有 fontSize, resize,(在windowAdjust裡呼叫) 裡面會有 show_mode 判斷式, 只要直接呼叫即可 </summary>
-        if (ps.show_mode == 1 || ps.show_mode == 3) {
-            reshape_for_align_each_sec()
-            LecColWidth.s.realign()
-        }
+        if (ps.show_mode == 1 || ps.show_mode == 3) LecColWidth.s.apply()
     }
 }
 
@@ -313,9 +310,6 @@ async function renderLectureHtml(that) {
             .html(htmlContent)
             .attr('mode', mode);
         $('#lecMain').css({ 'padding': '' })
-
-        // 對齊 不同譯本 同一節 高度
-        that.reshape(ps);
 
         // 2016.01.21(四) 版權宣告 snow
         render_copyright(ps.version)
@@ -636,36 +630,6 @@ function goBackgoNext_setupEvents() {
                 vh_itemschanged: recolor
             });
     })();
-}
-/**
- * 這不是事件，是 fhlLecture 會被呼叫 reshape 時主動呼叫的
- */
-function reshape_for_align_each_sec() {
-    /// @verbatim 對齊必須在 dom.html(html) 之後才作, 因為那時候才會有實體, 否則取出來的 height() 會是 0@endverbatim
-    const $lecMain = $("#lecMain")
-    if ($lecMain == null) {
-        return
-    }
-
-    // CSS Grid 版 (.lec-grid) 列高由 grid 對齊，不用量 (docs/z260930d)
-    if ($lecMain.children('.lec-grid').length) return
-
-    const cols = $lecMain.children('.vercol') // 原程式用 children 會包含到 div#div_copyright，所以改用 .vercol
-
-    var qcols = Enumerable.from(cols);
-    var qvers = qcols.select(function (a1) { return $(a1).children(); });
-
-    if (qvers.count() != 0) {
-        var maxRecordCnt = qvers.max(a1 => a1.length)
-
-        for (var i = 0; i < maxRecordCnt; i++) {
-            var qvers2 =
-                qvers.select(function (a1) { if (a1[i] == null) return null; return a1[i] });
-            qvers2.forEach(function (a1) { if (a1 != null) $(a1).height('100%'); }); //要先變為auto, 才能正確算 最大的 cy
-            var maxcy = qvers2.max(function (a1) { return a1 == null ? 0 : $(a1).height() });
-            qvers2.forEach(function (a1) { if (a1 != null) $(a1).height(maxcy); });
-        }
-    }
 }
 function render4() {
     ViewHistory.s.render();

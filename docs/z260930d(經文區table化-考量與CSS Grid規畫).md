@@ -251,7 +251,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 1. **P1 版面**（✅ 2026-09-30 完成，見下方「P1 實作」）：mode 1/3 改 grid + `display: contents`；`reshape` 在 grid 時 no-op；併節 span；表頭先維持 `#lecMainTitle`。以 feature flag（例如 `ps` 或 localStorage）可切回舊版。**模型、單節渲染、grid 版面寫成不依賴 `#lecMain` 的模組**（第五節），表頭、列標籤欄是選項
 2. **P2 表頭與欄寬**（✅ 2026-09-30 完成，見下方「P2 實作」）：app_versions TODO「譯本併排時, 寬度比例自動調整」；表頭仍在 grid 外，但與經文區共用欄寬
 3. **P3 複製對照表**：原型已在 div 版（`index/LecCopyTable.es2023.js`）；改 grid 後確認仍可用，取字可改從資料模型
-4. **P4 清理**：移除 `reshape_for_align_each_sec` 與各呼叫點、`isMergePlaceholder` 在 mode 1/3 的路徑、flag
+4. **P4 清理**（✅ 2026-09-30 完成，見下方「P4 實作」）：移除 `reshape_for_align_each_sec`、`fhlLecLayout` 開關、並排的 div 路徑
 5. **P5–P7**：交互參照、搜尋結果改用同一核心（第五節）
 
 ### P1 實作（2026-09-30）
@@ -278,6 +278,17 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - 只影響並排 mode 1/3（grid 版）；mode 2/4、div 版還原成原本的等寬表頭
 - 沒有「等寬」的操作入口（自訂時拖成等寬即可；需要再加）
 - 已測（瀏覽器）：西 2 unv / rcuv / csb 與 unv / kjv / fhlwh 自動比例（kjv 寬、和合本窄）、各列仍對齊、表頭對齊到 1px；滑鼠拖曳、重新 render 保留、換組合各自記、雙擊回自動；拖曳不會開譯本選擇；mode 2 還原
+
+### P4 實作（2026-09-30）：清理
+
+- 移除 `reshape_for_align_each_sec()`（JS 量高度對齊）、`isLecGridEnabled()` / `localStorage.fhlLecLayout`（不能再切回舊版）
+- `FhlLecture_render_core.js`：mode 1/3 → `render_grid()`，mode 2/4 → `render_interleaved()`；刪掉 `build_layout_vm()`（`copyDir` col/row）與 `generate_htmlContent_with_VersionColumns()`
+- **`FhlLecture.reshape()` 保留**，改成「版面變了」的 hook：只呼叫 `LecColWidth.s.apply()`（自動欄寬重量、表頭重新對齊）。各呼叫點（FhlInfo、FontSizeTool、FhlLeftWindow、SnFilter、WindowControl、index.js）剛好都是版面變動的時機，所以都留著 → SN 顯示 / 篩選改變時，自動欄寬會自己重算，不必雙擊
+- render 時不再呼叫 `reshape`（`LecColWidth.apply()` 在 `setCSS` 之後）
+- `isMergePlaceholder` / `hideVerseContent` 仍保留在 view model：交錯時略過，grid 時整段 placeholder → 上一段 span
+- `LecCopyTable` 一段一列只看 `data-row`
+- 過時的只剩 demo 文件：`index/lecture/RENDER_CORE_SWITCH.md`、`index/lecture/docs/資料 render 流程.md`、`mode_1_4_demo.html` 仍描述 `build_layout_vm` / `copy_dir` 的 div 結構（demo 先保留，第六節決議 4）
+- 已測（瀏覽器）：mode 1–4 各自 render（1/3 grid 對齊、2/4 單欄交錯、版權宣告在）；`reshape()` 後自動欄寬依文字長度重算；實際切 SN 開關，欄寬跟著變、關掉回原比例；複製對照表 mode 1 / 3；console 無錯誤
 
 ### 驗證（每階段）
 

@@ -30,7 +30,7 @@ export class FontSizeTool {
         this.#isSubscribed = true
         FontSize.s.onChange(isSettled => {
             if (this.#val != null) this.#val.textContent = FontSize.s.sizes.main
-            if (isSettled) FhlLecture.s.reshape(TPPageState.s) // 併排時，重新對齊各節高度
+            if (isSettled) FhlLecture.s.reshape(TPPageState.s) // 併排時，自動欄寬重量、表頭重新對齊
         })
     }
 
