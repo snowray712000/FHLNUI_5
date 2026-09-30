@@ -2052,8 +2052,46 @@ body {
    .vercol 是 display: contents：DOM 仍一欄一欄 (原生反白沿欄走)，font-size 等仍會繼承，邊框改畫在 .paragraph */
 #lecMain > .lec-grid {
     display: grid;
-    grid-template-columns: repeat(var(--lec-cols), minmax(0, 1fr)); /* minmax(0,…)：長字、表格不撐破欄寬 */
+    /* 欄寬：LecColWidth 設在 #fhlLecture 的 --lec-cols-tpl (自動 / 自訂)，沒有時等寬。minmax(0,…)：長字、表格不撐破欄寬 */
+    grid-template-columns: var(--lec-cols-tpl, repeat(var(--lec-cols), minmax(0, 1fr)));
     align-items: stretch;
+}
+/* 表頭與經文區共用欄寬；分隔線可拖 (index/LecColWidth.es2023.js) */
+#lecMainTitle.lec-grid-title {
+    display: grid;
+    grid-template-columns: var(--lec-cols-tpl);
+}
+#lecMainTitle.lec-grid-title > .lecContent {
+    position: relative;
+    min-width: 0;
+}
+.lec-col-handle {
+    position: absolute;
+    top: 0;
+    right: -5px;
+    width: 10px;
+    height: 100%;
+    z-index: 1;
+    cursor: col-resize;
+    touch-action: none;
+}
+.lec-col-handle::after { /* 看得到的細線 */
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 5px;
+    bottom: 3px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--lec-col-handle, rgba(255, 255, 255, 0.75));
+}
+.lec-col-handle:hover::after,
+.lec-col-handle.custom::after {
+    background: var(--lec-col-handle-on, #00A0FF);
+}
+body.lec-col-resizing, body.lec-col-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
 }
 #lecMain > .lec-grid > .vercol {
     display: contents;

@@ -249,7 +249,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 ### 分階段
 
 1. **P1 版面**（✅ 2026-09-30 完成，見下方「P1 實作」）：mode 1/3 改 grid + `display: contents`；`reshape` 在 grid 時 no-op；併節 span；表頭先維持 `#lecMainTitle`。以 feature flag（例如 `ps` 或 localStorage）可切回舊版。**模型、單節渲染、grid 版面寫成不依賴 `#lecMain` 的模組**（第五節），表頭、列標籤欄是選項
-2. **P2 表頭（可延後）**：經文區要不要改用 grid 內 sticky 表頭、移除 `#lecMainTitle` 寬度算式，到時再決定；交錯模式可開列標籤欄
+2. **P2 表頭與欄寬**（✅ 2026-09-30 完成，見下方「P2 實作」）：app_versions TODO「譯本併排時, 寬度比例自動調整」；表頭仍在 grid 外，但與經文區共用欄寬
 3. **P3 複製對照表**：原型已在 div 版（`index/LecCopyTable.es2023.js`）；改 grid 後確認仍可用，取字可改從資料模型
 4. **P4 清理**：移除 `reshape_for_align_each_sec` 與各呼叫點、`isMergePlaceholder` 在 mode 1/3 的路徑、flag
 5. **P5–P7**：交互參照、搜尋結果改用同一核心（第五節）
@@ -265,6 +265,19 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - 表頭仍是 `#lecMainTitle`（沒動）；mode 2/4 仍走舊的交錯版
 - `LecCopyTable` 一段一列改看 `data-row`（grid 版 index 會因省略 placeholder 而錯位）
 - 已測（瀏覽器）：西 2（unv / rcuv / csb）mode 1、3 各列對齊、併節 span；改 `--fontsize`、縮窄 `#lecMain` 後不呼叫 reshape 仍對齊；複製對照表 mode 1 / 3；點選節、`selectLecture` 捲到選取節；創 1（unv / bhs / csb）RTL、無橫向溢出；切回 div 版；console 無錯誤。**平板、SN 篩選、注腳直接載入、pos/pho 尚未實測**
+
+### P2 實作（2026-09-30）：欄寬
+
+需求（app_versions TODO「譯本併排時, 寬度比例自動調整」）：依各譯本文字量給不同寬度，開放參數，預設自動。
+
+- `index/LecColWidth.es2023.js`，FhlLecture 每次 render 完（`setCSS` 之後）`LecColWidth.s.apply()`；`reshape()` 時 `realign()`
+- **自動**（預設）：量每個譯本整章文字實際排版的長度（每個 `.lec` 的 `getClientRects()` 寬度加總），欄寬與它成正比 → 各欄差不多一樣高。用量的不用數字數（中、英、希臘、希伯來字寬差很多；隱藏的 SN 量不到）。限制在平均的 0.6–1.8 倍
+- **自訂**：拖表頭譯本名之間的分隔線（`.lec-col-handle`）；**依譯本組合分開記**（`localStorage.fhlLecColWidth`，key = 譯本排序後以逗號連接，值 = 各譯本比例）；雙擊分隔線回到自動。自訂中的分隔線是藍色
+- 欄寬放在 `#fhlLecture` 的 `--lec-cols-tpl`，經文 grid 與表頭（`#lecMainTitle.lec-grid-title`，也是 grid）共用
+- 表頭：沒搬進 grid。原本 `#lecMainTitle` 是固定 `padding: 0 50px`，`#lecMain` 扣了捲軸寬，舊版就有幾 px 偏差；欄寬不等時看得出來 → `alignTitle()` 量經文 grid 的左右位置設表頭 padding
+- 只影響並排 mode 1/3（grid 版）；mode 2/4、div 版還原成原本的等寬表頭
+- 沒有「等寬」的操作入口（自訂時拖成等寬即可；需要再加）
+- 已測（瀏覽器）：西 2 unv / rcuv / csb 與 unv / kjv / fhlwh 自動比例（kjv 寬、和合本窄）、各列仍對齊、表頭對齊到 1px；滑鼠拖曳、重新 render 保留、換組合各自記、雙擊回自動；拖曳不會開譯本選擇；mode 2 還原
 
 ### 驗證（每階段）
 

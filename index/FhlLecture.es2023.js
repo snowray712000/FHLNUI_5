@@ -27,6 +27,7 @@ import { getAjaxUrl } from './getAjaxUrl.es2023.js'
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 
 import { FhlLecture_render_core } from './lecture/FhlLecture_render_core.js'
+import { LecColWidth } from './LecColWidth.es2023.js'
 
 import { testThenDoAsync } from './testThenDo.es2023.js'
 import { change_sec_of_ps_if_address_exist_in_view_history, ViewHistoryData } from './ViewHistoryData_es2023.js'
@@ -264,6 +265,7 @@ export class FhlLecture {
         /// <summary> 目前主要是 mode=1 時, align 要重新排過, 會用到的有 fontSize, resize,(在windowAdjust裡呼叫) 裡面會有 show_mode 判斷式, 只要直接呼叫即可 </summary>
         if (ps.show_mode == 1 || ps.show_mode == 3) {
             reshape_for_align_each_sec()
+            LecColWidth.s.realign()
         }
     }
 }
@@ -319,6 +321,7 @@ async function renderLectureHtml(that) {
         render_copyright(ps.version)
 
         setCSS(ps.version.length, ps);
+        LecColWidth.s.apply(); // grid 版：各譯本欄寬 (自動 / 拖表頭自訂)，表頭跟著 (docs/z260930d P2)
         setFont();
 
         // 清除 「暗黃色」目前選擇，並且將目前 選擇的節，設為「暗黃色」，並且將 scroll 到目前那一節
