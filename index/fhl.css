@@ -2277,3 +2277,47 @@ body.lec-col-resizing, body.lec-col-resizing * {
     touch-action: manipulation;
 }
 .lec-copy-table[hidden] { display: none; }
+
+/* 經文「位置 × 譯本」共用 grid (index/VerseGrid.es2023.js)：交互參照對話框用；經文區的 grid 另見 #lecMain > .lec-grid */
+:root {
+    --vg-head-bg: #E8E8E8;
+    --vg-label: #1a5fb4;
+    --vg-line: #E4E4E4;
+}
+.verse-grid {
+    display: grid;
+    align-items: stretch;
+}
+.verse-grid > .vercol { display: contents; }
+.verse-grid .paragraph {
+    min-width: 0;
+    padding: 5px 0.4rem;
+    border-top: 1px solid var(--vg-line);
+    border-left: 1px dashed lightgray;
+}
+.verse-grid .vg-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 3px 6px;
+    background: var(--vg-head-bg);
+    font-weight: bold;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.verse-grid .vg-label,
+.verse-grid .vg-group {
+    padding: 5px 6px;
+    white-space: nowrap;
+    border-top: 1px solid var(--vg-line);
+    user-select: none; /* 反白經文時不要選到標籤 */
+    -webkit-user-select: none;
+}
+.verse-grid [data-goto] {
+    color: var(--vg-label);
+    cursor: pointer;
+}
+.verse-grid [data-goto]:hover { text-decoration: underline; }
+.verse-grid .vg-group { font-weight: bold; }
+.verse-grid.vg-interleaved .vg-label { font-size: 0.85em; color: #666; }

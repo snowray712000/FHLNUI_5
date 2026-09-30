@@ -1,0 +1,113 @@
+/**
+ * 經文「一組經文位置 × 一組譯本」的共用核心 (docs/z260930d 第五節)
+ * - renderVerseLec：一節一譯本 → span.lec[ver][book][chap][sec] > .verseNumber + .verseContent (經文區、交互參照共用)
+ * - renderVerseGrid：CSS Grid 版面，可選表頭 (譯本名)、左側標籤欄 (經文位置或譯本名)；並排 / 交錯
+ *   DOM 仍是一欄一欄 (.vercol display: contents)，原生反白沿欄往下；列高由 grid 對齊
+ * - 經文區的 grid (FhlLecture_render_core render_grid) 有併入上節跨列、data-row，排版自己做，只共用 renderVerseLec 與 css
+ *
+ * @typedef {import("./DText.js").DText} DText
+ * @typedef {{ book: number, chap: number, sec: number, dtexts: DText[], verseLabel?: string, hideVerseNumber?: boolean }} VerseItem
+ * @typedef {{ version: string, name: string, isRtl?: boolean }} VersionCol
+ * @typedef {{ label?: string, labelAttrs?: Record<string, string>, cells: Record<string, VerseItem[]> }} VerseRow 一列 (連續的節)；cells 以譯本為 key
+ */
+import { render_dtexts } from './render_dtexts.js'
+import { generate_verse_number_jdom } from './lecture/FhlLecture_render_mode_common_es2023.js'
+import { SnFilter } from './SnFilter.es2023.js'
+
+/**
+ * 一節一譯本
+ * @param {VerseItem} verse
+ * @param {string} version
+ * @param {{ numberDText?: DText }} [opt] numberDText：節碼改用這個 DText 畫 (例：交互參照的節碼是 .ref，點了看整章)
+ * @returns {JQuery<HTMLElement>}
+ */
+export function renderVerseLec(verse, version, opt = {}) {
+    const $lec = $('<span>').addClass('lec')
+        .attr({ ver: version, chap: verse.chap, sec: verse.sec, book: verse.book })
+
+    if (!verse.hideVerseNumber) {
+        const $num = generate_verse_number_jdom(verse.sec, version)
+        const label = verse.verseLabel ?? String(verse.sec)
+        if (opt.numberDText) {
+            $num.empty().append(render_dtexts([[verse.book, verse.chap, verse.sec, [{ ...opt.numberDText, w: label }]]], version).children(), ' ')
+        } else if (label !== String(verse.sec)) {
+            $num.text(label + ' ')
+        }
+        $lec.append($num)
+    }
+
+    const $content = render_dtexts([[verse.book, verse.chap, verse.sec, verse.dtexts]], version)
+    // 所有資料都含 SN，strong=0 時隱藏；篩選時只顯示指定的 (docs/z260928e)
+    SnFilter.s.apply($content, { addr: `${verse.book}.${verse.chap}.${verse.sec}`, ver: version })
+    return $lec.append($('<span>').addClass('verseContent').append($content))
+}
+
+/**
+ * 一格：一個譯本的一段 (多節接在一起)
+ * @param {VerseItem[]} verses @param {VersionCol} v @param {{ numberDTextOf?: (verse: VerseItem) => DText }} opt
+ */
+function renderParagraph(verses, v, opt) {
+    const $p = $('<div>').addClass('paragraph').attr('ver', v.version)
+    if (v.isRtl) $p.css({ 'text-align': 'right', direction: 'rtl' })
+    for (const verse of verses) $p.append(renderVerseLec(verse, v.version, { numberDText: opt.numberDTextOf?.(verse) }))
+    return $p
+}
+
+/**
+ * @param {{
+ *   versions: VersionCol[],
+ *   rows: VerseRow[],
+ *   layout: 'side' | 'interleaved',
+ *   isHeader?: boolean,
+ *   isLabel?: boolean,
+ *   numberDTextOf?: (verse: VerseItem) => DText,
+ * }} opt
+ *   side：一個譯本一欄，一列 = rows 的一列；isHeader 時第一列是譯本名 (sticky)
+ *   interleaved：一欄經文；每列前一條「經文位置」，再各譯本一列 (標籤欄放譯本名)
+ * @returns {JQuery<HTMLElement>} div.verse-grid
+ */
+export function renderVerseGrid(opt) {
+    const { versions, rows } = opt
+    const isLabel = opt.isLabel ?? true
+    const $grid = $('<div>').addClass('verse-grid ' + (opt.layout == 'side' ? 'vg-side' : 'vg-interleaved'))
+    const c0 = isLabel ? 2 : 1 // 第一個經文欄
+
+    const $label = (text, row, col, attrs) => $('<div>').addClass('vg-label').text(text ?? '')
+        .attr(attrs ?? {}).css({ 'grid-column': String(col), 'grid-row': String(row) })
+
+    if (opt.layout == 'side') {
+        $grid.css('grid-template-columns', `${isLabel ? 'max-content ' : ''}repeat(${versions.length}, minmax(0, 1fr))`)
+        const r0 = opt.isHeader ? 2 : 1
+        if (opt.isHeader) {
+            if (isLabel) $grid.append($('<div>').addClass('vg-head').css({ 'grid-column': '1', 'grid-row': '1' }))
+            versions.forEach((v, i) => $grid.append($('<div>').addClass('vg-head').text(v.name).css({ 'grid-column': String(c0 + i), 'grid-row': '1' })))
+        }
+        // 標籤欄放在經文前面 (不可選取，反白不會被它打斷)
+        if (isLabel) rows.forEach((row, i) => $grid.append($label(row.label, r0 + i, 1, row.labelAttrs)))
+        versions.forEach((v, iCol) => {
+            const $vercol = $('<div>').addClass('vercol').attr('ver', v.version).appendTo($grid)
+            rows.forEach((row, iRow) => {
+                renderParagraph(row.cells[v.version] ?? [], v, opt)
+                    .attr('data-row', iRow)
+                    .css({ 'grid-column': String(c0 + iCol), 'grid-row': String(r0 + iRow) })
+                    .appendTo($vercol)
+            })
+        })
+        return $grid
+    }
+
+    // 交錯：| 譯本名 | 經文 |，每組前一條經文位置
+    $grid.css('grid-template-columns', `${isLabel ? 'max-content ' : ''}minmax(0, 1fr)`)
+    const $vercol = $('<div>').addClass('vercol').appendTo($grid)
+    let r = 1
+    rows.forEach((row, iRow) => {
+        if (row.label) $vercol.append($('<div>').addClass('vg-group').text(row.label).attr(row.labelAttrs ?? {}).css({ 'grid-column': '1 / -1', 'grid-row': String(r++) }))
+        for (const v of versions) {
+            const verses = row.cells[v.version] ?? []
+            if (verses.length == 0) continue
+            if (isLabel) $vercol.append($label(v.name, r, 1))
+            renderParagraph(verses, v, opt).attr('data-row', iRow).css({ 'grid-column': String(c0), 'grid-row': String(r++) }).appendTo($vercol)
+        }
+    })
+    return $grid
+}

@@ -147,10 +147,10 @@ export class FhlLecture {
                     // 試取 addr-data
                     const addrs = JSON.parse($(target).attr('addr-data'))
                     if (addrs != null && addrs.length > 0) {
-                        queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: e, version: "unv" })
+                        queryReferenceAndShowAtDialogAsync({ addrs: addrs, event: e }) // 譯本：目前顯示的 (ps.version)
                     }
                 } else {
-                    queryReferenceAndShowAtDialogAsync({ addrsDescription: addrDesc, event: e, version: "unv" })
+                    queryReferenceAndShowAtDialogAsync({ addrsDescription: addrDesc, event: e })
                 }
             }
         }, '.ref');

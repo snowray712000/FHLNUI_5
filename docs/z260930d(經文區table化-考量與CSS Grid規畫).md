@@ -325,11 +325,27 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 
 不和經文區同一批改：經文區波及已大；搜尋還有關鍵字上色、分組 / 書卷篩選、`.sd-copy`。不連續節也碰不到經文區最麻煩的併節 / 段落 / `reshape`。順序：
 
-- P5：交互參照 dialog 改用核心，支援多譯本
+- P5：交互參照 dialog 改用核心，支援多譯本（✅ 2026-09-30，見下方「P5 實作」）
 - P6：搜尋結果改走 DText + 核心，關鍵字上色移到 DText，提供並排 / 交錯
 - P7：複製對照表擴及搜尋與交互參照；SnFilter 移除 `[data-vaddr]` 分支
 
 ---
+
+### P5 實作（2026-09-30）：交互參照對話框
+
+- 新增 `index/VerseGrid.es2023.js`（共用核心）：
+  - `renderVerseLec(verse, version, { numberDText })`：一節一譯本的 `span.lec[ver][book][chap][sec] > .verseNumber + .verseContent`（含 SnFilter）。經文區 `render_paragraph_div` 也改用它
+  - `renderVerseGrid({ versions, rows, layout: 'side' | 'interleaved', isHeader, isLabel, numberDTextOf })`：`div.verse-grid`；並排時可選表頭（譯本名，sticky）與左側標籤欄；交錯時每組前一條經文位置、標籤欄放譯本名。DOM 一欄一欄（`.vercol` display: contents）
+  - 經文區的 grid 有併節跨列、`data-row`、欄寬，排版自己做（`render_grid`），只共用單節渲染與 css
+- `queryReferenceAndShowAtDialogAsync`：
+  - 譯本 = 目前顯示的（`ps.version`，新參數 `jo.versions`）；以前寫死 `unv`（FhlLecture 點 `.ref` 傳的 `version: "unv"` 已拿掉）
+  - 各譯本並行 `qsb`，查詢順序為準；連續的節（同書同章、節 +1）合成一列（像 mode 3 一段一列）；併入上節 → 上一節節碼 `20-21`
+  - 並排 / 交錯照目前顯示模式（1/3 並排、2/4 交錯）；多譯本並排時對話框加寬（標籤欄 + 每譯本約 320px）
+  - 節碼仍是 `.ref`（點了看整章）；左側經文位置 `[data-goto]` 點了經文區跳過去
+  - `qsb` 的 `bookDefault` 改傳 1-based 數字（以前傳英文縮寫，qsb 裡當 index 用會變 undefined）
+  - 移除舊的 `prepare_dtexts_for_html(…, 2)` + `cvtDTextsToHtml` 路徑（`prepare_dtexts_for_html.js` 已沒有人用，檔案還在）
+- 原文譯本（fhlwh / bhs / lxx）在對話框仍走 `qsb`（經文區讀本機 json）；bhs 的行序問題未處理
+- 已測（瀏覽器）：`羅3:23-25;6:23;西2:20-22` × unv / kjv / csb 並排（三組、併節 20-21、表頭、標籤欄）；交錯模式；單一譯本（無表頭）；點經文位置經文區跳過去；點節碼開整章（先問方式，同以前）；經文區不受影響；console 無錯誤；build 成功
 
 ## 六、決議（2026-09-30）與仍待決定
 
