@@ -123,8 +123,8 @@ export function renderVerseGrid(opt) {
             if (isLabel) $grid.append($('<div>').addClass('vg-head').css({ 'grid-column': '1', 'grid-row': '1' }))
             versions.forEach((v, i) => $grid.append($('<div>').addClass('vg-head').attr('data-ver', v.version).text(v.name).css({ 'grid-column': String(c0 + i), 'grid-row': '1' })))
         }
-        // 標籤欄放在經文前面 (不可選取，反白不會被它打斷)
-        if (isLabel) rows.forEach((row, i) => $grid.append($label(row.label, r0 + i, 1, row.labelAttrs)))
+        // 標籤欄放在經文前面 (不可選取，反白不會被它打斷)；data-row 與同列的 .paragraph 相同 (複製對照表找經文位置用)
+        if (isLabel) rows.forEach((row, i) => $grid.append($label(row.label, r0 + i, 1, row.labelAttrs).attr('data-row', i)))
         versions.forEach((v, iCol) => {
             const $vercol = $('<div>').addClass('vercol').attr('ver', v.version).appendTo($grid)
             rows.forEach((row, iRow) => {
@@ -142,7 +142,7 @@ export function renderVerseGrid(opt) {
     const $vercol = $('<div>').addClass('vercol').appendTo($grid)
     let r = 1
     rows.forEach((row, iRow) => {
-        if (row.label) $vercol.append($('<div>').addClass('vg-group').text(row.label).attr(row.labelAttrs ?? {}).css({ 'grid-column': '1 / -1', 'grid-row': String(r++) }))
+        if (row.label) $vercol.append($('<div>').addClass('vg-group').text(row.label).attr(row.labelAttrs ?? {}).attr('data-row', iRow).css({ 'grid-column': '1 / -1', 'grid-row': String(r++) }))
         for (const v of versions) {
             const verses = row.cells[v.version] ?? []
             if (verses.length == 0) continue

@@ -13,7 +13,7 @@ import { gbText } from "./gbText.es2023.js";
  * - 顯示：排除清單優先；否則在 SN 清單、符合任一預設組合 (字典詞性，sn_pos.json.gz)、本章主導詞、或動詞形態
  * - 動詞形態 (sn_morph_*.json.gz)：以「同一節、同一個 SN」對應；原文譯本用第幾次出現對第幾個；
  *   和合本 / KJV 另有逐字的時態碼 (5723)，用 tvm_table.json 換成形態代碼，與同節對應取交集
- *   節的位址：主經文 .lec[book][chap][sec]、其它 [data-vaddr="book.chap.sec"]，或 apply 的 opt.addr
+ *   節的位址：.lec[book][chap][sec] (經文區、搜尋結果、交互參照都是)，或 apply 的 opt.addr
  * - 時態碼 (5656) 跟著它前面的字
  *
  * @typedef {Object} DSnFilterOfTestament
@@ -185,7 +185,7 @@ export function morphName(tp, code) {
  * 一節 (一個譯本) 中的 SN：位址、譯本、各 SN 共出現幾次、每個 .sn 是這節中第幾次出現 (0 起算)、字後面的時態碼
  */
 /**
- * 依節分組：節的標記是 .lec[book][chap][sec] 或 [data-vaddr]；時態碼、標記不算
+ * 依節分組：節的標記是 .lec[book][chap][sec]；時態碼、標記不算
  * @param {Element[]} els 依文件順序
  * @param {{addr?: string, ver?: string}} opt 第一個標記之前的節
  * @returns {Map<Element, DVerseOfSn>}
@@ -197,7 +197,7 @@ function groupByVerse(els, opt) {
     let lastWord = null
     for (const e of els) {
         if (!e.classList.contains('sn')) {
-            const addr = e.hasAttribute('data-vaddr') ? e.getAttribute('data-vaddr') : `${e.getAttribute('book')}.${e.getAttribute('chap')}.${e.getAttribute('sec')}`
+            const addr = `${e.getAttribute('book')}.${e.getAttribute('chap')}.${e.getAttribute('sec')}`
             verse = { addr, ver: e.getAttribute('ver') ?? e.getAttribute('data-ver') ?? verse.ver, total: new Map(), nth: new Map(), tvm: new Map() }
             lastWord = null
             continue
@@ -297,7 +297,7 @@ export class SnFilter {
     apply(root, opt = {}) {
         const mode = this.mode == 'off' && opt.offShowsAll ? 'all' : this.mode
         if (mode == 'filter' || this.colorBy != 'off') this.#ensureDataThenApplyAll()
-        const all = $(root).find('.sn, .sn-text, .lec[book], [data-vaddr]').toArray()
+        const all = $(root).find('.sn, .sn-text, .lec[book]').toArray()
         const els = all.filter(e => !isWord(e))
         const verseOf = mode == 'filter' || this.colorBy != 'off' ? groupByVerse(els, opt) : null
         this.#colorWords(all, verseOf)

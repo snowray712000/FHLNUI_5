@@ -327,7 +327,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 
 - P5：交互參照 dialog 改用核心，支援多譯本（✅ 2026-09-30，見下方「P5 實作」）
 - P6：搜尋結果改走 DText + 核心，關鍵字上色移到 DText，提供並排 / 交錯（✅ 2026-09-30，見下方「P6 實作」）
-- P7：複製對照表擴及搜尋與交互參照；SnFilter 移除 `[data-vaddr]` 分支
+- P7：複製對照表擴及搜尋與交互參照；SnFilter 移除 `[data-vaddr]` 分支（已完成，見下）
 
 ---
 
@@ -370,6 +370,15 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - 搜尋結果：host `.sd-results`，變數 `--vg-tpl`，標籤欄 `6.5em`；**每個範圍只在第一批載入後量一次**，之後各批沿用（不會一直跳）；換範圍 / 新搜尋先清掉舊的
 - `VerseGrid`：並排多欄的 grid 用 `var(--vg-tpl, 等寬)`；表頭格加 `data-ver`；匯出 `labelTemplate()`
 - 已測（瀏覽器）：經文區自動（unv / kjv / fhlwh）；交互參照自動；搜尋 `摩西`（unv / rcuv / csb）第一批後量寬、捲動第二批欄寬相同；在搜尋結果拖曳 → 存紀錄 → 經文區同組合套用（藍色分隔線）；經文區雙擊 → 紀錄清掉回自動
+
+### P7 實作（2026-09-30）：搜尋結果、交互參照也能複製對照表
+
+- `LecCopyTable` 從只認 `#lecMain` 改成「範圍」（Scope）：`#lecMain`、`.sd-results`（搜尋結果）、`.ref-dlg`（交互參照）；選取要整個在同一個範圍內。跨欄透明反白改成 `.lct-crossed ::selection`（不限 `#lecMain`）
+- 經文區行為不變：mode 1 一節一列、mode 3 一段一列、交錯一欄多列；起訖之間依節的位址
+- 搜尋結果、交互參照：並排 / 交錯看 grid 是 `.vg-interleaved` 與否；一律一段一列（`.paragraph` 的 `data-row`，搜尋結果每批一個 grid → 列的 key = grid 序 × 1e5 + data-row）；**起訖之間依畫面上的列**（交互參照照查詢順序，位址不一定遞增）
+- 經文位置也複製：並排多譯本 → 表格第一欄「經文」；單一譯本、交錯 → 每列開頭。`VerseGrid` 的位置標籤（並排 `.vg-label`、交錯 `.vg-group`）加 `data-row`，交錯的譯本名標籤沒有（用來區分）
+- SnFilter 移除 `[data-vaddr]` 分支（`cvtDTextsToHtml` 也不再輸出 `data-vaddr`）：產生 `vaddr` 的 `prepare_dtexts_for_html` 已刪，三處都是 `.lec[book][chap][sec]`
+- 已測（瀏覽器）：搜尋 `摩西`（unv / kjv 譯本對照）跨欄 → 經文 / 和合本 / KJV 表；交互參照 `羅1:1-3;約3:16` 跨欄 → 兩列（羅 1:1-3 三節接在一起）、只在一欄內 → 只有該譯本；經文區 mode 1 跨欄照舊
 
 ## 六、決議（2026-09-30）與仍待決定
 
