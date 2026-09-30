@@ -332,11 +332,11 @@ body {
     font-size: 0.95rem;
 }
 #fhlTopMenu .tb-panel[hidden] { display: none; }
-#resourcesPanel { width: 960px; padding: 10px 12px; }
+#resourcesPanel { width: 1100px; padding: 10px 12px; }
 #resourcesPanel .rp-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-    gap: 6px 12px;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 10px 12px;
 }
 #resourcesPanel h4 {
     margin: 0 0 4px;
@@ -355,6 +355,13 @@ body {
     text-decoration: none;
 }
 #resourcesPanel a:hover { background: #E8E0F0; color: #0050DD; }
+/* 每個連結下面的一行簡介 */
+#resourcesPanel a small {
+    display: block;
+    color: #808080;
+    font-size: 0.75rem;
+    line-height: 1.25;
+}
 #moreMenu { width: 210px; padding: 4px; }
 #moreMenu > * {
     display: flex;
