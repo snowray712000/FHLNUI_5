@@ -2254,12 +2254,11 @@ body.lec-col-resizing, body.lec-col-resizing * {
 :root {
     --lct-bg: #1a7fd4;
     --lct-fg: #fff;
-    --lct-hl: rgba(0, 120, 215, 0.28); /* 跨欄時，實際要複製的那塊 */
+    --lct-hl: rgba(0, 120, 215, 0.22); /* 跨格時，實際要複製的那幾格 (整格) */
 }
-/* 跨欄：原生反白照 DOM 順序畫 (第一欄到底、中間整欄)，會誤導 → 透明，改畫實際複製的範圍 */
+/* 跨格：原生反白照 DOM 順序畫 (第一欄到底、中間整欄)，會誤導 → 透明，改成整格 (.paragraph) 上底色 */
 .lct-crossed ::selection { background: transparent; }
-::highlight(lec-copy) { background-color: var(--lct-hl); }
-.lct-crossed .lct-cell { background: var(--lct-hl); } /* 不支援 CSS Custom Highlight 時 */
+.lct-crossed .lct-cell { background: var(--lct-hl); }
 .lec-copy-table {
     position: fixed;
     z-index: 2000;
@@ -2277,6 +2276,43 @@ body.lec-col-resizing, body.lec-col-resizing * {
     touch-action: manipulation;
 }
 .lec-copy-table[hidden] { display: none; }
+/* 觸控 sticky：矩形左上、右下可拖的圓點 (44px 觸控範圍，中間畫 18px 圓)；left/top = 角的座標 */
+.lct-knob {
+    position: fixed;
+    z-index: 2000;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+.lct-knob::after {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 13px;
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: var(--lct-bg);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.lct-knob[hidden], .lct-tip[hidden] { display: none; }
+.lct-tip {
+    position: fixed;
+    z-index: 2000;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+}
 
 /* 經文「位置 × 譯本」共用 grid (index/VerseGrid.es2023.js)：交互參照對話框用；經文區的 grid 另見 #lecMain > .lec-grid */
 :root {
