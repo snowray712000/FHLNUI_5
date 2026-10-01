@@ -18,6 +18,7 @@
     "gen:snmorph": "node tools/gen_sn_morph.mjs",
     "gen:tvm": "node tools/gen_tvm_table.mjs",
     "check:data": "node tools/check_data.mjs",
-    "gen:audio": "node tools/gen_audio_bible_index.mjs"
+    "gen:audio": "node tools/gen_audio_bible_index.mjs",
+    "gen:uiabv": "node tools/gen_uiabv.mjs"
   }
 }

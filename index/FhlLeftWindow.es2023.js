@@ -95,9 +95,11 @@ export class FhlLeftWindow {
                         })
                         s.setCallbackOpened(() => { })
 
+                        // 先用快照的名稱 (abvphp_snapshot.js)，uiabv.php 回來後再更新一次 (FHL 改名、新加譯本)
                         testThenDoAsync(() => window.abvphp != null && window.abvphp.isReadyGlobalBibleVersions())
                             .then(() => {
                                 s.setVersionsFromApi(getAbvResult())
+                                abvphp.init_g_bibleversions().then(() => s.setVersionsFromApi(getAbvResult()))
                                 function getAbvResult() {
                                 
                                     var r1 = TPPageState.s.gb == 1 ? abvphp.g_bibleversionsGb : abvphp.g_bibleversions

@@ -155,14 +155,14 @@ async function get_from_qsb_php_async(book, chap, gb, version){
     const qstr = `${bookName}${chap}`
     const qsbParams = { qstr: qstr, ver: version, isGb: gb }
 
-    const joResult = await qsb(qsbParams)
+    // qsb.php 不回傳譯本名稱，要查 abvphp。快照 (abvphp_snapshot.js) 裡有就不用等；沒有的 (FHL 新加的譯本) 等 uiabv.php
+    const isgb = gb == 1
+    const [joResult] = await Promise.all([qsb(qsbParams), abvphp.readyAsync([version], isgb)])
 
     // qb 會回傳 prev next, 但 qsb 不會，所以要自己產生
     // joResult.prev = {book:1,chap:2,sec:1}
     // joResult.next = {book:1,chap:4,sec:1}
-    const ps = TPPageState.s
-    const isgb = ps.gb == 1
-    const v_name = abvphp.get_cname_from_book(version, isgb)
+    const v_name = abvphp.get_cname_from_book(version, isgb) || (version == 'unv' ? 'FHL和合本' : version)
     joResult.v_name = v_name
     joResult.version = version
 

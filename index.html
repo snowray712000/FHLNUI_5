@@ -74,7 +74,7 @@
     };
     AppVersion.s = new AppVersion();
 
-    var currentSWVer = "7.0.2" // 發版本要改
+    var currentSWVer = "7.0.4" // 發版本要改
     // 原本新版本第一次載入會 location.reload(true) 強迫更新其他檔案，但 Chrome 忽略 true，
     // 且重新整理只重新驗證 html 本身，子資源照用快取；還讓每位新使用者第一次進站多載一次。
     // 改由 build 時替舊式檔案網址加版本號（vite.config.js versionLegacyUrls）處理。
@@ -111,6 +111,7 @@
   <script src=static/libs/jquery.hotkeys.js></script>
   <link href=static/ob_api/ob_api.css rel=stylesheet>
   <link href=static/ob_api/ob_table.css rel=stylesheet>
+  <script src=static/search_api/abvphp_snapshot.js></script>
   <script src=static/search_api/abvphp_api.js></script>
   <script src=static/search_api/fhl_api.js></script>
   <link href=index/Search.css rel=stylesheet>
