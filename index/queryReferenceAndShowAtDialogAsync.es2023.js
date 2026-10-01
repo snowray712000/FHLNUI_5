@@ -5,7 +5,7 @@ import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml } from "./DialogHtml.es2023.js"
 import { ColWidth } from "./ColWidth.es2023.js"
 import { SnFilter } from "./SnFilter.es2023.js"
-import { renderVerseGrid } from "./VerseGrid.es2023.js"
+import { renderVerseGrid, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from "./VerseGrid.es2023.js"
 import { cvtAddrsToRef } from "./cvtAddrsToRef.es2023.js"
 import { BibleConstant } from "./BibleConstant.es2023.js"
 import { assert } from "./assert_es2023.js"
@@ -281,10 +281,11 @@ function render_reference_grid(order, byVer, versions, ps) {
             for (const [book, chap, sec] of g) {
                 const dtexts = m.get(`${book}.${chap}.${sec}`)
                 if (dtexts == null) continue
-                // 併入上節 ("a")：上一節節碼變成 20-21，本節不顯示
-                if (dtexts.length == 1 && dtexts[0].w == 'a') {
+                // 併入上節 ("a")：上一節節碼變成 20-21，本節不顯示；這組從這節開始 (例 #西2:21|) → 顯示「（併入上節）」
+                if (isMergedWithPrev(dtexts)) {
                     const prev = verses[verses.length - 1]
-                    if (prev) prev.verseLabel = `${String(prev.verseLabel).split('-')[0]}-${sec}`
+                    if (prev) prev.verseLabel = extendVerseLabel(prev.verseLabel, sec)
+                    else verses.push({ book, chap, sec, dtexts: mergedPlaceholderDTexts(), hideVerseNumber: true })
                     continue
                 }
                 verses.push({ book, chap, sec, dtexts, verseLabel: String(sec) })

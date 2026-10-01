@@ -13,6 +13,26 @@
 import { render_dtexts } from './render_dtexts.js'
 import { generate_verse_number_jdom } from './lecture/FhlLecture_render_mode_common_es2023.js'
 import { SnFilter } from './SnFilter.es2023.js'
+import { gbText } from './gbText.es2023.js'
+
+/**
+ * 併入上節：qsb.php 那節的 bible_text 是 "a" (例 和合本 西2:21 併入 20)。經文區、交互參照、搜尋結果共用
+ * @param {DText[]} dtexts
+ */
+export function isMergedWithPrev(dtexts) {
+    return dtexts?.length == 1 && dtexts[0].w == 'a'
+}
+/**
+ * 上一節的節碼延伸到 sec：'20' → '20-21'，'20-21' → '20-22'
+ * @param {string | number} label @param {number} sec
+ */
+export function extendVerseLabel(label, sec) {
+    return `${String(label).split('-')[0]}-${sec}`
+}
+/** 併入上節、又沒有上一節可延伸時 (例 搜尋結果、交互參照從這節開始) 格內顯示的字 @returns {DText[]} */
+export function mergedPlaceholderDTexts() {
+    return [{ w: gbText('（併入上節）'), class: 'vg-merged' }]
+}
 
 /**
  * 一節一譯本
@@ -26,12 +46,10 @@ export function renderVerseLec(verse, version, opt = {}) {
         .attr({ ver: version, chap: verse.chap, sec: verse.sec, book: verse.book })
 
     if (!verse.hideVerseNumber) {
-        const $num = generate_verse_number_jdom(verse.sec, version)
         const label = verse.verseLabel ?? String(verse.sec)
+        const $num = generate_verse_number_jdom(label, version)
         if (opt.numberDText) {
             $num.empty().append(render_dtexts([[verse.book, verse.chap, verse.sec, [{ ...opt.numberDText, w: label }]]], version).children(), ' ')
-        } else if (label !== String(verse.sec)) {
-            $num.text(label + ' ')
         }
         $lec.append($num)
     }

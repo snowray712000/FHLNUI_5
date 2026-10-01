@@ -14,7 +14,7 @@ import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
 import { greekLooseRegexSource } from './greekToFhlCode.es2023.js'
 import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
 import { cvt_others } from './cvt_others.js'
-import { renderVerseGrid, renderVerseGridHeader, effectiveLayout, labelTemplate } from './VerseGrid.es2023.js'
+import { renderVerseGrid, renderVerseGridHeader, effectiveLayout, labelTemplate, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from './VerseGrid.es2023.js'
 import { ColWidth } from './ColWidth.es2023.js'
 import { SnFilter } from './SnFilter.es2023.js'
 import { queryFootsAsync } from './queryFootsAsync.js'
@@ -399,14 +399,21 @@ async function toVerseRowsAsync(rows) {
         for (const [book, chap, sec, dtexts] of dtexts_with_addr) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
     }))
 
+    const dtextsAt = (ver, book, chap, sec) => dtextsOf.get(`${ver}|${book}.${chap}.${sec}`)
     return rows.map(row => {
         const book = row.ibook + 1
         const cells = {}
         for (const t of row.texts) {
-            let dtexts = dtextsOf.get(`${t.ver}|${book}.${row.chap}.${row.sec}`) ?? []
-            if (dtexts.length == 1 && dtexts[0].w == 'a') dtexts = [{ w: gbText('（併入上節）'), class: 'vg-merged' }]
-            // 標籤欄已有經文位置，格內不再寫節碼
-            cells[t.ver] = [{ book, chap: row.chap, sec: row.sec, dtexts, hideVerseNumber: true }]
+            const dtexts = dtextsAt(t.ver, book, row.chap, row.sec) ?? []
+            // 格內也有節碼 (與經文區、交互參照一致，複製對照表時才有)
+            // 併入上節 ("a")：這格只寫「（併入上節）」；下一節 (同一批有取到的) 併入這節 → 節碼 20-21
+            if (isMergedWithPrev(dtexts)) {
+                cells[t.ver] = [{ book, chap: row.chap, sec: row.sec, dtexts: mergedPlaceholderDTexts(), hideVerseNumber: true }]
+                continue
+            }
+            let verseLabel = String(row.sec)
+            for (let sec = row.sec + 1; isMergedWithPrev(dtextsAt(t.ver, book, row.chap, sec)); sec++) verseLabel = extendVerseLabel(verseLabel, sec)
+            cells[t.ver] = [{ book, chap: row.chap, sec: row.sec, dtexts, verseLabel }]
         }
         return {
             label: `${names[row.ibook]} ${row.chap}:${row.sec}`,

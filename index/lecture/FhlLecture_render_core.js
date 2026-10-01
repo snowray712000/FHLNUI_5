@@ -27,18 +27,7 @@ import { grouping_by_paragraph_for_dtexts_with_addr } from '../grouping_by_parag
  */
 
 import { queryFootsAsync } from "../queryFootsAsync.js"
-import { renderVerseLec } from "../VerseGrid.es2023.js";
-function is_merge_with_prev_verse(dtexts_with_addr2) {
-    // 例如歌羅西書2:21節，會有一筆資料是 sec=21，bible_text="a"，這筆資料的內容是「併入上節」，它的 verse number 是 21，但實際上它應該是併入上一節的，所以在 render 的時候，要把它的 verse number 隱藏掉。
-    const dtexts = dtexts_with_addr2[3]
-    if (dtexts.length != 1) return false;
-
-    if (dtexts[0].w == "a") return true;
-
-    return false;
-}
-
-
+import { renderVerseLec, isMergedWithPrev, extendVerseLabel } from "../VerseGrid.es2023.js";
 /**
  * 
  * @param {TpResultBibleText[]} rspApp 
@@ -68,7 +57,9 @@ function render_interleaved(contentVm, fontSizeOfPs) {
     for (let pi = 0; pi < maxP; pi++) {
         for (const v of versions) {
             const paragraph = v.paragraphs[pi]
-            if (paragraph) $vercol.append(render_paragraph_div({ version: v.version, isRtl: v.isRtl, paragraph }))
+            if (paragraph == null) continue
+            if (paragraph.verses.length && paragraph.verses.every(a => a.hideVerseContent)) continue // 整段併入上節 (mode 2 一節一段)
+            $vercol.append(render_paragraph_div({ version: v.version, isRtl: v.isRtl, paragraph }))
         }
     }
     return $htmlContent
@@ -205,6 +196,8 @@ async function build_view_model(rspArr, mode) {
 
         /** @type {VmParagraph[]} */
         const paragraphs = [];
+        /** @type {VmVerse | null} 上一個真的節 (跨段：mode 1 一節一段，併入上節的那節自成一段) */
+        let lastReal = null;
 
         for (let iGrouped = 0; iGrouped < grouped.length; iGrouped++) {
             const one_group = grouped[iGrouped];
@@ -222,13 +215,12 @@ async function build_view_model(rspArr, mode) {
                 const sec = dtexts_with_addr2[2];
                 const dtexts = dtexts_with_addr2[3];
 
-                if (is_merge_with_prev_verse(dtexts_with_addr2)) {
+                // 例如歌羅西書2:21 (和合本) 的資料是 "a" (併入上節)：上一節節碼變成 20-21，本節不顯示
+                if (isMergedWithPrev(dtexts)) {
                     // 先更新上一節 label
-                    const last = verses[verses.length - 1];
-                    if (last != null) {
-                        const start = String(last.verseLabel).split("-")[0];
-                        last.verseLabel = `${start}-${sec}`;
-                        last.mergedSecs.push(sec);
+                    if (lastReal != null) {
+                        lastReal.verseLabel = extendVerseLabel(lastReal.verseLabel, sec);
+                        lastReal.mergedSecs.push(sec);
                     }
 
                     // 再保留本節 placeholder（你剛決定要保留）
@@ -246,7 +238,7 @@ async function build_view_model(rspArr, mode) {
                     continue;
                 }
 
-                verses.push({
+                lastReal = {
                     book,
                     chap,
                     sec,
@@ -256,7 +248,8 @@ async function build_view_model(rspArr, mode) {
                     isMergePlaceholder: false,
                     hideVerseNumber: false,
                     hideVerseContent: false
-                });
+                };
+                verses.push(lastReal);
             }
 
             paragraphs.push({

@@ -156,7 +156,6 @@
 }
 .search-dlg .paragraph:hover .sd-copy { visibility: visible; }
 .search-dlg .sd-copy:hover { color: #00A0FF; }
-.search-dlg .vg-merged { color: #909090; }
 .search-dlg .sd-hint {
     padding: 2em;
     text-align: center;
