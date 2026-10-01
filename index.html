@@ -16,7 +16,6 @@
   <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
   <!-- <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script> -->
-  <script src="static/libs/jquery.ui.touch-punch.min.js"></script>
   <script src="https://unpkg.com/linq@3.2.3/linq.min.js"></script>
   <!-- lodash：全專案只用到 _.debounce(fn, 200)（4 處，含 ijnjs-ui 的 BookChapDialog），原本載入整個 lodash 4.15（約 70KB）。
        保持 inline：要在 ijnjs.js 執行前就有 window._，否則 ijnjs 會自己再下載一份 lodash -->
@@ -34,6 +33,8 @@
     }
   </script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <!-- touch-punch 要在 jquery-ui 之後：它要包 $.ui.mouse；放在前面時觸控裝置載入就出錯，平板拖不動灰框 (7.0.x TODO 3) -->
+  <script src="static/libs/jquery.ui.touch-punch.min.js"></script>
   <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/blitzer/jquery-ui.css">
 
   <!-- Bootstrap CSS jQuery first, then Popper.js, then Bootstrap JS -->
@@ -74,7 +75,7 @@
     };
     AppVersion.s = new AppVersion();
 
-    var currentSWVer = "7.0.4" // 發版本要改
+    var currentSWVer = "7.0.6" // 發版本要改
     // 原本新版本第一次載入會 location.reload(true) 強迫更新其他檔案，但 Chrome 忽略 true，
     // 且重新整理只重新驗證 html 本身，子資源照用快取；還讓每位新使用者第一次進站多載一次。
     // 改由 build 時替舊式檔案網址加版本號（vite.config.js versionLegacyUrls）處理。

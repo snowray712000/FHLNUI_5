@@ -11,7 +11,7 @@
 - button#fullscreenControl，全螢幕 (窄的時候在 ⋮ 選單)
 
 原本還有 i#windowControlIcon (收合這組按鈕) 與 span#versionSelect3 (選擇譯本)。
-選擇譯本改成點經文上方的譯本名稱，或左側欄的「聖經版本選擇」
+選擇譯本改成點經文上方的譯本名稱，或左側欄的「聖經譯本選擇」
 */
 
 import { FhlLecture } from "./FhlLecture.es2023.js";

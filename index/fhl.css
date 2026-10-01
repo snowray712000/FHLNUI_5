@@ -1309,6 +1309,10 @@ body {
     z-index: 1;
     color: #606060;
     background: rgba(0, 0, 0, 0);
+    /* 平板拖選取水滴時常碰到箭頭，箭頭不要被反白 (7.0.x TODO 4) */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 #fhlLecture .chapControl span{
     position: absolute;

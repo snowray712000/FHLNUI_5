@@ -50,11 +50,11 @@ export class FhlLeftWindow {
                 }, 300);
             })
             function renderVersionSelect2() {
-                // <div id=versionSelect2><p>聖經版本選擇</</           
+                // <div id=versionSelect2><p>聖經譯本選擇</</           
                 var r1 = $('<div>', {
                     id: 'versionSelect2',
                 }).append($('<p/>', {
-                    text: gbText('聖經版本選擇', ps.gb)
+                    text: gbText('聖經譯本選擇', ps.gb)
                 }))
                 $('#settings').before(r1)
             }
@@ -63,7 +63,7 @@ export class FhlLeftWindow {
 
                 testThenDoAsync({
                     cbTest: () => Ijnjs.BibieVersionDialog != undefined,
-                    msg: '初始 Dialog 聖經版本選擇'
+                    msg: '初始 Dialog 聖經譯本選擇'
                 }).then(() => {
                     {
                         var s = Ijnjs.BibieVersionDialog.s
