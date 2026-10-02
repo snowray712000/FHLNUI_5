@@ -1656,7 +1656,7 @@ body {
     transform: rotate(90deg);
 }
 /* 觸控：灰框只有 12px 手指難按，用透明 ::before 往兩側各延伸 10px (可按 32px)，外觀不變；
-   jQuery UI 判斷 target 是 handle，偽元素算在 handle 上 (docs/z261002d) */
+   jQuery UI 判斷 target 是 handle，偽元素算在 handle 上 (docs/z261002d(平板灰框可按範圍與拖圓點自動捲動).md) */
 @media (pointer: coarse) {
     /* 三個視窗都是 z-index 0，#fhlMidWindow 在 DOM 後面會蓋住左灰框往右延伸的部分；右灰框屬 #fhlInfo (在最後) 不用 */
     #fhlLeftWindow { z-index: 1; }

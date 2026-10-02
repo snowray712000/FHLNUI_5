@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "7.0.10",
+        "last": "7.0.12",
         "historys": [
             {
                 "na": "TODOs",
@@ -12,6 +12,15 @@
                     "📈 優化: 加入說明，什麼是同源字，同源字工具可能可以怎麼用的情境",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "7.0.12",
+                "na2":
+                [
+                    "📈 優化: 平板上經文區與左右兩側之間的灰框比較好按到 (可按範圍加寬，外觀不變；電腦版不變)",
+                    "📈 優化: 平板複製對照表時，拖圓點到經文區 (或搜尋結果、交互參照) 的上下邊緣會自動捲動，範圍可以跨出畫面；越靠邊捲越快",
+                    "🐞 修正: 平板拖圓點時，圓點捲出範圍外會被藏起來而拖不下去",
+                    "📝 工程師筆記: 灰框用透明 ::before 擴大可按範圍、自動捲動的參數，見 docs/z261002d"
                 ]
             },{
                 "na": "7.0.10",
