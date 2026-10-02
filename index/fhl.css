@@ -2266,20 +2266,33 @@ body.lec-col-resizing, body.lec-col-resizing * {
 .lec-copy-table {
     position: fixed;
     z-index: 2000;
-    padding: 4px 10px;
-    border: none;
+    display: flex;
     border-radius: 14px;
+    overflow: hidden;
     background: var(--lct-bg);
-    color: var(--lct-fg);
-    font-size: 13px;
-    line-height: 1.4;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
 }
-.lec-copy-table[hidden] { display: none; }
+.lec-copy-table[hidden], .lct-btn[hidden] { display: none; }
+/* 按鈕組：「複製對照表」+「MD」(Markdown 表格) */
+.lct-btn {
+    padding: 4px 10px;
+    border: none;
+    background: transparent;
+    color: var(--lct-fg);
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.lct-btn:hover { background: rgba(255, 255, 255, 0.15); }
+.lct-md { border-left: 1px solid rgba(255, 255, 255, 0.5); }
+@media (pointer: coarse) {
+    .lct-btn { min-height: 36px; padding: 6px 14px; }
+}
 /* 觸控 sticky：矩形左上、右下可拖的圓點 (44px 觸控範圍，中間畫 18px 圓)；left/top = 角的座標 */
 .lct-knob {
     position: fixed;

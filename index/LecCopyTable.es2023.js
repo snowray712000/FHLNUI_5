@@ -20,6 +20,11 @@
  * - 搜尋結果、交互參照 (VerseGrid)：一律如所見一段一列 (.paragraph 的 data-row，各批 grid 各自編號)；
  *   左側的經文位置 (標籤欄) 也複製：並排多譯本 → 表格第一欄；單一譯本、交錯 → 每列開頭
  *
+ * - 「MD」鈕 (主按鈕右邊；docs/z261002c)：Markdown 表格只放 text/plain，不保留顏色；起訖在同一格時不顯示
+ *   並排 → 表頭譯本名 (有標籤欄時第一欄「經文」)；mode 1 併入上節 (rowspan) 被佔的格寫「（併入上節）」
+ *   交錯 → 「譯本 | 經文」兩欄 (有經文位置時「經文 | 譯本 | 內容」)；交錯只有一個譯本 → 一欄，表頭譯本名
+ *   格內 | → \|，換行 → 空白
+ *
  * 並排是 CSS Grid (.lec-grid / .verse-grid > .vercol display: contents)，DOM 仍一欄一欄 (欄優先)
  */
 import { el } from './auDom.es2023.js'
@@ -43,8 +48,12 @@ export class LecCopyTable {
     /** 觸控拖水滴跨格後，選取多久沒變就收掉原生選取 (ms)；太短 → 拖到一半停一下就被收掉 */
     static IDLE_MS = 1000
 
-    /** @type {HTMLButtonElement} */
+    /** @type {HTMLElement} 按鈕組 (複製對照表 + MD)，整組一起定位 */
     #btn = null
+    /** @type {HTMLButtonElement} */
+    #mainBtn = null
+    /** @type {HTMLButtonElement} 複製為 Markdown */
+    #mdBtn = null
     /** @type {Range} 最近一次有效的選取 */
     #range = null
     /** @type {Scope} #range 所在的範圍 */
@@ -76,16 +85,25 @@ export class LecCopyTable {
     #tip = null
     /** @type {{ fixed: Element, scope: Scope, cell: Element | null } | null} 拖圓點中；fixed = 對角那格 */
     #knobDrag = null
+    /** @type {Range | null} sticky 時收掉的原生選取；iOS 收掉後還會再報一次舊選取，不能當成「長按另一格」 */
+    #removedRange = null
 
     init() {
         if (this.#btn) return
-        this.#btn = el('button', {
-            type: 'button', class: 'lec-copy-table', hidden: true, title: '把反白的經文複製成對照表 (含節碼)',
+        this.#mainBtn = el('button', {
+            type: 'button', class: 'lct-btn', title: '把反白的經文複製成對照表 (含節碼)',
+            onclick: () => this.#copyByButton(false),
+        }, '複製對照表')
+        this.#mdBtn = el('button', {
+            type: 'button', class: 'lct-btn lct-md', title: '複製為 Markdown 表格 (純文字，不含顏色)',
+            onclick: () => this.#copyByButton(true),
+        }, 'MD')
+        this.#btn = el('div', {
+            class: 'lec-copy-table', hidden: true,
             onpointerdown: e => { e.preventDefault(); this.#pressing = true; this.#pressRange = this.#range; this.#pressScope = this.#scope }, // 電腦：不讓選取消失
             onpointercancel: () => { this.#pressing = false },
             onpointerleave: () => { this.#pressing = false },
-            onclick: () => this.#copyByButton(),
-        }, '複製對照表')
+        }, this.#mainBtn, this.#mdBtn)
         this.#knobs = [0, 1].map(i => el('div', {
             class: 'lct-knob', hidden: true,
             onpointerdown: e => this.#knobDown(e, i),
@@ -137,6 +155,7 @@ export class LecCopyTable {
         const isTouch = matchMedia('(pointer: coarse)').matches
         // sticky 時在同一範圍長按某格：從起點格延伸到那格
         if (sel && this.#isSticky && sel.scope.el == this.#scope?.el && isTouch) {
+            if (isSameRange(sel.range, this.#removedRange)) return // 剛收掉的那個選取 (iOS 晚報)，不是長按
             const cell = cellOfNode(sel.range.startContainer)
             if (cell && this.#anchorCell?.isConnected) return this.#stick(sel.scope, cellsRange(this.#anchorCell, cell))
         }
@@ -166,6 +185,7 @@ export class LecCopyTable {
         this.#range = range
         this.#scope = scope
         this.#setCrossed(table.isOneCell ? null : table)
+        this.#mdBtn.hidden = table.isOneCell // 同一格只有純文字，沒有表格
         this.#btn.hidden = false
         this.#place()
     }
@@ -176,7 +196,9 @@ export class LecCopyTable {
         clearTimeout(this.#idleTimer)
         this.#anchorCell = anchor
         this.#isSticky = true
-        getSelection().removeAllRanges()
+        const sel = getSelection()
+        this.#removedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : this.#removedRange
+        sel.removeAllRanges()
         this.#show(scope, range, table)
     }
     #hide() {
@@ -272,7 +294,8 @@ export class LecCopyTable {
         this.#stick(d.scope, cellsRange(d.fixed, cell))
     }
 
-    #copyByButton() {
+    /** @param {boolean} isMd 複製為 Markdown 表格 (只有 text/plain) */
+    #copyByButton(isMd) {
         this.#pressing = false
         const range = this.#pressRange ?? this.#range
         const scope = this.#pressScope ?? this.#scope
@@ -280,10 +303,12 @@ export class LecCopyTable {
         if (!scope || !range) return
         const table = buildTable(scope, range)
         if (table == null) return
-        const { html, plain } = toClipboardData(table)
+        const { html, plain } = isMd ? { html: null, plain: toMarkdown(table) } : toClipboardData(table)
+        const btn = isMd ? this.#mdBtn : this.#mainBtn
+        const text = isMd ? 'MD' : '複製對照表'
         writeClipboard(html, plain).then(ok => {
-            this.#btn.textContent = ok ? '✓ 已複製' : '複製失敗'
-            setTimeout(() => { this.#btn.textContent = '複製對照表' }, 1200)
+            btn.textContent = ok ? (isMd ? '✓' : '✓ 已複製') : (isMd ? '✗' : '複製失敗')
+            setTimeout(() => { btn.textContent = text }, 1200)
         })
     }
 
@@ -300,6 +325,10 @@ export class LecCopyTable {
 }
 
 // ── 選取 → 對照表 ─────────────────────────────────────────────────────
+
+/** @param {Range} a @param {Range | null} b */
+const isSameRange = (a, b) => b != null && a.startContainer == b.startContainer && a.startOffset == b.startOffset
+    && a.endContainer == b.endContainer && a.endOffset == b.endOffset
 
 /** 選取非空、且整個在一個範圍內才回傳 @returns {{ range: Range, scope: Scope } | null} */
 function selectionInScope() {
@@ -581,27 +610,12 @@ function toClipboardData({ scope, versions, columns, labels, range, hit, isOneCe
 
     if (!scope.isSide) return interleavedData(hit, range, base) // 交錯只有一個譯本：一欄多列
 
-    const isGb = TPPageState.s.gb == 1
-    const names = versions.map(v => window.abvphp?.get_cname_from_book?.(v, isGb) || v)
-    if (labels) names.unshift(isGb ? '经文' : '經文') // 經文位置當第一欄
-    const nRow = Math.max(...columns.map(col => col.reduce((n, c) => n + c.rs, 0)))
-
-    // 每欄把 rowspan 攤回每一列：cell 或 null (被上面佔用)
-    /** @type {(Cell | null | undefined)[][]} */
-    const grid = columns.map(col => {
-        const re = []
-        for (const c of col) { re.push(c); for (let i = 1; i < c.rs; i++) re.push(null) }
-        return re
-    })
-    /** 經文位置欄：當成一格 (lecs 空，字另外給) */
-    const labelCell = (/** @type {number} */ r) => ({ lecs: [], rs: 1, label: labels[r] })
-    if (labels) grid.unshift(labels.map((a, r) => labelCell(r)))
-
+    const { names, grid, nRow } = sideGrid(versions, columns, labels)
     const plainRows = [names.join('\t')]
     let htmlRows = `<tr>${names.map(n => `<th>${esc(n)}</th>`).join('')}</tr>`
     for (let r = 0; r < nRow; r++) {
         const cells = grid.map(col => col[r])
-        const runs = cells.map(c => c ? ('label' in c ? [{ t: String(c.label ?? '') }] : runsOf(c)) : [])
+        const runs = cells.map(c => cellRuns(c, runsOf))
         plainRows.push(runs.map(a => runsText(a).replace(/\s*\n\s*/g, ' ')).join('\t'))
         htmlRows += '<tr>' + cells.map((c, i) => {
             if (c === null) return '' // rowspan 佔用
@@ -615,34 +629,96 @@ function toClipboardData({ scope, versions, columns, labels, range, hit, isOneCe
     }
 }
 
+/** 一格的字 (經文位置欄、被 rowspan 佔用 (null)、空格 (undefined) 都可) @param {Cell | null | undefined} c @param {(c: Cell) => Run[]} runsOf @returns {Run[]} */
+const cellRuns = (c, runsOf) => c ? ('label' in c ? [{ t: String(c.label ?? '') }] : runsOf(c)) : []
+
+const isGbNow = () => TPPageState.s.gb == 1
+/** @param {string} v 譯本代碼 */
+const verName = v => window.abvphp?.get_cname_from_book?.(v, isGbNow()) || v
+
+/**
+ * 並排的表頭與格：每欄把 rowspan 攤回每一列 (cell 或 null = 被上面佔用)；有標籤欄時第一欄是經文位置
+ * @param {string[]} versions @param {Cell[][]} columns @param {string[] | null} labels
+ * @returns {{ names: string[], grid: (Cell & { label?: string } | null | undefined)[][], nRow: number }}
+ */
+function sideGrid(versions, columns, labels) {
+    const names = versions.map(verName)
+    if (labels) names.unshift(isGbNow() ? '经文' : '經文') // 經文位置當第一欄
+    const nRow = Math.max(...columns.map(col => col.reduce((n, c) => n + c.rs, 0)))
+    /** @type {(Cell & { label?: string } | null | undefined)[][]} */
+    const grid = columns.map(col => {
+        const re = []
+        for (const c of col) { re.push(c); for (let i = 1; i < c.rs; i++) re.push(null) }
+        return re
+    })
+    /** 經文位置欄：當成一格 (lecs 空，字另外給) */
+    if (labels) grid.unshift(labels.map(label => ({ lecs: [], rs: 1, label })))
+    return { names, grid, nRow }
+}
+
 /**
  * 依 .paragraph 分組 (畫面上的一節或一段)，組內各節接在一起
  * @param {HTMLElement[]} hit @param {Range} range @param {string} base
+ * @returns {{ runs: Run[], label: string, ver: string, rtl: boolean }[]} label：搜尋結果、交互參照的經文位置 (沒有則 '')
  */
 function paragraphRuns(hit, range, base) {
-    /** @type {Map<Element, Run[]>} */
+    /** @type {Map<Element, { runs: Run[], ver: string }>} */
     const rows = new Map()
     for (const lec of hit) {
         const p = lec.closest('.paragraph') ?? lec
-        const runs = rows.get(p)
+        const row = rows.get(p)
         const one = lecRuns(lec, range, base)
-        if (runs) { rows.set(p, [...runs, { t: ' ' }, ...one]); continue }
-        const label = labelOf(p) // 搜尋結果、交互參照：開頭加經文位置
-        rows.set(p, label ? [{ t: label + ' ' }, ...one] : one)
+        if (row) row.runs = [...row.runs, { t: ' ' }, ...one]
+        else rows.set(p, { runs: one, ver: lec.getAttribute('ver') ?? '' })
     }
-    return [...rows].map(([p, runs]) => ({ runs, rtl: getComputedStyle(p).direction == 'rtl' }))
+    return [...rows].map(([p, a]) => ({ ...a, label: labelOf(p), rtl: getComputedStyle(p).direction == 'rtl' }))
 }
 /**
- * 交錯：如所見，一欄多列；每個 .paragraph 一列
+ * 交錯：如所見，一欄多列；每個 .paragraph 一列 (搜尋結果、交互參照：開頭加經文位置)
  * @param {HTMLElement[]} hit @param {Range} range @param {string} base
  */
 function interleavedData(hit, range, base) {
     const list = paragraphRuns(hit, range, base)
+        .map(a => ({ ...a, runs: a.label ? [{ t: a.label + ' ' }, ...a.runs] : a.runs }))
     return {
         plain: list.map(a => runsText(a.runs)).join('\n'),
         html: `<table border="1" style="border-collapse:collapse">${list.map(a =>
             `<tr><td${a.rtl ? ' dir="rtl"' : ''} style="vertical-align:top">${runsHtml(a.runs)}</td></tr>`).join('')}</table>`,
     }
+}
+
+// ── Markdown ─────────────────────────────────────────────────────────
+
+/** 格內：換行 → 空白、| → \| @param {string} s */
+const mdCell = s => s.replace(/\s*\n\s*/g, ' ').replace(/\|/g, '\\|').trim()
+/** @param {string[]} head @param {string[][]} rows */
+const mdTable = (head, rows) => [head, head.map(() => '---'), ...rows].map(r => `| ${r.map(mdCell).join(' | ')} |`).join('\n')
+
+/**
+ * Markdown 表格 (不保留顏色)；規則同 toClipboardData 的表格，見檔頭「MD」鈕
+ * @param {CopyTable} table
+ */
+function toMarkdown({ scope, versions, columns, labels, range, hit, isOneCell }) {
+    const base = baseColor(scope.el)
+    if (isOneCell) return runsText(trimRuns(rangeRuns(range))) // 按鈕不會出現；保險
+    const isGb = isGbNow()
+    if (!scope.isSide) {
+        // 交錯：如所見一列一段；多譯本加「譯本」欄
+        const list = paragraphRuns(hit, range, base)
+        const hasLabel = list.some(a => a.label)
+        const isMulti = versions.length > 1
+        const head = isMulti ? [isGb ? '译本' : '譯本', hasLabel ? (isGb ? '内容' : '內容') : (isGb ? '经文' : '經文')] : [verName(versions[0])]
+        if (hasLabel) head.unshift(isGb ? '经文' : '經文')
+        return mdTable(head, list.map(a => [...(hasLabel ? [a.label] : []), ...(isMulti ? [verName(a.ver)] : []), runsText(a.runs)]))
+    }
+    /** @param {Cell} c */
+    const runsOf = c => c.lecs.flatMap((lec, i) => i ? [{ t: ' ' }, ...lecRuns(lec, range, base)] : lecRuns(lec, range, base))
+    const { names, grid, nRow } = sideGrid(versions, columns, labels)
+    const merged = isGb ? '（并入上节）' : '（併入上節）'
+    const rows = []
+    for (let r = 0; r < nRow; r++)
+        rows.push(grid.map(col => col[r] === null ? merged : runsText(cellRuns(col[r], runsOf))))
+    return mdTable(names, rows)
 }
 
 /**

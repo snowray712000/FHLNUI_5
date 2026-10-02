@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "7.0.8",
+        "last": "7.0.10",
         "historys": [
             {
                 "na": "TODOs",
@@ -8,11 +8,19 @@
                     "🆕 新功能: SN 排序",
                     "🆕 新功能: 原文直譯, 用程式從 Parsing 整合入 SN",
                     "🆕 新功能: 自訂段落",
-                    "📈 優化: 複製對照表多一個「複製為 Markdown」按鈕 (可貼到 .md)，預設複製不變；md 不保留顏色",
                     "📈 優化: 加入說明，什麼是 Strong Number ， Strong Number 可能可以怎麼用的情境",
                     "📈 優化: 加入說明，什麼是同源字，同源字工具可能可以怎麼用的情境",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "7.0.10",
+                "na2":
+                [
+                    "✨ 新功能: 複製對照表旁多一個「MD」按鈕，複製成 Markdown 表格 (純文字，不含顏色)，可貼到 .md、VS Code、聊天軟體；經文區、搜尋結果、交互參照都可用，平板也在畫面下方",
+                    "📈 優化: Markdown 表格：並排時表頭是譯本名 (搜尋結果、交互參照第一欄是經文位置)；併入上節被佔的格寫「（併入上節）」；交錯時多一欄「譯本」；格內的 | 會跳脫",
+                    "🐞 修正: 平板拖水滴跨格放開後，偶爾範圍縮成只剩一格 (iOS 收掉選取後又晚報一次舊選取，被當成長按)",
+                    "📝 工程師筆記: Markdown 格式的決定見 docs/z261002c"
                 ]
             },{
                 "na": "7.0.8",
