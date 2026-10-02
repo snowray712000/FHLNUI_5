@@ -250,7 +250,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 
 1. **P1 版面**（✅ 2026-09-30 完成，見下方「P1 實作」）：mode 1/3 改 grid + `display: contents`；`reshape` 在 grid 時 no-op；併節 span；表頭先維持 `#lecMainTitle`。以 feature flag（例如 `ps` 或 localStorage）可切回舊版。**模型、單節渲染、grid 版面寫成不依賴 `#lecMain` 的模組**（第五節），表頭、列標籤欄是選項
 2. **P2 表頭與欄寬**（✅ 2026-09-30 完成，見下方「P2 實作」）：app_versions TODO「譯本併排時, 寬度比例自動調整」；表頭仍在 grid 外，但與經文區共用欄寬
-3. **P3 複製對照表**：原型已在 div 版（`index/LecCopyTable.es2023.js`）；改 grid 後確認仍可用，取字可改從資料模型
+3. **P3 複製對照表**：原型已在 div 版（`index/LecCopyTable.es2023.js`）；改 grid 後確認仍可用，取字可改從資料模型。**2026-10-02 決定不改**：從畫面 (DOM) 取字 = 看到什麼複製什麼，改從資料模型使用者看不出差別，還要重寫「隱藏的不複製」等規則
 4. **P4 清理**（✅ 2026-09-30 完成，見下方「P4 實作」）：移除 `reshape_for_align_each_sec`、`fhlLecLayout` 開關、並排的 div 路徑
 5. **P5–P7**：交互參照、搜尋結果改用同一核心（第五節）
 
@@ -264,7 +264,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - 原本 `.vercol` 的 `margin-top`（依字型大小）改成 `.lec-grid` 的 `padding-top`；邊框改畫在 `.paragraph`（`fhl.css`）
 - 表頭仍是 `#lecMainTitle`（沒動）；mode 2/4 仍走舊的交錯版
 - `LecCopyTable` 一段一列改看 `data-row`（grid 版 index 會因省略 placeholder 而錯位）
-- 已測（瀏覽器）：西 2（unv / rcuv / csb）mode 1、3 各列對齊、併節 span；改 `--fontsize`、縮窄 `#lecMain` 後不呼叫 reshape 仍對齊；複製對照表 mode 1 / 3；點選節、`selectLecture` 捲到選取節；創 1（unv / bhs / csb）RTL、無橫向溢出；切回 div 版；console 無錯誤。**平板、SN 篩選、注腳直接載入、pos/pho 尚未實測**
+- 已測（瀏覽器）：西 2（unv / rcuv / csb）mode 1、3 各列對齊、併節 span；改 `--fontsize`、縮窄 `#lecMain` 後不呼叫 reshape 仍對齊；複製對照表 mode 1 / 3；點選節、`selectLecture` 捲到選取節；創 1（unv / bhs / csb）RTL、無橫向溢出；切回 div 版；console 無錯誤。**平板、SN 篩選、注腳直接載入、pos/pho 尚未實測** → 2026-10-02 都已實測 (平板見 z261001a；SN 篩選、注腳、地點 / 相片由使用者測過，複製對照表不會帶到地點 / 相片圖示)
 
 ### P2 實作（2026-09-30）：欄寬
 
@@ -424,7 +424,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - 對照表的格子也帶顏色（節碼藍、注腳粉紅、標題紫…），顏色取 `getComputedStyle().color`，與 `#lecMain` 預設色相同的不寫
 - 貼到 PowerPoint：在投影片空白處貼上會新建文字方塊，預設「不自動換行」（HTML 無法控制）；先點進內文版面配置區再貼，就會照框寬換行
 - selectionchange 用 40ms 節流（不是 debounce），拖曳中就換掉原生反白
-- 已測（瀏覽器，西 2，unv / rcuv / csb）：mode 1 跨三欄（rowspan、截斷、只畫矩形、Ctrl+C = 對照表）、單欄（Ctrl+C 只留顏色）、mode 3、mode 2 交錯；真的滑鼠點按鈕後選取仍在。**平板尚未實測**
+- 已測（瀏覽器，西 2，unv / rcuv / csb）：mode 1 跨三欄（rowspan、截斷、只畫矩形、Ctrl+C = 對照表）、單欄（Ctrl+C 只留顏色）、mode 3、mode 2 交錯；真的滑鼠點按鈕後選取仍在。**平板尚未實測** → 2026-10-01 起平板實測並改了做法，見 z261001a
 - 發現既有 bug（另開任務）：mode 1/2 併入上節時，上一節節碼沒變成 `20-21`（`build_view_model` 的 `verses` 是每段各自一份，假段落每節一段 → 找不到上一節）；mode 3 同一段內才正確
 
 改成 grid 後，取字可以改從資料模型（DText）來，不必走 DOM；但「選到就是看到的」規則要保留。
@@ -433,7 +433,10 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 
 `index/lecture/` 01–18 與 `TableSelection/` 先保留，做完再說。用途：討論時可以說「就像 demo 05 的 rowspan」「像 08 的平板整格選取」。第〇節的 demo 對照表就是索引。
 
-### 5. 拖曳矩形選取（需要，啟用方式未定）
+### 5. 拖曳矩形選取（2026-10-02 決定不做）
+
+> 原本怕原生選取在平板不好用 (長按、放大鏡、水滴難拖)。後來的整格 sticky、圓點、長按延伸 (z261001a) 與拖圓點自動捲動 (z261002d) 已經夠用，使用者電腦、平板實際操作都順，所以不做。下面保留當時的候選。
+
 
 限制：不能干擾預設的原生反白與平板捲動。候選：
 

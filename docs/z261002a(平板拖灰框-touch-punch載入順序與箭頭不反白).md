@@ -39,7 +39,7 @@ touch-punch 包的是 `$.ui.mouse`，全專案用到它的只有：
 
 touch-punch 只在 touchstart 落在 handle 上 (`_mouseCapture` 為真) 時才接手並 `preventDefault`，所以經文區、資訊區、對話框內容的捲動不受影響；dialog 的關閉鈕在 draggable 的 `cancel` 裡，也不受影響。iPad 模擬器實測：拖灰框可調寬、兩區上下捲動正常、捲動不會動到灰框。
 
-### 未做
+### 未做 (7.0.12 已做，見 z261002d)
 
 灰框只有 12px 寬，手指不好按。可在 `@media (pointer: coarse)` 用 `::before` 把可按範圍加寬而外觀不變 (jQuery UI 判斷 target 是 handle，偽元素算在 handle 上)。
 

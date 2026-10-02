@@ -69,7 +69,6 @@
             { na: 'cwwuchsb', cna: '吳經熊新經全集聖詠譯義', yr: 1946, cds: ['cc', 'yr1960', "ccht"] }, // uiabv.php 沒列，名稱寫在這裡
             { na: 'cxubinwsb', yr: 1899, cds: ['pr', 'yr1919', "ccht"] },
             { na: 'cogorw', yr: 0, cds: ['ro'] },
-            { na: 'cogorw', yr: 0, cds: ['ro'] },
           ]
         },
         {
