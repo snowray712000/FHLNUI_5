@@ -47,6 +47,10 @@ export class LecCopyTable {
     static get s() { if (!this.#s) this.#s = new LecCopyTable(); return this.#s }
     /** 觸控拖水滴跨格後，選取多久沒變就收掉原生選取 (ms)；太短 → 拖到一半停一下就被收掉 */
     static IDLE_MS = 1000
+    /** 拖圓點時，手指離捲動容器上下緣多近 (px) 開始自動捲動 */
+    static AUTO_EDGE = 48
+    /** 自動捲動最快每格幾 px (手指在邊緣或超出邊緣) */
+    static AUTO_MAX = 20
 
     /** @type {HTMLElement} 按鈕組 (複製對照表 + MD)，整組一起定位 */
     #btn = null
@@ -83,8 +87,11 @@ export class LecCopyTable {
     #knobs = []
     /** @type {HTMLElement} sticky 時的手勢提示 */
     #tip = null
-    /** @type {{ fixed: Element, scope: Scope, cell: Element | null } | null} 拖圓點中；fixed = 對角那格 */
+    /** @type {{ fixed: Element, scope: Scope, cell: Element | null, knob: HTMLElement, scroller: HTMLElement } | null} 拖圓點中；fixed = 對角那格；scroller = 範圍的捲動容器 */
     #knobDrag = null
+    /** @type {{ x: number, y: number } | null} 拖圓點中手指最後的位置 (自動捲動後用它重算格) */
+    #knobPt = null
+    #rafAuto = 0
     /** @type {Range | null} sticky 時收掉的原生選取；iOS 收掉後還會再報一次舊選取，不能當成「長按另一格」 */
     #removedRange = null
 
@@ -108,8 +115,8 @@ export class LecCopyTable {
             class: 'lct-knob', hidden: true,
             onpointerdown: e => this.#knobDown(e, i),
             onpointermove: e => this.#knobMove(e),
-            onpointerup: () => { this.#knobDrag = null },
-            onpointercancel: () => { this.#knobDrag = null },
+            onpointerup: () => this.#knobEnd(),
+            onpointercancel: () => this.#knobEnd(),
         }))
         this.#tip = el('div', { class: 'lct-tip', hidden: true }, '拖圓點改範圍 · 長按另一格也可 · 點空白取消')
         document.body.append(this.#btn, ...this.#knobs, this.#tip)
@@ -205,7 +212,7 @@ export class LecCopyTable {
         clearTimeout(this.#idleTimer)
         this.#isSticky = false
         this.#btn.hidden = true
-        this.#knobDrag = null
+        this.#knobEnd()
         for (const k of this.#knobs) k.hidden = true
         this.#tip.hidden = true
         this.#range = null
@@ -265,9 +272,17 @@ export class LecCopyTable {
         if (!cells?.length) { for (const k of this.#knobs) k.hidden = true; return }
         const a = cells[0].getBoundingClientRect(), b = cells[cells.length - 1].getBoundingClientRect()
         const pts = [[a.left, a.top], [b.right, b.bottom]]
+        // 拖曳中拖過對角 (矩形翻轉)：另一顆留在對角那格的角上
+        const d = this.#knobDrag
+        if (d && this.#knobPt) {
+            const other = this.#knobs.findIndex(k => k != d.knob)
+            pts[other] = d.fixed == cells[0] ? pts[0] : pts[1]
+        }
         this.#knobs.forEach((k, i) => {
-            const [x, y] = pts[i]
-            k.hidden = box != null && (y < box.top - 2 || y > box.bottom + 2)
+            // 拖曳中被拖的圓點跟著手指、不藏 (藏了 = display:none，pointer capture 會斷)
+            const isDragged = this.#knobDrag?.knob == k && this.#knobPt
+            const [x, y] = isDragged ? [this.#knobPt.x, this.#knobPt.y] : pts[i]
+            k.hidden = !isDragged && box != null && (y < box.top - 2 || y > box.bottom + 2)
             k.style.left = `${x}px`
             k.style.top = `${y}px`
         })
@@ -278,20 +293,57 @@ export class LecCopyTable {
         e.stopPropagation()
         const cells = this.#crossedEl?.querySelectorAll('.lct-cell')
         if (!cells?.length || !this.#scope) return
-        this.#knobDrag = { fixed: i == 0 ? cells[cells.length - 1] : cells[0], scope: this.#scope, cell: null }
         const knob = /** @type {HTMLElement} */ (e.currentTarget)
+        this.#knobDrag = { fixed: i == 0 ? cells[cells.length - 1] : cells[0], scope: this.#scope, cell: null, knob, scroller: scrollerOf(this.#scope.el) }
+        this.#knobPt = null
         knob.setPointerCapture(e.pointerId)
     }
-    /** 拖圓點：手指下的那格與對角那格圍成新矩形 @param {PointerEvent} e */
+    /** 拖圓點：手指下的那格與對角那格圍成新矩形；靠近捲動容器上下緣時自動捲動 @param {PointerEvent} e */
     #knobMove(e) {
-        const d = this.#knobDrag
-        if (!d) return
+        if (!this.#knobDrag) return
         e.preventDefault()
-        const under = document.elementsFromPoint(e.clientX, e.clientY).find(a => !a.closest('.lct-knob, .lec-copy-table, .lct-tip'))
+        this.#knobPt = { x: e.clientX, y: e.clientY }
+        this.#knobPick()
+        this.#autoScroll()
+    }
+    #knobEnd() {
+        this.#knobDrag = null
+        this.#knobPt = null
+        cancelAnimationFrame(this.#rafAuto)
+        this.#rafAuto = 0
+    }
+    /** 手指 (夾回範圍內側，手指在範圍外也找得到格) 下的那格與對角那格圍成新矩形 */
+    #knobPick() {
+        const d = this.#knobDrag, p = this.#knobPt
+        if (!d || !p) return
+        const box = visibleBox(d.scroller)
+        const x = Math.min(Math.max(p.x, box.left + 4), box.right - 4)
+        const y = Math.min(Math.max(p.y, box.top + 4), box.bottom - 4)
+        const under = document.elementsFromPoint(x, y).find(a => !a.closest('.lct-knob, .lec-copy-table, .lct-tip'))
         const cell = under?.closest('.paragraph')
-        if (!cell || cell == d.cell || cell == d.fixed || !d.scope.el.contains(cell)) return // 拖回對角那格 = 單格，不收
+        if (!cell || cell == d.cell || cell == d.fixed || !d.scope.el.contains(cell)) return this.#placeKnobs(d.scope.el.getBoundingClientRect()) // 拖回對角那格 = 單格，不收
         d.cell = cell
         this.#stick(d.scope, cellsRange(d.fixed, cell))
+    }
+    /** 手指在捲動容器上下緣 AUTO_EDGE 內 (或外面) → 每格 2~AUTO_MAX px 捲動，越靠邊越快；捲完重算格 */
+    #autoScroll() {
+        if (this.#rafAuto) return
+        const step = () => {
+            this.#rafAuto = 0
+            const d = this.#knobDrag, p = this.#knobPt
+            if (!d || !p) return
+            const box = visibleBox(d.scroller)
+            const E = LecCopyTable.AUTO_EDGE, M = LecCopyTable.AUTO_MAX
+            const depth = p.y < box.top + E ? p.y - (box.top + E) : p.y > box.bottom - E ? p.y - (box.bottom - E) : 0
+            if (depth == 0) return
+            const v = Math.sign(depth) * Math.min(M, 2 + (M - 2) * Math.abs(depth) / E)
+            const before = d.scroller.scrollTop
+            d.scroller.scrollTop += v
+            if (d.scroller.scrollTop == before) return // 到頂 / 到底
+            this.#knobPick()
+            this.#rafAuto = requestAnimationFrame(step)
+        }
+        this.#rafAuto = requestAnimationFrame(step)
     }
 
     /** @param {boolean} isMd 複製為 Markdown 表格 (只有 text/plain) */
@@ -325,6 +377,21 @@ export class LecCopyTable {
 }
 
 // ── 選取 → 對照表 ─────────────────────────────────────────────────────
+
+/** 範圍的捲動容器：自己或往上第一個 overflow-y auto/scroll 且捲得動的 (#lecMain、.sd-results 是自己；.ref-dlg 是 dialog content)
+ * @param {HTMLElement} el @returns {HTMLElement} */
+function scrollerOf(el) {
+    for (let a = el; a && a != document.body; a = a.parentElement) {
+        const oy = getComputedStyle(a).overflowY
+        if ((oy == 'auto' || oy == 'scroll') && a.scrollHeight > a.clientHeight) return a
+    }
+    return /** @type {HTMLElement} */ (document.scrollingElement)
+}
+/** 捲動容器在畫面上看得到的範圍 (夾在視窗內) @param {HTMLElement} el */
+function visibleBox(el) {
+    const r = el == document.scrollingElement ? new DOMRect(0, 0, innerWidth, innerHeight) : el.getBoundingClientRect()
+    return { left: Math.max(0, r.left), right: Math.min(innerWidth, r.right), top: Math.max(0, r.top), bottom: Math.min(innerHeight, r.bottom) }
+}
 
 /** @param {Range} a @param {Range | null} b */
 const isSameRange = (a, b) => b != null && a.startContainer == b.startContainer && a.startOffset == b.startOffset

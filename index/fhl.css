@@ -1655,6 +1655,29 @@ body {
     transform: translate(0%, -50%);
     transform: rotate(90deg);
 }
+/* 觸控：灰框只有 12px 手指難按，用透明 ::before 往兩側各延伸 10px (可按 32px)，外觀不變；
+   jQuery UI 判斷 target 是 handle，偽元素算在 handle 上 (docs/z261002d) */
+@media (pointer: coarse) {
+    /* 三個視窗都是 z-index 0，#fhlMidWindow 在 DOM 後面會蓋住左灰框往右延伸的部分；右灰框屬 #fhlInfo (在最後) 不用 */
+    #fhlLeftWindow { z-index: 1; }
+    .leftWindow > .ui-resizable-handle::before,
+    #fhlInfo .ui-resizable-handle::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -10px;
+        right: -10px;
+    }
+    #fhlLeftWindow .leftWindowInside > div > .ui-resizable-handle::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -10px;
+        bottom: -10px;
+    }
+}
 #fhlInfoTitle {
     overflow: hidden;
     border-top-right-radius: 4px;
