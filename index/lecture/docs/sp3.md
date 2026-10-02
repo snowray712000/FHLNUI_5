@@ -16,7 +16,7 @@
 - 資料render流程, 從 api 取得資料後, 整理, 最終型成 jquery<htmlelement> 的流程在哪裡？
   - index\FhlLecture.es2023.js
   - keywords: `$htmlContent = await FhlLecture_render_core(rspArr, mode);`
-  - 詳細：[資料 render 流程.md](資料%20render%20流程.md)
+  - 詳細：見 docs/z260930d(經文區table化-考量與CSS Grid規畫).md 第四節 (CSS Grid；舊的「資料 render 流程.md」描述 div 版，已刪)
 - 注腳資料 ... 在流程中是如何處理的？
   - index\DText.js index\DFoot.js
   - tests\foots_query_test.js
@@ -51,7 +51,7 @@
 
 ### 資料 render 流程
 
-參照 [資料 render 流程.md](資料%20render%20流程.md)
+參照 docs/z260930d(經文區table化-考量與CSS Grid規畫).md 第四節 (CSS Grid；舊的「資料 render 流程.md」描述 div 版，已刪)
 
 ### 注腳資料
 

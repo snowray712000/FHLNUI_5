@@ -10,7 +10,7 @@
  * - 並排 → mode 1 一節一列 (併入上節用 rowspan)、mode 3 如所見一段一列；單一譯本也是表格 (一欄)
  * - 交錯 (mode 2/4) 多譯本 → 如所見，一欄多列：每個 .paragraph (一個譯本的一節或一段) 一列
  * - 跨格：原生反白是照 DOM 順序畫的 (第一欄畫到底、中間整欄…)，也不是整格，與實際複製的不同，
- *   所以把原生反白變透明，改成整格 (.paragraph 整個 div) 上底色 .lct-cell (像 lecture/01-05 demo 3)；Ctrl+C 也改成複製對照表
+ *   所以把原生反白變透明，改成整格 (.paragraph 整個 div) 上底色 .lct-cell (像當時的 lecture/01-05 demo 3，已刪)；Ctrl+C 也改成複製對照表
  * - 觸控 (iPad Safari 不理 ::selection，原生藍色蓋不掉)：拖水滴跨格時先畫整格矩形 (原生選取留著，水滴才拖得動)；
  *   放開後收掉原生選取，只留整格底色與按鈕 (sticky)。iOS 放開水滴不送 touchend / pointerup (拖水滴開始時有 touchstart)，
  *   所以用「選取 IDLE_MS 沒變」當作放開。之後在同一範圍長按某格 → 起點格到那格 (像 Shift+點)；輕點 (不是按鈕) → 取消

@@ -25,6 +25,8 @@
 
 ### demo 位置
 
+> **2026-10-02 已刪除** (7.1.1 後)：下表的 demo、`TableSelection/`、`docs/TableSelection/`、`RENDER_CORE_SWITCH.md`、`index/lecture/docs/260327a/b`、`資料 render 流程.md` 都已從 repo 刪掉；要看用 git 歷史 (commit `d37e03c` 之前)。表格留著當紀錄。
+
 | 路徑 | 內容 |
 |------|------|
 | `index/lecture/01-05/01_dom_order_selection_demo.html` | table / flex-row / CSS columns / 三個獨立 div：原生反白跟著 DOM 順序走 |
@@ -37,7 +39,7 @@
 | `sp1.js` / `sp2.js` | 最早的想法：「想像最終是一個 table」；以及要求試做 `FhlLecture_render_core_table.js` |
 | `docs/260327a` / `260327b` | mouse / touch / pointer 事件整理；電腦與平板行為規畫 |
 
-### 已知過時 / 不一致的文件（動手前先知道）
+### 已知過時 / 不一致的文件（動手前先知道；2026-10-02 這些檔案已刪）
 
 - `18_smart_table_joTable_demo/CHANGES.md` 說 18 版「改用 `div.lec-main > div.vercol …`、選取複製：無」，**但 18 的程式其實是 table**（`buildColTable` / `buildRowTable` + `TableSelector`）。以程式為準。
 - `index/lecture/RENDER_CORE_SWITCH.md` 說「Table 版（現在啟用）」，但 `FhlLecture_render_core_table.js` **從未 commit、目前不存在**，主程式仍是 div 版。推論：試接過主程式後退回。
@@ -287,7 +289,7 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 - render 時不再呼叫 `reshape`（`LecColWidth.apply()` 在 `setCSS` 之後）
 - `isMergePlaceholder` / `hideVerseContent` 仍保留在 view model：交錯時略過，grid 時整段 placeholder → 上一段 span
 - `LecCopyTable` 一段一列只看 `data-row`
-- 過時的只剩 demo 文件：`index/lecture/RENDER_CORE_SWITCH.md`、`index/lecture/docs/資料 render 流程.md`、`mode_1_4_demo.html` 仍描述 `build_layout_vm` / `copy_dir` 的 div 結構（demo 先保留，第六節決議 4）
+- 過時的只剩 demo 文件：`index/lecture/RENDER_CORE_SWITCH.md`、`index/lecture/docs/資料 render 流程.md`、`mode_1_4_demo.html` 仍描述 `build_layout_vm` / `copy_dir` 的 div 結構（2026-10-02 已刪，見第六節 4）
 - 已測（瀏覽器）：mode 1–4 各自 render（1/3 grid 對齊、2/4 單欄交錯、版權宣告在）；`reshape()` 後自動欄寬依文字長度重算；實際切 SN 開關，欄寬跟著變、關掉回原比例；複製對照表 mode 1 / 3；console 無錯誤
 
 ### 驗證（每階段）
@@ -429,7 +431,9 @@ CSS Grid 可以讓 DOM 順序與視覺位置分開：
 
 改成 grid 後，取字可以改從資料模型（DText）來，不必走 DOM；但「選到就是看到的」規則要保留。
 
-### 4. demo 保留
+### 4. demo 保留 → 2026-10-02 已刪
+
+> 7 正式版 (7.1.1) 後刪除：拖曳矩形選取決定不做，demo 已無用途。要查用 git 歷史。
 
 `index/lecture/` 01–18 與 `TableSelection/` 先保留，做完再說。用途：討論時可以說「就像 demo 05 的 rowspan」「像 08 的平板整格選取」。第〇節的 demo 對照表就是索引。
 
