@@ -2121,6 +2121,10 @@ body {
     position: relative;
     min-width: 0;
 }
+/* 表頭欄 position: relative 且在 DOM 後面，會蓋住 ← → 的左半邊 (點不到)；要高過表頭與 .lec-col-handle */
+#viewHistoryButton {
+    z-index: 2;
+}
 .lec-col-handle {
     position: absolute;
     top: 0;
