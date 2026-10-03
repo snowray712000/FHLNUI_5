@@ -79,6 +79,7 @@
     /* --- 分隔線、框線 --- */
     --line: var(--separator);                   /* #ddd、#E4E4E4、lightgray */
     --line-strong: var(--systemGray2);          /* 按鈕、輸入框、chip 的框 (#999、#bbb、#B0B0B0) */
+    --col-line: var(--systemGray3);             /* 經文區譯本之間的虛線 (原 lightgray)；--line 是半透明，深色時在黑底上看不到 → 深色改 Gray2 (下面) */
 
     /* --- 強調、狀態 --- */
     --accent: var(--systemBlue);                /* hover、focus、選中 (原 #00A0FF、#0050DD、#0969da) */
@@ -91,6 +92,11 @@
     --danger: var(--systemRed);                 /* 關閉、刪除、hover 紅 */
     --danger-fg: var(--red-fg);
     --danger-bg: color-mix(in srgb, var(--systemRed) var(--hl-1), transparent);
+    /* 對話框標題列：blitzer 原本的紅 (#cc0000 漸層)。主經文與對話框內容同底色，紅標題才分得出是對話框；
+       systemRed 上的白字不到 4.5:1，混黑 (高對比深色的紅更亮，--dlg-k 70%)；白字各主題都是白 (不用 --fg-on-accent，高對比深色那是黑) */
+    --dlg-title-bg: color-mix(in srgb, var(--systemRed) var(--dlg-k, 80%), var(--darkText));
+    --dlg-title-fg: var(--label-dark);
+    --dlg-title-line: color-mix(in srgb, var(--systemRed) 60%, var(--darkText));
     --neutral: var(--systemGray);               /* 次要按鈕 (btn-secondary) */
     /* 綠、青當「白字的底」時太亮 (systemGreen + 白字只有 2:1)，混黑；比例 --fill-k 依主題 */
     --success-fill: color-mix(in srgb, var(--systemGreen) var(--fill-k), var(--darkText));
@@ -151,6 +157,7 @@
     --shadow-k: 70%;
     --fill-k: 55%;
     --icon-filter: invert(1);
+    --col-line: var(--systemGray2);
 }
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
@@ -161,8 +168,8 @@
         --hl-3: 38%; /* 黃色在黑底上很亮，太濃上面的字反而看不到 */
         --shadow-k: 70%;
         --fill-k: 55%;
-    --fill-k: 55%;
         --icon-filter: invert(1);
+        --col-line: var(--systemGray2);
     }
 }
 /* 不用調淡的：深色、高對比 (高對比淺色的 Apple 色值本身就夠深) */
@@ -208,6 +215,7 @@
 :root[data-theme="hc-dark"] {
     --fg-on-accent: var(--darkText);
     --fill-k: 100%;
+    --dlg-k: 70%;
     --tint: 75%;
     --tint-bright: 85%;
 }
@@ -215,6 +223,7 @@
     :root:not([data-theme]) {
         --fg-on-accent: var(--darkText);
         --fill-k: 100%;
+        --dlg-k: 70%;
         --tint: 75%;
         --tint-bright: 85%;
     }

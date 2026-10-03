@@ -4,7 +4,8 @@
  * 只改顏色，不改大小、間距。 */
 
 /* ---------- jQuery UI (blitzer)：對話框、按鈕、tab ----------
- * 標題列原本是 blitzer 的紅色漸層圖，改成中性色 (2026-10-03 決定)；關閉鈕的紅色 X 圖 (DialogHtml.es2023.js) 保留 */
+ * .ui-widget-header (tab 列等) 用中性色；對話框標題列維持紅色 (下面 .ui-dialog-titlebar，2026-10-03 改回：
+ * 對話框內容與主經文同底色，中性標題列分不出是對話框)；關閉鈕的紅色 X 圖 (DialogHtml.es2023.js) 保留 */
 .ui-widget-content {
     border-color: var(--line);
     background: var(--surface-bg);
@@ -23,6 +24,11 @@
 }
 .ui-widget-header a {
     color: var(--fg);
+}
+.ui-dialog .ui-dialog-titlebar {
+    border-color: var(--dlg-title-line);
+    background: var(--dlg-title-bg);
+    color: var(--dlg-title-fg);
 }
 .ui-state-default,
 .ui-widget-content .ui-state-default,

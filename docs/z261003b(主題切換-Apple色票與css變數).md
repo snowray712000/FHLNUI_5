@@ -7,7 +7,7 @@
 | 項目 | 決定 |
 |---|---|
 | 淺色外觀 | **Apple 風淺色**：窗框 systemGray4 (#D1D1D6)、工具列淺底深字。原本是灰框 #A0A0A0 + 深色工具列 #404040，畫面明顯變亮 |
-| jQuery UI 對話框標題列 | 原本 blitzer 紅色漸層，**改中性色** (surface2 + label 字)；關閉鈕的紅 X 圖保留 |
+| jQuery UI 對話框標題列 | 原本 blitzer 紅色漸層，先改中性色；**同日改回紅色**：對話框內容與主經文同底色，中性標題列看不出是對話框。`--dlg-title-bg` = systemRed 混 20% 黑 (高對比深色混 30%，`--dlg-k`)，白字各主題 ≥ 5:1 (淺 5.24、深 5.05、高對比淺 7.60、高對比深 5.31)；只套 `.ui-dialog .ui-dialog-titlebar`，tab 列等 `.ui-widget-header` 仍中性；關閉鈕的紅 X 圖保留 |
 | 套件 0.3.0 的層疊 bug | **先修套件出 0.3.1** (見 §七-1)，FHLNUI 用 0.3.1 |
 | 地圖圖磚 | **保持原樣** (亮的)，只改控制鈕、popup、地名標籤 |
 
@@ -57,6 +57,7 @@
 | | `--fg-disabled` | tertiaryLabel | 停用的 ← →、清除記錄 |
 | | `--fg-on-accent` | 白 (高對比深色是黑) | 藍、紅底上的字 |
 | 線 | `--line` / `--line-strong` | separator / systemGray2 | #ddd、lightgray / #999、#bbb |
+| 譯本間虛線 | `--col-line` | systemGray3，深色 systemGray2 | lightgray (經文區 `.vercol` / `.paragraph`、搜尋結果 `.verse-grid`)。原本用 `--line`，但 separator 是半透明，1px 虛線在黑底上看不到 |
 | 強調、狀態 | `--accent` `--accent-fg` `--accent-bg` | systemBlue | #00A0FF、#0050DD、#0969da |
 | | `--link-fg` | systemBlue (不用 `--link`，§七-6) | blue |
 | | `--brand` `--danger` `--warn` `--success` `--info` `--neutral` | Purple / Red / Orange / Green / Teal / Gray | #905090、#d9534f、#FFC060… |

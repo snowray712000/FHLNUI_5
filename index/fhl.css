@@ -2155,16 +2155,16 @@ body.lec-col-resizing, body.lec-col-resizing * {
 #lecMain > .lec-grid .paragraph {
     min-width: 0;
     padding: 7px 0.25rem;
-    border-left: 1px dashed var(--line);
-    border-right: 1px dashed var(--line);
+    border-left: 1px dashed var(--col-line);
+    border-right: 1px dashed var(--col-line);
 }
 .vercol {
     border-right-width: 1px;
     border-right-style: dashed;
-    border-right-color: var(--line);
+    border-right-color: var(--col-line);
     border-left-width: 1px;
     border-left-style: dashed;
-    border-left-color: var(--line);
+    border-left-color: var(--col-line);
 
     font-size: var(--fontsize);
     line-height: 1.1em;
@@ -2387,7 +2387,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
 :root {
     --vg-head-bg: var(--surface2-bg);
     --vg-label: var(--blue-fg);
-    --vg-line: var(--line);
+    --vg-line: var(--col-line);  /* 深色時 --line (半透明) 在黑底上看不到 */
 }
 .verse-grid {
     display: grid;
@@ -2398,7 +2398,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
     min-width: 0;
     padding: 5px 0.4rem;
     border-top: 1px solid var(--vg-line);
-    border-left: 1px dashed var(--line);
+    border-left: 1px dashed var(--col-line);
 }
 .verse-grid .vg-head {
     position: sticky;
