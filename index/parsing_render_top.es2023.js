@@ -181,31 +181,26 @@ function generate_parsing_top_div(jsonObj,ps){
             // console.log(plus_index_3);
 
             // step2 處理每一組
+            // 整段一個標籤 (韋：τὰ παραπτώματα αὐτῶν)，標籤加在第一個、最後一個字的 span 上 (同經文區 cvt_others_wu_plus.js)
+            // 每個字仍是自己的 span (可點)，各自上色
             for (let i = 0; i < plus_index_3.length; i++) {
                 let plus_index = plus_index_3[i]
-                
-                // 在 plus[0] + 1 至 plus[1] - 1 (包含) 找有 span 的
-                let span_index = childrenArray.map((a1, i) => i > plus_index[0] && i < plus_index[1] && a1.tagName == 'SPAN' ? i : -1).filter(a1 => a1 != -1)
-                // console.log(span_index);
+                label_range(plus_index[0], plus_index[1], '韋', '#ffff99')
+                label_range(plus_index[1], plus_index[2], '聯', '#ffcccc')
+            }
 
-                // 將 childrenArray 的 [span_index[j]] 的內容修改
-                for (let j = 0;j < span_index.length; j++) {
-                    let span = childrenArray[span_index[j]]
-                    span.innerText = '(韋：' + span.innerText + ')'
-                    // background color
-                    span.style.backgroundColor = '#ffff99'
-                }
-
-                // 在 plus[1] + 1 至 plus[2] - 1 (包含) 找有 span 的
-                span_index = childrenArray.map((a1, i) => i > plus_index[1] && i < plus_index[2] && a1.tagName == 'SPAN' ? i : -1).filter(a1 => a1 != -1)
-
-                // 將 childrenArray 的 [span_index[j]] 的內容修改
-                for (let j = 0;j < span_index.length; j++) {
-                    let span = childrenArray[span_index[j]]
-                    span.innerText = '(聯：' + span.innerText + ')'
-                    // background color
-                    span.style.backgroundColor = '#ffcccc'
-                }
+            /**
+             * @param {number} i1 + 的位置 (不含)
+             * @param {number} i2 + 的位置 (不含)
+             * @param {string} label 
+             * @param {string} color // 韋: 黃色 #ffff99 聯 #ffcccc: 這是按最古老系統顏色
+             */
+            function label_range(i1, i2, label, color){
+                let spans = childrenArray.filter((a1, i) => i > i1 && i < i2 && a1.tagName == 'SPAN')
+                if (spans.length == 0) return
+                spans.forEach(span => span.style.backgroundColor = color)
+                spans[0].innerText = `(${label}：` + spans[0].innerText
+                spans[spans.length - 1].innerText += ')'
             }
 
             // 移除 childrenArray 中，plus_index array 的

@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "7.1.1",
+        "last": "7.1.3",
         "historys": [
             {
                 "na": "TODOs",
@@ -12,6 +12,14 @@
                     "📈 優化: 加入說明，什麼是同源字，同源字工具可能可以怎麼用的情境",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "7.1.3",
+                "na2":
+                [
+                    "📈 優化: 新約原文的韋式 / 聯式異文，一段只標一個 (韋：τὰ παραπτώματα αὐτῶν)，不再逐字 (韋：τὰ) (韋：παραπτώματα)…；經文區與原文分析都是",
+                    "📝 說明: 異文裡的 ( ) 是 WH 編者標的「可疑」(原版 [ ])，不是轉換錯誤，保留；使用說明有寫",
+                    "📝 工程師筆記: 見 docs/z261003a"
                 ]
             },{
                 "na": "7.1.1",

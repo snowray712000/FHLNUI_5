@@ -5,7 +5,9 @@
 // ### 新約原文 fhlwh 的 韋式、聯式 異文
 // - 資料形如 `τὸν + Ἀχάς<WG881> + Ἀχάζ<WG881> +` (太1:9)，3 個 + 一組，第1、2個 + 之間是韋式，第2、3個之間是聯式
 // - 某一邊可能是空的，例 太3:2 `+ + (καὶ<WG2532>) +`、太6:8 `+ (ὁ θεὸς) + +`，空的那邊就不顯示 (同 parsing)
-// - 呈現與 parsing 一致 (parsing_render_top 的 do_about_plus_symbolic)：逐字 (韋：原文) (聯：原文)，並上色 .greek_w .greek_u
+// - 呈現：整段一個標籤 (韋：τὰ παραπτώματα αὐτῶν) (聯：…)，並上色 .greek_w .greek_u (舊版是逐字 (韋：τὰ) (韋：παραπτώματα)…)
+// - 資料本身的 ( ) 保留：那是 WH 印刷版的 [ ] (編者認為可疑；(( )) 是 [[ ]]，例 路22:43、約7:53)，不是抄本原有，
+//   但是編者的意見，不是轉換 bug。例 太1:18 `+ (Ἰησοῦ) + Ἰησοῦ +`，拿掉就看不出韋式、聯式差在哪
 // - 分 2 步，因為中間要讓 attach_sn_text 綁 sn-text；若先加上 (韋： 標籤，會干擾它
 
 /**
@@ -19,7 +21,7 @@ function is_plain(dt) {
 /**
  * ### 第1步：在 attach_sn_text 之前呼叫
  * - 把 + 移除，組內的 DText 標上 wu: 'w' | 'u'
- * - 組內的文字，以空白斷開，一個字一個 DText，第2步才能逐字加標籤
+ * - 組內的文字，以空白斷開，一個字一個 DText (attach_sn_text 綁 sn-text 要)；組內的空白也標 wu，第2步整段才連得起來
  * - + 數量不是 3 的倍數時 (路24:3)，只移除 +，不標 wu
  * @param {DText[]} dtexts
  * @returns {DText[]}
@@ -64,7 +66,7 @@ export function split_wu_plus(dtexts) {
             const dt2 = structuredClone(dt)
             dt2.w = tok
             const wu2 = cur_wu()
-            if (wu2 != null && !isSpace) dt2.wu = wu2
+            if (wu2 != null) dt2.wu = wu2
             re.push(dt2)
         }
     }
@@ -74,15 +76,19 @@ export function split_wu_plus(dtexts) {
 
 /**
  * ### 第2步：在 attach_sn_text 之後呼叫
- * - 連續、同 wu、中間沒有空白的 DText 視為一個字 (含其後的 sn 標記、括號)，前後加上 (韋： 與 )
- * - 同 parsing 斷字規則：空白、換行、逗號、句號 會斷開
+ * - 連續、同 wu 的 DText 視為一段 (一組 + + + 中的韋式或聯式)，前後加上 (韋： 與 )
+ * - 段落頭尾的空白放在標籤外，也不上色
+ * - 換行會斷開 (標籤各自成對)
  * @param {DText[]} dtexts
  * @returns {DText[]}
  */
 export function add_wu_label(dtexts) {
     if (!dtexts.some(a1 => a1.wu != null)) return dtexts
 
-    const isBreak = (/** @type {DText} */ dt) => dt.wu == null || (is_plain(dt) && /^[\s,.]*$/.test(dt.w))
+    const isBreak = (/** @type {DText} */ dt) => dt.wu == null || dt.isBr == 1
+    const isSpace = (/** @type {DText} */ dt) => is_plain(dt) && dt.w.trim() == ''
+    /** @param {DText} dt */
+    const unWu = dt => { const dt2 = structuredClone(dt); delete dt2.wu; return dt2 }
 
     /** @type {DText[]} */
     const re = []
@@ -97,17 +103,27 @@ export function add_wu_label(dtexts) {
         let j = i
         while (j + 1 < dtexts.length && !isBreak(dtexts[j + 1]) && dtexts[j + 1].wu == wu) j++
 
-        // sn-text 前面可能帶空白，例 " Ἀχάς"，空白放在標籤外
-        const first = structuredClone(dt)
-        const space = first.w?.match(/^\s+/)?.[0]
-        if (space != null) {
-            re.push({ w: space })
-            first.w = first.w.slice(space.length)
-        }
+        // 頭尾的空白 DText 放在標籤外
+        let a = i, b = j
+        while (a <= b && isSpace(dtexts[a])) a++
+        while (b >= a && isSpace(dtexts[b])) b--
+        re.push(...dtexts.slice(i, a).map(unWu))
+        if (a <= b) {
+            const mid = dtexts.slice(a, b + 1).map(a1 => structuredClone(a1))
+            // sn-text 頭尾可能帶空白，例 " Ἀχάς"，空白也放在標籤外
+            const head = mid[0].w?.match(/^\s+/)?.[0]
+            if (head != null) {
+                re.push({ w: head })
+                mid[0].w = mid[0].w.slice(head.length)
+            }
+            const last = mid[mid.length - 1]
+            const tail = last.w?.match(/\s+$/)?.[0]
+            if (tail != null) last.w = last.w.slice(0, -tail.length)
 
-        re.push({ w: wu == 'w' ? '(韋：' : '(聯：', wu })
-        re.push(first, ...dtexts.slice(i + 1, j + 1))
-        re.push({ w: ')', wu })
+            re.push({ w: wu == 'w' ? '(韋：' : '(聯：', wu }, ...mid, { w: ')', wu })
+            if (tail != null) re.push({ w: tail })
+        }
+        re.push(...dtexts.slice(b + 1, j + 1).map(unWu))
         i = j
     }
     return re
