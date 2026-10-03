@@ -25,8 +25,8 @@ $(function () {
         .c-joTable { padding-left: 0; text-indent: 0; } /* 表格不用凸排 */
         .c-table-wrap { margin: .35em 0 .35em 0; overflow-x: auto; }
         table.c-table { border-collapse: collapse; font-size: 14px; }
-        table.c-table td, table.c-table th { border: 1px solid #bbb; padding: 4px 6px; vertical-align: top; }
-        pre.c-raw-table { margin: .35em 0; padding: .5em; background: #f6f6f6; border: 1px solid #ddd; white-space: pre; overflow-x: auto; }
+        table.c-table td, table.c-table th { border: 1px solid var(--line-strong); padding: 4px 6px; vertical-align: top; }
+        pre.c-raw-table { margin: .35em 0; padding: .5em; background: var(--surface2-bg); border: 1px solid var(--line); white-space: pre; overflow-x: auto; }
       `;
     $('head').append($('<style>').text(css));
 })

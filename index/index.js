@@ -33,6 +33,8 @@ import { initDialogTemplate } from './DialogTemplate/DialogTemplate.js'
 import { checkHtmlVersion } from './checkHtmlVersion.js'
 import { runIndexLast } from './indexLast.js'
 import fhlCss from './fhl.css?raw' // 以 <style> 插在最後以蓋過 bootstrap 5；內含相對於頁面的 url()，不能交給 Vite 處理
+import theme3rdCss from './theme/theme-3rd.css?raw' // 主題：第三方樣式 (jQuery UI、Bootstrap、markdown、leaflet) 的覆寫，接在 fhl.css 後面
+import { Theme } from './theme/Theme.es2023.js'
 
 // Bootstrap 5.1 css。原本由 ijnjs 以 XHR 下載、DOM ready 後以 <style> 插入；現在直接以 <link> 插到 <head> 最後，
 // 維持相同的層疊順序：在 index.html 所有 css（含 Vite 打包的 css、bs4-compat.css）之後、fhl.css 之前。
@@ -107,6 +109,7 @@ import { Hash_Changed } from './Hash_Changed.js'
     window.fhlInfoContent = FhlInfoContent.s // fhlInfoContent 用
 
     window.bookSelect = BookSelect.s // bookSelect 用
+    window.theme = Theme.s // 主題 (docs/z261003b)；console 可 theme.mode = "dark"
 
     window.viewHistory = ViewHistory.s // viewHistory 用
 
@@ -177,6 +180,9 @@ import { Hash_Changed } from './Hash_Changed.js'
 
                     $("<style>", {
                         text: fhlCss
+                    }).appendTo($("head"))
+                    $("<style>", {
+                        text: theme3rdCss
                     }).appendTo($("head"))
 
                     setTimeout(() => {

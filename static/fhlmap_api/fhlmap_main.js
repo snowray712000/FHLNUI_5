@@ -180,7 +180,7 @@ function fhlmap_render(ps, dom) {
             });
 
             var polyline = L.polyline(r1, {
-              color: '#f02'
+              className: 'fhlmap-line' // 顏色在 fhl.css (主題的 css 變數)；leaflet 的 color 會寫成 SVG 屬性，屬性不吃 var()
             }).addTo(mymap).bindTooltip(a1.cname, {
               permanent: true,
               direction: 'center',
@@ -196,8 +196,7 @@ function fhlmap_render(ps, dom) {
             });
 
             var polygon = L.polygon(r1, {
-              color: '#f02',
-              fillColor: '#5f3',
+              className: 'fhlmap-area', // 顏色在 fhl.css，同上
               fillOpacity: 0.5
             }).addTo(mymap).bindTooltip(a1.cname, {
               permanent: true,

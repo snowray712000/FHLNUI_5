@@ -1,3 +1,4 @@
+import { cssVar } from './theme/Theme.es2023.js'
 import { BookSelectPopUp } from "./BookSelectPopUp.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { FhlInfo } from "./FhlInfo.es2023.js";
@@ -54,7 +55,7 @@ export class BookSelectChapter {
             FhlInfo.s.render(ps);
             BookSelectPopUp.s.dom.hide();
             //bookselectchapter.dom.hide();
-            BookSelect.s.dom.css({ 'color': '#FFFFFF' });
+            BookSelect.s.dom.css({ 'color': cssVar('chrome-fg') });
 
             $(document).trigger('chapchanged');
         })

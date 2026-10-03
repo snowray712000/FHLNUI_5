@@ -5,6 +5,7 @@ import { ShowMode } from "./Show_mode.es2023.js";
 import { MapTool } from "./MapTool.es2023.js";
 import { ImageTool } from "./ImageTool.es2023.js";
 import { FontSizeTool } from "./FontSizeTool.es2023.js";
+import { ThemeTool } from "./ThemeTool.es2023.js";
 import { LeftWindowTool } from "./LeftWindowTool.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
@@ -115,6 +116,7 @@ export class Settings {
         ImageTool.s.init(ps, $('#imageTool'));
         ImageTool.s.registerEvents(ps);
         FontSizeTool.s.init(ps, $('#fontSizeTool'));
+        ThemeTool.s.init(ps, $('#themeTool'));
 
         // reference method
         $('#settingsScrollDiv ul').append("<li><div id='reference_method_tool'></div></li>");

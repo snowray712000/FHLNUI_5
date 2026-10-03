@@ -32,8 +32,8 @@
     top: -1rem;
     line-height: 2rem;
     font-size: 0.75rem;
-    color: gray;
+    color: var(--fg-muted);
     cursor: pointer;
     text-decoration-line: underline;
-    text-decoration-color: blue;
+    text-decoration-color: var(--link-fg);
 }

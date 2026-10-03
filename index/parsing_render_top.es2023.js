@@ -185,15 +185,15 @@ function generate_parsing_top_div(jsonObj,ps){
             // 每個字仍是自己的 span (可點)，各自上色
             for (let i = 0; i < plus_index_3.length; i++) {
                 let plus_index = plus_index_3[i]
-                label_range(plus_index[0], plus_index[1], '韋', '#ffff99')
-                label_range(plus_index[1], plus_index[2], '聯', '#ffcccc')
+                label_range(plus_index[0], plus_index[1], '韋', 'var(--wh-bg)')
+                label_range(plus_index[1], plus_index[2], '聯', 'var(--ubs-bg)')
             }
 
             /**
              * @param {number} i1 + 的位置 (不含)
              * @param {number} i2 + 的位置 (不含)
              * @param {string} label 
-             * @param {string} color // 韋: 黃色 #ffff99 聯 #ffcccc: 這是按最古老系統顏色
+             * @param {string} color // 韋: var(--wh-bg) 黃 聯: var(--ubs-bg) 紅：最古老系統的顏色 (原 #ffff99 #ffcccc)，主題見 theme-vars.css
              */
             function label_range(i1, i2, label, color){
                 let spans = childrenArray.filter((a1, i) => i > i1 && i < i2 && a1.tagName == 'SPAN')
@@ -293,9 +293,9 @@ function generate_parsing_top_div(jsonObj,ps){
                 if (ii % 3 == 0){
                     $('<span></span>').text(wd[ii]).appendTo(div1)
                 } else if (ii % 3 == 1){
-                    $('<span></span>').text(`(韋： ${wd[ii]})`).attr('style', 'background-color: #ffff99').appendTo(div1)
+                    $('<span></span>').text(`(韋： ${wd[ii]})`).attr('style', 'background-color: var(--wh-bg)').appendTo(div1)
                 } else if (ii % 3 == 2){
-                    $('<span></span>').text(`(聯： ${wd[ii]})`).attr('style', 'background-color: #ffcccc').appendTo(div1)
+                    $('<span></span>').text(`(聯： ${wd[ii]})`).attr('style', 'background-color: var(--ubs-bg)').appendTo(div1)
                 }
             }
             return div1

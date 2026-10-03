@@ -1,3 +1,4 @@
+import { cssVar } from './theme/Theme.es2023.js'
 import { isRDLocation } from './isRDLocation.es2023.js'
 import { qsb } from './api/qsb.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
@@ -615,13 +616,13 @@ function goBackgoNext_setupEvents() {
         function recolor(e, p1) {
             /// <summary> 當 viewHistory 資料或 idx 變的時候, 要判斷是不是灰色 (document的vh_idxchanged事件與vh_itemschanged事件) </summary>
             if (p1.datas.length - 1 == p1.idx)
-                $vhb.find('.b').css('color', 'darkgray');
+                $vhb.find('.b').css('color', cssVar('fg-disabled'));
             else
-                $vhb.find('.b').css('color', 'black');
+                $vhb.find('.b').css('color', cssVar('fg'));
             if (p1.idx == 0)
-                $vhb.find('.n').css('color', 'darkgray');
+                $vhb.find('.n').css('color', cssVar('fg-disabled'));
             else
-                $vhb.find('.n').css('color', 'black');
+                $vhb.find('.n').css('color', cssVar('fg'));
         }
         $(document).on(
             {

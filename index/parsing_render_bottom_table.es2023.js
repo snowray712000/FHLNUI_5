@@ -99,9 +99,8 @@ export function parsing_render_bottom_table(jsonObj, tp) {
             divOne.addClass('greek_w')
         } else if (wid_of_u.includes(wid)) {
             divOne.addClass('greek_u')
-        } else {
-            let clrstr = i % 2 == 0 ? 'background-color: lightgrey;' : 'white'
-            divOne.attr('style', clrstr)
+        } else if (i % 2 == 0) {
+            divOne.addClass('parsing-zebra') // 原本另一半寫成 attr('style', 'white')，不是合法 css，等於沒底色
         }
 
         // 空白字元

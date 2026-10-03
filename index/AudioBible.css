@@ -1,24 +1,24 @@
 /* 有聲聖經分頁 (index/FhlInfoAudio.es2023.js)、講道分頁 (index/FhlInfoPreach.es2023.js，.pr-*)
-   顏色一律走 css 變數，將來換 theme 只要覆寫這些。預設與典藏 --ob-* 相同 (GitHub Primer 色系)。 */
+   顏色一律走 css 變數，指到主題的語意變數 (index/theme/theme-vars.css，docs/z261003b)。 */
 :root {
-    --au-fg: #1f2328;
-    --au-fg-muted: #57606a;
-    --au-fg-subtle: #888888;
-    --au-bg: #ffffff;
-    --au-bg-subtle: #f6f8fa;
-    --au-bg-hover: #f3f4f6;
-    --au-border: #d0d7de;
-    --au-accent: #0969da;
-    --au-accent-bg: #ddf4ff;     /* 選中的 chip、清單項目 */
-    --au-on-accent: #ffffff;
-    --au-disabled: #b0b7be;
-    --au-warn-bg: #fff8c5;       /* 本章沒有錄音 */
-    --au-warn-fg: #7d4e00;
-    --au-stage-bg: #000000;      /* 投影片底色 */
-    --au-mini-bg: #1f2328;       /* 迷你播放列 */
-    --au-mini-fg: #ffffff;
-    --au-mini-hover: rgba(255, 255, 255, 0.15);
-    --au-shadow: rgba(0, 0, 0, 0.25);
+    --au-fg: var(--fg);
+    --au-fg-muted: var(--fg-muted);
+    --au-fg-subtle: var(--fg-subtle);
+    --au-bg: var(--surface-bg);
+    --au-bg-subtle: var(--surface2-bg);
+    --au-bg-hover: var(--hover-bg);
+    --au-border: var(--line-strong);
+    --au-accent: var(--accent-fg);   /* 當字也當底 (白字)，用調過對比的 */
+    --au-accent-bg: var(--accent-bg);     /* 選中的 chip、清單項目 */
+    --au-on-accent: var(--fg-on-accent);
+    --au-disabled: var(--fg-disabled);
+    --au-warn-bg: var(--warn-bg);       /* 本章沒有錄音 */
+    --au-warn-fg: var(--fg);
+    --au-stage-bg: var(--media-stage-bg);      /* 投影片底色 */
+    --au-mini-bg: var(--popup-bg);       /* 迷你播放列 */
+    --au-mini-fg: var(--fg);
+    --au-mini-hover: var(--hover-bg);
+    --au-shadow: var(--shadow);
 }
 
 /* 常駐的 media，聲音模式時藏在這裡 (display:none 不影響播放) */

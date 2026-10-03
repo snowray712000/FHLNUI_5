@@ -1,0 +1,232 @@
+/* ===== 主題的語意變數 (docs/z261003b) =====
+ * 顏色只在這裡由 Apple 色票 (apple-color-ios.css，@fhlnet/color-apple) 定義；其他 css / js 只用這裡的語意變數，
+ * 不寫 #hex / rgb() / 顏色名稱 (tests/theme-colors.test.js 檢查)。
+ * 主題：<html data-theme="light|dark|hc-light|hc-dark">；沒有 data-theme = 跟隨系統 (index/theme/Theme.es2023.js)。
+ * 這支在 <head> 最前面以 <link> 載入 (只有變數與 html 底色，不影響其他規則的先後)，第一次繪製就是對的顏色。
+ *
+ * 比例變數 (--tint*、--hl-*)：淺色與深色要不同比例，color-mix 裡用 var() 取比例。
+ * - --tint / --tint-bright：Apple 的原色當「文字」在白底上對比不夠 (systemGreen 約 2.2:1)，淺色時混一點 --label；
+ *   深色與高對比 (色值本來就夠) 用 100% 原色
+ * - --hl-*：高亮底色的濃度，深色底要濃一點才看得出來 (照 fhlnet-color-apple/demo 的 --selectionBackground) */
+
+:root {
+    color-scheme: light;
+
+    --tint: 80%;        /* 藍、紅、紫、粉、靛 當文字 */
+    --tint-bright: 62%; /* 綠、青、黃、橘 當文字 */
+    --hl-sel: 13%;      /* 選取的節 */
+    --hl-1: 18%;        /* 淡底：章高亮、聯式、accent-bg */
+    --hl-2: 30%;        /* 中：韋式、複製對照表整格 */
+    --hl-3: 50%;        /* 濃：同一節高亮 */
+    --shadow-k: 30%;
+    --fill-k: 65%;
+    --icon-filter: none; /* 深灰的 icon 圖 (jQuery UI sprite、Bootstrap 的 ×)，深色主題反白 */
+
+    /* --- 文字用的強調色 (已依主題調過對比) --- */
+    --blue-fg: color-mix(in srgb, var(--systemBlue) var(--tint), var(--label));
+    --red-fg: color-mix(in srgb, var(--systemRed) var(--tint), var(--label));
+    --pink-fg: color-mix(in srgb, var(--systemPink) var(--tint), var(--label));
+    --purple-fg: color-mix(in srgb, var(--systemPurple) var(--tint), var(--label));
+    --indigo-fg: color-mix(in srgb, var(--systemIndigo) var(--tint), var(--label));
+    --green-fg: color-mix(in srgb, var(--systemGreen) var(--tint-bright), var(--label));
+    --teal-fg: color-mix(in srgb, var(--systemTeal) var(--tint-bright), var(--label));
+    --yellow-fg: color-mix(in srgb, var(--systemYellow) var(--tint-bright), var(--label));
+    --orange-fg: color-mix(in srgb, var(--systemOrange) var(--tint-bright), var(--label));
+    /* 「暗一階」：和灰混，淺深主題都變得沉一點 (原本的 darkred、sienna) */
+    --dark-red-fg: color-mix(in srgb, var(--red-fg) 65%, var(--systemGray));
+    --brown-fg: color-mix(in srgb, var(--orange-fg) 60%, var(--systemGray));
+
+    /* --- 背景層級 --- */
+    --app-bg: var(--systemGray4);               /* body、#mainWindow、各窗框、灰框 (原 #A0A0A0) */
+    --frame-bg: var(--systemGray4);
+    --splitter-bg: var(--systemGray3);          /* 可拖的灰框 */
+    --chrome-bg: var(--secondarySystemBackground); /* 上方工具列 (原 #404040) */
+    --chrome-fg: var(--label);
+    --surface-bg: var(--systemBackground);      /* 經文區、對話框、輸入框 (原 white) */
+    --surface2-bg: var(--secondarySystemBackground); /* 右側分頁內容、左側清單、譯本名稱列 (原 #F0F0F0、#F5F5F5) */
+    --popup-bg: var(--tertiarySystemBackground); /* 浮出的選單、面板 (原 #FAFAFA) */
+    --hover-bg: var(--tertiarySystemFill);
+    --pressed-bg: var(--systemFill);
+    --zebra-bg: var(--quaternarySystemFill);    /* 表格隔行 (原 whitesmoke、#e5e5e5) */
+    --selected-bg: var(--systemBlue);           /* 選中的項目 (原 #404040 白字) */
+    --selected-fg: var(--fg-on-accent);
+    --overlay-bg: color-mix(in srgb, var(--systemBackground) 60%, transparent);
+    --tip-bg: color-mix(in srgb, var(--label) 70%, transparent);
+    --tip-fg: var(--systemBackground);
+    --shadow: color-mix(in srgb, var(--darkText) var(--shadow-k), transparent);
+    --raised-bg: var(--systemGray5);            /* 凸起的按鈕狀區塊 (註釋標題、註釋按鈕) */
+    --note-bg: color-mix(in srgb, var(--systemYellow) var(--hl-1), var(--popup-bg)); /* 原文分析的浮出框 (原淡黃) */
+    --btn-bg: var(--secondarySystemFill);       /* 小按鈕 (A− A+) */
+    --btn-hover-bg: var(--tertiarySystemFill);
+    --switch-on-bg: var(--systemGreen);         /* 設定的開關 .onOffSwitch */
+    --switch-off-bg: var(--systemGray5);
+    --switch-knob: var(--systemBackground);
+    --scroll-thumb: var(--systemGray2);
+    --handle-bg: color-mix(in srgb, var(--systemBackground) 75%, transparent); /* 欄寬拖曳把手 */
+    --nav-hover-bg: color-mix(in srgb, var(--systemGray) 75%, transparent);  /* ❮ ❯ hover 的漸層 */
+    --nav-hover-fg: var(--systemRed);
+
+    --media-stage-bg: var(--darkText);          /* 投影片、影片的底，各主題都是黑 */
+
+    /* --- 文字 --- */
+    --fg: var(--label);
+    --fg-muted: var(--secondaryLabel);          /* #555 ~ #909090、gray */
+    --fg-subtle: color-mix(in srgb, var(--systemGray) 85%, var(--label)); /* #888 ~ #B0B0B0、darkgray：次要的提示、來源 (不透明的灰；systemGray 在淺灰底上不到 3:1，混一點 label) */
+    --fg-disabled: var(--tertiaryLabel);        /* 停用 (不能按的 ← →、清除記錄)；Apple 的 tertiaryLabel 只有 30%，不要拿來放要讀的字 */
+    --fg-placeholder: var(--placeholderText);
+    --fg-on-accent: var(--label-dark);          /* 藍、紅底上的字：白；高對比深色的強調色很亮，改黑 (下面) */
+
+    /* --- 分隔線、框線 --- */
+    --line: var(--separator);                   /* #ddd、#E4E4E4、lightgray */
+    --line-strong: var(--systemGray2);          /* 按鈕、輸入框、chip 的框 (#999、#bbb、#B0B0B0) */
+
+    /* --- 強調、狀態 --- */
+    --accent: var(--systemBlue);                /* hover、focus、選中 (原 #00A0FF、#0050DD、#0969da) */
+    --accent-fg: var(--blue-fg);
+    --accent-bg: color-mix(in srgb, var(--systemBlue) var(--hl-1), transparent);
+    --link-fg: var(--blue-fg);                  /* 不用 --link：Apple 的 link 在高對比下不變深，對比不夠；淺色時 link = systemBlue */
+    --brand: var(--systemPurple);               /* 信望愛資源面板 (原 #905090) */
+    --brand-fg: var(--purple-fg);
+    --brand-bg: color-mix(in srgb, var(--systemPurple) var(--hl-1), transparent);
+    --danger: var(--systemRed);                 /* 關閉、刪除、hover 紅 */
+    --danger-fg: var(--red-fg);
+    --danger-bg: color-mix(in srgb, var(--systemRed) var(--hl-1), transparent);
+    --neutral: var(--systemGray);               /* 次要按鈕 (btn-secondary) */
+    /* 綠、青當「白字的底」時太亮 (systemGreen + 白字只有 2:1)，混黑；比例 --fill-k 依主題 */
+    --success-fill: color-mix(in srgb, var(--systemGreen) var(--fill-k), var(--darkText));
+    --info-fill: color-mix(in srgb, var(--systemTeal) var(--fill-k), var(--darkText));
+    --success: var(--systemGreen);
+    --info: var(--systemTeal);
+    --warn: var(--systemOrange);                /* 有新版本 */
+    --warn-fg: var(--orange-fg);
+    --warn-bg: color-mix(in srgb, var(--systemYellow) var(--hl-2), transparent);
+
+    /* --- 經文標記 --- */
+    --verse-num-fg: var(--blue-fg);
+    --ver-name-fg: var(--blue-fg);
+    --sn-fg: var(--blue-fg);
+    --sn-hover-fg: var(--red-fg);
+    --sn-act-fg: var(--red-fg);                 /* SN_Act_Color .snAct */
+    --sn-act2-fg: var(--dark-red-fg);           /* 同源字 .snAct2 */
+    --ref-fg: var(--link-fg);                   /* 交互參照、經文位址 */
+    --ref-hover-fg: var(--red-fg);
+    --foot-fg: var(--pink-fg);                  /* 註腳 (原 #ff00c1) */
+    --exp-fg: var(--purple-fg);
+    --bibtext-fg: var(--indigo-fg);
+    --paren-fw-fg: var(--purple-fg);            /* 全形括號 (原 #9400d3) */
+    --title1-fg: color-mix(in srgb, var(--purple-fg) 75%, var(--label)); /* 原 #8b008b */
+    --orig-fg: var(--purple-fg);                /* 希臘文、希伯來文 .greek-char / .hebrew-char (原 mediumpurple) */
+    --nl-fg: var(--fg-muted);
+    --merged-fg: var(--fg-subtle);              /* （併入上節） */
+    --red-letter-fg: var(--red-fg);             /* 資料裡的紅字 rgb(195,39,43) */
+    --wh-bg: color-mix(in srgb, var(--systemYellow) var(--hl-2), transparent); /* 韋式 (原 #FFFF99) */
+    --ubs-bg: color-mix(in srgb, var(--systemRed) var(--hl-1), transparent);   /* 聯式 (原 #FFCCCC) */
+    --search-key-fg: var(--red-fg);
+    --search-sn-fg: var(--fg-muted);
+    --search-sn-key-fg: var(--purple-fg);
+    --lec-selected-bg: color-mix(in srgb, var(--systemYellow) var(--hl-sel), transparent);
+    --hl-verse-bg: color-mix(in srgb, var(--systemYellow) var(--hl-3), transparent);
+    --hl-verse-fg: var(--fg);                   /* 高亮底上的字用一般字色 (藍色連結在黃底上對比不夠) */
+    --hl-chap-bg: color-mix(in srgb, var(--systemYellow) var(--hl-1), transparent);
+    --hl-chap-border: var(--yellow-fg);
+    --copy-cell-bg: color-mix(in srgb, var(--systemBlue) var(--hl-2), transparent);
+
+    --map-shape-stroke: var(--systemRed);       /* 地圖的河流、區域 (圖磚各主題都是亮的) */
+    --map-shape-fill: var(--systemGreen);
+
+    /* 原文分析的詞性 (.parsing-*)，與 SN 上色同色系 */
+    --pos-verb-fg: var(--orange-fg);
+    --pos-conj-fg: var(--red-fg);
+    --pos-prep-fg: var(--brown-fg);
+    --pos-title-fg: var(--green-fg);
+}
+
+/* 深色：明確選 dark / hc-dark，或跟隨系統且系統是深色 */
+:root[data-theme$="dark"] {
+    color-scheme: dark;
+    --hl-sel: 23%;
+    --hl-1: 22%;
+    --hl-2: 32%;
+    --hl-3: 38%; /* 黃色在黑底上很亮，太濃上面的字反而看不到 */
+    --shadow-k: 70%;
+    --fill-k: 55%;
+    --icon-filter: invert(1);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        color-scheme: dark;
+        --hl-sel: 23%;
+        --hl-1: 22%;
+        --hl-2: 32%;
+        --hl-3: 38%; /* 黃色在黑底上很亮，太濃上面的字反而看不到 */
+        --shadow-k: 70%;
+        --fill-k: 55%;
+    --fill-k: 55%;
+        --icon-filter: invert(1);
+    }
+}
+/* 不用調淡的：深色、高對比 (高對比淺色的 Apple 色值本身就夠深) */
+:root[data-theme="dark"], :root[data-theme^="hc-"] {
+    --tint: 100%;
+    --tint-bright: 100%;
+}
+@media (prefers-color-scheme: dark), (prefers-contrast: more) {
+    :root:not([data-theme]) {
+        --tint: 100%;
+        --tint-bright: 100%;
+    }
+}
+
+/* 高對比：窗框淡一階 (高對比的 Gray4 #BCBCC0 太深，上面的分頁標題字不到 4.5:1) */
+:root[data-theme^="hc-"] {
+    --app-bg: var(--systemGray5);
+    --frame-bg: var(--systemGray5);
+}
+@media (prefers-contrast: more) {
+    :root:not([data-theme]) {
+        --app-bg: var(--systemGray5);
+        --frame-bg: var(--systemGray5);
+    }
+}
+
+/* 高對比淺色：Apple 的高對比綠 #248A3D 在淺灰底 (#EBEBF0) 上只有 3.7:1，再混一點 label (黑) */
+:root[data-theme="hc-light"] {
+    --tint: 90%;
+    --tint-bright: 82%;
+    --fill-k: 90%;
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+        --tint: 90%;
+        --tint-bright: 82%;
+        --fill-k: 90%;
+    }
+}
+
+/* 高對比深色：強調色很亮 (例 systemBlue #409CFF)，上面的白字只有 2.8:1 → 黑字；
+   當文字用時在深灰框上也不到 4.5:1 → 混 25% 白 (--label) */
+:root[data-theme="hc-dark"] {
+    --fg-on-accent: var(--darkText);
+    --fill-k: 100%;
+    --tint: 75%;
+    --tint-bright: 85%;
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --fg-on-accent: var(--darkText);
+        --fill-k: 100%;
+        --tint: 75%;
+        --tint-bright: 85%;
+    }
+}
+
+/* 第一次繪製 (fhl.css 還沒插入前) 就是主題的底色，不閃白 */
+html {
+    background-color: var(--app-bg);
+    color: var(--fg);
+}
+
+/* 切主題、複製對照表讀顏色時暫時關掉 transition (Theme.es2023.js) */
+:root.theme-no-transition, :root.theme-no-transition * {
+    transition: none !important;
+}

@@ -29,6 +29,7 @@
  */
 import { el } from './auDom.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
+import { Theme } from './theme/Theme.es2023.js'
 
 /**
  * @typedef {{ lecs: HTMLElement[], rs: number }} Cell 一格的節 (mode 3 一段可多節)；空陣列 = 空格 (沒反白到)
@@ -355,7 +356,7 @@ export class LecCopyTable {
         if (!scope || !range) return
         const table = buildTable(scope, range)
         if (table == null) return
-        const { html, plain } = isMd ? { html: null, plain: toMarkdown(table) } : toClipboardData(table)
+        const { html, plain } = isMd ? { html: null, plain: toMarkdown(table) } : Theme.s.withLightPalette(() => toClipboardData(table))
         const btn = isMd ? this.#mdBtn : this.#mainBtn
         const text = isMd ? 'MD' : '複製對照表'
         writeClipboard(html, plain).then(ok => {
@@ -369,7 +370,7 @@ export class LecCopyTable {
         const sel = selectionInScope() ?? (this.#isSticky ? { scope: this.#scope, range: this.#range } : null)
         if (!sel || !e.clipboardData) return
         const table = buildTable(sel.scope, sel.range)
-        const data = table ? toClipboardData(table) : { plain: runsText(trimRuns(rangeRuns(sel.range))), html: null }
+        const data = table ? Theme.s.withLightPalette(() => toClipboardData(table)) : { plain: runsText(trimRuns(rangeRuns(sel.range))), html: null }
         if (data.html) e.clipboardData.setData('text/html', data.html)
         e.clipboardData.setData('text/plain', data.plain)
         e.preventDefault()
@@ -647,7 +648,18 @@ function trimRuns(runs) {
 /** @param {Run[]} runs */
 const runsText = runs => runs.map(a => a.t).join('')
 /** @param {Run[]} runs */
-const runsHtml = runs => runs.map(a => a.t == '\n' ? '<br>' : a.c ? `<span style="color:${a.c}">${esc(a.t)}</span>` : esc(a.t)).join('')
+const runsHtml = runs => runs.map(a => a.t == '\n' ? '<br>' : a.c ? `<span style="color:${toRgb(a.c)}">${esc(a.t)}</span>` : esc(a.t)).join('')
+/**
+ * 主題的顏色多是 color-mix()，getComputedStyle 回傳 color(srgb 0 0.38 0.8) 這種寫法，Word 等貼上的程式不一定認得，
+ * 轉成 rgb()；其他寫法原樣傳回 @param {string} c
+ */
+export function toRgb(c) {
+    const m = c.match(/^color\(srgb ([-\d.e]+) ([-\d.e]+) ([-\d.e]+)(?: \/ ([\d.]+%?))?\)$/)
+    if (m == null) return c
+    const [r, g, b] = [m[1], m[2], m[3]].map(v => Math.round(Math.min(1, Math.max(0, +v)) * 255))
+    const a = m[4] == null ? 1 : m[4].endsWith('%') ? parseFloat(m[4]) / 100 : +m[4]
+    return a < 1 ? `rgba(${r}, ${g}, ${b}, ${+a.toFixed(3)})` : `rgb(${r}, ${g}, ${b})`
+}
 
 /** @param {HTMLElement} el 範圍 */
 const baseColor = el => el ? getComputedStyle(el).color : undefined
@@ -666,6 +678,7 @@ function lecRuns(lec, range, base) {
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 /** @param {CopyTable} table */
+/** 字的顏色讀 getComputedStyle；呼叫端包在 Theme.s.withLightPalette 裡，深色主題貼到 Word 也是淺色版的顏色 */
 function toClipboardData({ scope, versions, columns, labels, range, hit, isOneCell }) {
     const base = baseColor(scope.el)
     // 同一格：只有純文字，照反白的起訖

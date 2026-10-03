@@ -4,6 +4,7 @@
 /// <reference path='bookSelect.d.js' />
 /// <reference path='DPageState.d.js' />
 
+import { cssVar } from './theme/Theme.es2023.js'
 import { getBookFunc } from './getBookFunc.es2023.js'
 import { BookSelectPopUp } from './BookSelectPopUp.es2023.js';
 import { FhlLecture } from './FhlLecture.es2023.js';
@@ -63,7 +64,7 @@ export class BookSelect {
                     BookSelectPopUp.s.dom.hide();
                     //bookselectchapter.dom.hide();
                     BookSelect.s.dom.css({
-                        'color': '#FFFFFF'
+                        'color': cssVar('chrome-fg')
                     });
 
                     $(document).trigger('chapchanged');
@@ -74,11 +75,11 @@ export class BookSelect {
                 if (BookSelectPopUp.s.dom.is(":visible")) {
                     BookSelectPopUp.s.dom.fadeOut('0.2');
                     setTimeout(function() {
-                        BookSelect.s.dom.css({ 'color': '#D0D0D0' });
+                        BookSelect.s.dom.css({ 'color': cssVar('tb-fg') });
                     }, 200);
                 } else {
                     BookSelectPopUp.s.dom.fadeIn('0.2');
-                    BookSelect.s.dom.css({ 'color': '#00A0FF' });
+                    BookSelect.s.dom.css({ 'color': cssVar('tb-hover') });
                 }
             }
 
@@ -86,23 +87,23 @@ export class BookSelect {
         });
         $('#bookSelectPopUp').click(function() {
             BookSelectPopUp.s.dom.fadeOut('0.2');
-            setTimeout(function() { BookSelect.s.dom.css({ 'color': '#D0D0D0' }); }, 200);
+            setTimeout(function() { BookSelect.s.dom.css({ 'color': cssVar('tb-fg') }); }, 200);
         });
         $(document).click(function() {
             BookSelectPopUp.s.dom.fadeOut('0.2');
-            setTimeout(function() { BookSelect.s.dom.css({ 'color': '#D0D0D0' }); }, 200);
+            setTimeout(function() { BookSelect.s.dom.css({ 'color': cssVar('tb-fg') }); }, 200);
         });
         $('#bookSelectName').click(function(e) {
             e.stopPropagation();
         });
         $('#bookSelect').mouseenter(function() {
             if (!BookSelectPopUp.s.dom.is(":visible")) {
-                BookSelect.s.dom.css({ 'color': '#00A0FF' });
+                BookSelect.s.dom.css({ 'color': cssVar('tb-hover') });
             }
         });
         $('#bookSelect').mouseleave(function() {
             if (!BookSelectPopUp.s.dom.is(":visible")) {
-                BookSelect.s.dom.css({ 'color': '#D0D0D0' });
+                BookSelect.s.dom.css({ 'color': cssVar('tb-fg') });
             }
         });
     }

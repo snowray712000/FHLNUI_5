@@ -10,11 +10,11 @@ $(function () {
         .c-joTable { padding-left: 0; text-indent: 0; }
         .c-table-wrap { margin: .35em 0 .35em 0; overflow-x: auto; }
         table.c-table { border-collapse: collapse;  }
-        table.c-table td, table.c-table th { border: 1px solid #bbb; padding: 4px 6px; vertical-align: top; }
+        table.c-table td, table.c-table th { border: 1px solid var(--line-strong); padding: 4px 6px; vertical-align: top; }
 
         /* inline tokens */
-        .c-ref { color: #0a58ca; text-decoration: underline; cursor: pointer; }
-        .c-sn { color: #6f42c1; }
+        .c-ref { color: var(--ref-fg); text-decoration: underline; cursor: pointer; }
+        .c-sn { color: var(--purple-fg); }
     `;
     $('head').append($('<style>').text(css));
 });

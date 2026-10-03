@@ -4,8 +4,8 @@
         margin: 0px;
         padding: 0px;
         width: 100%;
-        box-shadow: 10px 10px 5px #888888;
-        border: 1px solid #000000;
+        box-shadow: 10px 10px 5px var(--shadow);
+        border: 1px solid var(--line-strong);
         -moz-border-radius-bottomleft: 0px;
         -webkit-border-bottom-left-radius: 0px;
         border-bottom-left-radius: 0px;
@@ -60,16 +60,16 @@
     .obtable tr:hover td {}
     
     .obtable tr:nth-child(odd) {
-        background-color: #e5e5e5;
+        background-color: var(--zebra-bg);
     }
     
     .obtable tr:nth-child(even) {
-        background-color: #ffffff;
+        background-color: var(--surface-bg);
     }
     
     .obtable td {
         vertical-align: middle;
-        border: 1px solid #000000;
+        border: 1px solid var(--line-strong);
         border-width: 0px 1px 1px 0px;
         text-align: left;
         padding: 7px;
@@ -93,13 +93,8 @@
     }
     
     .obtable tr:first-child td {
-        background: -o-linear-gradient(bottom, #cccccc 5%, #b2b2b2 100%);
-        background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, #cccccc), color-stop(1, #b2b2b2));
-        background: -moz-linear-gradient( center top, #cccccc 5%, #b2b2b2 100%);
-        filter: progid: DXImageTransform.Microsoft.gradient(startColorstr="#cccccc", endColorstr="#b2b2b2");
-        background: -o-linear-gradient(top, #cccccc, b2b2b2);
-        background-color: #cccccc;
-        border: 0px solid #000000;
+        background: var(--raised-bg); /* 原本是 #cccccc → #b2b2b2 漸層 (各瀏覽器前綴寫法)，主題化後改單色 */
+        border: 0px solid var(--line-strong);
         text-align: center;
         border-width: 0px 0px 1px 1px;
         font-size: var(--fontsize);
@@ -109,12 +104,7 @@
     }
     
     .obtable tr:first-child:hover td {
-        background: -o-linear-gradient(bottom, #cccccc 5%, #b2b2b2 100%);
-        background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, #cccccc), color-stop(1, #b2b2b2));
-        background: -moz-linear-gradient( center top, #cccccc 5%, #b2b2b2 100%);
-        filter: progid: DXImageTransform.Microsoft.gradient(startColorstr="#cccccc", endColorstr="#b2b2b2");
-        background: -o-linear-gradient(top, #cccccc, b2b2b2);
-        background-color: #cccccc;
+        background: var(--raised-bg); /* 原本是 #cccccc → #b2b2b2 漸層 (各瀏覽器前綴寫法)，主題化後改單色 */
     }
     
     .obtable tr:first-child td:first-child {

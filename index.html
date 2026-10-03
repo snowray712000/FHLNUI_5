@@ -3,6 +3,17 @@
 
 <head>
   <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+  <!-- 主題 (docs/z261003b)：在任何 css 之前設好 <html data-theme>，第一次繪製就是對的顏色，不會先白再變暗。
+       保持 inline：放成 <script src> 會被 build 併入 defer 的 legacy bundle，太晚。之後的切換見 index/theme/Theme.es2023.js -->
+  <script>
+    try {
+      if (/^(light|dark|hc-light|hc-dark)$/.test(localStorage.getItem('fhlTheme')))
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('fhlTheme'))
+    } catch (e) { }
+  </script>
+  <!-- Apple 色票與語意變數：只有變數與 html 底色，放最前面不影響其他 css 的先後；vite-ignore 才會留在這裡 -->
+  <link rel="stylesheet" href="index/theme/apple-color-ios.css" vite-ignore>
+  <link rel="stylesheet" href="index/theme/theme-vars.css" vite-ignore>
   <meta property=og:title content=信望愛聖經工具>
   <meta property=og:type content=website>
   <meta property=og:url content=https://bkbible.fhl.net/~sean/bible/index.html>
@@ -53,7 +64,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
+  <!-- 固定版本：主題覆寫 (index/theme/theme-3rd.css) 依它的變數名稱；它自己會跟系統深淺色，覆寫後改跟 data-theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.9.0/github-markdown.min.css">
 <div class="markdown-body">
   <!-- markdown-it 產生的 HTML 放這裡 -->
   <!-- 這個 div 會讓瀏覽器提早結束 <head>，目前的 css 先後順序依賴這一點，不要移除 -->
@@ -75,7 +87,7 @@
     };
     AppVersion.s = new AppVersion();
 
-    var currentSWVer = "7.1.3" // 發版本要改
+    var currentSWVer = "7.2.0" // 發版本要改
     // 原本新版本第一次載入會 location.reload(true) 強迫更新其他檔案，但 Chrome 忽略 true，
     // 且重新整理只重新驗證 html 本身，子資源照用快取；還讓每位新使用者第一次進站多載一次。
     // 改由 build 時替舊式檔案網址加版本號（vite.config.js versionLegacyUrls）處理。

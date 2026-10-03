@@ -526,8 +526,8 @@ export class FhlInfoOb {
         // 原生的拖曳圖片接管,平移失效)。棋盤格背景在圖片載入前/邊界外可見,標示出畫布範圍。
         const viewerHeight = Math.max(240, this.props.cy - 90)
         const boxStyle = `position:relative;overflow:hidden;height:${viewerHeight}px;touch-action:none;cursor:grab;outline:none` +
-            `;border:1px solid var(--ob-border, #d0d7de);border-radius:4px` +
-            `;background:repeating-conic-gradient(var(--ob-bg-subtle, #f6f8fa) 0% 25%, var(--ob-bg, #ffffff) 0% 50%) 50% / 20px 20px`
+            `;border:1px solid var(--ob-border);border-radius:4px` +
+            `;background:repeating-conic-gradient(var(--ob-bg-subtle) 0% 25%, var(--ob-bg) 0% 50%) 50% / 20px 20px`
         const imgStyle = `position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none;-webkit-user-drag:none;user-select:none`
         const img = `<div class="ob_divimg" style="${boxStyle}" tabindex="0">` +
             `<img class="ob_divimg__img" style="${imgStyle}" draggable="false" alt="${this.#esc(rec.name)}">` +

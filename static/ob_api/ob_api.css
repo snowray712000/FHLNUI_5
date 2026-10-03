@@ -40,23 +40,23 @@
       font: 12pt/30px bold ,Microsoft JhengHei;
        margin: 4px 7px 4px 0px;
     }
-    /* 典藏的顏色一律走 css 變數,將來換 theme 只要覆寫這些。
-       數值取自 FHLNUI_6/src/ob/demo/ui-pv-*.css(GitHub Primer 色系)。 */
+    /* 典藏的顏色一律走 css 變數,指到主題的語意變數 (index/theme/theme-vars.css,docs/z261003b)。
+       原本的數值取自 FHLNUI_6/src/ob/demo/ui-pv-*.css(GitHub Primer 色系)。 */
     :root{
-      --ob-fg:#1f2328;
-      --ob-fg-muted:#57606a;
-      --ob-fg-subtle:#888888;
-      --ob-bg:#ffffff;
-      --ob-bg-subtle:#f6f8fa;
-      --ob-bg-hover:#f3f4f6;
-      --ob-border:#d0d7de;
-      --ob-border-muted:#eeeeee;
-      --ob-accent:#0969da;
-      --ob-on-accent:#ffffff;
-      --ob-accent-lang:#7c3aed;
-      --ob-badge-bg:#eef2ff;
-      --ob-badge-fg:#3538cd;
-      --ob-legacy-border:#ede0e0; /* 閱讀畫面舊按鈕的雙線框 */
+      --ob-fg:var(--fg);
+      --ob-fg-muted:var(--fg-muted);
+      --ob-fg-subtle:var(--fg-subtle);
+      --ob-bg:var(--surface-bg);
+      --ob-bg-subtle:var(--surface2-bg);
+      --ob-bg-hover:var(--hover-bg);
+      --ob-border:var(--line-strong);
+      --ob-border-muted:var(--line);
+      --ob-accent:var(--accent-fg);
+      --ob-on-accent:var(--fg-on-accent);
+      --ob-accent-lang:var(--brand);
+      --ob-badge-bg:var(--accent-bg);
+      --ob-badge-fg:var(--indigo-fg);
+      --ob-legacy-border:var(--line); /* 閱讀畫面舊按鈕的雙線框 */
     }
 
     /* 清單:篩選(分類 chip / 語言 chip+文字框 / 關鍵字+年代+文體)與表格/卡片兩種呈現。

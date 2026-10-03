@@ -1,10 +1,10 @@
 #version-infos .na {
-  color: red;
+  color: var(--danger-fg);
   font-weight: bolder;  
 }
 #version-infos {
   text-align: justify;
 }
 #version-infos .odd {
-  background-color: lightgreen;
+  background-color: var(--zebra-bg);
 }

@@ -24,7 +24,7 @@ export async function parsing_render_async() {
     html += parsing_render_bottom_table(jsonObj, jsonObj.N == 1 ? 'H' : 'G')
 
     // 中間那個灰框，這也是為何 top 會是 212 px 的原因
-    html = "<div style='position: absolute; top: 200px; left: 0px; right: 0px; height: 12px; background: #A0A0A0;'></div>" + html + "";
+    html = "<div style='position: absolute; top: 200px; left: 0px; right: 0px; height: 12px; background: var(--frame-bg);'></div>" + html + "";
 
     FhlInfoContent.s.dom.html(html);
 

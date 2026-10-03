@@ -43,7 +43,8 @@ ${RESOURCES_HTML}</div></div>
 <li><div id="show_mode"></div></li>
 <li><div id="mapTool"></div></li>
 <li><div id="imageTool"></div></li>
-<li><div id="fontSizeTool"></div></li></ul></div></div></div>
+<li><div id="fontSizeTool"></div></li>
+<li><div id="themeTool"></div></li></ul></div></div></div>
 <div id="versionSelect"></div>
 <div id="viewHistory"><div class="secondLevelInside"><p>▶&nbsp;歷史紀錄</p>
 <span class="clearHistory">清除記錄</span>

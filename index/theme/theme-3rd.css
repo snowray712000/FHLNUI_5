@@ -1,0 +1,263 @@
+/* ===== 第三方樣式的主題覆寫 (docs/z261003b) =====
+ * jQuery UI blitzer、Bootstrap 5.1、github-markdown-css、leaflet 都是寫死的淺色。這裡用語意變數 (theme-vars.css) 蓋過。
+ * 由 index.js 以 <style> 接在 fhl.css 之後插入 (比所有第三方 css 都晚，同權重就贏)。
+ * 只改顏色，不改大小、間距。 */
+
+/* ---------- jQuery UI (blitzer)：對話框、按鈕、tab ----------
+ * 標題列原本是 blitzer 的紅色漸層圖，改成中性色 (2026-10-03 決定)；關閉鈕的紅色 X 圖 (DialogHtml.es2023.js) 保留 */
+.ui-widget-content {
+    border-color: var(--line);
+    background: var(--surface-bg);
+    color: var(--fg);
+}
+.ui-widget.ui-widget-content {
+    border-color: var(--line-strong);
+}
+.ui-widget-content a {
+    color: var(--link-fg);
+}
+.ui-widget-header {
+    border-color: var(--line);
+    background: var(--surface2-bg);
+    color: var(--fg);
+}
+.ui-widget-header a {
+    color: var(--fg);
+}
+.ui-state-default,
+.ui-widget-content .ui-state-default,
+.ui-widget-header .ui-state-default,
+.ui-button,
+html .ui-button.ui-state-disabled:hover,
+html .ui-button.ui-state-disabled:active {
+    border-color: var(--line-strong);
+    background: var(--btn-bg);
+    color: var(--accent-fg);
+}
+.ui-state-default a,
+.ui-state-default a:link,
+.ui-state-default a:visited,
+a.ui-button,
+a:link.ui-button,
+a:visited.ui-button,
+.ui-button {
+    color: var(--accent-fg);
+}
+.ui-state-hover,
+.ui-widget-content .ui-state-hover,
+.ui-widget-header .ui-state-hover,
+.ui-state-focus,
+.ui-widget-content .ui-state-focus,
+.ui-widget-header .ui-state-focus,
+.ui-button:hover,
+.ui-button:focus {
+    border-color: var(--line-strong);
+    background: var(--btn-hover-bg);
+    color: var(--fg);
+}
+.ui-state-hover a,
+.ui-state-hover a:hover,
+.ui-state-hover a:link,
+.ui-state-hover a:visited,
+.ui-state-focus a,
+.ui-state-focus a:hover,
+.ui-state-focus a:link,
+.ui-state-focus a:visited,
+a.ui-button:hover,
+a.ui-button:focus {
+    color: var(--fg);
+}
+.ui-visual-focus {
+    box-shadow: 0 0 3px 1px var(--accent);
+}
+.ui-state-active,
+.ui-widget-content .ui-state-active,
+.ui-widget-header .ui-state-active,
+a.ui-button:active,
+.ui-button:active,
+.ui-button.ui-state-active:hover {
+    border-color: var(--accent);
+    background: var(--surface-bg);
+    color: var(--accent-fg);
+}
+.ui-state-active a,
+.ui-state-active a:link,
+.ui-state-active a:visited {
+    color: var(--accent-fg);
+}
+.ui-state-highlight,
+.ui-widget-content .ui-state-highlight,
+.ui-widget-header .ui-state-highlight {
+    border-color: var(--hl-chap-border);
+    background: var(--hl-chap-bg);
+    color: var(--fg);
+}
+.ui-state-error,
+.ui-widget-content .ui-state-error,
+.ui-widget-header .ui-state-error {
+    border-color: var(--danger);
+    background: var(--danger-bg);
+    color: var(--fg);
+}
+.ui-widget-overlay {
+    background: var(--darkText);
+}
+.ui-widget-shadow {
+    box-shadow: 0 0 5px var(--shadow);
+}
+/* 內容區的 icon 是深灰的 sprite 圖 (例 對話框右下角的拉大小)，深色主題反白 */
+.ui-widget-content .ui-icon {
+    filter: var(--icon-filter);
+}
+
+/* ---------- Bootstrap 5.1 (沒有深色模式) ---------- */
+:root {
+    --bs-body-color: var(--fg);
+    --bs-body-bg: var(--surface-bg);
+}
+body {
+    background-color: var(--app-bg);
+    color: var(--fg);
+}
+a {
+    color: var(--link-fg);
+}
+hr {
+    color: var(--line-strong);
+}
+.text-success {
+    color: var(--success) !important;
+}
+.btn {
+    color: var(--fg);
+}
+.btn:hover {
+    color: var(--fg);
+}
+.btn-light {
+    color: var(--fg);
+    background-color: var(--btn-bg);
+    border-color: var(--btn-bg);
+}
+.btn-light:hover {
+    color: var(--fg);
+    background-color: var(--btn-hover-bg);
+    border-color: var(--line-strong);
+}
+.btn-primary {
+    color: var(--fg-on-accent);
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+.btn-secondary {
+    color: var(--fg-on-accent);
+    background-color: var(--neutral);
+    border-color: var(--neutral);
+}
+.btn-outline-primary { color: var(--accent-fg); border-color: var(--accent); }
+.btn-outline-secondary { color: var(--fg-muted); border-color: var(--neutral); }
+.btn-outline-success { color: var(--green-fg); border-color: var(--success); }
+.btn-outline-info { color: var(--teal-fg); border-color: var(--info); }
+.btn-outline-dark { color: var(--fg); border-color: var(--fg); }
+.btn-outline-primary:hover { color: var(--fg-on-accent); background-color: var(--accent); border-color: var(--accent); }
+.btn-outline-secondary:hover { color: var(--fg-on-accent); background-color: var(--neutral); border-color: var(--neutral); }
+.btn-outline-success:hover { color: var(--fg-on-accent); background-color: var(--success-fill); border-color: var(--success-fill); }
+.btn-outline-info:hover { color: var(--fg-on-accent); background-color: var(--info-fill); border-color: var(--info-fill); }
+.btn-outline-dark:hover { color: var(--surface-bg); background-color: var(--fg); border-color: var(--fg); }
+.btn-check:checked + .btn-outline-dark, .btn-outline-dark.active { color: var(--surface-bg); background-color: var(--fg); border-color: var(--fg); }
+.btn-check:checked + .btn-outline-success, .btn-outline-success.active { color: var(--fg-on-accent); background-color: var(--success-fill); border-color: var(--success-fill); }
+.btn-check:checked + .btn-outline-info, .btn-outline-info.active { color: var(--fg-on-accent); background-color: var(--info-fill); border-color: var(--info-fill); }
+.btn-check:checked + .btn-outline-primary, .btn-outline-primary.active { color: var(--fg-on-accent); background-color: var(--accent); border-color: var(--accent); }
+.btn-check:checked + .btn-outline-secondary, .btn-outline-secondary.active { color: var(--fg-on-accent); background-color: var(--neutral); border-color: var(--neutral); }
+.modal-content {
+    color: var(--fg);
+    background-color: var(--surface-bg);
+    border-color: var(--line);
+}
+.modal-header, .modal-footer {
+    border-color: var(--line);
+}
+.btn-close {
+    filter: var(--icon-filter);
+}
+.card {
+    color: var(--fg);
+    background-color: var(--surface-bg);
+    border-color: var(--line);
+}
+.form-check-input {
+    background-color: var(--surface-bg);
+    border-color: var(--line-strong);
+}
+.form-check-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* ---------- github-markdown-css (說明頁、讀經組合說明) ----------
+ * 它自己用 @media (prefers-color-scheme) 決定明暗，不看我們的 data-theme；改成全部指到語意變數。
+ * 版本固定在 index.html 的 @5.9.0，升版時比對它用到的變數名稱 */
+.markdown-body {
+    color-scheme: inherit;
+    --fgColor-default: var(--fg);
+    --fgColor-muted: var(--fg-muted);
+    --fgColor-accent: var(--link-fg);
+    --fgColor-attention: var(--orange-fg);
+    --fgColor-danger: var(--red-fg);
+    --fgColor-done: var(--purple-fg);
+    --fgColor-success: var(--green-fg);
+    --bgColor-default: var(--surface-bg);
+    --bgColor-muted: var(--surface2-bg);
+    --bgColor-neutral-muted: var(--hover-bg);
+    --bgColor-attention-muted: var(--warn-bg);
+    --bgColor-danger-muted: var(--danger-bg);
+    --borderColor-default: var(--line-strong);
+    --borderColor-muted: var(--line);
+    --borderColor-neutral-muted: var(--line);
+    --borderColor-accent-emphasis: var(--accent);
+    --borderColor-attention-emphasis: var(--warn);
+    --borderColor-danger-emphasis: var(--danger);
+    --borderColor-done-emphasis: var(--brand);
+    --borderColor-success-emphasis: var(--success);
+    --focus-outlineColor: var(--accent);
+}
+
+/* ---------- leaflet (地圖分頁)：圖磚保持原樣 (2026-10-03 決定)，只改控制鈕、popup、地名標籤 ----------
+ * leaflet.css 是切到地圖分頁才插入 (比這裡晚)，所以前面都加 #fhlmapContainer 提高權重 */
+#fhlmapContainer.leaflet-container {
+    background: var(--surface2-bg);
+}
+#fhlmapContainer .leaflet-bar a,
+#fhlmapContainer .leaflet-bar a:hover,
+#fhlmapContainer .leaflet-control-layers,
+#fhlmapContainer .leaflet-control-attribution {
+    background-color: var(--popup-bg);
+    color: var(--fg);
+    border-color: var(--line);
+}
+#fhlmapContainer .leaflet-bar a.leaflet-disabled {
+    background-color: var(--surface2-bg);
+    color: var(--fg-disabled);
+}
+#fhlmapContainer .leaflet-control-attribution a {
+    color: var(--link-fg);
+}
+#fhlmapContainer .leaflet-popup-content-wrapper,
+#fhlmapContainer .leaflet-popup-tip {
+    background: var(--popup-bg);
+    color: var(--fg);
+    box-shadow: 0 3px 14px var(--shadow);
+}
+#fhlmapContainer a.leaflet-popup-close-button {
+    color: var(--fg-muted);
+}
+#fhlmapContainer .leaflet-tooltip {
+    background-color: var(--popup-bg);
+    color: var(--fg);
+    border-color: var(--line-strong);
+    box-shadow: 0 1px 3px var(--shadow);
+}
+#fhlmapContainer .leaflet-tooltip-top::before { border-top-color: var(--popup-bg); }
+#fhlmapContainer .leaflet-tooltip-bottom::before { border-bottom-color: var(--popup-bg); }
+#fhlmapContainer .leaflet-tooltip-left::before { border-left-color: var(--popup-bg); }
+#fhlmapContainer .leaflet-tooltip-right::before { border-right-color: var(--popup-bg); }

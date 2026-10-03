@@ -5,15 +5,15 @@
     align-items: center;
     height: 100%;
     box-sizing: border-box;
-    border: 1px solid #707070;
+    border: 1px solid var(--line-strong);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--surface-bg);
     transition: border-color 0.2s, background-color 0.2s;
 }
-#searchTool .st-box:hover { border-color: #909090; }
+#searchTool .st-box:hover { border-color: var(--fg-subtle); }
 #searchTool .st-box:focus-within {
-    border-color: #00A0FF;
-    background: rgba(255, 255, 255, 0.14);
+    border-color: var(--accent);
+    background: var(--surface-bg);
 }
 #searchTool .st-go,
 #searchTool .st-clear {
@@ -26,12 +26,12 @@
     padding: 0;
     border: none;
     background: none;
-    color: #B0B0B0;
+    color: var(--fg-muted);
     cursor: pointer;
 }
 #searchTool .st-go { font-size: 1.05em; padding-left: 0.2em; }
 #searchTool .st-go:hover,
-#searchTool .st-clear:hover { color: #00A0FF; }
+#searchTool .st-clear:hover { color: var(--accent-fg); }
 #searchTool .st-input {
     flex: 1 1 auto;
     min-width: 0;
@@ -40,10 +40,10 @@
     border: none;
     outline: none;
     background: none;
-    color: white;
+    color: var(--fg);
     font-size: 1rem;
 }
-#searchTool .st-input::placeholder { color: #909090; }
+#searchTool .st-input::placeholder { color: var(--fg-placeholder); }
 /* 沒有文字時不顯示 × */
 #searchTool .st-input:placeholder-shown + .st-clear { visibility: hidden; }
 
@@ -71,18 +71,18 @@
     flex: 0 1 20em;
     min-width: 8em;
     padding: 3px 8px;
-    border: 1px solid #B0B0B0;
+    border: 1px solid var(--line-strong);
     border-radius: 4px;
     font-size: 1rem;
 }
 .search-dlg .sd-go {
     padding: 3px 10px;
-    border: 1px solid #B0B0B0;
+    border: 1px solid var(--line-strong);
     border-radius: 4px;
-    background: #F0F0F0;
+    background: var(--btn-bg);
     cursor: pointer;
 }
-.search-dlg .sd-go:hover { color: #00A0FF; }
+.search-dlg .sd-go:hover { color: var(--accent-fg); }
 .search-dlg .sd-compare {
     display: inline-flex;
     align-items: center;
@@ -94,7 +94,7 @@
     cursor: pointer;
 }
 .search-dlg .sd-status {
-    color: #707070;
+    color: var(--fg-muted);
     font-size: 0.9em;
 }
 
@@ -108,30 +108,30 @@
 .search-dlg .sd-books:empty { display: none; }
 .search-dlg .sd-books {
     padding-bottom: 6px;
-    border-bottom: 1px solid #D0D0D0;
+    border-bottom: 1px solid var(--line);
 }
 .search-dlg .sd-chip {
     padding: 1px 8px;
-    border: 1px solid #C8C8C8;
+    border: 1px solid var(--line-strong);
     border-radius: 999px;
-    background: #F7F7F7;
-    color: #404040;
+    background: var(--surface2-bg);
+    color: var(--fg);
     font-size: 0.9em;
     line-height: 1.6;
     cursor: pointer;
 }
 .search-dlg .sd-chip small {
     margin-left: 3px;
-    color: #909090;
+    color: var(--fg-muted);
 }
-.search-dlg .sd-chip:hover { color: #00A0FF; border-color: #00A0FF; }
+.search-dlg .sd-chip:hover { color: var(--accent-fg); border-color: var(--accent); }
 .search-dlg .sd-chip.selected {
-    background: #CD0A0A; /* jquery-ui blitzer 主色 */
-    border-color: #CD0A0A;
-    color: white;
+    background: var(--selected-bg); /* 原為 jquery-ui blitzer 主色紅，主題化後改用選中色 */
+    border-color: var(--selected-bg);
+    color: var(--selected-fg);
 }
-.search-dlg .sd-chip.selected small { color: #FFD0D0; }
-.search-dlg .sd-book.sd-cur:not(.selected) { border-color: #CD0A0A; }
+.search-dlg .sd-chip.selected small { color: var(--selected-fg); }
+.search-dlg .sd-book.sd-cur:not(.selected) { border-color: var(--accent); }
 
 .search-dlg .sd-results {
     flex: 1 1 auto;
@@ -146,36 +146,36 @@
     top: 0;
     z-index: 2;
 }
-.search-dlg .sd-results .verse-grid .paragraph:hover { background: #F4F4F4; }
+.search-dlg .sd-results .verse-grid .paragraph:hover { background: var(--hover-bg); }
 .search-dlg .sd-results .vg-label { padding-left: 4px; }
 .search-dlg .sd-copy {
     margin-left: 6px;
-    color: #B0B0B0;
+    color: var(--fg-subtle);
     cursor: pointer;
     visibility: hidden;
 }
 .search-dlg .paragraph:hover .sd-copy { visibility: visible; }
-.search-dlg .sd-copy:hover { color: #00A0FF; }
+.search-dlg .sd-copy:hover { color: var(--accent-fg); }
 .search-dlg .sd-hint {
     padding: 2em;
     text-align: center;
-    color: #808080;
+    color: var(--fg-muted);
 }
 .search-dlg .sd-hint.sd-more { padding: 0.8em; }
 
 .search-dlg .seKey {
-    color: red !important;
+    color: var(--search-key-fg) !important;
     font-weight: 700;
 }
 .search-dlg .seSN {
     cursor: pointer;
-    color: #808080;
+    color: var(--search-sn-fg);
     font-size: 0.8em;
 }
-.search-dlg .seSN.seKey { font-size: 1em; color: #8e24aa !important; } /* 查詢的 SN 用紫色，與滑鼠移過去的 active 紅色區分 */
+.search-dlg .seSN.seKey { font-size: 1em; color: var(--search-sn-key-fg) !important; } /* 查詢的 SN 用紫色，與滑鼠移過去的 active 紅色區分 */
 /* 滑鼠移過去的 SN (SN_Act_Color)，要蓋過上面 .seSN 灰色與 .seKey 紫色 */
-.search-dlg .seSN.snAct { color: red !important; }
-.search-dlg .seSN.snAct2 { color: darkred !important; }
+.search-dlg .seSN.snAct { color: var(--sn-act-fg) !important; }
+.search-dlg .seSN.snAct2 { color: var(--sn-act2-fg) !important; }
 
 @media (max-width: 600px) {
     .search-dlg { padding: 6px 8px 0; }

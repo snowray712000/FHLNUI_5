@@ -23,13 +23,13 @@ div.idt {
 span.exp
 {
     /* twcb 字典，有 span.exp，強調某字? */
-    color: purple;
+    color: var(--exp-fg);
     font-weight: 700;
 }
 span.bibtext
 {
     /* twcb 字典，有 span.bibtext，是範圍型的 */
-    color: violet;
+    color: var(--bibtext-fg);
     font-weight: 700;
 }
 .realtime-sn{
@@ -49,21 +49,21 @@ span.bibtext
 
 
 .reference {
-    color: blue;
+    color: var(--ref-fg);
     cursor: pointer;
 }
 .ref 
 {
     /* 交互參照，通常是 span.ref */
-    color: blue;
+    color: var(--ref-fg);
     cursor: pointer;
 }
 /* 原文字典中，與「正在讀的經文」(active address) 相同的引用。見 highlightActiveRefs.es2023.js
    顏色一律走 css 變數，將來換 theme 只要覆寫這些。 */
 :root {
-    --ref-act-verse-bg: #ffe27a;   /* 同一節 */
-    --ref-act-chap-bg: #fff5cc;    /* 同一章 (含整章引用) */
-    --ref-act-chap-border: #d4a300;
+    --ref-act-verse-bg: var(--hl-verse-bg);   /* 同一節 */
+    --ref-act-chap-bg: var(--hl-chap-bg);    /* 同一章 (含整章引用) */
+    --ref-act-chap-border: var(--hl-chap-border);
 }
 .ref.ref-act-verse {
     /* 同一節 */
@@ -71,6 +71,7 @@ span.bibtext
     box-shadow: 0 0 0 2px var(--ref-act-verse-bg);
     border-radius: 2px;
     font-weight: bold;
+    color: var(--hl-verse-fg);
 }
 .ref.ref-act-chap {
     /* 同一章，但節不同；或整章引用 */
@@ -82,10 +83,10 @@ span.bibtext
   font-weight: 700;
 }
 .greek_w {
-  background-color: #FFFF99;
+  background-color: var(--wh-bg);
 }
 .greek_u {
-  background-color: #FFCCCC;
+  background-color: var(--ubs-bg);
 }
 /* add by snow. 2021.07 */
 .hebrew-char-div {
@@ -104,7 +105,7 @@ span.bibtext
     /* font-size: large; */
     font-family: COBSHebrew;
     line-height: normal;
-    color: mediumpurple;
+    color: var(--orig-fg);
     font-size: var( --fontsize-hebrew );
 }
 /* 前後加一空白 因為這樣 看得到 copy 不到*/
@@ -116,7 +117,7 @@ span.bibtext
     /* display: inline-block; */
     font-family: COBSGreekWeb;
     line-height: normal;
-    color: mediumpurple;
+    color: var(--orig-fg);
     font-size: var( --fontsize-greek );
 }
 /* 前後加一空白，不再使用這方法，因為這樣 copy 不到 */
@@ -136,7 +137,7 @@ span.bibtext
  
 /* Track */
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0); 
+    -webkit-box-shadow: inset 0 0 6px transparent; 
     -webkit-border-radius: 10px;
     border-radius: 10px;
 }
@@ -145,16 +146,16 @@ span.bibtext
 ::-webkit-scrollbar-thumb {
     -webkit-border-radius: 10px;
     border-radius: 10px;
-    background: rgba(0,0,0,0);
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0); 
+    background: transparent;
+    -webkit-box-shadow: inset 0 0 6px transparent; 
 }
 
 div.scrolling::-webkit-scrollbar-track{
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    -webkit-box-shadow: inset 0 0 6px var(--shadow);
 }
 div.scrolling::-webkit-scrollbar-thumb{
-    background: rgba(200,200,230,0.8); 
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+    background: var(--scroll-thumb); 
+    -webkit-box-shadow: inset 0 0 6px var(--shadow); 
 }
 
 
@@ -162,7 +163,7 @@ div.scrolling::-webkit-scrollbar-thumb{
 body {
     margin: 0px;
     overflow: hidden;
-    background-color: #A0A0A0;
+    background-color: var(--app-bg);
     font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded' !important;
 }
 #mainWindow {
@@ -171,7 +172,7 @@ body {
     bottom: 0px;
     left: 0px;
     right: 0px;
-    background-color: #A0A0A0;
+    background-color: var(--app-bg);
 }
 /* ===== 上方一列的工具列，見 TopBar.es2023.js (原本是標題列 + 工具列兩列) =====
    寬：≡ logo 信望愛聖經工具 v… ⟳ | 書卷章 | 搜尋 ▦ ? ⛶ ✉ ▥
@@ -179,10 +180,10 @@ body {
 :root {
     --tb-h: 44px;       /* 工具列高度，#mainWindow 從這裡開始 */
     --win-top: 8px;     /* 左中右三個視窗，距離工具列 */
-    --tb-bg: #404040;
-    --tb-fg: #D0D0D0;
-    --tb-hover: #00A0FF;
-    --tb-on-bg: rgba(255, 255, 255, 0.14); /* 側欄開著時，按鈕的底色 */
+    --tb-bg: var(--chrome-bg);
+    --tb-fg: var(--chrome-fg);
+    --tb-hover: var(--accent);
+    --tb-on-bg: var(--pressed-bg); /* 側欄開著時，按鈕的底色 */
 }
 #fhlTopMenu {
     position: fixed;
@@ -203,7 +204,7 @@ body {
     box-sizing: border-box;
     background: var(--tb-bg);
     color: var(--tb-fg);
-    border-bottom: 1px solid #303030;
+    border-bottom: 1px solid var(--line);
     white-space: nowrap;
 }
 #fhlToolBar .tb-btn {
@@ -225,7 +226,7 @@ body {
 }
 #fhlToolBar .tb-btn:hover { color: var(--tb-hover); }
 #fhlToolBar .tb-btn.selected,
-#fhlToolBar .tb-btn.open { background: var(--tb-on-bg); color: white; }
+#fhlToolBar .tb-btn.open { background: var(--tb-on-bg); color: var(--chrome-fg); }
 #fhlToolBar .tb-btn.selected:hover { color: var(--tb-hover); }
 #fhlToolBar #fhlLeftWindowControl { font-size: 1.5rem; }
 #fhlToolBar .tb-narrow { display: none; }
@@ -248,7 +249,7 @@ body {
 #title {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #F0F0F0;
+    color: var(--chrome-fg);
 }
 #title .t-short { display: none; }
 
@@ -261,7 +262,7 @@ body {
     font-size: 0.75rem;
 }
 #appVerNum {
-    color: #A0C8FF;
+    color: var(--accent-fg);
     text-decoration: underline;
     cursor: pointer;
 }
@@ -274,14 +275,14 @@ body {
     padding: 2px 4px;
     border: none;
     background: none;
-    color: #A0A0A0;
+    color: var(--fg-muted);
     font-size: 0.8rem;
     cursor: pointer;
 }
 #force-reload button:hover { color: var(--tb-hover); }
 /* 已最新時只有 ⟳，有新版才顯示「更新至 x」 */
 #force-reload .fr-text { display: none; }
-#fhlToolBar.has-new-ver #force-reload button { color: #FFC060; }
+#fhlToolBar.has-new-ver #force-reload button { color: var(--warn-fg); }
 #fhlToolBar.has-new-ver #force-reload .fr-text { display: inline; }
 
 #fhlToolBar #bookSelect {
@@ -298,7 +299,7 @@ body {
     text-overflow: ellipsis;
     cursor: pointer;
 }
-#fhlToolBar #bookSelect:hover { color: var(--tb-hover); background-color: #393939; }
+#fhlToolBar #bookSelect:hover { color: var(--tb-hover); background-color: var(--hover-bg); }
 #bookSelect .bs-short { display: none; }
 
 #searchTool {
@@ -324,11 +325,11 @@ body {
     max-width: calc(100vw - 8px);
     max-height: calc(100vh - var(--tb-h) - 8px);
     overflow: auto;
-    background: #FAFAFA;
-    color: #303030;
-    border: 1px solid #C0C0C0;
+    background: var(--popup-bg);
+    color: var(--fg);
+    border: 1px solid var(--line);
     border-radius: 8px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px var(--shadow);
     font-size: 0.95rem;
 }
 #fhlTopMenu .tb-panel[hidden] { display: none; }
@@ -341,8 +342,8 @@ body {
 #resourcesPanel h4 {
     margin: 0 0 4px;
     padding-bottom: 3px;
-    border-bottom: 2px solid #905090;
-    color: #704070;
+    border-bottom: 2px solid var(--brand);
+    color: var(--brand-fg);
     font-size: 0.95rem;
     font-weight: 700;
 }
@@ -352,14 +353,14 @@ body {
     display: block;
     padding: 3px 4px;
     border-radius: 4px;
-    color: #303030;
+    color: var(--fg);
     text-decoration: none;
 }
-#resourcesPanel a:hover { background: #E8E0F0; color: #0050DD; }
+#resourcesPanel a:hover { background: var(--brand-bg); color: var(--accent-fg); }
 /* 每個連結下面的一行簡介 */
 #resourcesPanel a small {
     display: block;
-    color: #808080;
+    color: var(--fg-muted);
     font-size: 0.75rem;
     line-height: 1.25;
 }
@@ -371,30 +372,30 @@ body {
     width: 20px;
     height: 20px;
     padding: 0;
-    border: 1px solid #B090B0;
+    border: 1px solid var(--brand);
     border-radius: 50%;
-    background: #FFF;
-    color: #704070;
+    background: var(--surface-bg);
+    color: var(--brand-fg);
     font-size: 0.75rem;
     font-weight: 700;
     line-height: 18px;
     cursor: pointer;
 }
 #resourcesPanel .rp-help:hover,
-#resourcesPanel .rp-help[aria-expanded=true] { background: #905090; border-color: #905090; color: #FFF; }
+#resourcesPanel .rp-help[aria-expanded=true] { background: var(--brand); border-color: var(--brand); color: var(--fg-on-accent); }
 #resourcesPanel .rp-intro {
     margin: 2px 0 8px;
     padding: 6px 8px;
-    border-left: 3px solid #905090;
+    border-left: 3px solid var(--brand);
     border-radius: 0 4px 4px 0;
-    background: #F3EEF6;
-    color: #404040;
+    background: var(--brand-bg);
+    color: var(--fg);
     font-size: 0.82rem;
     line-height: 1.5;
 }
 #resourcesPanel .rp-intro p { margin: 0 0 4px; }
 #resourcesPanel .rp-intro p:last-child { margin-bottom: 0; }
-#resourcesPanel .rp-intro b { color: #704070; }
+#resourcesPanel .rp-intro b { color: var(--brand-fg); }
 #moreMenu { width: 210px; padding: 4px; }
 #moreMenu > * {
     display: flex;
@@ -405,15 +406,15 @@ body {
     border: none;
     border-radius: 6px;
     background: none;
-    color: #303030;
+    color: var(--fg);
     font-size: 0.95rem;
     text-align: left;
     text-decoration: none;
     cursor: pointer;
 }
-#moreMenu > *:hover { background: #E8E8E8; color: #0050DD; }
+#moreMenu > *:hover { background: var(--hover-bg); color: var(--accent-fg); }
 #moreMenu i { width: 1.2em; font-size: 1.05rem; }
-#moreMenu .mm-ver { color: #808080; font-size: 0.8rem; }
+#moreMenu .mm-ver { color: var(--fg-muted); font-size: 0.8rem; }
 /* 有新版：⋮ 上加個點 */
 #fhlToolBar.has-new-ver #moreMenuBtn { position: relative; }
 #fhlToolBar.has-new-ver #moreMenuBtn::after {
@@ -424,7 +425,7 @@ body {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #FFA030;
+    background: var(--warn);
 }
 
 @media screen and (max-width: 1000px) {
@@ -463,7 +464,7 @@ body {
     right: 0px;
     bottom: 0px;
     left: 0px;
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: var(--overlay-bg);
     z-index: 1;
     transition: all 0.2s ease-out;
 }
@@ -474,7 +475,7 @@ body {
     bottom: 100px;
     left: 100px;
     border-radius: 5px;
-    background-color: white;
+    background-color: var(--surface-bg);
 }
 #helpCloseButton{
     position: absolute;
@@ -483,7 +484,7 @@ body {
     cursor: pointer;
 }
 #helpCloseButton:hover{
-    color: #808080;
+    color: var(--fg-muted);
 }
 
 
@@ -495,9 +496,9 @@ body {
   width: 100%;
   height: 100%;
   font: 8pt/8pt bold ,Microsoft JhengHei;
-  background-color: rgba(100, 100, 100, 0.9);
+  background-color: var(--popup-bg);
   z-index: 1;
-  box-shadow: 3px 3px 3px 3px rgba(0,0,0,0.7);
+  box-shadow: 3px 3px 3px 3px var(--shadow);
 }
 #bookSelectName {
   position: fixed;
@@ -510,7 +511,7 @@ body {
   overflow: visible;
   border-radius: 5px;
   /*border: solid 1px #D0D0D0;*/
-  background-color: rgba(0, 0, 0, 0);
+  background-color: transparent;
 }
 #bookSelectTitle{
     position: absolute;
@@ -520,7 +521,7 @@ body {
     font-size: 15pt;
     padding: 5px 40px;
     border-radius: 5px;
-    background: #CCCCC5;
+    background: var(--surface2-bg);
 }
 /*#bookSelectName div {
     text-align: center;
@@ -552,7 +553,7 @@ body {
     cursor: pointer;
 }
 .SwitchToOldTestament:hover, .SwitchToNewTestament:hover {
-    color: #FF0000;
+    color: var(--danger-fg);
 }
 
 .testaments{
@@ -591,28 +592,28 @@ body {
     height: 540px;
     padding: 5px 0px;
     list-style: none;
-    color: #606060;
-    background: #E0E0E0;
-    border: solid 3px #00A0FF;
+    color: var(--fg-muted);
+    background: var(--surface2-bg);
+    border: solid 3px var(--accent);
     border-width: 2px 0px;
-    box-shadow: 6px 6px 4px #303030;
+    box-shadow: 6px 6px 4px var(--shadow);
 }
 
 .testaments>ul>li:hover {
-    background: #D8D8D8;
+    background: var(--pressed-bg);
 }
 .testaments>ul>li:first-child {
     width: 80px;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
-    border: solid 2px #00A0FF;
+    border: solid 2px var(--accent);
     border-width: 2px 0px 2px 2px;
 }
 .testaments>ul>li:last-child {
     width: 80px;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
-    border: solid 2px #00A0FF;
+    border: solid 2px var(--accent);
     border-width: 2px 2px 2px 0px;
 }
 .testaments ul ul {
@@ -628,13 +629,13 @@ body {
     padding: 8px 0px 8px 10px;
     margin:0px;
     border-radius: 0px;
-    border: solid 1px #A09090;
+    border: solid 1px var(--line-strong);
     border-width: 0px 0px 1px 0px;
 }
 #bookSelectName li span.bookClass {
     top: 0px;
     /*background-color: #D03030;*/
-    color: #5050A0;
+    color: var(--indigo-fg);
     font-weight: bolder;
     padding: 15px 0px 10px 0px;
     float: none;
@@ -642,17 +643,17 @@ body {
     display: block;
     text-align: center;
     font-size: 11pt;
-    border: solid 1px #308080;
+    border: solid 1px var(--teal-fg);
     border-width: 0px 0px 1px 0px;
 }
 #bookSelectName li li:hover{    
-  background-color: #D0D0D0;
-  color: #00A0FF;
+  background-color: var(--pressed-bg);
+  color: var(--accent-fg);
 }
 #bookSelectName li li.selected{    
-  background-color: #404040;
-  color:white;
-  box-shadow: inset 3px 3px 4px #303030;
+  background-color: var(--selected-bg);
+  color:var(--selected-fg);
+  box-shadow: inset 3px 3px 4px var(--shadow);
 }
 #bookSelectName li.selected span{
     position: relative;
@@ -668,7 +669,7 @@ body {
     display: none;
   position: relative;
   float:left;
-  background-color: #404040;
+  background-color: var(--popup-bg);
   width: 150px;
   height: 520px;
   padding: 0px;
@@ -702,21 +703,21 @@ body {
   cursor: pointer;  
   white-space: nowrap;
   padding: 5px 0px;
-  border: dotted 1px #FFFFFF;
+  border: dotted 1px var(--line-strong);
   border-width: 0px 0px 1px 0px;
-  color: #FFFFFF;
+  color: var(--fg);
   margin-bottom:0px;
 }
 #bookSelectChapter li:hover{
-  color: #00A0FF;
+  color: var(--accent-fg);
 }
 
 .chapNext:hover,.chapBack:hover{
-  color:red;
+  color:var(--danger-fg);
 }
 
 .secNext:hover,.secBack:hover{
-  color:red;
+  color:var(--danger-fg);
 }
 /*
 #viewHistoryPopUp {
@@ -751,7 +752,7 @@ body {
 #fhlLeftWindow {
   position: absolute;
   display: block;
-  background-color: #E0E0E0;
+  background-color: var(--frame-bg);
   top: var(--win-top);
   left: 0.5rem;
   bottom: 0.5rem;
@@ -776,7 +777,7 @@ body {
 .leftWindow>.ui-resizable-handle{
     height: 100%;
     right: -12px;
-    background-color: #A0A0A0;
+    background-color: var(--splitter-bg);
     cursor: col-resize;
     width: 12px;
 }
@@ -799,7 +800,7 @@ body {
     left: 0px;
     right: 0px;
     overflow: auto;
-    background-color: #A0A0A0;
+    background-color: var(--frame-bg);
 }
 #fhlLeftWindow .leftWindowInside>div {
     /*border: solid 1px black;
@@ -807,7 +808,7 @@ body {
     padding: 0px;
 }
 #fhlLeftWindow .leftWindowInside>div>.ui-resizable-handle{
-    background: #A0A0A0;
+    background: var(--splitter-bg);
     bottom: -12px;
     cursor: row-resize;
     height: 12px;
@@ -843,7 +844,7 @@ body {
     left: 0px;
     right: 0px;
     border-radius: 5px;
-    background-color: #F0F0F0;
+    background-color: var(--surface2-bg);
     overflow: hidden;
 }
 .secondLevelInside>div{
@@ -857,21 +858,21 @@ body {
 .secondLevelInside li{
     margin: 5px 3px;
     padding: 0px 0px 5px 15px;
-    border-bottom: dotted 1px black;
+    border-bottom: dotted 1px var(--line);
     list-style-type: none;
     float: none;
 }
 .secondLevelInside li:first-child {
     margin-top: 0px;
     padding-top: 5px;
-    border-top: dotted 1px black;
+    border-top: dotted 1px var(--line);
 }
 
 #settings {
     width: 100%;
     height: 270px;
     overflow: visible;
-    background-color: #A0A0A0;
+    background-color: var(--frame-bg);
 }
 
 #settings li div{
@@ -896,7 +897,7 @@ body {
 }
 .onOffSwitch-label {
     display: block; overflow: hidden; cursor: pointer;
-    border: 2px solid #999999; border-radius: 20px;
+    border: 2px solid var(--line-strong); border-radius: 20px;
 }
 .onOffSwitch-inner {
     display: block; width: 200%; margin-left: -100%;
@@ -905,18 +906,18 @@ body {
 }
 .onOffSwitch-inner:before, .onOffSwitch-inner:after {
     display: block; float: left; width: 50%; height: 12px; padding: 0; line-height: 12px;
-    font-size: 12px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    font-size: 12px; color: var(--fg-on-accent); font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
     -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
 }
 .onOffSwitch-inner:before {
     content: "ON";
     padding-left: 9px;
-    background-color: #C2C2C2; color: #FF0000;
+    background-color: var(--switch-on-bg); color: var(--fg-on-accent);
 }
 .onOffSwitch-inner:after {
     content: "OFF";
     padding-right: 9px;
-    background-color: #333131; color: #FFFFFF;
+    background-color: var(--switch-off-bg); color: var(--fg);
     text-align: right;
 }
 .traditional-simpleSwitch.onOffSwitch-inner:before {
@@ -933,8 +934,8 @@ body {
 }
 .onOffSwitch-switch {
     display: block; width: 19px; margin: -3.5px;
-    background: #9E593D;
-    border: 2px solid #999999; border-radius: 20px;
+    background: var(--switch-knob);
+    border: 2px solid var(--line-strong); border-radius: 20px;
     position: absolute; top: 0; bottom: 0; right: 43px;
     -moz-transition: all 0.3s ease-in 0s; -webkit-transition: all 0.3s ease-in 0s;
     -o-transition: all 0.3s ease-in 0s; transition: all 0.3s ease-in 0s; 
@@ -958,9 +959,9 @@ body {
     padding: 0;
     font-size: 10pt;
     line-height: 1;
-    border: 1px solid #999;
+    border: 1px solid var(--line-strong);
     border-radius: 4px;
-    background: #e0e0e0;
+    background: var(--btn-bg);
     cursor: pointer;
 }
 .fs-btn.fs-big,
@@ -968,10 +969,10 @@ body {
     font-size: 12pt;
 }
 .fs-btn:hover {
-    background: #f4f4f4;
+    background: var(--btn-hover-bg);
 }
 .fs-btn:active {
-    background: #ccc;
+    background: var(--pressed-bg);
 }
 #settings .fs-val {
     width: 2em;
@@ -981,12 +982,40 @@ body {
 .fs-gear {
     margin-left: 4px;
     font-size: 14pt;
-    color: #555;
+    color: var(--fg-muted);
     cursor: pointer;
 }
 .fs-gear:hover {
-    color: #000;
+    color: var(--fg);
 }
+/* 主題：側邊欄 [自動] [淺色] [深色] ☐ 高對比 (ThemeTool.es2023.js、docs/z261003b) */
+#settings .th-ctl {
+    display: inline-flex;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.th-btn {
+    padding: 1px 8px;
+    border: none;
+    border-left: 1px solid var(--line-strong);
+    background: var(--btn-bg);
+    color: var(--fg);
+    font-size: 10pt;
+    cursor: pointer;
+}
+.th-btn:first-child { border-left: none; }
+.th-btn:hover { background: var(--btn-hover-bg); }
+.th-btn.active { background: var(--selected-bg); color: var(--selected-fg); }
+#settings .th-hc {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 0 0 0 8px;
+    font-size: 10pt;
+    cursor: pointer;
+}
+#settings .th-hc.disabled { color: var(--fg-disabled); cursor: default; }
 /* 字型大小對話框 (組合樣式沿用 .snf-dlg)
    對話框內容原本跟著 --fontsize (.ui-dialog-content)，這裡固定，拖曳時控制項才不會跟著變大跑走；預覽區仍跟著 */
 .fs-dlg {
@@ -1026,10 +1055,10 @@ body {
 .fs-dlg .fs-sub {
     margin-left: 1em;
     padding-left: 0.5em;
-    border-left: 3px solid #ddd;
+    border-left: 3px solid var(--line);
 }
 .fs-dlg .fs-sub.fs-linked {
-    border-left-color: #d9534f;
+    border-left-color: var(--danger);
 }
 .fs-dlg .fs-sub .fs-lbl {
     width: calc(7em - 1.5em - 3px);
@@ -1039,16 +1068,16 @@ body {
     padding: 0.4em 0.7em;
     max-height: 40vh;
     overflow: auto;
-    border: 1px dashed #bbb;
+    border: 1px dashed var(--line-strong);
     border-radius: 6px;
-    background: #fafafa;
+    background: var(--surface2-bg);
 }
 .fs-dlg .fs-pv-main {
     font-size: var(--fontsize);
 }
 .fs-dlg .fs-sn {
     margin-left: 0.2em;
-    color: blue;
+    color: var(--sn-fg);
     font-weight: bold;
     font-size: var(--fontsize-sn);
 }
@@ -1059,14 +1088,14 @@ body {
     border-radius: 0.5rem;
     border-bottom-style: solid;
     border-bottom-width: 1px;
-    background-color: #F0F0F0;
+    background-color: var(--surface2-bg);
     /* overflow: visible; */
 }
 #versionSelect{
     position: absolute;
     top: 282px;
     width: 100%;
-    background-color: #A0A0A0;
+    background-color: var(--frame-bg);
     overflow: visible;
 }
 .versionSelectInside{
@@ -1076,7 +1105,7 @@ body {
     left: 0px;
     right: 0px;
     border-radius: 5px;
-    background-color: white;
+    background-color: var(--surface-bg);
     overflow: hidden;
 }
 .versionSelectInside>div{
@@ -1093,10 +1122,10 @@ body {
     cursor: pointer;
 }
 #versionSelect li:hover {
-    color: #00A0FF;
+    color: var(--accent-fg);
 }
 #versionSelect li.selected{
-    color: rgba(0, 80, 255, 1);
+    color: var(--accent-fg);
 }
 
 #viewHistory{
@@ -1107,7 +1136,7 @@ body {
     bottom: 0rem;
     /* bottom: 12px; */
     width: 100%;
-    background-color: #A0A0A0;
+    background-color: var(--frame-bg);
     overflow: visible;
 }
 #viewHistory p {
@@ -1121,18 +1150,18 @@ body {
     margin: 3px;
 }
 #viewHistory li:hover {
-    color: #00A0FF;
+    color: var(--accent-fg);
 }
 #viewHistory .clearHistory{
     position: absolute;
     top: 10px;
     right: 10px;
     font-size: 8pt;
-    color: #C0C0C0;
+    color: var(--fg-disabled);
     cursor: pointer;
 }
 #viewHistory .clearHistory:hover{
-    color: #FF0000;
+    color: var(--danger-fg);
 }
 /*
 #settingPopUp {
@@ -1192,7 +1221,7 @@ body {
 #fhlMidWindow {
   position: absolute;
   overflow: hidden;
-  background-color: #A0A0A0;    
+  background-color: var(--frame-bg);    
   border-radius: 5px;
   font: 12pt/16pt bold ,Microsoft JhengHei;
   top: var(--win-top);
@@ -1209,7 +1238,7 @@ body {
   border-radius: 5px;
   overflow: hidden;
   margin: 0px;
-  background-color: white;
+  background-color: var(--surface-bg);
 }
 #fhlLecture span {
   /*-webkit-touch-callout: none;
@@ -1228,7 +1257,7 @@ body {
   text-align: justify;
 }
 #fhlLecture .selected{
-  background: rgba(200,192,150,0.3);
+  background: var(--lec-selected-bg);
   /* background: linear-gradient(to right, rgba(150, 150, 100, 0.1) 0.2%, rgba(150, 150, 100, 0.4) 4%, rgba(150, 150, 100, 0.7) 10%, rgba(150, 150, 100, 0.7) 90%, rgba(150, 150, 100, 0.4) 96%, rgba(150, 150, 100, 0.1) 99.8%); */
     /*box-shadow: inset 0px 0px 5px 10px rgba(200, 200, 150, 0.3);*/
   z-index: -1;
@@ -1256,13 +1285,13 @@ body {
 }
 /* 使用 margin 較易「反白選則」包含到節，雖然已經加入空白，但是因為希伯來文，所以若只加 maring-left，就在馬索拉原文譯本不適，它應該要 margin-right。所以最後 2 個都加 */
 .verseNumber{
-    color: blue;    
+    color: var(--verse-num-fg);    
     margin-left: 0.25em;
     margin-right: 0.25em;
 }
 /* new Line, 只是小寫的 L, 會不好判斷，所以寫成大寫。 */
 .nL {
-    color: gray;
+    color: var(--nl-fg);
     margin-left: 0.25em;
     margin-right: 0.25em;
 }
@@ -1273,7 +1302,7 @@ body {
     border-width: 2px;
     border-bottom: white;*/
     border-radius: 5px;
-    background-color: #F5F5F5;
+    background-color: var(--surface2-bg);
     width: 80%;
     text-align: center;
     overflow: hidden;
@@ -1285,7 +1314,7 @@ body {
     font-size: 13pt;
 } */
 #fhlLecture .versionName:hover{
-    background-color: #F06060;
+    background-color: var(--danger-bg);
     cursor: pointer;
 }
 #fhlLecture .closeButton{
@@ -1298,8 +1327,8 @@ body {
     border-radius: 50%;
 }
 #fhlLecture .closeButton:hover{
-    color: white;
-    background-color: rgba(255, 100, 100, 1);
+    color: var(--fg-on-accent);
+    background-color: var(--danger);
 }
 #fhlLecture .chapControl{
     position: absolute;
@@ -1307,8 +1336,8 @@ body {
     bottom: 0px;
     cursor: pointer;
     z-index: 1;
-    color: #606060;
-    background: rgba(0, 0, 0, 0);
+    color: var(--fg-muted);
+    background: transparent;
     /* 平板拖選取水滴時常碰到箭頭，箭頭不要被反白 (7.0.x TODO 4) */
     -webkit-user-select: none;
     user-select: none;
@@ -1334,35 +1363,35 @@ body {
     right: calc( var(--scrollbar-width) );
 }
 #fhlLecture .chapBack:hover{
-    color: red;
-    background: -webkit-linear-gradient(left, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* Standard syntax (must be last) */
+    color: var(--nav-hover-fg);
+    background: -webkit-linear-gradient(left, var(--nav-hover-bg) , transparent); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, var(--nav-hover-bg) , transparent); /* Standard syntax (must be last) */
 }
 #fhlLecture .chapNext:hover{
-    color: red;
-    background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, rgba(0, 0, 0, 0) , rgba(75, 75, 75, 0.9)); /* Standard syntax (must be last) */
+    color: var(--nav-hover-fg);
+    background: -webkit-linear-gradient(left, transparent , var(--nav-hover-bg)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, transparent , var(--nav-hover-bg)); /* Standard syntax (must be last) */
 }
 #fhlLecture .chapNext:hover ~ ::-webkit-scrollbar-track{
     -webkit-box-shadow: none;
-    background: -webkit-linear-gradient(left, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, rgba(75, 75, 75, 0.9) , rgba(50, 50, 50, 0.9)); /* Standard syntax (must be last) */
+    background: -webkit-linear-gradient(left, var(--nav-hover-bg) , var(--nav-hover-bg)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, var(--nav-hover-bg) , var(--nav-hover-bg)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, var(--nav-hover-bg) , var(--nav-hover-bg)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, var(--nav-hover-bg) , var(--nav-hover-bg)); /* Standard syntax (must be last) */
     -webkit-border-radius: 0px;
     border-radius: 0px;
 }
 
 
 #lecMainTitle {
-    background-color: #A0A0A0;
+    background-color: var(--frame-bg);
     height: 30px;
     padding: 0px 50px;
-    border: solid 1px #E0E0E0;
+    border: solid 1px var(--line);
     border-width: 1px 1px 0px;
 }
 #lecMain {
@@ -1373,7 +1402,7 @@ body {
     right: 0px;
     bottom: 0px;
     /*border-top: solid 2px black;*/
-    box-shadow: inset 0px -4px 7px #808080, inset 0px 4px 7px #808080;    
+    box-shadow: inset 0px -4px 7px var(--shadow), inset 0px 4px 7px var(--shadow);    
     overflow-y: scroll;
     /* https://stackoverflow.com/questions/39392423/calculating-width-of-scrollbar-and-using-result-in-calc-css */
     /* 右邊應該有50px,但是實際上,就好像有個浪費掉的空白,原來是浪費掉了 scroll-width. 因此實際不需要 50px */
@@ -1386,7 +1415,7 @@ body {
 }
 
 .sn,.snParse,.searchBibleVerse,.searchSN {
-    color: blue;
+    color: var(--sn-fg);
     cursor:pointer;
     /* font: 9px/14px bold ,Microsoft JhengHei; */
     /*background-color: grey;*/
@@ -1402,18 +1431,18 @@ body {
 }
 /* 字上色 (SnFilter.colorBy，docs/z260928g)；放在 .snAct 前面，滑鼠移過去的紅色優先 */
 :root {
-    --snc-v: #e8590c;    /* 動詞、直說、敘述式：與 Parsing 的 .parsing-verb 同色系 */
-    --snc-c: firebrick;  /* 連接詞 (同 .parsing-conj) */
-    --snc-p: sienna;     /* 介系詞 (同 .parsing-prep) */
-    --snc-neg: #862e9c;
-    --snc-pn: #1864ab;
-    --snc-pf: #2b8a3e;
-    --snc-impf: #7048e8; /* 未完成式、假設 */
-    --snc-wq: #5c7f0d;
-    --snc-vol: #d6336c;  /* 命令、祈願、意志式 */
-    --snc-inf: #0c8599;
-    --snc-ptc: #1971c2;
-    --snc-vx: #868e96;
+    --snc-v: var(--orange-fg);    /* 動詞、直說、敘述式：與 Parsing 的 .parsing-verb 同色系 */
+    --snc-c: var(--red-fg);  /* 連接詞 (同 .parsing-conj) */
+    --snc-p: var(--brown-fg);     /* 介系詞 (同 .parsing-prep) */
+    --snc-neg: var(--purple-fg);
+    --snc-pn: var(--indigo-fg);
+    --snc-pf: var(--green-fg);
+    --snc-impf: var(--purple-fg); /* 未完成式、假設 */
+    --snc-wq: color-mix(in srgb, var(--green-fg) 60%, var(--yellow-fg));
+    --snc-vol: var(--pink-fg);  /* 命令、祈願、意志式 */
+    --snc-inf: var(--teal-fg);
+    --snc-ptc: var(--blue-fg);
+    --snc-vx: var(--fg-muted);
 }
 .snc-v, .snc-ind, .snc-wy { color: var(--snc-v); }
 .snc-c { color: var(--snc-c); }
@@ -1429,20 +1458,20 @@ body {
 .snc-vx { color: var(--snc-vx); text-decoration: underline dotted; }
 
 .sn:hover,.snParse:hover,.searchBibleVerse:hover,.searchSN:hover {
-  color: red;
+  color: var(--sn-hover-fg);
 }
 .snAct {
-    color: red;
+    color: var(--sn-act-fg);
 }
 .snAct2 {
-    color: darkred; 
+    color: var(--sn-act2-fg); 
 }
 .fn-search-sn {
-    color: blue;
+    color: var(--sn-fg);
     cursor:pointer;
 }
 .fn-search-sn:hover {
-    color: lightblue;
+    color: var(--accent);
 }
 /* SN 篩選 (docs/z260928e) */
 .sn-dim {
@@ -1461,13 +1490,13 @@ body {
 .sn-filter-btn {
     cursor: pointer;
     margin-left: 0.3em;
-    color: #999;
+    color: var(--fg-subtle);
 }
 .sn-filter-btn:hover {
-    color: #555;
+    color: var(--fg-muted);
 }
 .sn-filter-btn.active {
-    color: #d9534f;
+    color: var(--danger-fg);
 }
 .snf-dlg .snf-row {
     display: flex;
@@ -1488,7 +1517,7 @@ body {
     cursor: pointer;
 }
 .snf-dlg .snf-tm {
-    border: 1px solid #ccc;
+    border: 1px solid var(--line);
     border-radius: 6px;
     padding: 0.3em 0.7em 0.2em;
     margin: 0.6em 0;
@@ -1511,19 +1540,19 @@ body {
     gap: 0.2em;
     margin: 0;
     padding: 0.05em 0.6em 0.05em 0.4em;
-    border: 1px solid #bbb;
+    border: 1px solid var(--line-strong);
     border-radius: 999px;
     font-weight: normal;
     cursor: pointer;
 }
 .snf-dlg .snf-chip:has(input:checked) {
-    background: #fde8e7;
-    border-color: #d9534f;
+    background: var(--danger-bg);
+    border-color: var(--danger);
 }
 .snf-dlg .snf-sub {
     margin: 0.5em 0 0.1em;
     font-size: 0.85em;
-    color: #777;
+    color: var(--fg-muted);
 }
 .snf-dlg .snf-morph-row {
     display: flex;
@@ -1554,11 +1583,11 @@ body {
 }
 .snf-dlg .snf-note {
     font-size: 0.85em;
-    color: #777;
+    color: var(--fg-muted);
 }
 /* 字上色的圖例 (docs/z260928g) */
 .snf-dlg .snf-color {
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--line);
     margin-top: 6px;
     padding-top: 6px;
 }
@@ -1587,23 +1616,23 @@ body {
     align-items: center;
     gap: 0.3em;
     padding: 0.1em 0.4em 0.1em 0.7em;
-    border: 1px solid #bbb;
+    border: 1px solid var(--line-strong);
     border-radius: 999px;
     cursor: pointer;
     user-select: none;
 }
 .snf-dlg .snf-lens:hover {
-    border-color: #d9534f;
+    border-color: var(--danger);
 }
 .snf-dlg .snf-lens.active {
-    background: #d9534f;
-    border-color: #d9534f;
-    color: #fff;
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--fg-on-accent);
 }
 .snf-dlg .snf-lens.snf-add {
     padding-right: 0.7em;
     border-style: dashed;
-    color: #777;
+    color: var(--fg-muted);
 }
 .snf-dlg .snf-q {
     display: inline-flex;
@@ -1615,16 +1644,16 @@ body {
     border-radius: 50%;
     font-size: 0.8em;
     font-weight: normal;
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--hover-bg);
     cursor: pointer;
 }
 .snf-dlg .snf-q:hover {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--pressed-bg);
 }
 .snf-dlg .snf-detail > summary {
     margin: 0.6em 0 0.2em;
     cursor: pointer;
-    color: #555;
+    color: var(--fg-muted);
 }
 .snf-help .snf-apply {
     float: right;
@@ -1641,7 +1670,7 @@ body {
   z-index: 0;/*Layer 1*/  
 }
 #fhlInfo .ui-resizable-handle{
-    background-color: #A0A0A0;
+    background-color: var(--splitter-bg);
     cursor: col-resize;
     left: -12px;
     width: 12px;
@@ -1683,9 +1712,9 @@ body {
     border-top-right-radius: 4px;
     border-top-left-radius: 4px;
     text-align: center;
-    background-color: #A0A0A0;
+    background-color: var(--frame-bg);
     height: 30px;
-    border: solid 1px #E0E0E0;
+    border: solid 1px var(--line);
     border-width: 1px 1px 0px;
 }
 #fhlInfoTitle ul {
@@ -1709,12 +1738,12 @@ body {
 }
 #fhlInfoTitle .selected{
     font: 20px/30px bold ,Microsoft JhengHei;
-    color: #3030FF;
+    color: var(--accent-fg);
 }
 #fhlInfoContent {
   position: absolute;
   overflow:auto;
-  background-color: #F0F0F0;
+  background-color: var(--surface2-bg);
   display: inline-block;
   width:100%;
   top: 30px;
@@ -1725,7 +1754,7 @@ body {
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
   padding-right:0px;/*15px*/
-  box-shadow: inset 0px -4px 7px #808080, inset 0px 4px 7px #808080;
+  box-shadow: inset 0px -4px 7px var(--shadow), inset 0px 4px 7px var(--shadow);
   z-index:0;
     word-wrap:break-word;
     padding-bottom: 2em;
@@ -1739,8 +1768,8 @@ body {
 
 .commentSecBack{
     display: block;
-    color: #606060;
-    background: rgba(0, 0, 0, 0);
+    color: var(--fg-muted);
+    background: transparent;
     cursor: pointer;
     position: absolute;
     top: 0px;
@@ -1754,8 +1783,8 @@ body {
 
 .parsingSecBack{
     display: block;
-    color: #606060;
-    background: rgba(0, 0, 0, 0);
+    color: var(--fg-muted);
+    background: transparent;
     cursor: pointer;
     position: absolute;
     top: 0px;
@@ -1793,17 +1822,17 @@ body {
 }
 
 .commentSecBack:hover, .parsingSecBack:hover {
-    color: rgba(255, 0, 0, 1);
-    background: -webkit-linear-gradient(left, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, rgba(50, 50, 50, 0.9) , rgba(0, 0, 0, 0)); /* Standard syntax (must be last) */
+    color: var(--nav-hover-fg);
+    background: -webkit-linear-gradient(left, var(--nav-hover-bg) , transparent); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, var(--nav-hover-bg) , transparent); /* Standard syntax (must be last) */
 }
 
 .commentSecNext{
     display: block;
-    color: #606060;
-    background: rgba(0, 0, 0, 0);
+    color: var(--fg-muted);
+    background: transparent;
     cursor: pointer;
     position: absolute;
     top: 0px;
@@ -1818,8 +1847,8 @@ body {
 
 .parsingSecNext {
     display: block;
-    color: #606060;
-    background: rgba(0, 0, 0, 0);
+    color: var(--fg-muted);
+    background: transparent;
     cursor: pointer;
     position: absolute;
     top: 0px;
@@ -1841,11 +1870,11 @@ body {
 }
 
 .commentSecNext:hover, .parsingSecNext:hover {
-    color: rgba(255, 0, 0, 1);
-    background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, rgba(0, 0, 0, 0) , rgba(50, 50, 50, 0.9)); /* Standard syntax (must be last) */
+    color: var(--nav-hover-fg);
+    background: -webkit-linear-gradient(left, transparent , var(--nav-hover-bg)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, transparent , var(--nav-hover-bg)); /* Standard syntax (must be last) */
 }
 
 #commentTitle {
@@ -1863,10 +1892,10 @@ body {
     line-height: 28pt;
     cursor: default; 
     margin: 0px; 
-    border: solid 1px #FFFFFF;
+    border: solid 1px var(--line);
     border-radius: 5px; 
-    background: rgba(200, 200, 200, 1); 
-    box-shadow: 3px 3px 5px #808080;
+    background: var(--raised-bg); 
+    box-shadow: 3px 3px 5px var(--shadow);
     z-index: 1;
 }
 
@@ -1878,7 +1907,7 @@ body {
     width: 120px;
     height: 17px;
     content: "";
-    border: solid 1px #505050;
+    border: solid 1px var(--line-strong);
     border-width: 0px 4px;
     z-index: 1;
 }
@@ -1888,27 +1917,27 @@ body {
     bottom: 25px;
     right: 50px;
     padding: 6px 22px;
-    border: solid 2px #FFFFFF;
+    border: solid 2px var(--line);
     cursor: pointer;
     font-size: 12pt;
-    color: rgba(150, 100, 100, 1);
+    color: var(--dark-red-fg);
     border-radius: 5px; 
-    background: rgba(180, 180, 180, 1); 
-    box-shadow: 3px 3px 5px #808080;
+    background: var(--raised-bg); 
+    box-shadow: 3px 3px 5px var(--shadow);
     z-index: 1;
 }
 
 .commentBackground:hover {
-    color: rgba(255, 0, 0, 1);
-    background: rgba(210, 210, 210, 1); 
+    color: var(--danger-fg);
+    background: var(--surface2-bg); 
 }
 .commentJump {
-    color: blue;
+    color: var(--ref-fg);
     cursor: pointer;
     /* display: inline-block; */
 }
 .commentJump:hover {
-    color: red;
+    color: var(--ref-hover-fg);
     text-decoration: underline;
 }
 #commentContent {
@@ -1948,7 +1977,7 @@ body {
     cursor: pointer;
 }
 .sn-btn:hover {
-    color: red;
+    color: var(--sn-hover-fg);
 }
 .ui-dialog-content{
     font-size: var( --fontsize );
@@ -1958,7 +1987,7 @@ body {
     top: 0.25em;
     left: 0.25em;
     font-size: 0.5em;
-    color: darkgray; 
+    color: var(--fg-subtle); 
 }
 #parsingTable{
     margin-top: 0em;
@@ -1981,33 +2010,33 @@ body {
 #parsingTable div{
     padding: 6pt;
 
-    box-shadow: inset 1pt 1pt 3pt 0pt gray;    
+    box-shadow: inset 1pt 1pt 3pt 0pt var(--shadow);    
 }
 
 #parsingPopUp {
   position: fixed;
   border-radius: 6px;
-  border: 1px solid black;
-  background-color: rgba(230, 230, 180, 1);
-  color: #303030;
+  border: 1px solid var(--line-strong);
+  background-color: var(--note-bg);
+  color: var(--fg);
   padding: 0px 0px;
   z-index: 1;/*Layer 2*/
-  box-shadow: 4px 4px 3px #505050;
+  box-shadow: 4px 4px 3px var(--shadow);
 }
 .item-title {
-    color: green;
+    color: var(--pos-title-fg);
 }
 .parsing-verb {
     /* 鮮橘色 動作感強 */
-    color: #FF6600;
+    color: var(--pos-verb-fg);
 }
 .parsing-conj {
     /* 深紅色 結構轉折感*/
-    color: firebrick; 
+    color: var(--pos-conj-fg); 
 }
 .parsing-prep {
     /* 赭紅棕色，穩重顯眼 */
-    color: sienna;
+    color: var(--pos-prep-fg);
 }
 
 
@@ -2017,11 +2046,11 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   font: 10pt/15pt bold ,Microsoft JhengHei;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: transparent;
   border-radius: 0px;
   margin: 1px;
   padding: 10px;
-  box-shadow: inset 0px -1px 3px #808080, inset 0px 1px 3px #808080, inset -1px 0px 3px #808080, inset 1px 0px 3px #808080;
+  box-shadow: inset 0px -1px 3px var(--shadow), inset 0px 1px 3px var(--shadow), inset -1px 0px 3px var(--shadow), inset 1px 0px 3px var(--shadow);
   /*padding: 20px;
   border: 1px solid black;*/
   z-index: 1;/*Layer 2*/
@@ -2036,8 +2065,8 @@ body {
     border-style: solid;
     border-width: 0px 15px 15px 0px;
     transform: rotate(135deg);
-    border-color: transparent transparent rgba(230, 230, 180, 1) transparent;
-    box-shadow: -1px 1px 0px #000000;
+    border-color: transparent transparent var(--note-bg) transparent;
+    box-shadow: -1px 1px 0px var(--shadow);
 }
 .parsingPopUpLowerTriangle:before {
     content: "";
@@ -2049,14 +2078,14 @@ body {
     border-style: solid;
     border-width: 15px 15px 0px 0px;
     transform: rotate(-135deg);
-    border-color: rgba(230, 230, 180, 1) transparent transparent transparent;
-    box-shadow: -4px -4px 3px #505050;
+    border-color: var(--note-bg) transparent transparent transparent;
+    box-shadow: -4px -4px 3px var(--shadow);
 }
 
 #parsingPopUpInside .sn, #parsingPopUpInside .snParse, #parsingPopUpInside .searchBibleVerse, #parsingPopUpInside .searchSN {
   font: 9px/14px bold ,Microsoft JhengHei;
   /*background-color: grey;*/
-  color: blue;
+  color: var(--sn-fg);
   border-radius: 5px;
   padding:0px;
   margin:0px;
@@ -2064,7 +2093,7 @@ body {
 }
 
 #parsingPopUpInside .sn:hover, #parsingPopUpInside .snParse:hover, #parsingPopUpInside .searchBibleVerse:hover, #parsingPopUpInside .searchSN:hover {
-  color: red;
+  color: var(--sn-hover-fg);
 }
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
@@ -2110,11 +2139,11 @@ body {
     bottom: 3px;
     width: 2px;
     border-radius: 1px;
-    background: var(--lec-col-handle, rgba(255, 255, 255, 0.75));
+    background: var(--lec-col-handle, var(--handle-bg));
 }
 .lec-col-handle:hover::after,
 .lec-col-handle.custom::after {
-    background: var(--lec-col-handle-on, #00A0FF);
+    background: var(--lec-col-handle-on, var(--accent));
 }
 body.lec-col-resizing, body.lec-col-resizing * {
     cursor: col-resize !important;
@@ -2126,16 +2155,16 @@ body.lec-col-resizing, body.lec-col-resizing * {
 #lecMain > .lec-grid .paragraph {
     min-width: 0;
     padding: 7px 0.25rem;
-    border-left: 1px dashed lightgray;
-    border-right: 1px dashed lightgray;
+    border-left: 1px dashed var(--line);
+    border-right: 1px dashed var(--line);
 }
 .vercol {
     border-right-width: 1px;
     border-right-style: dashed;
-    border-right-color: lightgray;
+    border-right-color: var(--line);
     border-left-width: 1px;
     border-left-style: dashed;
-    border-left-color: lightgray;
+    border-left-color: var(--line);
 
     font-size: var(--fontsize);
     line-height: 1.1em;
@@ -2144,7 +2173,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
   cursor:pointer;
 }
  .lec .ver{
-   color:rgba(0, 80, 255, 1);
+   color:var(--ver-name-fg);
    font-size:0.5em;
  }
 
@@ -2185,7 +2214,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
     }
 
     .reference {
-        color: blue;
+        color: var(--ref-fg);
         cursor: pointer;
     }
 
@@ -2194,16 +2223,16 @@ body.lec-col-resizing, body.lec-col-resizing * {
     }
 
     .odd {
-        background-color: whitesmoke;
+        background-color: var(--zebra-bg);
     }
 
     .bible-text {}
 
     .bible-address {
-        color: blue;
+        color: var(--ref-fg);
     }
     .address {
-        color: blue;
+        color: var(--ref-fg);
         cursor: pointer;
         text-decoration: underline;
     }
@@ -2218,18 +2247,18 @@ body.lec-col-resizing, body.lec-col-resizing * {
         src: url("./static/font/open_han.woff") format("woff"), url("./static/font/open_han.ttf") format("truetype");
       }
 .isParenthesesFW {
-    color: #9400d3;
+    color: var(--paren-fw-fg);
 }
 .isTitle1{
     font-weight: 800;
-    color: #8b008b;
+    color: var(--title1-fg);
 }
 .copyright-text{
     font-size: 10pt;
     line-height: 10pt;
 }
 .foot {
-    color: #ff00c1;
+    color: var(--foot-fg);
 }
 .isBold {
     font-weight: bold;
@@ -2256,10 +2285,10 @@ body.lec-col-resizing, body.lec-col-resizing * {
     max-height: 80vh;
     overflow-y: auto;
     padding: 0.3em 0;
-    background: #fff;
-    border: 1px solid #bbb;
+    background: var(--popup-bg);
+    border: 1px solid var(--line);
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px var(--shadow);
 }
 .snf-menu hr {
     margin: 0.3em 0;
@@ -2270,18 +2299,18 @@ body.lec-col-resizing, body.lec-col-resizing * {
     white-space: nowrap;
 }
 .snf-menu-item:hover {
-    background: #f0f0f0;
+    background: var(--hover-bg);
 }
 .snf-menu-item.active {
-    color: #d9534f;
+    color: var(--danger-fg);
     font-weight: bold;
 }
 
 /* 經文反白後的「複製對照表」浮動按鈕 (index/LecCopyTable.es2023.js, docs/z260930d)；經文區、搜尋結果、交互參照 */
 :root {
-    --lct-bg: #1a7fd4;
-    --lct-fg: #fff;
-    --lct-hl: rgba(0, 120, 215, 0.22); /* 跨格時，實際要複製的那幾格 (整格) */
+    --lct-bg: var(--accent);
+    --lct-fg: var(--fg-on-accent);
+    --lct-hl: var(--copy-cell-bg); /* 跨格時，實際要複製的那幾格 (整格) */
 }
 /* 跨格：原生反白照 DOM 順序畫 (第一欄到底、中間整欄)，會誤導 → 透明，改成整格 (.paragraph) 上底色 */
 .lct-crossed ::selection { background: transparent; }
@@ -2293,7 +2322,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
     border-radius: 14px;
     overflow: hidden;
     background: var(--lct-bg);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px var(--shadow);
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
@@ -2311,8 +2340,8 @@ body.lec-col-resizing, body.lec-col-resizing * {
     cursor: pointer;
     touch-action: manipulation;
 }
-.lct-btn:hover { background: rgba(255, 255, 255, 0.15); }
-.lct-md { border-left: 1px solid rgba(255, 255, 255, 0.5); }
+.lct-btn:hover { background: color-mix(in srgb, var(--fg-on-accent) 15%, transparent); }
+.lct-md { border-left: 1px solid color-mix(in srgb, var(--fg-on-accent) 50%, transparent); }
 @media (pointer: coarse) {
     .lct-btn { min-height: 36px; padding: 6px 14px; }
 }
@@ -2337,9 +2366,9 @@ body.lec-col-resizing, body.lec-col-resizing * {
     height: 18px;
     box-sizing: border-box;
     border-radius: 50%;
-    border: 2px solid #fff;
+    border: 2px solid var(--fg-on-accent);
     background: var(--lct-bg);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 4px var(--shadow);
 }
 .lct-knob[hidden], .lct-tip[hidden] { display: none; }
 .lct-tip {
@@ -2347,8 +2376,8 @@ body.lec-col-resizing, body.lec-col-resizing * {
     z-index: 2000;
     padding: 2px 10px;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.65);
-    color: #fff;
+    background: var(--tip-bg);
+    color: var(--tip-fg);
     font-size: 12px;
     white-space: nowrap;
     pointer-events: none;
@@ -2356,9 +2385,9 @@ body.lec-col-resizing, body.lec-col-resizing * {
 
 /* 經文「位置 × 譯本」共用 grid (index/VerseGrid.es2023.js)：交互參照對話框用；經文區的 grid 另見 #lecMain > .lec-grid */
 :root {
-    --vg-head-bg: #E8E8E8;
-    --vg-label: #1a5fb4;
-    --vg-line: #E4E4E4;
+    --vg-head-bg: var(--surface2-bg);
+    --vg-label: var(--blue-fg);
+    --vg-line: var(--line);
 }
 .verse-grid {
     display: grid;
@@ -2369,7 +2398,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
     min-width: 0;
     padding: 5px 0.4rem;
     border-top: 1px solid var(--vg-line);
-    border-left: 1px dashed lightgray;
+    border-left: 1px dashed var(--line);
 }
 .verse-grid .vg-head {
     position: sticky;
@@ -2396,15 +2425,15 @@ body.lec-col-resizing, body.lec-col-resizing * {
 }
 .verse-grid [data-goto]:hover { text-decoration: underline; }
 .verse-grid .vg-group { font-weight: bold; }
-.verse-grid .vg-merged { color: #909090; } /* 併入上節 (搜尋結果、交互參照從這節開始) */
-.verse-grid.vg-interleaved .vg-label { font-size: 0.85em; color: #666; }
+.verse-grid .vg-merged { color: var(--merged-fg); } /* 併入上節 (搜尋結果、交互參照從這節開始) */
+.verse-grid.vg-interleaved .vg-label { font-size: 0.85em; color: var(--fg-muted); }
 .ref-dlg-bar {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     margin: 0 0 4px;
     font-size: 0.9em;
-    color: #555;
+    color: var(--fg-muted);
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
@@ -2412,5 +2441,15 @@ body.lec-col-resizing, body.lec-col-resizing * {
 /* 對話框 (交互參照、搜尋結果) 表頭的欄寬分隔線 (index/ColWidth.es2023.js)：淺色表頭用深色細線 */
 .verse-grid .vg-head { position: sticky; } /* 已是 sticky；分隔線 absolute 以它為準 */
 .verse-grid .vg-head .lec-col-handle:not(.custom):not(:hover)::after {
-    background: var(--vg-col-handle, rgba(0, 0, 0, 0.22));
+    background: var(--vg-col-handle, var(--pressed-bg));
 }
+
+/* ===== 主題 (docs/z261003b) 補的 class ===== */
+/* 原文分析下方表格的隔行底色 (parsing_render_bottom_table) */
+#parsingTable div.parsing-zebra { background-color: var(--zebra-bg); }
+/* 地圖的河流、區域 (fhlmap_main.js 的 className)；css 的 stroke / fill 蓋過 leaflet 寫的 SVG 屬性 */
+.fhlmap-line, .fhlmap-area { stroke: var(--map-shape-stroke); }
+.fhlmap-area { fill: var(--map-shape-fill); }
+/* 中文標準譯本 (csb) 等的紅字：資料本身是 <span style="color:rgb(195,39,43)">，深色底上太暗，改成主題的紅 */
+[style*="rgb(195,39,43)"], [style*="rgb(195, 39, 43)"] { color: var(--red-letter-fg) !important; }
+
