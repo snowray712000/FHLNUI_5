@@ -20,7 +20,9 @@
  * - 搜尋結果、交互參照 (VerseGrid)：一律如所見一段一列 (.paragraph 的 data-row，各批 grid 各自編號)；
  *   左側的經文位置 (標籤欄) 也複製：並排多譯本 → 表格第一欄；單一譯本、交錯 → 每列開頭
  *
- * - 「MD」鈕 (主按鈕右邊；docs/z261002c)：Markdown 表格只放 text/plain，不保留顏色；起訖在同一格時不顯示
+ * - 按鈕依情形：Case1 同一格「文字」；Case2 跨列不跨欄「文字|連續文字|連續含出處|表格|MD」；Case3 跨欄「表格|MD」
+ *   (連續文字 = 各列接成空白、不換行；見 toPlainText)
+ * - 「MD」鈕 (docs/z261002c)：Markdown 表格只放 text/plain，不保留顏色；起訖在同一格時不顯示
  *   並排 → 表頭譯本名 (有標籤欄時第一欄「經文」)；mode 1 併入上節 (rowspan) 被佔的格寫「（併入上節）」
  *   交錯 → 「譯本 | 經文」兩欄 (有經文位置時「經文 | 譯本 | 內容」)；交錯只有一個譯本 → 一欄，表頭譯本名
  *   格內 | → \|，換行 → 空白
@@ -29,14 +31,15 @@
  */
 import { el } from './auDom.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
+import { cvtAddrsToRef } from './cvtAddrsToRef.es2023.js'
 import { Theme } from './theme/Theme.es2023.js'
 
 /**
  * @typedef {{ lecs: HTMLElement[], rs: number }} Cell 一格的節 (mode 3 一段可多節)；空陣列 = 空格 (沒反白到)
  * @typedef {{ el: HTMLElement, isSide: boolean, byParagraph: boolean }} Scope 可複製的範圍；isSide 並排；byParagraph 一段一列 (否則一節一列)
- * @typedef {{ scope: Scope, versions: string[], columns: Cell[][], labels: string[] | null, range: Range | null, hit: HTMLElement[], isOneCell: boolean }} CopyTable
+ * @typedef {{ scope: Scope, versions: string[], columns: Cell[][], labels: string[] | null, range: Range | null, hit: HTMLElement[], isOneCell: boolean, isCrossCol: boolean }} CopyTable
  *   hit = 反白碰到的 .lec (畫面順序；跨格時擴成那些格的全部節)；labels = 每列的經文位置 (有標籤欄時)
- *   isOneCell 起訖在同一格；range 跨格時為 null (整格，不截斷)
+ *   isOneCell 起訖在同一格 (Case1)；isCrossCol 並排且跨譯本欄 (Case3)；其餘是跨列不跨欄 (Case2)；range 跨格時為 null (整格，不截斷)
  * @typedef {{ t: string, c?: string }} Run 一段字與顏色 (c 省略 = 預設色)；t == '\n' 是換行
  */
 
@@ -55,10 +58,8 @@ export class LecCopyTable {
 
     /** @type {HTMLElement} 按鈕組 (複製對照表 + MD)，整組一起定位 */
     #btn = null
-    /** @type {HTMLButtonElement} */
-    #mainBtn = null
-    /** @type {HTMLButtonElement} 複製為 Markdown */
-    #mdBtn = null
+    /** @type {Record<'text' | 'flat' | 'cite' | 'table' | 'md', HTMLButtonElement>} 文字 / 連續文字 / 表格 / Markdown */
+    #btns = null
     /** @type {Range} 最近一次有效的選取 */
     #range = null
     /** @type {Scope} #range 所在的範圍 */
@@ -98,20 +99,24 @@ export class LecCopyTable {
 
     init() {
         if (this.#btn) return
-        this.#mainBtn = el('button', {
-            type: 'button', class: 'lct-btn', title: '把反白的經文複製成對照表 (含節碼)',
-            onclick: () => this.#copyByButton(false),
-        }, '複製對照表')
-        this.#mdBtn = el('button', {
-            type: 'button', class: 'lct-btn lct-md', title: '複製為 Markdown 表格 (純文字，不含顏色)',
-            onclick: () => this.#copyByButton(true),
-        }, 'MD')
+        const mk = (/** @type {'text'|'flat'|'cite'|'table'|'md'} */ kind, label, title) => {
+            const b = el('button', { type: 'button', class: 'lct-btn', title, onclick: () => this.#copyByButton(kind) }, label)
+            b.dataset.label = label
+            return b
+        }
+        this.#btns = {
+            text: mk('text', '文字', '複製為純文字 (跨列時每列一行)'),
+            flat: mk('flat', '連續文字', '複製為純文字，各列接成連續一段 (不換行)'),
+            cite: mk('cite', '連續含出處', '複製為連續純文字，結尾加出處，例：(詩107:1-3_和合本)'),
+            table: mk('table', '表格', '把反白的經文複製成對照表 (含節碼)，貼上時是表格'),
+            md: mk('md', 'MD', '複製為 Markdown 表格 (純文字，不含顏色)'),
+        }
         this.#btn = el('div', {
             class: 'lec-copy-table', hidden: true,
             onpointerdown: e => { e.preventDefault(); this.#pressing = true; this.#pressRange = this.#range; this.#pressScope = this.#scope }, // 電腦：不讓選取消失
             onpointercancel: () => { this.#pressing = false },
             onpointerleave: () => { this.#pressing = false },
-        }, this.#mainBtn, this.#mdBtn)
+        }, ...Object.values(this.#btns))
         this.#knobs = [0, 1].map(i => el('div', {
             class: 'lct-knob', hidden: true,
             onpointerdown: e => this.#knobDown(e, i),
@@ -193,7 +198,11 @@ export class LecCopyTable {
         this.#range = range
         this.#scope = scope
         this.#setCrossed(table.isOneCell ? null : table)
-        this.#mdBtn.hidden = table.isOneCell // 同一格只有純文字，沒有表格
+        // Case1 同一格：文字；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD
+        const { text, flat, cite, table: tbl, md } = this.#btns
+        text.hidden = table.isCrossCol
+        flat.hidden = cite.hidden = table.isOneCell || table.isCrossCol
+        tbl.hidden = md.hidden = table.isOneCell
         this.#btn.hidden = false
         this.#place()
     }
@@ -347,8 +356,8 @@ export class LecCopyTable {
         this.#rafAuto = requestAnimationFrame(step)
     }
 
-    /** @param {boolean} isMd 複製為 Markdown 表格 (只有 text/plain) */
-    #copyByButton(isMd) {
+    /** @param {'text' | 'flat' | 'cite' | 'table' | 'md'} kind */
+    #copyByButton(kind) {
         this.#pressing = false
         const range = this.#pressRange ?? this.#range
         const scope = this.#pressScope ?? this.#scope
@@ -356,11 +365,13 @@ export class LecCopyTable {
         if (!scope || !range) return
         const table = buildTable(scope, range)
         if (table == null) return
-        const { html, plain } = isMd ? { html: null, plain: toMarkdown(table) } : Theme.s.withLightPalette(() => toClipboardData(table))
-        const btn = isMd ? this.#mdBtn : this.#mainBtn
-        const text = isMd ? 'MD' : '複製對照表'
+        const { html, plain } = kind == 'md' ? { html: null, plain: toMarkdown(table) }
+            : kind == 'table' ? Theme.s.withLightPalette(() => toClipboardData(table))
+                : { html: null, plain: kind == 'cite' ? toCitedText(table) : toPlainText(table, kind == 'flat') }
+        const btn = this.#btns[kind]
+        const text = btn.dataset.label
         writeClipboard(html, plain).then(ok => {
-            btn.textContent = ok ? (isMd ? '✓' : '✓ 已複製') : (isMd ? '✗' : '複製失敗')
+            btn.textContent = ok ? '✓' : '✗'
             setTimeout(() => { btn.textContent = text }, 1200)
         })
     }
@@ -512,14 +523,15 @@ function buildTable(scope, range) {
         hit = all.filter(a => cells.has(cellOf(a)))
     }
     const r = isOneCell ? range : null
+    const isCrossCol = scope.isSide && versions.length > 1
     // 只放選到的節，沒選到的留空格：並排時選到的剛好就是矩形；交錯 (mode 2/4) 時不會多帶沒反白的
     const hitSet = new Set(hit)
     if (scope.byParagraph) {
         const { columns, labels } = columnsByParagraph(versions, isOneCell ? hit.filter(inRange) : hit, rowOf)
-        return { scope, versions, columns, labels, range: r, hit, isOneCell }
+        return { scope, versions, columns, labels, range: r, hit, isOneCell, isCrossCol }
     }
     const [lo2, hi2] = isOneCell ? [lo, hi] : [Math.min(...hit.map(addrOf)), Math.max(...hit.map(addrOf))]
-    return { scope, versions, columns: columnsByVerse(versions, all, hitSet, lo2, hi2), labels: null, range: r, hit, isOneCell }
+    return { scope, versions, columns: columnsByVerse(versions, all, hitSet, lo2, hi2), labels: null, range: r, hit, isOneCell, isCrossCol }
 }
 
 /**
@@ -734,6 +746,37 @@ function sideGrid(versions, columns, labels) {
     /** 經文位置欄：當成一格 (lecs 空，字另外給) */
     if (labels) grid.unshift(labels.map(label => ({ lecs: [], rs: 1, label })))
     return { names, grid, nRow }
+}
+
+/**
+ * 純文字 (「文字」「連續文字」鈕)：同一格 → 照反白；跨列 → 每個 .paragraph 一列 (有經文位置時開頭加位置)，
+ * flat 時列與列、格內換行都接成空白，不換行
+ * @param {CopyTable} table @param {boolean} flat
+ */
+function toPlainText({ scope, range, hit, isOneCell }, flat) {
+    const base = baseColor(scope.el)
+    if (isOneCell) return runsText(trimRuns(rangeRuns(range)))
+    const rows = paragraphRuns(hit, range, base).map(a => runsText(a.label ? [{ t: a.label + ' ' }, ...a.runs] : a.runs))
+    return flat ? rows.map(a => a.replace(/\s*\n\s*/g, ' ')).join(' ') : rows.join('\n')
+}
+
+/** 出處用的譯本名：和合本 (unv) 是例外，正式名稱 FHL和合本，但以和合本呈現；其餘用 cname @param {string} v */
+const citeVerName = v => v == 'unv' ? '和合本' : verName(v)
+
+/**
+ * 連續含出處：每個譯本一段，各節 (含節碼) 接成連續文字，結尾 (書 章:節-節_譯本)
+ * @param {CopyTable} table
+ */
+function toCitedText({ scope, range, hit }) {
+    const base = baseColor(scope.el)
+    const vers = [...new Set(hit.map(a => a.getAttribute('ver')))]
+    return vers.map(ver => {
+        const lecs = hit.filter(a => a.getAttribute('ver') == ver).sort((a, b) => addrOf(a) - addrOf(b))
+        const text = lecs.map(lec => runsText(lecRuns(lec, range, base))).join(' ').replace(/\s*\n\s*/g, ' ')
+        // 出處同交互參照的寫法 (不連續：詩33:5;35:6-7,11;創1:2-3)
+        const addr = cvtAddrsToRef(lecs.map(l => ({ book: +l.getAttribute('book'), chap: +l.getAttribute('chap'), verse: +l.getAttribute('sec') })), isGbNow() ? '罗' : '羅')
+        return `${text}(${addr}_${citeVerName(ver)})`
+    }).join('\n')
 }
 
 /**

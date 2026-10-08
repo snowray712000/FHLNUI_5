@@ -2502,7 +2502,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
     touch-action: manipulation;
 }
 .lec-copy-table[hidden], .lct-btn[hidden] { display: none; }
-/* 按鈕組：「複製對照表」+「MD」(Markdown 表格) */
+/* 按鈕組：「文字」「連續文字」「表格」「MD」，依選取情形顯示 */
 .lct-btn {
     padding: 4px 10px;
     border: none;
@@ -2515,7 +2515,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
     touch-action: manipulation;
 }
 .lct-btn:hover { background: color-mix(in srgb, var(--fg-on-accent) 15%, transparent); }
-.lct-md { border-left: 1px solid color-mix(in srgb, var(--fg-on-accent) 50%, transparent); }
+.lct-btn:not([hidden]) ~ .lct-btn:not([hidden]) { border-left: 1px solid color-mix(in srgb, var(--fg-on-accent) 50%, transparent); }
 @media (pointer: coarse) {
     .lct-btn { min-height: 36px; padding: 6px 14px; }
 }
