@@ -282,11 +282,15 @@ export class SearchDialog {
         const opt = gridOpt(session)
         const results = this.#dlg.find('.sd-results')[0]
         results.style.removeProperty('--vg-tpl')
+        const savedW = readLabelW()
+        if (savedW) results.style.setProperty('--vg-label-w', savedW + 'px'); else results.style.removeProperty('--vg-label-w')
         this.#colWidth = null
-        if (effectiveLayout(opt) == 'side' && opt.versions.length > 1) {
-            $(results).append(renderVerseGridHeader(opt))
-            // 欄寬：第一批載入後量一次 (之後各批沿用，不會一直跳)；自訂紀錄與經文區、交互參照共用
-            this.#colWidth = new ColWidth({
+        if (effectiveLayout(opt) == 'side') {
+            const $head = renderVerseGridHeader(opt)
+            $(results).append($head)
+            addLabelHandle($head.children('.vg-head').not('[data-ver]')[0], results)
+            // 欄寬：第一批載入後量一次 (之後各批沿用，不會一直跳)；自訂紀錄與經文區、交互參照共用 (單一譯本沒有譯本之間的欄寬，只有出處欄可調)
+            if (opt.versions.length > 1) this.#colWidth = new ColWidth({
                 host: results, varName: '--vg-tpl', versions: opt.versions.map(v => v.version), labelTpl: labelTemplate(opt),
                 getHeadCells: () => [...results.querySelectorAll('.vg-head-row .vg-head[data-ver]')], measureRoot: results,
             })
@@ -377,6 +381,34 @@ function writeCompare(on) {
  * @param {SearchSession} session
  * @returns {import('./VerseGrid.es2023.js').GridOpt}
  */
+const LABEL_W_KEY = 'fhlSearchLabelW'
+const readLabelW = () => { try { const n = +(localStorage.getItem(LABEL_W_KEY) ?? 0); return n >= 40 ? n : 0 } catch { return 0 } }
+/** 出處欄 (表頭最左空格) 右邊的分隔線：拖曳改欄寬 (px，記 localStorage)，雙擊回預設 @param {HTMLElement | undefined} cell @param {HTMLElement} host */
+function addLabelHandle(cell, host) {
+    if (!cell) return
+    const h = document.createElement('span')
+    h.className = 'lec-col-handle' + (readLabelW() ? ' custom' : '') // custom = 已自訂 (強調色)
+    h.title = '拖曳調整出處欄寬；雙擊恢復預設'
+    const save = (/** @type {number | null} */ w) => { try { w ? localStorage.setItem(LABEL_W_KEY, String(Math.round(w))) : localStorage.removeItem(LABEL_W_KEY) } catch { /* 不記也能用 */ } }
+    h.addEventListener('click', e => e.stopPropagation())
+    h.addEventListener('dblclick', e => { e.stopPropagation(); host.style.removeProperty('--vg-label-w'); save(null); h.classList.remove('custom') })
+    h.addEventListener('pointerdown', e => {
+        e.preventDefault(); e.stopPropagation()
+        const w0 = cell.getBoundingClientRect().width, x0 = e.clientX
+        let cur = w0
+        h.setPointerCapture(e.pointerId)
+        document.body.classList.add('lec-col-resizing')
+        const move = (/** @type {PointerEvent} */ ev) => { cur = Math.max(40, w0 + ev.clientX - x0); host.style.setProperty('--vg-label-w', cur + 'px') }
+        const up = () => {
+            h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up)
+            document.body.classList.remove('lec-col-resizing')
+            save(cur); h.classList.add('custom')
+        }
+        h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up)
+    })
+    cell.append(h)
+}
+
 function gridOpt(session) {
     const ps = TPPageState.s
     const failed = new Set(session.failedVersions.map(a => a.ver))
@@ -389,7 +421,7 @@ function gridOpt(session) {
         versions: vers.map(ver => ({ version: ver, name: abvphp.get_cname_from_book(ver, session.gb == 1) || ver, isRtl: ver == 'bhs' })),
         layout: ps.show_mode == 2 || ps.show_mode == 4 ? 'interleaved' : 'side',
         isLabel: true,
-        labelWidth: '6.5em',
+        labelWidth: 'var(--vg-label-w, 6.5em)', // 出處欄寬：表頭可拖 (LABEL_W_KEY)，各批 grid 共用才對齊
         snOpt: { offShowsAll: true }, // 搜 SN 時會強制帶 SN，SN 關閉也要顯示
         cellExtra: () => $('<span class="sd-copy" title="copy"><i class="fa fa-files-o"></i></span>'),
     }

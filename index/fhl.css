@@ -1729,6 +1729,35 @@ body {
         bottom: -10px;
     }
 }
+/* 灰框中間的小方塊把手 (與欄寬分隔線、原文解析上下灰框一致)；取代原本的 ☰ 字 */
+.leftWindow > .ui-resizable-handle,
+#fhlInfo .ui-resizable-handle,
+#fhlLeftWindow .leftWindowInside > div > .ui-resizable-handle { position: absolute; }
+.leftWindow .ui-resizable-handle span,
+#fhlInfo .ui-resizable-handle span { display: none; }
+.leftWindow > .ui-resizable-handle::after,
+#fhlInfo .ui-resizable-handle::after,
+#fhlLeftWindow .leftWindowInside > div > .ui-resizable-handle::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 36px;
+    border-radius: 3px;
+    background: var(--handle-bg);
+    pointer-events: none;
+}
+#fhlLeftWindow .leftWindowInside > div > .ui-resizable-handle::after { width: 36px; height: 6px; }
+.leftWindow > .ui-resizable-handle:hover::after,
+#fhlInfo .ui-resizable-handle:hover::after,
+#fhlLeftWindow .leftWindowInside > div > .ui-resizable-handle:hover::after { background: var(--accent); }
+@media (pointer: coarse) {
+    .leftWindow > .ui-resizable-handle::after,
+    #fhlInfo .ui-resizable-handle::after { height: max(36px, var(--touch-min)); }
+    #fhlLeftWindow .leftWindowInside > div > .ui-resizable-handle::after { width: max(36px, var(--touch-min)); }
+}
 #fhlInfoTitle {
     overflow: hidden;
     border-top-right-radius: 4px;
@@ -1984,9 +2013,46 @@ body {
     /* overflow-x: hidden; */
     font-size: var( --fontsize );
     line-height: 1.1em;
-    height: 200px; /* 配合框線位置，一定是要這個值 */
+    height: var(--parsing-top-h, 200px); /* 配合 #parsingSplit 位置；灰框可拖，值放 --parsing-top-h */
     text-align: justify;
 }
+/* 上下之間的灰框 (可拖曳)：中間一個小方塊把手，手指時高度加到 --touch-min */
+#parsingSplit {
+    position: absolute;
+    top: var(--parsing-top-h, 200px);
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: var(--frame-bg);
+    cursor: row-resize;
+    touch-action: none;
+    z-index: 1;
+}
+#parsingSplit::before { /* 小方塊 */
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 36px;
+    height: 8px;
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+    background: var(--handle-bg);
+}
+#parsingSplit:hover::before { background: var(--accent); }
+@media (pointer: coarse) {
+    #parsingSplit::after { /* 擴大可按範圍到 44px，不改外觀 */
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: var(--touch-min);
+        transform: translateY(-50%);
+    }
+    #parsingSplit::before { width: 56px; height: 10px; }
+}
+body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize !important; user-select: none !important; }
 #parsingTop div.hebrew-char {
     text-align: right;
 }
@@ -2077,7 +2143,7 @@ body {
     font-size: var(--fontsize);
     line-height: 1.1em;
 
-    top: 212px;
+    top: calc(var(--parsing-top-h, 200px) + 12px);
     bottom: var(--scrollbar-width);
     left: 0px;
     right: 0px;
@@ -2230,6 +2296,28 @@ body {
 .lec-col-handle:hover::after,
 .lec-col-handle.custom::after {
     background: var(--lec-col-handle-on, var(--accent));
+}
+/* 中間的小方塊 (把手)：比細線好抓；手指 (pointer: coarse) 時整條可按範圍加寬到 44px，方塊高也不低於 --touch-min */
+.lec-col-handle::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 22px;
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+    background: var(--lec-col-handle, var(--handle-bg));
+    z-index: 1;
+}
+.lec-col-handle:hover::before,
+.lec-col-handle.custom::before {
+    background: var(--lec-col-handle-on, var(--accent));
+}
+@media (pointer: coarse) {
+    .lec-col-handle { width: 44px; right: -22px; }
+    .lec-col-handle::after { left: 21px; }
+    .lec-col-handle::before { width: 14px; height: max(22px, var(--touch-min)); }
 }
 body.lec-col-resizing, body.lec-col-resizing * {
     cursor: col-resize !important;
@@ -2526,8 +2614,9 @@ body.lec-col-resizing, body.lec-col-resizing * {
 }
 /* 對話框 (交互參照、搜尋結果) 表頭的欄寬分隔線 (index/ColWidth.es2023.js)：淺色表頭用深色細線 */
 .verse-grid .vg-head { position: sticky; } /* 已是 sticky；分隔線 absolute 以它為準 */
+.verse-grid .vg-head .lec-col-handle:not(.custom):not(:hover)::before, /* 小方塊在淺灰表頭上要看得到 */
 .verse-grid .vg-head .lec-col-handle:not(.custom):not(:hover)::after {
-    background: var(--vg-col-handle, var(--pressed-bg));
+    background: var(--vg-col-handle, color-mix(in srgb, var(--fg) 40%, transparent));
 }
 
 /* ===== 主題 (docs/z261003b) 補的 class ===== */
