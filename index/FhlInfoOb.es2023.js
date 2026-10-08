@@ -29,6 +29,18 @@ const OB_NO_DIV = "__none__" // ob.php 的 div 可能是空字串(未分類)
 const OB_LANG_CHIP_MAX = 10 // 語言有數十種,只列本章最常見的幾個當 chip,其餘靠文字框
 const OB_LIST_MODE_KEY = "fhlObListMode"
 const OB_FILTERS_OPEN_KEY = "fhlObFiltersOpen"
+const OB_COL_W_KEY = "fhlObColW" // 表格自訂欄寬 (px 陣列);沒有 = 自動寬度
+const OB_COL_MIN = 40
+
+function readColWidths() {
+    try {
+        const a = JSON.parse(localStorage.getItem(OB_COL_W_KEY) ?? "null")
+        return Array.isArray(a) && a.length === 5 && a.every(n => Number.isFinite(n) && n >= OB_COL_MIN) ? a : null
+    } catch { return null }
+}
+function saveColWidths(/** @type {number[] | null} */ a) {
+    try { a ? localStorage.setItem(OB_COL_W_KEY, JSON.stringify(a)) : localStorage.removeItem(OB_COL_W_KEY) } catch { /* 不記也能用 */ }
+}
 
 // 局部縮放圖片檢視器的縮放範圍,以及顯示寬度超過小圖原始寬度多少倍才自動換上原圖。
 // 取自 FHLNUI_6/src/ob/demo/ui-pv-image-zoom.ts 的雛型設計。
@@ -171,7 +183,42 @@ export class FhlInfoOb {
         d.off('click', '.ob_more').on('click', '.ob_more', ev => {
             ev.stopPropagation()
             const id = $(ev.currentTarget).attr('data-id')
-            this.#setState({ expanded_id: this.state.expanded_id === id ? null : id })
+            // 只重畫清單,不整頁重畫,捲動位置才不會跳回頂端
+            this.state.expanded_id = this.state.expanded_id === id ? null : id
+            this.dom.find('.ob_results').html(this.#html_results())
+        })
+        // 表格欄寬:拖表頭右緣調整(第一次拖時把所有欄量成 px,之後各欄固定),雙擊回自動寬度
+        d.off('dblclick', '.ob_colgrip').on('dblclick', '.ob_colgrip', ev => {
+            ev.stopPropagation()
+            saveColWidths(null)
+            const t = this.dom.find('.ob_table')
+            t.removeClass('ob_fixed').find('col').css('width', '')
+            t.find('.ob_colgrip').removeClass('custom')
+        })
+        d.off('pointerdown', '.ob_colgrip').on('pointerdown', '.ob_colgrip', ev0 => {
+            const ev = ev0.originalEvent
+            ev.preventDefault(); ev.stopPropagation()
+            const grip = ev0.currentTarget
+            const table = grip.closest('table')
+            const idx = Number(grip.dataset.col)
+            const cols = [...table.querySelectorAll('col')]
+            const ws = [...table.querySelectorAll('thead th')].map(th => th.getBoundingClientRect().width)
+            cols.forEach((c, i) => { c.style.width = ws[i] + 'px' })
+            table.classList.add('ob_fixed')
+            const x0 = ev.clientX, w0 = ws[idx]
+            grip.setPointerCapture(ev.pointerId)
+            document.body.classList.add('lec-col-resizing')
+            const move = (/** @type {PointerEvent} */ e) => {
+                ws[idx] = Math.max(OB_COL_MIN, w0 + e.clientX - x0)
+                cols[idx].style.width = ws[idx] + 'px'
+            }
+            const up = () => {
+                grip.removeEventListener('pointermove', move); grip.removeEventListener('pointerup', up); grip.removeEventListener('pointercancel', up)
+                document.body.classList.remove('lec-col-resizing')
+                saveColWidths(ws.map(Math.round))
+                table.querySelectorAll('.ob_colgrip').forEach(g => g.classList.add('custom'))
+            }
+            grip.addEventListener('pointermove', move); grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up)
         })
         d.off('click', '[data-read-id]').on('click', '[data-read-id]', ev => {
             this.#set_book_id($(ev.currentTarget).attr('data-read-id'))
@@ -378,13 +425,16 @@ export class FhlInfoOb {
         const isgb = this.props.isgb
         const titles = isgb ? ["年代", "书名", "作者/译者", "语言", ""] : ["年代", "書名", "作者/譯者", "語言", ""]
         const readLabel = isgb ? "阅读" : "閱讀"
-        const head = `<thead><tr>${titles.map(t => `<th>${this.#esc(t)}</th>`).join('')}</tr></thead>`
+        const cw = readColWidths()
+        const colgroup = `<colgroup>${titles.map((_, i) => `<col${cw ? ` style="width:${cw[i]}px"` : ''}>`).join('')}</colgroup>`
+        // 最後一欄是閱讀按鈕,不放把手
+        const head = `<thead><tr>${titles.map((t, i) => `<th>${this.#esc(t)}${i < titles.length - 1 ? `<span class="lec-col-handle ob_colgrip${cw ? ' custom' : ''}" data-col="${i}" title="${isgb ? "拖曳调整栏宽;双击恢复自动宽度" : "拖曳調整欄寬；雙擊恢復自動寬度"}"></span>` : ''}</th>`).join('')}</tr></thead>`
         const rows = records.map(a1 =>
-            `<tr class="ob_row" data-read-id="${this.#esc(a1.id)}"><td>${this.#esc(a1.age)}</td>` +
+            `<tr class="ob_row"><td>${this.#esc(a1.age)}</td>` +
             `<td class="ob_row_title">${this.#esc(a1.title)}</td><td>${this.#esc(a1.author)}</td>` +
-            `<td>${this.#esc(a1.lang)}</td><td class="list_item_read">${readLabel}</td></tr>`
+            `<td>${this.#esc(a1.lang)}</td><td class="list_item_read"><button type="button" class="ob_read_btn" data-read-id="${this.#esc(a1.id)}">${readLabel}</button></td></tr>`
         ).join('')
-        return `<table class="ob_table">${head}<tbody>${rows}</tbody></table>`
+        return `<table class="ob_table${cw ? ' ob_fixed' : ''}">${colgroup}${head}<tbody>${rows}</tbody></table>`
     }
 
     #html_cards(records) {
