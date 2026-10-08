@@ -1350,69 +1350,50 @@ body {
     color: var(--fg-on-accent);
     background-color: var(--danger);
 }
-#fhlLecture .chapControl{
+/* 上一章 / 下一章 / 向前 / 向後 放在表頭列 (譯本名那一列)：[❮] 譯本1 譯本2 … [❯][←][→]。
+   按鈕疊在表頭上，被壓縮的是第一個與最後一個譯本名的可用寬度 (欄寬不變，仍與經文欄對齊)；docs/z261008f */
+#fhlLecture { --nv-w: max(calc(32px * var(--ui-k, 1)), var(--touch-min)); }
+#fhlLecture .chapControl, #viewHistoryButton {
     position: absolute;
-    top: var(--bar-h);
-    bottom: 0px;
+    top: 0px;
+    height: var(--bar-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    z-index: 1;
+    z-index: 3;
     color: var(--fg-muted);
-    background: transparent;
+    font-size: calc(22px * var(--ui-k, 1));
+    font-weight: 800;
     /* 平板拖選取水滴時常碰到箭頭，箭頭不要被反白 (7.0.x TODO 4) */
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
 }
-#fhlLecture .chapControl span{
-    position: absolute;
-    /* top: calc( 50% - 0.5em ); */
-    top: 45%;
-    font-size: 3em;
-    width: calc( 50px - var(--scrollbar-width) );
-    text-align: center;
-}
-#fhlLecture .chapBack{
-    /* width: 50px; */
-    left: 0px;
-    width: calc( 50px - var(--scrollbar-width) ); /* 讓左右一樣寬 */
-}
-#fhlLecture .chapNext{
-    /* width: 40px; */
-    /* right: 10px; */
-    width: calc( 50px - var(--scrollbar-width) );
-    right: calc( var(--scrollbar-width) );
-}
-#fhlLecture .chapBack:hover{
+#fhlLecture .chapControl { width: var(--nv-w); }
+#fhlLecture .chapBack { left: 0px; }
+#fhlLecture .chapNext { right: calc(var(--nv-w) * 2); }
+#viewHistoryButton { right: 0px; }
+#viewHistoryButton > span { display: flex; align-items: center; justify-content: center; width: var(--nv-w); height: 100%; }
+#fhlLecture .chapControl:hover {
     color: var(--nav-hover-fg);
-    background: -webkit-linear-gradient(left, var(--nav-hover-bg) , transparent); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, var(--nav-hover-bg) , transparent); /* Standard syntax (must be last) */
+    background: var(--nav-hover-bg);
+    border-radius: 5px;
 }
-#fhlLecture .chapNext:hover{
-    color: var(--nav-hover-fg);
-    background: -webkit-linear-gradient(left, transparent , var(--nav-hover-bg)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, transparent , var(--nav-hover-bg)); /* Standard syntax (must be last) */
-}
-#fhlLecture .chapNext:hover ~ ::-webkit-scrollbar-track{
-    -webkit-box-shadow: none;
-    background: -webkit-linear-gradient(left, var(--nav-hover-bg) , var(--nav-hover-bg)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, var(--nav-hover-bg) , var(--nav-hover-bg)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, var(--nav-hover-bg) , var(--nav-hover-bg)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, var(--nav-hover-bg) , var(--nav-hover-bg)); /* Standard syntax (must be last) */
-    -webkit-border-radius: 0px;
-    border-radius: 0px;
-}
-
+/* 第一個與最後一個譯本名讓出按鈕的位置，名字太長就省略 */
+#lecMainTitle .versionName { white-space: nowrap; text-overflow: ellipsis; }
+#lecMainTitle > .lecContent { box-sizing: border-box; }
+#lecMainTitle > .lecContent:first-child { padding-left: var(--nv-w); }
+#lecMainTitle > .lecContent:last-child { padding-right: calc(var(--nv-w) * 3); }
+/* 只有一個譯本時，兩邊都要讓 */
+#lecMainTitle > .lecContent:only-child { padding-left: var(--nv-w); padding-right: calc(var(--nv-w) * 3); }
 
 #lecMainTitle {
     background-color: var(--frame-bg);
     height: var(--bar-h);
     font-size: calc(12pt * var(--ui-k, 1));
     line-height: calc(16pt * var(--ui-k, 1));
-    padding: 0px 50px;
+    padding: 0px 10px;
     border: solid 1px var(--line);
     border-width: 1px 1px 0px;
 }
@@ -1430,10 +1411,7 @@ body {
     /* 右邊應該有50px,但是實際上,就好像有個浪費掉的空白,原來是浪費掉了 scroll-width. 因此實際不需要 50px */
     /* 下面算法，改在 body 一個變數，下面算法有時會錯 */
     /* --scrollbar-width: calc(100vw - 100%); */
-    padding: 10px 0px;
-    /* padding-left: calc(50px - 0.5em); */
-    padding-left: calc(50px - var(--scrollbar-width) );
-    padding-right: calc(50px - var(--scrollbar-width) );
+    padding: 10px 10px;
 }
 
 .sn,.snParse,.searchBibleVerse,.searchSN {

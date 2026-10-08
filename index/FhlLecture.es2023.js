@@ -378,8 +378,8 @@ async function renderLectureHtml(that) {
         const isVisibleNext = ps.bookIndex == 66 && ps.chap == 22
         const fhlLecture = $('#fhlLecture')
 
-        fhlLecture.find('.chapBack').first().css('display', isVisibleBack ? 'none' : 'block')
-        fhlLecture.find('.chapNext').first().css('display', isVisibleNext ? 'none' : 'block')
+        fhlLecture.find('.chapBack').first().css('visibility', isVisibleBack ? 'hidden' : 'visible')
+        fhlLecture.find('.chapNext').first().css('visibility', isVisibleNext ? 'hidden' : 'visible')
     }
     function render_titles(rspArr) {
         // console.log(JSON.stringify(rspArr))
