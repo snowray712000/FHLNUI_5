@@ -120,11 +120,12 @@ export class SearchDialog {
         const isNarrow = window.innerWidth < 768
         const dlgHtml = this.#dlgHtml = new DialogHtml()
         dlgHtml.showDialog({
-            html: `<div class="search-dlg">
+            html: `<div class="search-dlg${readFold() ? ' sd-folded' : ''}">
                 <form class="sd-bar">
                     <input class="sd-input" type="search" placeholder="${gbText('關鍵字、G80、#羅 1:3|')}">
                     <button class="sd-go" type="submit"><i class="fa fa-search"></i></button>
                     <label class="sd-compare" title="${gbText('每節都列出目前所有譯本，不只找到關鍵字的')}"><input type="checkbox"${readCompare() ? ' checked' : ''}> ${gbText('譯本對照')}</label>
+                    <button class="sd-fold" type="button" hidden></button>
                     <span class="sd-status"></span>
                 </form>
                 <div class="sd-groups"></div>
@@ -154,6 +155,11 @@ export class SearchDialog {
             if (session == null || session.kind == 'reference') return // 經文查詢本來就列所有譯本
             session.compare = this.checked
             that.#applyFilterAsync()
+        }).on('click', '.sd-fold', function () {
+            const folded = !dlg.find('.search-dlg').addBack('.search-dlg').first().hasClass('sd-folded')
+            dlg.find('.search-dlg').addBack('.search-dlg').toggleClass('sd-folded', folded)
+            writeFold(folded)
+            that.#renderGroups()
         }).on('click', '.sd-group', function () {
             const group_name = $(this).attr('group_name')
             // 點目前分類：若選了單卷，回到整個分類
@@ -219,7 +225,12 @@ export class SearchDialog {
         const session = this.session
         const groups$ = this.#dlg.find('.sd-groups').empty()
         const books$ = this.#dlg.find('.sd-books').empty()
+        const fold$ = this.#dlg.find('.sd-fold').prop('hidden', true)
         if (session.kind == 'reference' || session.verses.length == 0) return
+        const folded = this.#dlg.find('.search-dlg').addBack('.search-dlg').first().hasClass('sd-folded')
+        const names0 = BibleConstantHelper.getBookNameArrayChineseShort()
+        const cur = this.filter.ibook != null ? names0[this.filter.ibook] : gbText(this.filter.group_name)
+        fold$.prop('hidden', false).text(`${gbText('篩選')} ${folded ? '▸' : '▾'}` + (folded ? `：${cur}` : ''))
 
         const cnt = books => books.reduce((sum, b) => sum + (session.cntOfBook[b] ?? 0), 0)
         for (const [group_name, books] of Object.entries(fhl.g_book_group)) {
@@ -339,6 +350,16 @@ export class SearchDialog {
         FhlInfo.s.render(ps)
         $(document).trigger('chapchanged') // 更新網址 hash (pushState)，可按上一頁回來
     }
+}
+
+const FOLD_KEY = 'fhlSearchFold'
+/** 篩選區收合 (會記住) */
+function readFold() {
+    try { return localStorage.getItem(FOLD_KEY) == '1' } catch { return false }
+}
+/** @param {boolean} on */
+function writeFold(on) {
+    try { localStorage.setItem(FOLD_KEY, on ? '1' : '0') } catch { /* 不記也能用 */ }
 }
 
 const COMPARE_KEY = 'fhlSearchCompare'

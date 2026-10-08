@@ -21,15 +21,15 @@
       min-width:44px;
       text-align:center;
       font-variant-numeric: tabular-nums;
-      font: 12pt/30px bold ,Microsoft JhengHei;
+      font: calc(12pt * var(--ui-k, 1))/calc(30px * var(--ui-k, 1)) bold ,Microsoft JhengHei;
     }
     .ob_res_badge{
-      font: 10pt/30px bold ,Microsoft JhengHei;
+      font: calc(10pt * var(--ui-k, 1))/calc(30px * var(--ui-k, 1)) bold ,Microsoft JhengHei;
       color:var(--ob-fg-muted);
       margin-left:4px;
     }
     .read_span{
-       font: 12pt/30px bold ,Microsoft JhengHei;
+       font: calc(12pt * var(--ui-k, 1))/calc(30px * var(--ui-k, 1)) bold ,Microsoft JhengHei;
        margin: 4px 7px 4px 0px;
        text-wrap:none;
     }
@@ -37,7 +37,7 @@
       cursor:pointer;
       border:2px double var(--ob-legacy-border);
       border-radius:4px;
-      font: 12pt/30px bold ,Microsoft JhengHei;
+      font: calc(12pt * var(--ui-k, 1))/calc(30px * var(--ui-k, 1)) bold ,Microsoft JhengHei;
        margin: 4px 7px 4px 0px;
     }
     /* 典藏的顏色一律走 css 變數,指到主題的語意變數 (index/theme/theme-vars.css,docs/z261003b)。
@@ -59,10 +59,12 @@
       --ob-legacy-border:var(--line); /* 閱讀畫面舊按鈕的雙線框 */
     }
 
+    /* 字的大小 (docs/z260930a 介面字型)：典藏資料本身 (表格的書名作者、卡片標題、簡介) 跟著經文 --fontsize；
+       篩選、chip、按鈕、徽章、閱讀頁的工具列等是介面，原本的 px 乘 --ui-k */
     /* 清單:篩選(分類 chip / 語言 chip+文字框 / 關鍵字+年代+文體)與表格/卡片兩種呈現。
        版面比照 FHLNUI_6/src/ob/demo/ui-pv-catalog-browse。 */
     .ob_list{
-      font-size:14px;
+      font-size:calc(14px * var(--ui-k, 1));
       line-height:1.7;
       color:var(--ob-fg);
       background:var(--ob-bg);
@@ -80,7 +82,7 @@
       background:var(--ob-bg);
       color:var(--ob-fg);
       padding:8px 14px;
-      font-size:13px;
+      font-size:calc(13px * var(--ui-k, 1));
       line-height:1.4;
       text-align:left;
       cursor:pointer;
@@ -103,7 +105,7 @@
       visibility:hidden;
     }
     .ob_filters_tag{
-      font-size:12px;
+      font-size:calc(12px * var(--ui-k, 1));
       padding:0 8px;
       border-radius:999px;
       background:var(--ob-badge-bg);
@@ -111,7 +113,7 @@
       white-space:nowrap;
     }
     .ob_filters_none{
-      font-size:12px;
+      font-size:calc(12px * var(--ui-k, 1));
       color:var(--ob-fg-subtle);
     }
     .ob_filters_chevron{
@@ -139,7 +141,7 @@
       gap:6px;
     }
     .ob_filter_label{
-      font-size:12px;
+      font-size:calc(12px * var(--ui-k, 1));
       color:var(--ob-fg-muted);
       font-weight:600;
       line-height:1.4;
@@ -155,14 +157,14 @@
       background:var(--ob-bg);
       color:var(--ob-fg);
       padding:4px 12px;
-      font-size:13px;
+      font-size:calc(13px * var(--ui-k, 1));
       line-height:1.4;
       cursor:pointer;
       white-space:nowrap;
     }
     .ob_lang_chip{
       padding:3px 10px;
-      font-size:12px;
+      font-size:calc(12px * var(--ui-k, 1));
     }
     .ob_chip:hover:not(.is-active){
       background:var(--ob-bg-hover);
@@ -192,7 +194,7 @@
     }
     .ob_filters input,
     .ob_filters select{
-      font-size:13px;
+      font-size:calc(13px * var(--ui-k, 1));
       line-height:1.4;
       padding:4px 6px;
       border:1px solid var(--ob-border);
@@ -215,7 +217,7 @@
       align-items:center;
       gap:8px;
       padding:8px 14px;
-      font-size:13px;
+      font-size:calc(13px * var(--ui-k, 1));
       color:var(--ob-fg-muted);
     }
     .ob_link{
@@ -225,7 +227,7 @@
       margin-left:10px;
       color:var(--ob-accent);
       cursor:pointer;
-      font-size:12px;
+      font-size:calc(12px * var(--ui-k, 1));
     }
     .ob_listmode{
       display:inline-flex;
@@ -239,7 +241,7 @@
       background:var(--ob-bg);
       color:var(--ob-fg);
       padding:4px 12px;
-      font-size:13px;
+      font-size:calc(13px * var(--ui-k, 1));
       line-height:1.4;
       cursor:pointer;
     }
@@ -263,7 +265,7 @@
     .ob_table{
       width:100%;
       border-collapse:collapse;
-      font-size:13px;
+      font-size:calc(var(--fontsize) * 0.8125); /* 13px ÷ 預設經文 16px */
     }
     .ob_table th,
     .ob_table td{
@@ -310,11 +312,11 @@
       display:flex;
       justify-content:space-between;
       align-items:center;
-      font-size:12px;
+      font-size:calc(12px * var(--ui-k, 1));
       color:var(--ob-fg-muted);
     }
     .ob_badge{
-      font-size:11px;
+      font-size:calc(11px * var(--ui-k, 1));
       padding:1px 7px;
       border-radius:999px;
       background:var(--ob-badge-bg);
@@ -323,7 +325,7 @@
     }
     .ob_card_title{
       margin:0;
-      font-size:15px;
+      font-size:calc(var(--fontsize) * 0.9375); /* 15px ÷ 預設經文 16px */
       font-weight:600;
       line-height:1.5;
       cursor:pointer;
@@ -333,12 +335,12 @@
       color:var(--ob-accent);
     }
     .ob_card_meta{
-      font-size:12px;
+      font-size:calc(12px * var(--ui-k, 1));
       color:var(--ob-fg-muted);
     }
     .ob_card_intro{
       margin:0;
-      font-size:13px;
+      font-size:calc(var(--fontsize) * 0.8125); /* 13px ÷ 預設經文 16px */
       color:var(--ob-fg);
       display:-webkit-box;
       -webkit-line-clamp:2;
@@ -352,7 +354,7 @@
       background:var(--ob-bg-subtle);
       border-radius:6px;
       padding:8px 10px;
-      font-size:11px;
+      font-size:calc(11px * var(--ui-k, 1));
       color:var(--ob-fg-muted);
     }
     .ob_card_actions{
@@ -366,7 +368,7 @@
       background:var(--ob-bg);
       color:var(--ob-accent);
       padding:2px 12px;
-      font-size:13px;
+      font-size:calc(13px * var(--ui-k, 1));
       line-height:1.4;
       cursor:pointer;
     }

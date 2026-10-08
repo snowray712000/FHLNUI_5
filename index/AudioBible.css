@@ -25,12 +25,12 @@
 .au-holder { display: none; }
 
 .au-panel {
-    max-width: 520px;
+    max-width: calc(520px * var(--ui-k, 1));
     margin: 0 auto;
-    padding: 16px;
+    padding: calc(16px * var(--ui-k, 1));
     color: var(--au-fg);
     font-family: inherit;
-    font-size: 14px;
+    font-size: calc(14px * var(--ui-k, 1));
     line-height: 1.5;
     display: flex;
     flex-direction: column;
@@ -56,7 +56,7 @@
     gap: 8px;
 }
 .au-ref {
-    font-size: 20px;
+    font-size: calc(20px * var(--ui-k, 1));
     font-weight: 500;
 }
 .au-panel .au-ver-btn {
@@ -82,7 +82,7 @@
     border-radius: 999px;
     background: var(--au-bg);
     color: var(--au-fg-muted);
-    font-size: 13px;
+    font-size: calc(13px * var(--ui-k, 1));
 }
 .au-panel .au-chip:hover { background: var(--au-bg-hover); }
 .au-panel .au-chip.on {
@@ -107,7 +107,7 @@
     border-radius: 6px;
     background: var(--au-warn-bg);
     color: var(--au-warn-fg);
-    font-size: 13px;
+    font-size: calc(13px * var(--ui-k, 1));
 }
 
 .au-ctrl {
@@ -117,20 +117,20 @@
     gap: 24px;
 }
 .au-panel .au-icon-btn {
-    width: 40px;
-    height: 40px;
+    width: max(calc(40px * var(--ui-k, 1)), var(--touch-min, 0px));
+    height: max(calc(40px * var(--ui-k, 1)), var(--touch-min, 0px));
     border-radius: 50%;
     color: var(--au-fg-muted);
-    font-size: 18px;
+    font-size: calc(18px * var(--ui-k, 1));
 }
 .au-panel .au-icon-btn:hover { background: var(--au-bg-hover); color: var(--au-fg); }
 .au-panel .au-play {
-    width: 60px;
-    height: 60px;
+    width: max(calc(60px * var(--ui-k, 1)), var(--touch-min, 0px));
+    height: max(calc(60px * var(--ui-k, 1)), var(--touch-min, 0px));
     border-radius: 50%;
     background: var(--au-accent);
     color: var(--au-on-accent);
-    font-size: 24px;
+    font-size: calc(24px * var(--ui-k, 1));
 }
 .au-panel .au-play .fa-play { margin-left: 4px; } /* 三角形視覺置中 */
 .au-panel .au-play:disabled {
@@ -146,7 +146,7 @@
 .au-time {
     min-width: 3.2em;
     color: var(--au-fg-muted);
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-k, 1));
     font-variant-numeric: tabular-nums;
 }
 .au-time:last-child { text-align: right; }
@@ -165,7 +165,7 @@
 .au-label {
     min-width: 2.5em;
     color: var(--au-fg-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-k, 1));
 }
 .au-spacer { flex: 1; }
 .au-check {
@@ -174,14 +174,14 @@
     gap: 6px;
     margin: 0;
     color: var(--au-fg-muted);
-    font-size: 13px;
+    font-size: calc(13px * var(--ui-k, 1));
     cursor: pointer;
 }
 .au-check input { accent-color: var(--au-accent); margin: 0; }
 .au-panel .au-link,
 .au-panel a.au-link {
     color: var(--au-fg-muted);
-    font-size: 13px;
+    font-size: calc(13px * var(--ui-k, 1));
     text-decoration: none;
 }
 .au-panel .au-link:hover { color: var(--au-accent); }
@@ -196,7 +196,7 @@
 .au-group-name {
     margin: 8px 4px 2px;
     color: var(--au-fg-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-k, 1));
 }
 .au-panel .au-item {
     display: flex;
@@ -217,17 +217,17 @@
 .au-item-name small {
     margin-left: 6px;
     color: var(--au-fg-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-k, 1));
 }
 .au-item-mp4, .au-item-cov {
     color: var(--au-fg-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-k, 1));
 }
 
 .au-foot {
     margin-top: 4px;
     color: var(--au-fg-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--ui-k, 1));
     text-align: center;
 }
 .au-foot a { color: inherit; }
@@ -263,11 +263,11 @@
     flex-wrap: wrap;
     gap: 4px 12px;
 }
-.pr-speaker { font-size: 16px; font-weight: 500; }
-.pr-range { color: var(--au-fg-muted); font-size: 13px; }
+.pr-speaker { font-size: calc(16px * var(--ui-k, 1)); font-weight: 500; }
+.pr-range { color: var(--au-fg-muted); font-size: calc(13px * var(--ui-k, 1)); }
 .pr-outline {
     color: var(--au-fg-muted);
-    font-size: 13px;
+    font-size: calc(13px * var(--ui-k, 1));
     line-height: 1.6;
 }
 .pr-tracks { display: flex; flex-direction: column; gap: 6px; }
@@ -282,16 +282,16 @@
 .pr-track.on { background: var(--au-accent-bg); }
 .au-panel .pr-play {
     flex: none;
-    width: 36px;
-    height: 36px;
+    width: max(calc(36px * var(--ui-k, 1)), var(--touch-min, 0px));
+    height: max(calc(36px * var(--ui-k, 1)), var(--touch-min, 0px));
     border-radius: 50%;
     background: var(--au-accent);
     color: var(--au-on-accent);
-    font-size: 14px;
+    font-size: calc(14px * var(--ui-k, 1));
 }
 .au-panel .pr-play .fa-play { margin-left: 2px; }
 .pr-track-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pr-track-label { font-size: 14px; }
+.pr-track-label { font-size: calc(14px * var(--ui-k, 1)); }
 .pr-track.on .pr-track-label { color: var(--au-accent); }
 .pr-err { color: var(--au-warn-fg); }
 .pr-prog { gap: 8px; }
@@ -316,7 +316,7 @@
     border-radius: 999px;
     background: var(--au-mini-bg);
     color: var(--au-mini-fg);
-    font-size: 13px;
+    font-size: calc(13px * var(--ui-k, 1));
     box-shadow: 0 2px 8px var(--au-shadow);
 }
 .au-mini[hidden] { display: none; }
@@ -340,3 +340,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* 來源名稱 (有聲版本、講道講員) 屬於「內容大小」，其餘按鈕 / 標籤 / 時間跟介面 */
+.au-panel .au-ver-btn,
+.au-panel .au-item-name,
+.au-panel .pr-speaker { font-size: var(--fontsize); }
+.au-panel .au-item-name small { font-size: calc(var(--fontsize) * 0.85); }
+.au-panel .au-chip, .au-panel .au-item { min-height: var(--touch-min, 0px); }

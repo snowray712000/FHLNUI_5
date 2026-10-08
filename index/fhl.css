@@ -160,6 +160,16 @@ div.scrolling::-webkit-scrollbar-thumb{
 
 
 
+/* 介面基準的高度：30px × --ui-k (整體大小)，但手指 (pointer: coarse) 時不低於 --touch-min (44px，Apple 建議的最小可按範圍)。
+   下限與字大小無關，不隨整體大小縮放；標題列、分頁標籤高度與其下方內容的 top 共用 --bar-h，才會一起變 (docs/z260930a) */
+body {
+    --touch-min: 0px;
+    --bar-h: max(calc(30px * var(--ui-k, 1)), var(--touch-min));
+}
+@media (pointer: coarse) {
+    body { --touch-min: 44px; }
+    .fs-btn, .th-btn { min-height: var(--touch-min); }
+}
 body {
     margin: 0px;
     overflow: hidden;
@@ -333,10 +343,11 @@ body {
     font-size: 0.95rem;
 }
 #fhlTopMenu .tb-panel[hidden] { display: none; }
-#resourcesPanel { width: 1100px; padding: 10px 12px; }
+/* 連結名稱、簡介、介紹跟內容大小 (--fontsize)，只有「?」跟介面大小；寬度 / 欄寬用 em 跟著放大 (max-width 仍限制在視窗內) */
+#fhlTopMenu #resourcesPanel { width: 69em; font-size: var(--fontsize); padding: 10px 12px; }
 #resourcesPanel .rp-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(10.3em, 1fr));
     gap: 10px 12px;
 }
 #resourcesPanel h4 {
@@ -344,7 +355,7 @@ body {
     padding-bottom: 3px;
     border-bottom: 2px solid var(--brand);
     color: var(--brand-fg);
-    font-size: 0.95rem;
+    font-size: 1em;
     font-weight: 700;
 }
 #resourcesPanel ul { list-style: none; margin: 0; padding: 0; }
@@ -361,7 +372,7 @@ body {
 #resourcesPanel a small {
     display: block;
     color: var(--fg-muted);
-    font-size: 0.75rem;
+    font-size: 0.75em;
     line-height: 1.25;
 }
 /* 連結旁的「?」(Resources.es2023.js)，按了在下面展開介紹 */
@@ -369,16 +380,16 @@ body {
     position: absolute;
     top: 4px;
     right: 2px;
-    width: 20px;
-    height: 20px;
+    width: calc(20px * var(--ui-k, 1));
+    height: calc(20px * var(--ui-k, 1));
     padding: 0;
     border: 1px solid var(--brand);
     border-radius: 50%;
     background: var(--surface-bg);
     color: var(--brand-fg);
-    font-size: 0.75rem;
+    font-size: calc(0.75rem * var(--ui-k, 1));
     font-weight: 700;
-    line-height: 18px;
+    line-height: calc(18px * var(--ui-k, 1));
     cursor: pointer;
 }
 #resourcesPanel .rp-help:hover,
@@ -390,7 +401,7 @@ body {
     border-radius: 0 4px 4px 0;
     background: var(--brand-bg);
     color: var(--fg);
-    font-size: 0.82rem;
+    font-size: 0.82em;
     line-height: 1.5;
 }
 #resourcesPanel .rp-intro p { margin: 0 0 4px; }
@@ -770,7 +781,7 @@ body {
 }
 
 .leftWindow div:not(.ui-resizable-handle){
-  font: 10pt/14pt bold ,Microsoft JhengHei;
+  font: calc(10pt * var(--ui-k, 1))/1.4 bold ,Microsoft JhengHei; /* --ui-k：介面倍率 (= 整體大小 %，docs/z260930a) */
   padding:0px;
   text-align: left;  
 }
@@ -957,14 +968,16 @@ body {
     width: 2.2em;
     height: 1.7em;
     padding: 0;
-    font-size: 10pt;
+    font-size: calc(10pt * var(--ui-k, 1));
     line-height: 1;
     border: 1px solid var(--line-strong);
     border-radius: 4px;
     background: var(--btn-bg);
     cursor: pointer;
 }
-.fs-btn.fs-big,
+.fs-btn.fs-big {
+    font-size: calc(12pt * var(--ui-k, 1));
+}
 .fs-dlg .fs-btn.fs-big {
     font-size: 12pt;
 }
@@ -974,14 +987,19 @@ body {
 .fs-btn:active {
     background: var(--pressed-bg);
 }
+/* 側邊欄字型大小這一列固定大小，不乘 --ui-k：A− A+ 調的就是整體大小 (介面也跟著)，跟著變的話按一下按鈕就跑走 */
+#fontSizeTool, #fontSizeTool div:not(.ui-resizable-handle) { font-size: 10pt; }
+#fontSizeTool .fs-btn { font-size: 10pt; }
+#fontSizeTool .fs-btn.fs-big { font-size: 12pt; }
+#fontSizeTool .fs-gear { font-size: 14pt; }
 #settings .fs-val {
-    width: 2em;
+    width: 3em;
     text-align: center;
     font-variant-numeric: tabular-nums;
 }
 .fs-gear {
     margin-left: 4px;
-    font-size: 14pt;
+    font-size: calc(14pt * var(--ui-k, 1));
     color: var(--fg-muted);
     cursor: pointer;
 }
@@ -1001,7 +1019,8 @@ body {
     border-left: 1px solid var(--line-strong);
     background: var(--btn-bg);
     color: var(--fg);
-    font-size: 10pt;
+    font-size: calc(10pt * var(--ui-k, 1));
+    white-space: nowrap;
     cursor: pointer;
 }
 .th-btn:first-child { border-left: none; }
@@ -1012,7 +1031,7 @@ body {
     align-items: center;
     gap: 3px;
     margin: 0 0 0 8px;
-    font-size: 10pt;
+    font-size: calc(10pt * var(--ui-k, 1));
     cursor: pointer;
 }
 #settings .th-hc.disabled { color: var(--fg-disabled); cursor: default; }
@@ -1156,7 +1175,7 @@ body {
     position: absolute;
     top: 10px;
     right: 10px;
-    font-size: 8pt;
+    font-size: calc(8pt * var(--ui-k, 1));
     color: var(--fg-disabled);
     cursor: pointer;
 }
@@ -1266,10 +1285,11 @@ body {
   display: inline-block;
   vertical-align: top;
 }
-#fhlLecture .lecContent.bhs.hebrew{
-    font-size: 18pt;
-    line-height: 22.5pt;
-}
+/* 經文區的原文譯本欄：新約原文 fhlwh、七十士譯本 lxx 是希臘文，馬索拉原文 bhs 是希伯來文，字型大小跟設定的「希臘文、希伯來文大小」。
+   經文區改成 grid 後，舊的 .lecContent.bhs.hebrew (18pt) 與 setFont 加的 .nwh / .greek 都對不到了，原文欄一直跟經文大小，
+   所以調希臘文、希伯來文大小時，只有字典、解析、註釋看得到變化，經文區看不到。.lec 的 ver 屬性即譯本代碼 */
+#lecMain .lec[ver="fhlwh"], #lecMain .lec[ver="lxx"] { font-family: COBSGreekWeb; font-size: var(--fontsize-greek); } /* 字型同 .greek-char (解析、字典) */
+#lecMain .lec[ver="bhs"] { font-family: COBSHebrew; font-size: var(--fontsize-hebrew); } /* 字型同 .hebrew-char */
 #fhlLecture .lecContent.bhs.hebrew div{
     /*white-space: nowrap;*/
     overflow: auto;
@@ -1306,7 +1326,7 @@ body {
     width: 80%;
     text-align: center;
     overflow: hidden;
-    height: 21px;
+    height: calc(21px * var(--ui-k, 1));
     cursor: pointer;
 }
 /* #fhlLecture .versionName:hover:before{
@@ -1332,7 +1352,7 @@ body {
 }
 #fhlLecture .chapControl{
     position: absolute;
-    top: 30px;
+    top: var(--bar-h);
     bottom: 0px;
     cursor: pointer;
     z-index: 1;
@@ -1389,7 +1409,9 @@ body {
 
 #lecMainTitle {
     background-color: var(--frame-bg);
-    height: 30px;
+    height: var(--bar-h);
+    font-size: calc(12pt * var(--ui-k, 1));
+    line-height: calc(16pt * var(--ui-k, 1));
     padding: 0px 50px;
     border: solid 1px var(--line);
     border-width: 1px 1px 0px;
@@ -1397,7 +1419,7 @@ body {
 #lecMain {
     font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded' !important;
     position: absolute;
-    top: 30px;
+    top: var(--bar-h);
     left: 0px;
     right: 0px;
     bottom: 0px;
@@ -1713,7 +1735,7 @@ body {
     border-top-left-radius: 4px;
     text-align: center;
     background-color: var(--frame-bg);
-    height: 30px;
+    height: var(--bar-h);
     border: solid 1px var(--line);
     border-width: 1px 1px 0px;
 }
@@ -1727,7 +1749,7 @@ body {
   position: relative;
   display: inline-block;
   margin: 0px 3px;
-  font: 12pt/30px bold ,Microsoft JhengHei;
+  font: calc(12pt * var(--ui-k, 1))/var(--bar-h) bold ,Microsoft JhengHei;
   text-align: center;        
   cursor: pointer;
   margin-right:3px;
@@ -1737,7 +1759,7 @@ body {
   /*background-color: #C0C0C0;*/
 }
 #fhlInfoTitle .selected{
-    font: 20px/30px bold ,Microsoft JhengHei;
+    font: calc(20px * var(--ui-k, 1))/var(--bar-h) bold ,Microsoft JhengHei;
     color: var(--accent-fg);
 }
 #fhlInfoContent {
@@ -1746,10 +1768,10 @@ body {
   background-color: var(--surface2-bg);
   display: inline-block;
   width:100%;
-  top: 30px;
+  top: var(--bar-h);
   bottom: 0px;
   /*font: 18px/24px bold ,Microsoft JhengHei;*/
-  font: 10pt/15pt bold;
+  font: calc(10pt * var(--ui-k, 1))/1.5 bold;
   font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Microsoft JhengHei" !important;
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
@@ -1806,7 +1828,7 @@ body {
     margin-top: 0px;
     line-height: 1.1em;
     font-size: var(--fontsize);
-    padding: 60px 50px 0px;
+    padding: max(60px, calc(17px + max(40px, 0.8rem * var(--ui-k, 1) * 2) + 6px)) 50px 0px;
     padding-left: calc(50px - var(--scrollbar-width) );
     padding-right: calc(50px - var(--scrollbar-width) );
 
@@ -1878,6 +1900,7 @@ body {
 }
 
 #commentTitle {
+    --ct-h: max(40px, calc(0.8rem * var(--ui-k, 1) * 2));
     position: absolute; 
     left: 10%; 
     width: 80%;
@@ -1886,10 +1909,10 @@ body {
     top: 17px; 
     /* transform: translate(-50%, 0%);  */
     display: block; 
-    height: 40px; 
+    height: var(--ct-h); 
     text-align: center; 
-    font-size: 0.8rem; 
-    line-height: 28pt;
+    font-size: calc(0.8rem * var(--ui-k, 1)); /* 字跟介面大小；框高 40px 起，字太大時才跟著長，內距不放大 */
+    line-height: calc(var(--ct-h) - 2px);
     cursor: default; 
     margin: 0px; 
     border: solid 1px var(--line);
@@ -1919,7 +1942,7 @@ body {
     padding: 6px 22px;
     border: solid 2px var(--line);
     cursor: pointer;
-    font-size: 12pt;
+    font-size: calc(12pt * var(--ui-k, 1));
     color: var(--dark-red-fg);
     border-radius: 5px; 
     background: var(--raised-bg); 
@@ -1982,6 +2005,65 @@ body {
 .ui-dialog-content{
     font-size: var( --fontsize );
 }
+/* 使用說明等 markdown 對話框：github-markdown-css 寫死 16px，改跟內容大小 */
+.ui-dialog-content .markdown-body { font-size: var(--fontsize); }
+/* 譯本選擇對話框：按鈕的字屬於「內容大小」，跟容器 (.ui-dialog-content = --fontsize) 一樣大。
+   Bootstrap 的 .btn 寫死 1rem、內距 rem，容器變大時按鈕不變，每個按鈕四周的行高就多出一圈空白。
+   字型、內距、行高都改成 em/繼承，預設 (16px) 時與原本相同 (6px 12px、行高 1.5) */
+#bible-version-dialog .btn {
+    font-size: inherit;
+    line-height: 1.5;
+    padding: 0.375em 0.75em;
+}
+#bible-version-dialog .btn.btn-sm {
+    padding: 0.25em 0.5em;
+}
+/* 串珠 前 / 後 / 標題：字與高跟介面大小 (Bootstrap .btn-sm 寫死 rem) */
+#fhlInfoContent .toolbar.tsk .btn {
+    font-size: calc(12pt * var(--ui-k, 1));
+    line-height: 1.5;
+    padding: 0.25em 0.6em;
+    min-height: var(--touch-min, 0px);
+}
+/* AI 分頁的按鈕 (複製原文資料…)：字屬於「內容大小」，同譯本選擇對話框，字 / 內距 / 行高跟內容走，不留多餘空白 */
+#fhlInfoContent .btn.ai-tool {
+    font-size: var(--fontsize);
+    line-height: 1.5;
+    padding: 0.375em 0.75em;
+}
+#fhlInfoContent h5.ai-h { font-size: calc(var(--fontsize) * 1.25); margin: .5em 0 .25em; }
+/* 「選取、常用、Sets」是介面，字乘 --ui-k (不跟內容)，而且要按得到 (點了會開說明)：手指時寬高不低於 --touch-min (44px)。
+   原本 absolute 掛在群組框右外側 (right -0.75rem, top -1rem)，變大 / 加寬後會超出對話框或蓋住上一組，
+   改放進群組框右上角，群組右側留出同寬 (--gh-w)，晶片才不會排到標籤底下 */
+#bible-version-dialog {
+    --gh-w: max(calc(72px * var(--ui-k, 1)), var(--touch-min, 0px));
+}
+#bible-version-dialog .selecteds,
+#bible-version-dialog .offens,
+#bible-version-dialog .sets {
+    padding-right: calc(var(--gh-w) + 8px);
+    min-height: max(2.5rem, var(--touch-min, 0px)) !important; /* 蓋過 html 內嵌的 min-height: 2.5rem */
+}
+/* 介面基準字 12pt (與 --ui-k 的 12pt 基準相同)，做成有邊框的按鈕外觀，看得出可以按 */
+#bible-version-dialog div.group-help { /* div. 提高優先權：對話框自己的 min.css 較晚載入，同優先權會蓋掉 right / top / font-size */
+    right: 4px;
+    top: 4px;
+    width: var(--gh-w);
+    box-sizing: border-box;
+    min-height: var(--touch-min, 0px);
+    padding: 0.3em 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(12pt * var(--ui-k, 1));
+    line-height: 1.2;
+    color: var(--fg);
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: var(--btn-bg);
+    text-decoration: none;
+}
+#bible-version-dialog div.group-help:hover { background: var(--pressed-bg); }
 #parsing-where-title{
     position: absolute;
     top: 0.25em;
@@ -2045,7 +2127,7 @@ body {
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
-  font: 10pt/15pt bold ,Microsoft JhengHei;
+  font: calc(10pt * var(--ui-k, 1))/1.5 bold ,Microsoft JhengHei;
   background-color: transparent;
   border-radius: 0px;
   margin: 1px;
@@ -2208,7 +2290,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
   }
 
   #fhlInfoContent {
-    height: 100%;
+    height: calc(100% - var(--bar-h)); /* top 是 --bar-h，原本 100% 會超出下緣一個 --bar-h，書卷背景等貼底的東西被切掉 */
     font-size: var(--fontsize);
     line-height: 1.1em;
   }
@@ -2452,6 +2534,9 @@ body.lec-col-resizing, body.lec-col-resizing * {
 /* 原文分析下方表格的隔行底色 (parsing_render_bottom_table) */
 #parsingTable div.parsing-zebra { background-color: var(--zebra-bg); }
 /* 地圖的河流、區域 (fhlmap_main.js 的 className)；css 的 stroke / fill 蓋過 leaflet 寫的 SVG 屬性 */
+/* 地圖地名標籤 (leaflet tooltip，原本寫死 12px) 跟內容大小；點開的 popup (連結選單) 跟介面大小；內距不放大 */
+#fhlmapContainer .leaflet-tooltip { font-size: var(--fontsize); line-height: 1.3; }
+#fhlmapContainer .leaflet-popup-content { font-size: calc(12pt * var(--ui-k, 1)); }
 .fhlmap-line, .fhlmap-area { stroke: var(--map-shape-stroke); }
 .fhlmap-area { fill: var(--map-shape-fill); }
 /* 中文標準譯本 (csb) 等的紅字：資料本身是 <span style="color:rgb(195,39,43)">，深色底上太暗，改成主題的紅 */

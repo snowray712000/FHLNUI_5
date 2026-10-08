@@ -37,13 +37,13 @@ ${RESOURCES_HTML}</div></div>
 </div>
 <div id="tbBackdrop" hidden></div></nav>
 <div id="mainWindow"><div id="fhlLeftWindow" class="leftWindow"><div class="leftWindowInside"><div id="settings"><div class="secondLevelInside"><p>▼&nbsp;設定</p>
-<div id="settingsScrollDiv"><ul><li><div id="snSelect"></div></li>
+<div id="settingsScrollDiv"><ul><li><div id="fontSizeTool"></div></li>
+<li><div id="snSelect"></div></li>
 <li><div id="realTimePopUpSelect"></div></li>
 <li><div id="gbSelect"></div></li>
 <li><div id="show_mode"></div></li>
 <li><div id="mapTool"></div></li>
 <li><div id="imageTool"></div></li>
-<li><div id="fontSizeTool"></div></li>
 <li><div id="themeTool"></div></li></ul></div></div></div>
 <div id="versionSelect"></div>
 <div id="viewHistory"><div class="secondLevelInside"><p>▶&nbsp;歷史紀錄</p>

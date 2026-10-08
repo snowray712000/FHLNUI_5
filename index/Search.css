@@ -62,6 +62,7 @@
 }
 
 .search-dlg .sd-bar {
+    font-size: calc(12pt * var(--ui-k, 1)); /* 控制列跟介面大小；內容大時才不會把結果區擠到只剩 12px (docs/z261008a) */
     display: flex;
     align-items: center;
     gap: 6px;
@@ -104,6 +105,28 @@
     flex-wrap: wrap;
     gap: 4px;
 }
+.search-dlg .sd-groups,
+.search-dlg .sd-books {
+    font-size: calc(12pt * var(--ui-k, 1));
+    flex: 0 0 auto;
+    max-height: 22%;
+    overflow-y: auto;
+    align-content: flex-start;
+}
+.search-dlg.sd-folded .sd-groups,
+.search-dlg.sd-folded .sd-books { display: none; }
+.search-dlg .sd-fold {
+    padding: 3px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: var(--btn-bg);
+    color: var(--fg);
+    cursor: pointer;
+    min-height: var(--touch-min, 0px);
+}
+.search-dlg .sd-fold[hidden] { display: none; }
+.search-dlg .sd-fold:hover { color: var(--accent-fg); }
+.search-dlg .sd-chip { min-height: var(--touch-min, 0px); }
 .search-dlg .sd-groups:empty,
 .search-dlg .sd-books:empty { display: none; }
 .search-dlg .sd-books {

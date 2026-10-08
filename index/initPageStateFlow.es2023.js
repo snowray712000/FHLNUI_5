@@ -71,9 +71,9 @@ export function initPageStateFlow(currentSWVer) {
       isVisibleLeftWindow: 1, // add by snow. 2021.07
       cxInfoWindow: 500, // add by snow. 2021.07
       cxLeftWindow: 190, // add by snow. 2021.07
-      fontSizeHebrew: 26, // add by snow. 2021.07
-      fontSizeGreek: 26, // add by snow. 2021.07
-      fontSizeStrongNumber: 14, // add by snow. 2021.07
+      fontSizeHebrew: 16, // add by snow. 2021.07
+      fontSizeGreek: 12, // add by snow. 2021.07
+      fontSizeStrongNumber: 12, // add by snow. 2021.07
       // book 別以為是 bookIndex, 因為 book 先被注釋用掉了 sc.php 參數
       book: 3, N: 0, k: "", cname: ["FHL和合本"], realTimePopUp: 0, titleId: "fhlInfoComment",
       history: [{ book: 1, chap: 1, sec: 1 }], fontSize: 12, commentBackgroundChap: 1, commentBackgroundSec: 1,

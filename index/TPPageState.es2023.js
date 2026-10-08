@@ -50,11 +50,11 @@ export class TPPageState {
     /** @type {number} 字體大小，css 中有一個對應的 --fontsize 的 css 變數  */
     this.fontSize = 12;
     /** @type {number} 希伯來文字體大小。 css 中有一個對應的 --fontsize-hebrew */
-    this.fontSizeHebrew = 26;
+    this.fontSizeHebrew = 16;
     /** @type {number} 希臘文字體大小。 css 中有一個對應的 --fontsize-greek */
-    this.fontSizeGreek = 26;
+    this.fontSizeGreek = 12;
     /** @type {number} strong number 字體大小。 css 中有一個對應的 --fontsize-sn */
-    this.fontSizeStrongNumber = 14; // add by snow. 2021.07  
+    this.fontSizeStrongNumber = 12; // add by snow. 2021.07  
     /** @type {boolean} 是否顯示照片，與左方開啟關閉相關 */
     this.ispho = false;
     /** @type {boolean} 是否顯示位置，與左方開啟關閉相關 */

@@ -78,7 +78,7 @@ export class Help {
             new DialogHtml().showDialog({
                 html,
                 getTitle: () => "使用說明",
-                width: Math.min(window.innerWidth * 0.95, 900),
+                width: window.innerWidth * 0.95, // 盡量寬：字放大時窄的對話框會變得很長，捲軸也跟著離文字很遠
                 maxWidth: window.innerWidth * 0.95,
                 height: window.innerHeight * 0.85,
                 maxHeight: window.innerHeight * 0.9,

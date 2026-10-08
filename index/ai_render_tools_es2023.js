@@ -238,7 +238,7 @@ function render_setting_about_multi_verse() {
 function render_ai_parsing_tp1_core(method) {
     const tp_text_dict = { "tp1": "1:複製原文資料", "tp1a": "1a:結構分析", "tp1b": "1b:結構與對話", "tp2": "2: 多節", "tp2a": "2a:", "tp2b": "2b:" };
     const tp_text = tp_text_dict[method] ?? "unknown";
-    const result = $("<div class='btn btn-outline-primary'></div>")
+    const result = $("<div class='btn btn-outline-primary ai-tool'></div>")
 
     // 描述
     $("<span class='ai_parsing' method='" + method + "'>" + tp_text + "</span>").appendTo(result);
@@ -257,7 +257,7 @@ function render_ai_parsing_tp1_core(method) {
 function render_ai_translation_tp1_core(method) {
     const tp_text_dict = { "tp1": "1:譯本資料", "tp1a": "1a:對齊後比較", "tp1b": "1b:加入原文分析", "tp2": "2:多節", "tp2a": "2a:", "tp2b": "2b:" };
     const tp_text = tp_text_dict[method] ?? "unknown";
-    const result = $("<div class='btn btn-outline-primary'></div>")
+    const result = $("<div class='btn btn-outline-primary ai-tool'></div>")
     $("<span class='ai_translation' method='" + method + "'>" + tp_text + "</span>").appendTo(result);
 
     // ❓
@@ -274,7 +274,7 @@ function render_ai_translation_tp1_core(method) {
 function render_ai_dev(method) {
     const tp_text_dict = { "tp1": "1:dev", "tp1a": "1a:結構分析", "tp1b": "1b:結構與對話", "tp2": "2: 多節", "tp2a": "2a:", "tp2b": "2b:" };
     const tp_text = tp_text_dict[method] ?? "unknown";
-    const result = $("<div class='btn btn-outline-primary'></div>")
+    const result = $("<div class='btn btn-outline-primary ai-tool'></div>")
 
     // 描述
     $("<span class='ai_dev' method='" + method + "'>" + tp_text + "</span>").appendTo(result);
@@ -299,7 +299,7 @@ export function ai_render_tools() {
 
     // // $("<div> 開發測試中... </div>").appendTo(fhlInfoContent);
 
-    fhlInfoContent.append("<h5>原文相關</h5>")
+    fhlInfoContent.append("<h5 class='ai-h'>原文相關</h5>")
 
     render_ai_parsing_tp1_core('tp1').appendTo(fhlInfoContent);
     render_ai_parsing_tp1_core('tp1a').appendTo(fhlInfoContent);
@@ -308,7 +308,7 @@ export function ai_render_tools() {
     render_ai_parsing_tp1_core('tp2a').appendTo(fhlInfoContent);
     render_ai_parsing_tp1_core('tp2b').appendTo(fhlInfoContent);
 
-    fhlInfoContent.append("<h5>譯本比較相關</h5>")
+    fhlInfoContent.append("<h5 class='ai-h'>譯本比較相關</h5>")
 
     render_ai_translation_tp1_core('tp1').appendTo(fhlInfoContent);
     render_ai_translation_tp1_core('tp1a').appendTo(fhlInfoContent);
@@ -317,7 +317,7 @@ export function ai_render_tools() {
     render_ai_translation_tp1_core('tp2a').appendTo(fhlInfoContent);
     render_ai_translation_tp1_core('tp2b').appendTo(fhlInfoContent);
 
-    //fhlInfoContent.append("<h5>開發中</h5>")
+    //fhlInfoContent.append("<h5 class='ai-h'>開發中</h5>")
     //render_ai_dev('tp1').appendTo(fhlInfoContent);
 
     if (isAlreadyRegistered == false) {
