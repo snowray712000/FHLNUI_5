@@ -467,6 +467,8 @@ function getAllDTextsFromAllChildrenNode(
 }
 
 function parsingToDOMs(str) {
+    // csb 詩篇 73 等卷首: `<h3><i>（詩篇73-89【1】` 沒有結尾 tag，DOMParser 會把後面整段都吞進 <i>，變成原始 html 顯示。補上結尾並去掉 <i>。
+    str = str.replace(/<h3><i>([^<]*)(?=<br\s*\/?>|\r?\n)/g, '<h3>$1</h3>');
     let r1 = new DOMParser().parseFromString(str, 'text/html') // as Document;
     return r1.querySelector('body').childNodes;
 }
