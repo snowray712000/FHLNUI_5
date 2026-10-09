@@ -1796,172 +1796,43 @@ body {
     cursor: pointer;
 }
 
-.commentSecBack{
-    display: block;
-    color: var(--fg-muted);
-    background: transparent;
-    cursor: pointer;
-    position: absolute;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    /* width: 50px; */
-    width: calc( 50px - var(--scrollbar-width) );
-    border-bottom-left-radius: 5px;
-    z-index: 1;
+/* 註釋 / 原文解析分頁：「前 後 [書卷背景] 標題」一列在捲動內容的最前面、一列在最後面 (與串珠一致)：
+   捲動時上面那列被推走不佔空間，捲到底不必回到上面就能按下一個 */
+#fhlInfoContent .info-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 0;
+    box-shadow: none; /* #parsingTable div 的內距 / 陰影不要套到工具列 */
 }
-
-.parsingSecBack{
-    display: block;
-    color: var(--fg-muted);
-    background: transparent;
-    cursor: pointer;
+#parsingTable .info-bar { padding: 6pt; }
+#fhlInfoContent .info-bar .btn { flex: none; white-space: nowrap; }
+#fhlInfoContent .info-bar .btnTitle { /* 標題：吃剩下的寬度，太長就截斷 (title 屬性看全文) */
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+#fhlInfoContent .info-bar .commentBackground { color: var(--dark-red-fg); }
+#fhlInfoContent .info-bar .commentBackground:hover { color: var(--danger-fg); }
+.comment-col {
     position: absolute;
-    top: 0px;
-    height: 200px;
-    left: 0px;
-    width: calc( 50px - var(--scrollbar-width) );
-    border-bottom-left-radius: 5px;
-    z-index: 1;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
 }
 #commentScrollDiv {
     overflow-y: scroll;
     overflow-x: hidden;
     text-align: justify;
-    bottom: 60px;
-    top: 6pt; /* 才不會字很小時，被上面那塊遮住 */
-    left: 0px;
-    right: 0px;
     position: absolute;
-    margin-top: 0px;
+    inset: 0;
     line-height: 1.1em;
     font-size: var(--fontsize);
-    padding: max(60px, calc(17px + max(40px, 0.8rem * var(--ui-k, 1) * 2) + 6px)) 50px 0px;
-    padding-left: calc(50px - var(--scrollbar-width) );
-    padding-right: calc(50px - var(--scrollbar-width) );
-
-}
-.commentSecBack span, .parsingSecBack span{
-    position: absolute;
-    top: 45%;
-    /* top: calc( 50% - 0.5em ); */
-    left: 0px;
-    width: 100%;
-    text-align: center;
-    font-size: 37pt;
+    padding: 0.5em 10px 1em;
 }
 
-.commentSecBack:hover, .parsingSecBack:hover {
-    color: var(--nav-hover-fg);
-    background: -webkit-linear-gradient(left, var(--nav-hover-bg) , transparent); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, var(--nav-hover-bg) , transparent); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, var(--nav-hover-bg) , transparent); /* Standard syntax (must be last) */
-}
-
-.commentSecNext{
-    display: block;
-    color: var(--fg-muted);
-    background: transparent;
-    cursor: pointer;
-    position: absolute;
-    top: 0px;
-    bottom: 0px;
-    /* right: 10px; */
-    right: calc( var(--scrollbar-width) );
-    /* width: 50px; */
-    width: calc( 50px - var(--scrollbar-width) );
-    border-bottom-right-radius: 5px;
-    z-index: 1;
-}
-
-.parsingSecNext {
-    display: block;
-    color: var(--fg-muted);
-    background: transparent;
-    cursor: pointer;
-    position: absolute;
-    top: 0px;
-    height: 200px;
-    width: calc( 50px - var(--scrollbar-width) );
-    right: calc(var(--scrollbar-width));
-    border-bottom-right-radius: 5px;
-    z-index: 1;
-}
-
-.commentSecNext span, .parsingSecNext span{
-    position: absolute;
-    top: 45%;
-    /* top: calc( 50% - 0.5em ); */
-    right: 0px;
-    width: 100%;
-    text-align: center;
-    font-size: 37pt;
-}
-
-.commentSecNext:hover, .parsingSecNext:hover {
-    color: var(--nav-hover-fg);
-    background: -webkit-linear-gradient(left, transparent , var(--nav-hover-bg)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, transparent , var(--nav-hover-bg)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, transparent , var(--nav-hover-bg)); /* Standard syntax (must be last) */
-}
-
-#commentTitle {
-    --ct-h: max(40px, calc(0.8rem * var(--ui-k, 1) * 2));
-    position: absolute; 
-    left: 10%; 
-    width: 80%;
-    text-wrap-mode: nowrap;
-    overflow-x: clip; 
-    top: 17px; 
-    /* transform: translate(-50%, 0%);  */
-    display: block; 
-    height: var(--ct-h); 
-    text-align: center; 
-    font-size: calc(0.8rem * var(--ui-k, 1)); /* 字跟介面大小；框高 40px 起，字太大時才跟著長，內距不放大 */
-    line-height: calc(var(--ct-h) - 2px);
-    cursor: default; 
-    margin: 0px; 
-    border: solid 1px var(--line);
-    border-radius: 5px; 
-    background: var(--raised-bg); 
-    box-shadow: 3px 3px 5px var(--shadow);
-    z-index: 1;
-}
-
-#commentTitle::before {
-    position: absolute;
-    top: -18px;
-    left: 50%;
-    transform: translate(-50%, 0%);
-    width: 120px;
-    height: 17px;
-    content: "";
-    border: solid 1px var(--line-strong);
-    border-width: 0px 4px;
-    z-index: 1;
-}
-
-.commentBackground {
-    position: absolute;
-    bottom: 25px;
-    right: 50px;
-    padding: 6px 22px;
-    border: solid 2px var(--line);
-    cursor: pointer;
-    font-size: calc(12pt * var(--ui-k, 1));
-    color: var(--dark-red-fg);
-    border-radius: 5px; 
-    background: var(--raised-bg); 
-    box-shadow: 3px 3px 5px var(--shadow);
-    z-index: 1;
-}
-
-.commentBackground:hover {
-    color: var(--danger-fg);
-    background: var(--surface2-bg); 
-}
 .commentJump {
     color: var(--ref-fg);
     cursor: pointer;
@@ -1973,22 +1844,25 @@ body {
 }
 #commentContent {
     font-family: LatinQuotes,'Zen Maru Gothic';
-    position: absolute; 
-    top: 0px; 
-    left: 0px; 
-    right: 0px; 
-    bottom: 0px; 
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
     display: block;
     overflow: hidden; 
     word-wrap: break-word; 
     word-break: normal; 
 }
+/* 原文解析：直排 (工具列 / 原文 / 灰框 / 表格 / 工具列)，表格吃剩下的高度 */
+#parsingBody {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+}
 #parsingTop {
+    flex: none;
     overflow-y: scroll;
-    padding-left: calc( 50px - var(--scrollbar-width) );
-    padding-right: calc( 50px - var(--scrollbar-width) );
-    padding-top: 1.25em;
-    padding-bottom: 0em ;
+    padding: 0.25em 10px 0;
     /* overflow-x: hidden; */
     font-size: var( --fontsize );
     line-height: 1.1em;
@@ -1997,10 +1871,8 @@ body {
 }
 /* 上下之間的灰框 (可拖曳)：中間一個小方塊把手，手指時高度加到 --touch-min */
 #parsingSplit {
-    position: absolute;
-    top: var(--parsing-top-h, 200px);
-    left: 0;
-    right: 0;
+    position: relative;
+    flex: none;
     height: 12px;
     background: var(--frame-bg);
     cursor: row-resize;
@@ -2134,24 +2006,14 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     opacity: 1;
     filter: none;
 }
-#parsing-where-title{
-    position: absolute;
-    top: 0.25em;
-    left: 0.25em;
-    font-size: 0.5em;
-    color: var(--fg-subtle); 
-}
 #parsingTable{
     margin-top: 0em;
 
     font-size: var(--fontsize);
     line-height: 1.1em;
 
-    top: calc(var(--parsing-top-h, 200px) + 12px);
-    bottom: var(--scrollbar-width);
-    left: 0px;
-    right: 0px;
-    position: absolute;
+    flex: 1 1 auto;
+    min-height: 0;
 
     padding: 0pt; /* 非必要，但較好看 */
 

@@ -20,11 +20,13 @@ export async function parsing_render_async() {
     // - 同時，也將 wid 與 原文綁成一對，這樣在 render top 就很簡單用
     ParsingCache.s.update_cache_and_normalize(jsonObj)
 
-    let html = parsing_render_top(jsonObj, ps)
-    html += parsing_render_bottom_table(jsonObj, jsonObj.N == 1 ? 'H' : 'G')
-
-    // 中間那個灰框，這也是為何 top 會是 212 px 的原因
-    html = "<div id='parsingSplit' title='拖曳調整上下高度；雙擊恢復預設'></div>" + html + "";
+    const top = parsing_render_top(jsonObj, ps)
+    // 上到下：原文 (捲動內容最前面有「前 後 標題」)、(中間灰框)、解析表格 (捲動內容最後面有同一列)；
+    // 工具列隨內容捲動，不佔固定的列 (與串珠一致)。flex 直排，表格吃剩下的高度，見 fhl.css #parsingBody
+    const table = parsing_render_bottom_table(jsonObj, jsonObj.N == 1 ? 'H' : 'G').replace(/<\/div>\s*$/, top.barBottom + '</div>')
+    const html = "<div id='parsingBody'>" + top.top
+        + "<div id='parsingSplit' title='拖曳調整上下高度；雙擊恢復預設'></div>"
+        + table + "</div>";
 
     FhlInfoContent.s.dom.html(html);
     setupSplit(FhlInfoContent.s.dom[0])
@@ -47,7 +49,8 @@ function setupSplit(host) {
     bar.addEventListener('dblclick', () => { host.style.removeProperty('--parsing-top-h'); save(null) })
     bar.addEventListener('pointerdown', e => {
         e.preventDefault()
-        const h0 = bar.offsetTop, y0 = e.clientY
+        const topEl = /** @type {HTMLElement} */ (host.querySelector('#parsingTop'))
+        const h0 = topEl.offsetHeight, y0 = e.clientY
         const max = Math.max(SPLIT_MIN, host.clientHeight - 12 - SPLIT_MIN)
         let cur = h0
         bar.setPointerCapture(e.pointerId)

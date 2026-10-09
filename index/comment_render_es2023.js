@@ -8,48 +8,29 @@ import { BibleConstant } from "./BibleConstant.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { sc_api_async } from "./sc_api_es2023.js";
 import { ScAddress } from "./ScResult_es2023.js";
+import { infoBarHtml } from "./InfoBar.es2023.js";
 import { splitStringByRegex } from "./splitStringByRegex.es2023.js";
 
 import { parseComment } from "./comments/parseComment.js"
 import { convertDocToDText } from "./comments/convertDocToDText.js"
 import { renderCommentDTexts } from "./comments/render_comments_in_dtexts.js"
 
-/**
- * 
- * @param {ScAddress} address 
- * @param {"prev"|"next"} prev_next 是否是上一章下一章
- */
-function generate_div_comment_back_next(address, prev_next) {
-    const book = address.book66();
-    const chap = address.chap;
-    const sec = address.sec;
-
-    const na_class = prev_next == "prev" ? "commentSecBack" : "commentSecNext";
-    const na_text = prev_next == "prev" ? "<span>❮</span>" : "<span>❯</span>"; // 左箭頭或右箭頭
-
-    const jdom = $("<div></div>")
-        .addClass(na_class)
-        .attr("book", book).attr("chap", chap).attr("sec", sec)
-    $(na_text).appendTo(jdom);
-    return jdom;
+/** @param {ScAddress | null | undefined} sc 沒有 (第一 / 最後) 就是 null */
+function toAddr(sc) {
+    return sc ? { book: sc.book66(), chap: sc.chap, sec: sc.sec } : null
 }
-function generate_div_comment_title(sc) {
-    const ps = TPPageState.s;
-
-    if (ps.chap == 0) {
-        return $("<div id='commentTitle'></div>").text(gbText("書卷資料"));
-    } else {
-        return $("<div id='commentTitle'></div>").text(sc.record[0].title);
-    }
+function comment_title(sc) {
+    return TPPageState.s.chap == 0 ? gbText("書卷資料") : sc.record[0].title
 }
 function generate_top_div_comment(isEmpty = false) {
     if (isEmpty) {
         return $("<div style='position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); '></div>").text(gbText("施工中..."));
     } else {
-        return $("<div style='position: static; padding: 0px; top: 0px; bottom: 0px; overflow: auto;'></div>");
+        return $("<div class='comment-col'></div>");
     }
 }
-function generate_div_background() {
+/** 「書卷背景」/「返回註釋」按鈕 (放在前 後之後、標題之前) */
+function background_button_html() {
     const ps = TPPageState.s;
 
     const book = ps.bookIndex;
@@ -57,26 +38,18 @@ function generate_div_background() {
     const sec = ps.chap != 0 ? 0 : ps.commentBackgroundSec;
     const text = ps.chap != 0 ? gbText("書卷背景") : gbText("返回註釋");
 
-    return $("<div></div>")
-        .addClass("commentBackground")
-        .attr({ book, chap, sec })
-        .text(text);
+    return `<button class="commentBackground btn btn-sm btn-outline-secondary" book="${book}" chap="${chap}" sec="${sec}">${text}</button>`;
 }
-
-
-
 
 /**
  * ### fhlInfoContent 重構過來的
 <div#fhlInfoContent>
-  <div.top>
-    <div#commentTitle></div>
-    <div#commentBackground></div>
+  <div.comment-col>
     <div#commentContent>
-      <div.commentSecBack></div>
-      <div.commentSecNext></div>
       <div#commentScrollDiv>
+        <div.info-bar-top> 前 後 書卷背景 標題 </div>
         ...
+        <div.info-bar-bottom> (同上) </div>
       </div>
     </div>
   </div>
@@ -88,17 +61,13 @@ export async function comment_render_async() {
     if (res.status === "success" && res.record_count !== 0) {
         let jtop = generate_top_div_comment(false);
 
-        generate_div_comment_title(res).appendTo(jtop)
-        generate_div_background().appendTo(jtop);
+        const barOpt = pos => infoBarHtml({
+            prev: { cls: 'commentSecBack', addr: toAddr(res.prev != null ? new ScAddress(res.prev) : null) },
+            next: { cls: 'commentSecNext', addr: toAddr(res.next != null ? new ScAddress(res.next) : null) },
+            extrasHtml: background_button_html(), title: comment_title(res), pos,
+        })
 
         let jcommentContent = $("<div id='commentContent'></div>").appendTo(jtop);
-
-        if (res.prev != null) {
-            generate_div_comment_back_next(new ScAddress(res.prev), "prev").appendTo(jcommentContent);
-        }
-        if (res.next != null) {
-            generate_div_comment_back_next(new ScAddress(res.next), "next").appendTo(jcommentContent);
-        }
 
         // render comment content
         let jcommentScrollDiv = $("<div id='commentScrollDiv'></div>").appendTo(jcommentContent);
@@ -107,7 +76,8 @@ export async function comment_render_async() {
         const doc = parseComment(res.record[0].com_text, address)
         const dtexts = convertDocToDText(doc)
         renderCommentDTexts(dtexts, jcommentScrollDiv)
-        jcommentContent.append($("<br/><br/><br/><br/>")) // 為了不要被遮到最下面
+        // 隨內容捲動 (與串珠一致)：開頭一列、結尾一列 (render 會清掉容器，所以在它之後才放)
+        jcommentScrollDiv.prepend(barOpt('top')).append(barOpt('bottom'))
         // generate_div_comment_content(res).appendTo(jcommentContent);
 
         $("#fhlInfoContent").html(jtop);

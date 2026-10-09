@@ -1,21 +1,21 @@
 /// <reference path="./fhlParsing.d.js" />
 
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js"
+import { infoBarHtml } from "./InfoBar.es2023.js"
 import { splitStringByRegex } from "./splitStringByRegex.es2023.js"
 /**
  * 於 fhlInfoContent.js 重構出來
  * @param {IDParsingResult} jsonObj 
  * @param {IDAddress} ps
- * @returns {string} html description string 
+ * @returns {{barBottom: string, top: string}} 原文與直譯 (最前面已含上列工具列)、下列工具列 (組裝見 parsing_render_async)
  */
 export function parsing_render_top(jsonObj, ps){
-    // - 產生 2 個 button ， 與一個 title
-    let chap_ctrl_str = generate_parsing_top_button_title(ps, jsonObj)
-    // - 產生 原文 與 直譯
+    // - 上下兩列 (前 後 標題)，與 原文 / 直譯
+    const bars = generate_parsing_bars(ps, jsonObj)
     let div_parsingTop2 = generate_parsing_top_div(jsonObj, ps)
 
-    let html = chap_ctrl_str + div_parsingTop2[0].outerHTML
-    return html
+    div_parsingTop2.prepend(bars.top) // 上列放在原文區捲動內容的最前面 (捲動時被推走)，下列由 parsing_render_async 放在表格最後
+    return { barBottom: bars.bottom, top: div_parsingTop2[0].outerHTML }
 }
 
 function is_record_count_mismatch_with_word_split(word,cnt_of_record){
@@ -303,49 +303,25 @@ function generate_parsing_top_div(jsonObj,ps){
     }
 }
 /**
- * ### 產生 <div.parsingSecBack></div><div.parsingSecNext></div><div#parsing-where-title></div>
+ * ### 產生上、下兩列「前 後 標題」(與串珠一致，見 InfoBar.es2023.js)
  * @param {IDAddress} ps 
  * @param {{prev:IDAddress, next: IDAddress}} jsonObj
- * @returns {string} 
+ * @returns {{top: string, bottom: string}} html；bookIndex 不明時兩者都是空字串
  */
-function generate_parsing_top_button_title(ps, jsonObj){
+export function generate_parsing_bars(ps, jsonObj){
     if ( Object.hasOwn(ps, 'bookIndex') == false ){
         throw new Error("ps.bookIndex is required");
     }
-    let bookId = ps.bookIndex
-    
-
+    const bookId = ps.bookIndex
     if (bookId == undefined || bookId == -1) {
-        return ""
+        return { top: '', bottom: '' }
     }
-
-    let prev_button = generate_parsing_sec_back_button()
-    let next_button = generate_parsing_sec_next_button()
-    let parsing_where_title = generate_parsing_where_title(ps)
-    
-    return prev_button + next_button + parsing_where_title
-
-    function generate_parsing_sec_back_button(){                                    
-        if (bookId == 1 && ps.chap == 1 && ps.sec == 1) {
-            // add by snow. 2021.07 存在空白會錯誤
-            return ""
-        } else {
-            const prev = jsonObj.prev
-            return `<div class='parsingSecBack' book='${prev.book}' chap='${prev.chap}' sec='${prev.sec}'><span>&#x276e;</span></div>`
-        }
-    }
-    function generate_parsing_sec_next_button(){
-        if (bookId == 66 && ps.chap == 22 && ps.sec == 21) {
-            // add by snow. 2021.07 存在空白會錯誤
-            return ""
-        } else {
-            const next = jsonObj.next
-            return `<div class='parsingSecNext' book='${next.book}' chap='${next.chap}' sec='${next.sec}'><span>&#x276f;</span></div>`
-        }
-    }
-    function generate_parsing_where_title(){
-        let bookName = BibleConstantHelper.getBookNameArrayChineseFull(ps.gb)[bookId - 1]
-        
-        return `<div id='parsing-where-title'>${bookName}&nbsp;${ps.chap}:${ps.sec}</div>`
-    }
+    // 創 1:1 / 啟 22:21 沒有上一節 / 下一節 (add by snow. 2021.07 存在空白會錯誤)
+    const prev = bookId == 1 && ps.chap == 1 && ps.sec == 1 ? null : jsonObj.prev
+    const next = bookId == 66 && ps.chap == 22 && ps.sec == 21 ? null : jsonObj.next
+    const title = `${BibleConstantHelper.getBookNameArrayChineseFull(ps.gb)[bookId - 1]} ${ps.chap}:${ps.sec}`
+    const mk = (/** @type {'top'|'bottom'} */ pos) => infoBarHtml({
+        prev: { cls: 'parsingSecBack', addr: prev }, next: { cls: 'parsingSecNext', addr: next }, title, pos,
+    })
+    return { top: mk('top'), bottom: mk('bottom') }
 }
