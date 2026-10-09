@@ -170,3 +170,32 @@ export function renderVerseGrid(opt) {
     })
     return $grid
 }
+
+// 出處欄寬：搜尋結果、交互參照共用 (同一個紀錄)
+export const LABEL_W_KEY = 'fhlSearchLabelW'
+export const readLabelW = () => { try { const n = +(localStorage.getItem(LABEL_W_KEY) ?? 0); return n >= 40 ? n : 0 } catch { return 0 } }
+/** 出處欄 (表頭最左空格) 右邊的分隔線：拖曳改欄寬 (px，記 localStorage)，雙擊回預設 @param {HTMLElement | undefined} cell @param {HTMLElement} host */
+export function addLabelHandle(cell, host) {
+    if (!cell) return
+    const h = document.createElement('span')
+    h.className = 'lec-col-handle' + (readLabelW() ? ' custom' : '') // custom = 已自訂 (強調色)
+    h.title = '拖曳調整出處欄寬；雙擊恢復預設'
+    const save = (/** @type {number | null} */ w) => { try { w ? localStorage.setItem(LABEL_W_KEY, String(Math.round(w))) : localStorage.removeItem(LABEL_W_KEY) } catch { /* 不記也能用 */ } }
+    h.addEventListener('click', e => e.stopPropagation())
+    h.addEventListener('dblclick', e => { e.stopPropagation(); host.style.removeProperty('--vg-label-w'); save(null); h.classList.remove('custom') })
+    h.addEventListener('pointerdown', e => {
+        e.preventDefault(); e.stopPropagation()
+        const w0 = cell.getBoundingClientRect().width, x0 = e.clientX
+        let cur = w0
+        h.setPointerCapture(e.pointerId)
+        document.body.classList.add('lec-col-resizing')
+        const move = (/** @type {PointerEvent} */ ev) => { cur = Math.max(40, w0 + ev.clientX - x0); host.style.setProperty('--vg-label-w', cur + 'px') }
+        const up = () => {
+            h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up)
+            document.body.classList.remove('lec-col-resizing')
+            save(cur); h.classList.add('custom')
+        }
+        h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up)
+    })
+    cell.append(h)
+}

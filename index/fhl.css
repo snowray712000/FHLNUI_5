@@ -2108,6 +2108,18 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     text-decoration: none;
 }
 #bible-version-dialog div.group-help:hover { background: var(--pressed-bg); }
+/* 📌：同字典的 .fn-sn-pin，淡 = 沒釘，亮 = 釘住 */
+#bible-version-dialog .vpin {
+    cursor: pointer;
+    margin-left: 0.4em;
+    font-style: normal;
+    opacity: 0.35;
+    filter: grayscale(1);
+}
+#bible-version-dialog .vpin:hover, #bible-version-dialog .vpin.active {
+    opacity: 1;
+    filter: none;
+}
 #parsing-where-title{
     position: absolute;
     top: 0.25em;

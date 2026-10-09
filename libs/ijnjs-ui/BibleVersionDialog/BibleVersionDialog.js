@@ -173,6 +173,43 @@
     var chSub$ = dlg$.find('.ch-sub')
     var vers$ = dlg$.find('.vers')
 
+    // 📌 釘住的譯本 / 組合 (不被「常用」滿 10 個擠掉、不被清除，開啟時一定在)。存在這個對話框自己的 localStorage
+    // vers: ['kjv', ...]  sets: ['unv,kjv', ...] (順序不同視為不同組)
+    var PIN_KEY = 'fhlVersionPins'
+    var pins = loadPins()
+    function loadPins() {
+      try {
+        var o = JSON.parse(localStorage.getItem(PIN_KEY))
+        return { vers: Array.isArray(o.vers) ? o.vers : [], sets: Array.isArray(o.sets) ? o.sets : [] }
+      } catch (e) { return { vers: [], sets: [] } }
+    }
+    function savePins() {
+      try { localStorage.setItem(PIN_KEY, JSON.stringify(pins)) } catch (e) { }
+    }
+    /** 一個晶片的鍵：譯本是 na，組合是 'na,na,...' */
+    function chipKey(span$) {
+      var d = span$.data('data')
+      return Array.isArray(d) ? d.map(a => a.na).join(',') : d.na
+    }
+    /** 補上 📌、標 .pinned，釘住的排到「常用」「Sets」前面 (選取的順序有意義，不動) */
+    function refreshPins() {
+      [[selecteds$, 'vers'], [offens$, 'vers'], [sets$, 'sets']].forEach(([box$, kind]) => {
+        var spans = box$.children('span')
+        spans.each(function () {
+          var s$ = $(this)
+          var on = pins[kind].includes(chipKey(s$))
+          var p$ = s$.children('.vpin')
+          if (p$.length == 0) { p$ = $('<i>', { class: 'vpin', text: '📌', title: '釘住 / 拔掉' }).appendTo(s$) }
+          p$.toggleClass('active', on)
+          s$.toggleClass('pinned', on)
+        })
+        if (box$ !== selecteds$) {
+          box$.prepend(spans.not('.pinned'))
+          box$.prepend(spans.filter('.pinned'))
+        }
+      })
+    }
+
 
     /**   
      * @param {{selects:string[];offens:string[];sets:string[][]}} jo 
@@ -407,12 +444,24 @@
 
       // offen 中的 help (清除常用)
       offens$.children('.group-help').on('click', function () {
-        offens$.children('span').remove()
+        offens$.children('span:not(.pinned)').remove()
       })
 
       // sets 中的 help (清除常用)
       sets$.children('.group-help').on('click', function () {
-        sets$.children('span').remove()
+        sets$.children('span:not(.pinned)').remove()
+      })
+
+      // 📌 (要早於 span 的 click，並擋掉冒泡，否則會連帶選取 / 取消譯本)
+      ;[[selecteds$, 'vers'], [offens$, 'vers'], [sets$, 'sets']].forEach(([box$, kind]) => {
+        box$.on('click', '.vpin', function (e) {
+          e.stopPropagation()
+          var key = chipKey($(this).parent())
+          var i = pins[kind].indexOf(key)
+          if (i < 0) { pins[kind].push(key) } else { pins[kind].splice(i, 1) }
+          savePins()
+          refreshPins()
+        })
       })
 
       // selecteds$ 中的 span
@@ -469,6 +518,7 @@
           }).data('data', data)
             .data('dom$', $(pthis))
             .appendTo(selecteds$)
+          refreshPins()
         }
         function removeIfOffenExist() {
           var r1 = Enumerable.from(offens$.children('span'))
@@ -497,7 +547,8 @@
           }).data('data', data)
             .data('dom$', $(pthis))
             .prependTo(offens$)
-          offens$.children(':gt(10)').remove()
+          refreshPins()
+          offens$.children('span:not(.pinned)').slice(10).remove() // 釘住的不算、不擠掉
         }
       }
       function addChineseSubOptions() {
@@ -615,7 +666,10 @@
         }
         sets.unshift(selects)
         if (sets.length > 10) {
-          sets.pop()
+          // 擠掉最舊的「沒釘住」的一組
+          for (let i = sets.length - 1; i >= 0; i--) {
+            if (!pins.sets.includes(sets[i].join(','))) { sets.splice(i, 1); break }
+          }
         }
 
         return
@@ -641,12 +695,17 @@
       var r3 = vers$.find('.book-item')
       r3.removeClass('active')
 
+      // 釘住的一定在 (已選取的不重複放進常用，否則連點兩次會把選取取消)
+      var offensAll = jo.offens.concat(pins.vers.filter(a1 => !jo.offens.includes(a1) && !jo.selects.includes(a1)))
+      var setsAll = jo.sets.concat(pins.sets.map(a1 => a1.split(',')).filter(a1 => !jo.sets.some(b1 => b1.join(',') == a1.join(','))))
+
       getWhereNa(jo.selects).forEach(a1 => a1.trigger('click'))
-      getWhereNa(jo.offens).reverse().forEach(a1 => {
+      getWhereNa(offensAll).reverse().forEach(a1 => {
         $(a1).trigger('click')
         $(a1).trigger('click') // trigger 兩次就會被移到 常用了        
       })
-      jo.sets.forEach(addEachSet)
+      setsAll.forEach(addEachSet)
+      refreshPins()
 
       return
       function addEachSet(set) {

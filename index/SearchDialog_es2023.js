@@ -14,7 +14,7 @@ import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
 import { greekLooseRegexSource } from './greekToFhlCode.es2023.js'
 import { hebLooseRegexSource, isHebrewKeyword } from './hebCode.es2023.js'
 import { cvt_others } from './cvt_others.js'
-import { renderVerseGrid, renderVerseGridHeader, effectiveLayout, labelTemplate, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from './VerseGrid.es2023.js'
+import { renderVerseGrid, renderVerseGridHeader, effectiveLayout, labelTemplate, readLabelW, addLabelHandle, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from './VerseGrid.es2023.js'
 import { ColWidth } from './ColWidth.es2023.js'
 import { SnFilter } from './SnFilter.es2023.js'
 import { queryFootsAsync } from './queryFootsAsync.js'
@@ -381,34 +381,6 @@ function writeCompare(on) {
  * @param {SearchSession} session
  * @returns {import('./VerseGrid.es2023.js').GridOpt}
  */
-const LABEL_W_KEY = 'fhlSearchLabelW'
-const readLabelW = () => { try { const n = +(localStorage.getItem(LABEL_W_KEY) ?? 0); return n >= 40 ? n : 0 } catch { return 0 } }
-/** 出處欄 (表頭最左空格) 右邊的分隔線：拖曳改欄寬 (px，記 localStorage)，雙擊回預設 @param {HTMLElement | undefined} cell @param {HTMLElement} host */
-function addLabelHandle(cell, host) {
-    if (!cell) return
-    const h = document.createElement('span')
-    h.className = 'lec-col-handle' + (readLabelW() ? ' custom' : '') // custom = 已自訂 (強調色)
-    h.title = '拖曳調整出處欄寬；雙擊恢復預設'
-    const save = (/** @type {number | null} */ w) => { try { w ? localStorage.setItem(LABEL_W_KEY, String(Math.round(w))) : localStorage.removeItem(LABEL_W_KEY) } catch { /* 不記也能用 */ } }
-    h.addEventListener('click', e => e.stopPropagation())
-    h.addEventListener('dblclick', e => { e.stopPropagation(); host.style.removeProperty('--vg-label-w'); save(null); h.classList.remove('custom') })
-    h.addEventListener('pointerdown', e => {
-        e.preventDefault(); e.stopPropagation()
-        const w0 = cell.getBoundingClientRect().width, x0 = e.clientX
-        let cur = w0
-        h.setPointerCapture(e.pointerId)
-        document.body.classList.add('lec-col-resizing')
-        const move = (/** @type {PointerEvent} */ ev) => { cur = Math.max(40, w0 + ev.clientX - x0); host.style.setProperty('--vg-label-w', cur + 'px') }
-        const up = () => {
-            h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up)
-            document.body.classList.remove('lec-col-resizing')
-            save(cur); h.classList.add('custom')
-        }
-        h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up)
-    })
-    cell.append(h)
-}
-
 function gridOpt(session) {
     const ps = TPPageState.s
     const failed = new Set(session.failedVersions.map(a => a.ver))

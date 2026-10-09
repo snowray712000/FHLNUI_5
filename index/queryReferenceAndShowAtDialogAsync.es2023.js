@@ -5,7 +5,7 @@ import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml } from "./DialogHtml.es2023.js"
 import { ColWidth } from "./ColWidth.es2023.js"
 import { SnFilter } from "./SnFilter.es2023.js"
-import { renderVerseGrid, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from "./VerseGrid.es2023.js"
+import { renderVerseGrid, readLabelW, addLabelHandle, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from "./VerseGrid.es2023.js"
 import { cvtAddrsToRef } from "./cvtAddrsToRef.es2023.js"
 import { BibleConstant } from "./BibleConstant.es2023.js"
 import { assert } from "./assert_es2023.js"
@@ -223,6 +223,8 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
 
 }
 
+const LABEL_TPL = 'var(--vg-label-w, max-content)' // 出處欄寬：表頭可拖 (記錄與搜尋結果共用)
+
 /**
  * 並排多譯本時的欄寬 (自動 / 拖表頭自訂 / 雙擊回自動，與經文區、搜尋結果共用紀錄)；單欄時清掉
  * @param {HTMLElement} host 對話框內容 (--vg-tpl 放這裡)
@@ -231,11 +233,15 @@ function applyColWidth(host) {
     const grid = host.querySelector('.verse-grid.vg-side')
     const getHeadCells = () => [...host.querySelectorAll('.vg-head[data-ver]')]
     const heads = getHeadCells()
+    // 出處欄寬 (與搜尋結果共用紀錄)：表頭最左空格右邊的分隔線可拖；交錯排列沒有表頭 / 出處欄
+    const savedW = readLabelW()
+    if (savedW) host.style.setProperty('--vg-label-w', savedW + 'px'); else host.style.removeProperty('--vg-label-w')
+    if (grid) addLabelHandle(grid.querySelector('.vg-head:not([data-ver])'), host)
     if (!grid || heads.length < 2) {
         host.style.removeProperty('--vg-tpl')
         return
     }
-    new ColWidth({ host, varName: '--vg-tpl', versions: heads.map(h => h.dataset.ver), labelTpl: 'max-content ', getHeadCells, measureRoot: grid }).apply()
+    new ColWidth({ host, varName: '--vg-tpl', versions: heads.map(h => h.dataset.ver), labelTpl: LABEL_TPL + ' ', getHeadCells, measureRoot: grid }).apply()
 }
 
 const FIRST_ONLY_KEY = 'fhlRefDlgFirstOnly'
@@ -300,8 +306,9 @@ function render_reference_grid(order, byVer, versions, ps) {
         versions: versions.map(ver => ({ version: ver, name: abvphp.get_cname_from_book(ver, isGb) || ver, isRtl: ver == 'bhs' })),
         rows,
         layout: ps.show_mode == 2 || ps.show_mode == 4 ? 'interleaved' : 'side',
-        isHeader: versions.length > 1,
+        isHeader: versions.length > 1 || !(ps.show_mode == 2 || ps.show_mode == 4), // 並排單譯本也要表頭，出處欄寬才有地方拖
         isLabel: true,
+        labelWidth: LABEL_TPL,
         numberDTextOf: v => ({ isRef: 1, refDescription: `${names[v.book - 1]}${v.chap}`, refAddresses: BibleConstantHelper.generateAddressesTpF(v.book, v.chap) }),
     })
     // .sn-filter-scope：SN 篩選設定改變時 SnFilter.applyAll 會重新套用
