@@ -37,7 +37,7 @@ import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
 import { fetchJsonAsync } from './fetchAsync.es2023.js'
 import { SearchTool } from './SearchTool.es2023.js'
 import { normalizeActiveAddr, highlightActiveRefs } from './highlightActiveRefs.es2023.js'
-import { SAME_TITLE_HTML, bindSameHelp } from './SameHelp.es2023.js'
+import { SAME_TITLE_HTML, bindSameHelp } from './IntroHelp.es2023.js'
 
 /*
 並排 (mode 1/3)：CSS Grid，列高由 grid 對齊 (docs/z260930d)

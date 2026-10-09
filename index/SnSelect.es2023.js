@@ -3,6 +3,7 @@ import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPa
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { SnFilter } from "./SnFilter.es2023.js";
+import { helpButtonHtml, bindIntroHelp } from "./IntroHelp.es2023.js";
 import { SnFilterDialog } from "./SnFilterDialog.es2023.js";
 
 export class SnSelect {
@@ -38,6 +39,7 @@ export class SnSelect {
                 SnFilter.s.applyAll(); // 搜尋結果、交互參照對話框
                 SnFilterDialog.s.render();
             });
+        bindIntroHelp($('#snFilterBtn').parent(), 'sn')
         $('#snFilterBtn').off('click').on('click', () => SnFilterDialog.s.open())
             .off('contextmenu').on('contextmenu', ev => { // 右鍵、手機長按：快速切換讀經組合
                 ev.preventDefault();
@@ -48,7 +50,7 @@ export class SnSelect {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
         
-        var html = "<div>" + gbText("原文編號", ps.gb)
+        var html = "<div>" + gbText("原文SN", ps.gb) + helpButtonHtml("原文SN")
             + '<span id="snFilterBtn" class="sn-filter-btn" title="' + gbText("SN 篩選：只顯示指定的 SN (右鍵、長按：切換讀經組合)", ps.gb) + '"><i class="fa fa-filter"></i></span>'
             + ":</div>";
         html += '<div class="onOffSwitch">\

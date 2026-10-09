@@ -116,7 +116,7 @@ export class FontSizeDialog {
         const sub = el('div', { class: 'fs-sub' },
             sizeRow('hebrew', '希伯來文'),
             sizeRow('greek', '希臘文'),
-            sizeRow('sn', '原文編號'))
+            sizeRow('sn', '原文SN'))
 
         const preview = el('div', { class: 'fs-preview', title: t('預覽') },
             el('div', { class: 'fs-pv-main' }, t('太初有道，道與神同在'), el('span', { class: 'fs-sn', text: '<G3056>' })),

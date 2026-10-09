@@ -2040,8 +2040,8 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
 .item-title {
     color: var(--pos-title-fg);
 }
-/* 同源字旁的 ?，按了開說明 (SameHelp.es2023.js)；跟介面大小 */
-.same-help {
+/* 同源字旁的 ?，按了開說明 (IntroHelp.es2023.js)；跟介面大小 */
+.intro-help {
     width: calc(18px * var(--ui-k, 1));
     height: calc(18px * var(--ui-k, 1));
     margin: 0 2px;
@@ -2056,8 +2056,8 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     vertical-align: middle;
     cursor: pointer;
 }
-.same-help:hover { background: var(--brand); color: var(--fg-on-accent); }
-.same-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
+.intro-help:hover { background: var(--brand); color: var(--fg-on-accent); }
+.intro-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
 .parsing-verb {
     /* 鮮橘色 動作感強 */
     color: var(--pos-verb-fg);

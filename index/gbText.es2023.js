@@ -14,7 +14,7 @@ export function gbText(str, gb = null) {
 
     var r1 = {
         "設定": "设定",
-        "原文編號": "原文编号",
+        "原文SN": "原文SN",
         "即時SN": "即时SN",
         "繁簡切換": "繁简切换",
         "TSK顯示模式": "TSK显示模式",
