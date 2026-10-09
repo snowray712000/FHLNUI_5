@@ -2,7 +2,7 @@
 
 import { splitReference } from "./splitReference.es2023.js" // 經文章節，成為ref
 import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
-import { DialogHtml } from "./DialogHtml.es2023.js"
+import { DialogHtml, contentFontK } from "./DialogHtml.es2023.js"
 import { ColWidth } from "./ColWidth.es2023.js"
 import { SnFilter } from "./SnFilter.es2023.js"
 import { renderVerseGrid, readLabelW, addLabelHandle, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from "./VerseGrid.es2023.js"
@@ -192,9 +192,10 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
             let dlg = new DialogHtml()
             dlg.showDialog({
                 html: html,
+                sizeKey: 'ref',
                 getTitle: () => addrsDescription,
                 // 並排：譯本多就寬一點 (標籤欄 + 每個譯本約 320px)
-                width: isSide && cntVer > 1 ? Math.min(window.innerWidth * 0.95, 120 + 320 * cntVer) : undefined,
+                width: Math.min(window.innerWidth - 16, (isSide && cntVer > 1 ? 120 + 320 * cntVer : 560) * contentFontK()),
                 registerEventWhenShowed: dlg => {
                     applyColWidth(dlg[0])
                     dlg.on('change', '.ref-first-only', ev => {

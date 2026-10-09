@@ -22,6 +22,7 @@ export function queryDictionaryAndShowAtDialogAsync(jo) {
         let dlg = new DialogHtml()
         dlg.showDialog({
             html: html,
+            sizeKey: 'dict',
             getTitle: () => "原文字典" + jo.sn,
             registerEventWhenShowed: dlg => {
                 const sn = jo.sn // str

@@ -2050,6 +2050,19 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
 .ui-dialog-content{
     font-size: var( --fontsize );
 }
+/* jQuery UI 的內距是 .5em 1em，字一大左右就各空出一大塊 (捲軸離內容很遠)；改用跟字型無關的 rem */
+.ui-dialog .ui-dialog-content {
+    padding: 0.5rem 0.75rem;
+}
+/* 對話框自己有高度，內容區用 flex 填滿 (jQuery UI 拖曳時 alsoResize 內容區，寬高會漸漸對不上)；DialogHtml 加的 class */
+.ui-dialog.dlg-fluid { display: flex; flex-direction: column; }
+.ui-dialog.dlg-fluid[style*="display: none"] { display: none; }
+.ui-dialog.dlg-fluid > .ui-dialog-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: auto !important;
+    height: auto !important;
+}
 /* 使用說明等 markdown 對話框：github-markdown-css 寫死 16px，改跟內容大小 */
 .ui-dialog-content .markdown-body { font-size: var(--fontsize); }
 /* 譯本選擇對話框：按鈕的字屬於「內容大小」，跟容器 (.ui-dialog-content = --fontsize) 一樣大。

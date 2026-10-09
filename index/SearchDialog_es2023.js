@@ -1,4 +1,4 @@
-import { DialogHtml } from './DialogHtml.es2023.js'
+import { DialogHtml, contentFontK } from './DialogHtml.es2023.js'
 import { SearchSession } from './SearchSession_es2023.js'
 import { Search_suggestFilter } from './Search_suggestFilter_es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
@@ -132,7 +132,8 @@ export class SearchDialog {
                 <div class="sd-books"></div>
                 <div id="searchDlgResults" class="sd-results"></div>
             </div>`,
-            width: isNarrow ? window.innerWidth - 16 : Math.min(window.innerWidth * 0.8, 1100),
+            width: isNarrow ? window.innerWidth - 16 : Math.min(window.innerWidth * 0.95, Math.max(window.innerWidth * 0.8, 1100 * contentFontK())),
+            sizeKey: isNarrow ? undefined : 'search',
             height: window.innerHeight * (isNarrow ? 0.9 : 0.85),
             maxHeight: window.innerHeight,
             getTitle: () => gbText('搜尋'),
