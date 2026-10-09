@@ -245,7 +245,7 @@ function render_ai_parsing_tp1_core(method) {
 
     // ❓
     if (["tp1", "tp1a", "tp1b"].indexOf(method) >= 0) {
-        $("<span class='ai_parsing_help' method='" + method + "'>❓</span>").appendTo(result);
+        $("<span class='intro-help ai_parsing_help' method='" + method + "' title='說明'>?</span>").appendTo(result);
     }
 
     // 🔧
@@ -262,7 +262,7 @@ function render_ai_translation_tp1_core(method) {
 
     // ❓
     if (["tp1", "tp1a", "tp1b"].indexOf(method) >= 0) {
-        $("<span class='ai_translation_help' method='" + method + "'>❓</span>").appendTo(result);
+        $("<span class='intro-help ai_translation_help' method='" + method + "' title='說明'>?</span>").appendTo(result);
     }
 
     // 🔧
@@ -281,7 +281,7 @@ function render_ai_dev(method) {
 
     // ❓
     if (["tp1", "tp1a", "tp1b"].indexOf(method) >= 0) {
-        $("<span class='ai_dev_help' method='" + method + "'>❓</span>").appendTo(result);
+        $("<span class='intro-help ai_dev_help' method='" + method + "' title='說明'>?</span>").appendTo(result);
     }
 
     // 🔧

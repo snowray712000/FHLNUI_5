@@ -1747,7 +1747,9 @@ body {
     border: solid 1px var(--line);
     border-width: 1px 1px 0px;
 }
+#fhlInfoTitle { position: relative; }
 #fhlInfoTitle ul {
+  white-space: nowrap; /* 放不下的由 FhlInfoTitle 收進 ⋯ 選單，不換行 */
   width:100%;  
   list-style: none; 
   margin: 0px 0px 3px;
@@ -1763,6 +1765,52 @@ body {
   margin-right:3px;
   z-index:0;
 }
+#fhlInfoTitle.tabs-over { text-align: left; }
+#fhlInfoTitle li.tab-over { display: none !important; }
+/* 放不下時才出現的「⋯」，放不下的分頁收在它的選單裡；選中的分頁被收起時變色 */
+#fhlInfoTitle .tab-more {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    min-width: var(--touch-min, 0px);
+    padding: 0 0.7em 0 0.3em;
+    border: none;
+    border-left: 1px solid var(--line);
+    background: var(--frame-bg);
+    color: var(--fg-muted);
+    font: bold calc(12pt * var(--ui-k, 1))/1 sans-serif;
+    cursor: pointer;
+}
+#fhlInfoTitle .tab-more[hidden] { display: none; }
+#fhlInfoTitle .tab-more:hover { color: var(--accent-fg); }
+#fhlInfoTitle .tab-more.has-selected { color: var(--accent-fg); }
+.tab-more-menu {
+    position: absolute;
+    top: var(--bar-h);
+    right: 4px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    min-width: 8em;
+    padding: 4px 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: var(--surface-bg);
+    box-shadow: 2px 3px 6px var(--shadow);
+}
+.tab-more-menu button {
+    padding: 0.35em 1em;
+    min-height: var(--touch-min, 0px);
+    border: none;
+    background: none;
+    color: var(--fg);
+    font-size: calc(12pt * var(--ui-k, 1));
+    text-align: left;
+    cursor: pointer;
+}
+.tab-more-menu button:hover { background: var(--hover-bg); }
+.tab-more-menu button.selected { color: var(--accent-fg); font-weight: bold; }
 #fhlInfoTitle li:hover{
   /*background-color: #C0C0C0;*/
 }
@@ -1955,13 +2003,25 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     padding: 0.25em 0.6em;
     min-height: var(--touch-min, 0px);
 }
-/* AI 分頁的按鈕 (複製原文資料…)：字屬於「內容大小」，同譯本選擇對話框，字 / 內距 / 行高跟內容走，不留多餘空白 */
+/* AI 分頁的按鈕 (複製原文資料…)：是介面，字跟介面大小 (--ui-k)；內距 / 行高用 em，不留多餘空白 */
 #fhlInfoContent .btn.ai-tool {
-    font-size: var(--fontsize);
-    line-height: 1.5;
-    padding: 0.375em 0.75em;
+    font-size: calc(12pt * var(--ui-k, 1));
+    min-height: var(--touch-min, 0px);
+    line-height: 1.25;
+    padding: 0.25em 0.6em;
+    margin: 0;
 }
-#fhlInfoContent h5.ai-h { font-size: calc(var(--fontsize) * 1.25); margin: .5em 0 .25em; }
+/* 按鈕排成 flex 換行：不靠行內元素 (行距、空白字元會隨字變大而多出一截空白)，列距、欄距都用 gap */
+#fhlInfoContent:has(.ai-tool) {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: center;
+    gap: calc(12pt * var(--ui-k, 1) * 0.4) calc(12pt * var(--ui-k, 1) * 0.5);
+    padding: 0.5em 10px;
+}
+#fhlInfoContent h5.ai-h { flex: 0 0 100%; line-height: 1.25; }
+#fhlInfoContent h5.ai-h { font-size: calc(12pt * var(--ui-k, 1) * 1.25); margin: .5em 0 0; }
 /* 「選取、常用、Sets」是介面，字乘 --ui-k (不跟內容)，而且要按得到 (點了會開說明)：手指時寬高不低於 --touch-min (44px)。
    原本 absolute 掛在群組框右外側 (right -0.75rem, top -1rem)，變大 / 加寬後會超出對話框或蓋住上一組，
    改放進群組框右上角，群組右側留出同寬 (--gh-w)，晶片才不會排到標籤底下 */
@@ -2055,6 +2115,10 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     line-height: 1;
     vertical-align: middle;
     cursor: pointer;
+    display: inline-flex; /* span 也能用 (AI 按鈕上的 ?) */
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
 .intro-help:hover { background: var(--brand); color: var(--fg-on-accent); }
 .intro-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
