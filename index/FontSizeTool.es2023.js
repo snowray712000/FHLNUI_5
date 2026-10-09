@@ -46,9 +46,9 @@ export class FontSizeTool {
         dom[0].replaceChildren(
             el('div', { text: t('字型大小') + ':' }),
             el('div', { class: 'fs-ctl' },
+                gear,
                 el('button', { type: 'button', class: 'fs-btn', text: 'A−', title: t('小一點'), onclick: () => fs.stepScale(-1) }),
                 this.#val,
-                el('button', { type: 'button', class: 'fs-btn fs-big', text: 'A+', title: t('大一點'), onclick: () => fs.stepScale(1) }),
-                gear))
+                el('button', { type: 'button', class: 'fs-btn fs-big', text: 'A+', title: t('大一點'), onclick: () => fs.stepScale(1) })))
     }
 }

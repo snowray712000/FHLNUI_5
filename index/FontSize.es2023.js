@@ -169,7 +169,7 @@ export class FontSize {
      * @param {boolean} isSettled false: 拖曳滑桿中，先只改 css
      */
     set(key, v, isSettled = true) {
-        const sz = clampOf(key, v)
+        const sz = clampPt(v)
         if (sz == null) return
         this.profile = setActual(this.profile, this.scale, key, sz, this.link)
         this.#write(isSettled)
@@ -241,6 +241,9 @@ export class FontSize {
         style.setProperty("--ui-k", String(s.ui / UI_BASE))  // 介面 = UI_BASE × 整體大小
     }
 
+    /** 正在拖曳滑桿 (按著還沒放開)；為 true 時不重排版 */
+    isHolding = false
+
     /** @param {boolean} isSettled */
     #write(isSettled) {
         this.applyCss()
@@ -248,6 +251,7 @@ export class FontSize {
         // 拖曳滑桿時，停下來 200ms 才存、才重排版 (併排時要重新對齊各節高度，較費時)
         clearTimeout(this.#timer)
         this.#timer = setTimeout(() => {
+            if (this.isHolding) return // 手指 (滑鼠) 還按著滑桿：放開時 (change) 才存、才重排，否則重排會打斷觸控拖曳
             TPPageState.s.saveToLocalStorage()
             this.#save()
             this.#emit(true)

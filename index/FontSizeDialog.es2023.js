@@ -36,6 +36,7 @@ export class FontSizeDialog {
             html: '<div class="snf-dlg fs-dlg"></div>',
             width: isNarrow ? window.innerWidth - 16 : 520,
             maxHeight: window.innerHeight * 0.85,
+            position: { my: 'center top', at: 'center top', of: window }, // 貼齊頂端，預覽才看得到後面的經文
             getTitle: () => gbText('字型大小', TPPageState.s.gb),
             registerEventWhenShowed: dlg => {
                 this.#root = dlg.find('.fs-dlg')[0]
@@ -91,7 +92,12 @@ export class FontSizeDialog {
             const range = el('input', {
                 type: 'range', min, max, step, class: 'fs-range', 'aria-label': t(label),
                 oninput: e => set(e.target.value, false),
-                onchange: e => set(e.target.value, true),
+                onchange: e => { fs.isHolding = false; set(e.target.value, true) },
+            })
+            range.addEventListener('pointerdown', () => { fs.isHolding = true })
+            for (const ev of ['pointerup', 'pointercancel']) range.addEventListener(ev, () => {
+                fs.isHolding = false
+                set(range.value, true) // 放開時一定生效 (有些觸控裝置不送 change)
             })
             const num = el('input', {
                 type: 'number', min, max, step, class: 'fs-num', 'aria-label': t(label),

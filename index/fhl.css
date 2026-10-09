@@ -957,7 +957,7 @@ body {
 .onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
     right: 0px; 
 }
-/* 字型大小：側邊欄 A− 數字 A+ ⚙，按鈕寬度、數字寬度固定，按了不會移動 */
+/* 字型大小：側邊欄 ⚙ A− 數字 A+ (⚙ 在最前面，左欄很窄時至少看得到)，按鈕寬度、數字寬度固定，按了不會移動 */
 #settings .fs-ctl {
     display: inline-flex;
     align-items: center;
@@ -998,7 +998,8 @@ body {
     font-variant-numeric: tabular-nums;
 }
 .fs-gear {
-    margin-left: 4px;
+    flex: none;
+    margin-right: 4px;
     font-size: calc(14pt * var(--ui-k, 1));
     color: var(--fg-muted);
     cursor: pointer;
