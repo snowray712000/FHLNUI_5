@@ -45,6 +45,7 @@ function doLast1() {
           var r3 = $('<div id="version-infos"><div class="contents"></div></div>')
           $('body').append(r3)
 
+          var lastScrollTop = 0
           var cy = $(window).height()
           var cx = $(window).width()
           r3.dialog({
@@ -61,7 +62,10 @@ function doLast1() {
             show: {
               effect: 'highlight'
             },
+            // display:none 會丟掉捲動位置：關閉前記下來，打開 (內容已存在) 時還原
+            beforeClose: function () { lastScrollTop = r3.scrollTop() },
             open: function (event, ui) {
+              r3.scrollTop(lastScrollTop)
               var r4 = r3.find('.contents')
               if (r4.children().length == 0) {
                 setDomVersionInfo()
