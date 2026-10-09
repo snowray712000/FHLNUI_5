@@ -37,6 +37,7 @@ import { lecture_get_data_async } from "./lecture_get_data_async_es2023.js"
 import { fetchJsonAsync } from './fetchAsync.es2023.js'
 import { SearchTool } from './SearchTool.es2023.js'
 import { normalizeActiveAddr, highlightActiveRefs } from './highlightActiveRefs.es2023.js'
+import { SAME_TITLE_HTML, bindSameHelp } from './SameHelp.es2023.js'
 
 /*
 並排 (mode 1/3)：CSS Grid，列高由 grid 對齊 (docs/z260930d)
@@ -1297,9 +1298,9 @@ function mouseenter_sn_dialog(e) {
         // 同源字
         let span_same = $('<span>')
         if (tp == 'H') {
-            span_same.append('<span class="item-title">同源字：</span><span>舊約無資料。</span>')
+            span_same.append(SAME_TITLE_HTML).append('<span>舊約無資料。</span>')
         } else {
-            span_same.append('<span class="item-title">同源字：</span>')
+            span_same.append(SAME_TITLE_HTML)
 
             let same = re_dict.record[0].same
 
@@ -1416,6 +1417,8 @@ function mouseenter_sn_dialog(e) {
                 // hover 的那一節 (active address)，同節/同章的經文引用高亮
                 const activeAddr = normalizeActiveAddr(re_dict.one ?? one)
                 highlightActiveRefs(dlg, activeAddr)
+
+                bindSameHelp(dlg)
 
                 dlg.on('click', '.ref', a1 => {
                     console.log($(a1.target));

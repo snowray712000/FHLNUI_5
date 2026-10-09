@@ -2040,6 +2040,24 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
 .item-title {
     color: var(--pos-title-fg);
 }
+/* 同源字旁的 ?，按了開說明 (SameHelp.es2023.js)；跟介面大小 */
+.same-help {
+    width: calc(18px * var(--ui-k, 1));
+    height: calc(18px * var(--ui-k, 1));
+    margin: 0 2px;
+    padding: 0;
+    border: 1px solid var(--brand);
+    border-radius: 50%;
+    background: var(--surface-bg);
+    color: var(--brand-fg);
+    font-size: calc(0.75rem * var(--ui-k, 1));
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+    cursor: pointer;
+}
+.same-help:hover { background: var(--brand); color: var(--fg-on-accent); }
+.same-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
 .parsing-verb {
     /* 鮮橘色 動作感強 */
     color: var(--pos-verb-fg);
