@@ -2486,7 +2486,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
     border: none;
     background: transparent;
     color: var(--lct-fg);
-    font-size: 13px;
+    font-size: calc(12pt * var(--ui-k, 1)); /* 介面字級 (docs/z261008a)，不隨經文字級 */
     line-height: 1.4;
     white-space: nowrap;
     cursor: pointer;
@@ -2494,6 +2494,16 @@ body.lec-col-resizing, body.lec-col-resizing * {
 }
 .lct-btn:hover { background: color-mix(in srgb, var(--fg-on-accent) 15%, transparent); }
 .lct-btn:not([hidden]) ~ .lct-btn:not([hidden]) { border-left: 1px solid color-mix(in srgb, var(--fg-on-accent) 50%, transparent); }
+/* 兩列：上排 文字 | 連續文字 | 連續含出處，下排 表格 | MD | ASCII | ⚙；12 欄格，各鈕 span 由 js 設 */
+.lec-copy-table.lct-2rows {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1px;
+    background: color-mix(in srgb, var(--fg-on-accent) 50%, var(--lct-bg));
+}
+.lec-copy-table.lct-2rows .lct-btn:not([hidden]) ~ .lct-btn:not([hidden]) { border-left: none; }
+.lec-copy-table.lct-2rows .lct-btn { background: var(--lct-bg); }
+.lec-copy-table.lct-2rows .lct-btn:hover { background: color-mix(in srgb, var(--fg-on-accent) 15%, var(--lct-bg)); }
 @media (pointer: coarse) {
     .lct-btn { min-height: 36px; padding: 6px 14px; }
 }
@@ -2609,3 +2619,25 @@ body.lec-col-resizing, body.lec-col-resizing * {
 /* 中文標準譯本 (csb) 等的紅字：資料本身是 <span style="color:rgb(195,39,43)">，深色底上太暗，改成主題的紅 */
 [style*="rgb(195,39,43)"], [style*="rgb(195, 39, 43)"] { color: var(--red-letter-fg) !important; }
 
+
+/* 表格複製選項面板 (⚙)：在複製按鈕列上方 */
+.lct-opts {
+    position: fixed;
+    z-index: 2001;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-bg);
+    color: var(--fg);
+    box-shadow: 0 2px 8px var(--shadow);
+    font-size: calc(12pt * var(--ui-k, 1));
+    user-select: none;
+    -webkit-user-select: none;
+}
+.lct-opts[hidden] { display: none; }
+.lct-opts-title { font-weight: bold; margin-bottom: 2px; }
+.lct-opts label { cursor: pointer; white-space: nowrap; }
+@media (pointer: coarse) { .lct-opts label { padding: 6px 0; } }

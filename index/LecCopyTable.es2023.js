@@ -58,8 +58,12 @@ export class LecCopyTable {
 
     /** @type {HTMLElement} 按鈕組 (複製對照表 + MD)，整組一起定位 */
     #btn = null
-    /** @type {Record<'text' | 'flat' | 'cite' | 'table' | 'md', HTMLButtonElement>} 文字 / 連續文字 / 表格 / Markdown */
+    /** @type {Record<'text' | 'flat' | 'cite' | 'table' | 'md' | 'ascii', HTMLButtonElement>} 文字 / 連續文字 / 表格 / Markdown / ASCII */
     #btns = null
+    /** @type {HTMLButtonElement} ⚙ 表格複製選項 */
+    #gear = null
+    /** @type {HTMLElement} 選項面板 */
+    #opts = null
     /** @type {Range} 最近一次有效的選取 */
     #range = null
     /** @type {Scope} #range 所在的範圍 */
@@ -99,7 +103,7 @@ export class LecCopyTable {
 
     init() {
         if (this.#btn) return
-        const mk = (/** @type {'text'|'flat'|'cite'|'table'|'md'} */ kind, label, title) => {
+        const mk = (/** @type {'text'|'flat'|'cite'|'table'|'md'|'ascii'} */ kind, label, title) => {
             const b = el('button', { type: 'button', class: 'lct-btn', title, onclick: () => this.#copyByButton(kind) }, label)
             b.dataset.label = label
             return b
@@ -108,15 +112,19 @@ export class LecCopyTable {
             text: mk('text', '文字', '複製為純文字 (跨列時每列一行)'),
             flat: mk('flat', '連續文字', '複製為純文字，各列接成連續一段 (不換行)'),
             cite: mk('cite', '連續含出處', '複製為連續純文字，結尾加出處，例：(詩107:1-3_和合本)'),
-            table: mk('table', '表格', '把反白的經文複製成對照表 (含節碼)，貼上時是表格'),
+            table: mk('table', '表格', '把反白的經文複製成對照表 (含節碼)，貼上時是表格；⚙ 可選字色、框線等'),
             md: mk('md', 'MD', '複製為 Markdown 表格 (純文字，不含顏色)'),
+            ascii: mk('ascii', 'ASCII', '複製為純文字畫框的表格 (格內過長自動換行，全形字算 2 欄寬，用等寬字型看才對齊)'),
         }
         this.#btn = el('div', {
             class: 'lec-copy-table', hidden: true,
             onpointerdown: e => { e.preventDefault(); this.#pressing = true; this.#pressRange = this.#range; this.#pressScope = this.#scope }, // 電腦：不讓選取消失
             onpointercancel: () => { this.#pressing = false },
             onpointerleave: () => { this.#pressing = false },
-        }, ...Object.values(this.#btns))
+        }, ...Object.values(this.#btns), this.#gear = el('button', {
+            type: 'button', class: 'lct-btn', title: '表格複製選項 (字色、框線、背景、字型…)', onclick: () => this.#toggleOpts(),
+        }, '⚙'))
+        this.#opts = buildOptsPanel(() => this.#placeOpts())
         this.#knobs = [0, 1].map(i => el('div', {
             class: 'lct-knob', hidden: true,
             onpointerdown: e => this.#knobDown(e, i),
@@ -125,7 +133,7 @@ export class LecCopyTable {
             onpointercancel: () => this.#knobEnd(),
         }))
         this.#tip = el('div', { class: 'lct-tip', hidden: true }, '拖圓點改範圍 · 長按另一格也可 · 點空白取消')
-        document.body.append(this.#btn, ...this.#knobs, this.#tip)
+        document.body.append(this.#btn, this.#opts, ...this.#knobs, this.#tip)
 
         document.addEventListener('selectionchange', () => {
             if (this.#pressing) return
@@ -142,7 +150,7 @@ export class LecCopyTable {
         document.addEventListener('copy', e => this.#onCopy(e))
         // sticky 時：輕點 (不是按鈕) → 取消；長按會產生新選取，在 #update 延伸
         document.addEventListener('pointerdown', e => {
-            const isOurs = e.target instanceof Element && e.target.closest('.lec-copy-table, .lct-knob')
+            const isOurs = e.target instanceof Element && e.target.closest('.lec-copy-table, .lct-opts, .lct-knob')
             this.#tap = this.#isSticky && !isOurs ? { t: e.timeStamp, x: e.clientX, y: e.clientY } : null
         }, true)
         document.addEventListener('pointerup', e => {
@@ -199,10 +207,11 @@ export class LecCopyTable {
         this.#scope = scope
         this.#setCrossed(table.isOneCell ? null : table)
         // Case1 同一格：文字；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD
-        const { text, flat, cite, table: tbl, md } = this.#btns
+        const { text, flat, cite, table: tbl, md, ascii } = this.#btns
         text.hidden = table.isCrossCol
         flat.hidden = cite.hidden = table.isOneCell || table.isCrossCol
-        tbl.hidden = md.hidden = table.isOneCell
+        tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = table.isOneCell
+        this.#layoutBtns()
         this.#btn.hidden = false
         this.#place()
     }
@@ -219,6 +228,7 @@ export class LecCopyTable {
         this.#show(scope, range, table)
     }
     #hide() {
+        this.#opts.hidden = true
         clearTimeout(this.#idleTimer)
         this.#isSticky = false
         this.#btn.hidden = true
@@ -356,7 +366,32 @@ export class LecCopyTable {
         this.#rafAuto = requestAnimationFrame(step)
     }
 
-    /** @param {'text' | 'flat' | 'cite' | 'table' | 'md'} kind */
+    /** 文字類 (文字 / 連續文字 / 連續含出處) 與表格類 (表格 / MD / ASCII / ⚙) 都有、且超過 4 顆時排成兩列，各佔一整列 (12 欄格) */
+    #layoutBtns() {
+        const { text, flat, cite } = this.#btns
+        const g1 = [text, flat, cite].filter(b => !b.hidden)
+        const vis = [...this.#btn.children].filter(b => !b.hidden)
+        const g2 = vis.filter(b => !g1.includes(b))
+        const two = g1.length > 0 && g2.length > 0 && vis.length > 4
+        this.#btn.classList.toggle('lct-2rows', two)
+        for (const b of vis) b.style.gridColumn = ''
+        if (!two) return
+        for (const b of g1) b.style.gridColumn = `span ${12 / g1.length}`
+        for (const b of g2) b.style.gridColumn = `span ${12 / g2.length}`
+    }
+    #toggleOpts() {
+        this.#opts.hidden = !this.#opts.hidden
+        this.#placeOpts()
+    }
+    /** 面板放在按鈕列上方 (上面放不下就放下方) */
+    #placeOpts() {
+        if (this.#opts.hidden) return
+        const b = this.#btn.getBoundingClientRect(), h = this.#opts.offsetHeight
+        const top = b.top - h - 6 >= 0 ? b.top - h - 6 : b.bottom + 6
+        this.#opts.style.top = `${top}px`
+        this.#opts.style.left = `${Math.max(4, Math.min(b.left, innerWidth - this.#opts.offsetWidth - 4))}px`
+    }
+    /** @param {'text' | 'flat' | 'cite' | 'table' | 'md' | 'ascii'} kind */
     #copyByButton(kind) {
         this.#pressing = false
         const range = this.#pressRange ?? this.#range
@@ -366,7 +401,8 @@ export class LecCopyTable {
         const table = buildTable(scope, range)
         if (table == null) return
         const { html, plain } = kind == 'md' ? { html: null, plain: toMarkdown(table) }
-            : kind == 'table' ? Theme.s.withLightPalette(() => toClipboardData(table))
+            : kind == 'ascii' ? { html: null, plain: toAscii(table) }
+            : kind == 'table' ? inCopyPalette(() => toClipboardData(table))
                 : { html: null, plain: kind == 'cite' ? toCitedText(table) : toPlainText(table, kind == 'flat') }
         const btn = this.#btns[kind]
         const text = btn.dataset.label
@@ -381,11 +417,56 @@ export class LecCopyTable {
         const sel = selectionInScope() ?? (this.#isSticky ? { scope: this.#scope, range: this.#range } : null)
         if (!sel || !e.clipboardData) return
         const table = buildTable(sel.scope, sel.range)
-        const data = table ? Theme.s.withLightPalette(() => toClipboardData(table)) : { plain: runsText(trimRuns(rangeRuns(sel.range))), html: null }
-        if (data.html) e.clipboardData.setData('text/html', data.html)
+        const data = table ? inCopyPalette(() => toClipboardData(table)) : { plain: runsText(trimRuns(rangeRuns(sel.range))), html: null }
+        showCopyDebug(data.html, data.plain)
+        if (data.html) e.clipboardData.setData('text/html', asHtmlDoc(data.html))
         e.clipboardData.setData('text/plain', data.plain)
         e.preventDefault()
     }
+}
+
+// ── 除錯：看複製了什麼 (Pages 貼成純文字、Keynote 貼成表格，想比對兩種格式的內容) ──────────
+// 開：console 執行 fhlCopyDebug(true) (存 localStorage，重新整理仍有效)；關：fhlCopyDebug(false)
+const DEBUG_KEY = 'fhlCopyDebug'
+if (typeof window != 'undefined') window.fhlCopyDebug = on => {
+    try { on ? localStorage.setItem(DEBUG_KEY, '1') : localStorage.removeItem(DEBUG_KEY) } catch { }
+    return on ? '複製除錯已開' : '複製除錯已關'
+}
+
+/** 開著除錯時，複製後在畫面上列出 text/html 與 text/plain 的內容 @param {string | null} html @param {string} plain */
+function showCopyDebug(html, plain) {
+    let on = false
+    try { on = localStorage.getItem(DEBUG_KEY) == '1' } catch { }
+    if (!on) return
+    console.log('[copy debug] text/html:\n', html, '\n[copy debug] text/plain:\n', plain)
+    document.getElementById('lctDebug')?.remove()
+    const box = document.createElement('div')
+    box.id = 'lctDebug'
+    box.style.cssText = 'position:fixed;inset:5vh 5vw;z-index:99999;display:flex;flex-direction:column;gap:6px;padding:10px;'
+        + 'background:var(--surface-bg);color:var(--fg);border:1px solid var(--line);overflow:auto;'
+    const mk = (title, text) => {
+        const h = document.createElement('div')
+        h.textContent = `${title} (${text == null ? '無' : text.length + ' 字'})`
+        const ta = document.createElement('textarea')
+        ta.readOnly = true
+        ta.value = text ?? ''
+        ta.style.cssText = 'flex:1;min-height:120px;font:12px monospace;white-space:pre;'
+        return [h, ta]
+    }
+    const close = document.createElement('button')
+    close.textContent = '關閉'
+    close.onclick = () => box.remove()
+    // 實際在剪貼簿裡的內容：複製後在這格按 Cmd+V，列出每種格式 (瀏覽器原生複製多寫的 html / rtf 看這裡)
+    const [ph, pasted] = mk('貼上檢視 (複製後，點這格按 Cmd+V)', '')
+    pasted.readOnly = false
+    pasted.placeholder = '在此貼上'
+    pasted.addEventListener('paste', e => {
+        e.preventDefault()
+        const dt = e.clipboardData
+        pasted.value = [...dt.types].map(t => `===== ${t} (${dt.getData(t).length} 字) =====\n${dt.getData(t)}`).join('\n\n')
+    })
+    box.append(close, ...mk('text/html', html), ...mk('text/plain', plain), ph, pasted)
+    document.body.append(box)
 }
 
 // ── 選取 → 對照表 ─────────────────────────────────────────────────────
@@ -674,6 +755,68 @@ export function toRgb(c) {
 }
 
 /** @param {HTMLElement} el 範圍 */
+// ── 表格複製選項 (⚙) ───────────────────────────────────────────────────
+// 各軟體吃的樣式不同 (Keynote 的 th 太高、Pages 想用自己的底色…)，所以可勾選要不要寫進 html；存 localStorage
+const OPTS_KEY = 'fhlCopyTableOpts'
+/** @type {Record<string, [label: string, def: boolean, tip: string]>} */
+const OPT_DEFS = {
+    color: ['字色', true, '寫入文字顏色 (節碼、註的顏色另外一定會有)'],
+    border: ['框線', true, '表格加框線 (border="1"、border-collapse)'],
+    background: ['背景色', false, '寫入底色；不勾就不寫，貼上後用對方的底色'],
+    fontFamily: ['字型', false, '寫入經文區目前的字型；不勾就用對方軟體的預設'],
+    fontSize: ['字級', false, '寫入經文區目前的字級 (內容字級，不是介面字級)；不勾就用對方軟體的預設'],
+    theme: ['依目前主題', false, '不勾：一律用淺色主題的顏色 (貼到白底文件才看得見)；勾：深色主題就複製深色的顏色'],
+    th: ['表頭用 th', true, '表頭用 <th>；不勾改成粗體的一般格 (Keynote 的標題列可能比較矮)'],
+}
+/** @returns {Record<string, boolean>} */
+function loadOpts() {
+    let saved = {}
+    try { saved = JSON.parse(localStorage.getItem(OPTS_KEY) ?? '{}') } catch { }
+    return Object.fromEntries(Object.entries(OPT_DEFS).map(([k, [, def]]) => [k, typeof saved[k] == 'boolean' ? saved[k] : def]))
+}
+/** 依「依目前主題」選項決定要不要切成淺色再產生 @template T @param {() => T} fn @returns {T} */
+const inCopyPalette = fn => loadOpts().theme ? fn() : Theme.s.withLightPalette(fn)
+
+/** @param {() => void} onChange 勾選後 (保險重新定位) @returns {HTMLElement} */
+function buildOptsPanel(onChange) {
+    const opts = loadOpts()
+    return el('div', {
+        class: 'lct-opts', hidden: true,
+        onpointerdown: e => { if (!(e.target instanceof HTMLInputElement)) e.preventDefault() }, // 不讓選取消失
+    }, el('div', { class: 'lct-opts-title' }, '表格複製選項'),
+        ...Object.entries(OPT_DEFS).map(([k, [label, , tip]]) => el('label', { title: tip },
+            el('input', {
+                type: 'checkbox', checked: opts[k],
+                onchange: e => {
+                    opts[k] = e.target.checked
+                    try { localStorage.setItem(OPTS_KEY, JSON.stringify(opts)) } catch { }
+                    onChange()
+                },
+            }), ' ' + label)))
+}
+
+/** 往上找第一個不透明的背景色 @param {Element | null} e */
+function solidBg(e) {
+    for (; e; e = e.parentElement) {
+        const c = getComputedStyle(e).backgroundColor
+        if (c && c != 'transparent' && !/,\s*0\)$/.test(c)) return c
+    }
+    return ''
+}
+/** 表格開頭標籤：依選項寫 border / color / background / 字型 / 字級 (沒勾的就不寫) @param {Element | undefined} elScope */
+function tableOpen(elScope) {
+    const o = loadOpts()
+    const cs = elScope ? getComputedStyle(elScope) : null
+    const st = []
+    if (o.border) st.push('border-collapse:collapse')
+    if (cs && o.color) st.push(`color:${cs.color}`)
+    if (cs && o.background) { const bg = solidBg(elScope ?? null); if (bg) st.push(`background-color:${bg}`) }
+    if (cs && o.fontFamily) st.push(`font-family:${cs.fontFamily}`)
+    if (cs && o.fontSize) st.push(`font-size:${cs.fontSize}`)
+    return `<table border="${o.border ? 1 : 0}"${st.length ? ` style="${st.join(';')}"` : ''}>`
+}
+/** 表頭格 @param {string} name */
+const headCell = name => loadOpts().th ? `<th>${esc(name)}</th>` : `<td><b>${esc(name)}</b></td>`
 const baseColor = el => el ? getComputedStyle(el).color : undefined
 
 /** 一節的字：節碼 + 內容 @param {HTMLElement} lec @param {Range} range @param {string} base */
@@ -695,16 +838,16 @@ function toClipboardData({ scope, versions, columns, labels, range, hit, isOneCe
     const base = baseColor(scope.el)
     // 同一格：只有純文字，照反白的起訖
     if (isOneCell) return { plain: runsText(trimRuns(rangeRuns(range))), html: null }
-    if (versions.length > 1 && !scope.isSide) return interleavedData(hit, range, base)
+    if (versions.length > 1 && !scope.isSide) return interleavedData(hit, range, base, scope.el)
     /** 一格：各節接在一起 @param {Cell} c @returns {Run[]} */
     const runsOf = c => c.lecs.flatMap((lec, i) => i ? [{ t: ' ' }, ...lecRuns(lec, range, base)] : lecRuns(lec, range, base))
     const isRtl = (/** @type {Cell} */ c) => c.lecs.length > 0 && getComputedStyle(c.lecs[0]).direction == 'rtl'
 
-    if (!scope.isSide) return interleavedData(hit, range, base) // 交錯只有一個譯本：一欄多列
+    if (!scope.isSide) return interleavedData(hit, range, base, scope.el) // 交錯只有一個譯本：一欄多列
 
     const { names, grid, nRow } = sideGrid(versions, columns, labels)
     const plainRows = [names.join('\t')]
-    let htmlRows = `<tr>${names.map(n => `<th>${esc(n)}</th>`).join('')}</tr>`
+    let htmlRows = `<tr>${names.map(headCell).join('')}</tr>`
     for (let r = 0; r < nRow; r++) {
         const cells = grid.map(col => col[r])
         const runs = cells.map(c => cellRuns(c, runsOf))
@@ -717,7 +860,7 @@ function toClipboardData({ scope, versions, columns, labels, range, hit, isOneCe
     }
     return {
         plain: plainRows.join('\n'),
-        html: `<table border="1" style="border-collapse:collapse">${htmlRows}</table>`,
+        html: `${tableOpen(scope.el)}${htmlRows}</table>`,
     }
 }
 
@@ -781,7 +924,7 @@ function toCitedText({ scope, range, hit }) {
 
 /**
  * 依 .paragraph 分組 (畫面上的一節或一段)，組內各節接在一起
- * @param {HTMLElement[]} hit @param {Range} range @param {string} base
+ * @param {HTMLElement[]} hit @param {Range} range @param {string} base @param {Element} [elScope] 寫字色 / 背景 / 字型的來源
  * @returns {{ runs: Run[], label: string, ver: string, rtl: boolean }[]} label：搜尋結果、交互參照的經文位置 (沒有則 '')
  */
 function paragraphRuns(hit, range, base) {
@@ -800,12 +943,12 @@ function paragraphRuns(hit, range, base) {
  * 交錯：如所見，一欄多列；每個 .paragraph 一列 (搜尋結果、交互參照：開頭加經文位置)
  * @param {HTMLElement[]} hit @param {Range} range @param {string} base
  */
-function interleavedData(hit, range, base) {
+function interleavedData(hit, range, base, elScope) {
     const list = paragraphRuns(hit, range, base)
         .map(a => ({ ...a, runs: a.label ? [{ t: a.label + ' ' }, ...a.runs] : a.runs }))
     return {
         plain: list.map(a => runsText(a.runs)).join('\n'),
-        html: `<table border="1" style="border-collapse:collapse">${list.map(a =>
+        html: `${tableOpen(elScope)}${list.map(a =>
             `<tr><td${a.rtl ? ' dir="rtl"' : ''} style="vertical-align:top">${runsHtml(a.runs)}</td></tr>`).join('')}</table>`,
     }
 }
@@ -821,7 +964,7 @@ const mdTable = (head, rows) => [head, head.map(() => '---'), ...rows].map(r => 
  * Markdown 表格 (不保留顏色)；規則同 toClipboardData 的表格，見檔頭「MD」鈕
  * @param {CopyTable} table
  */
-function toMarkdown({ scope, versions, columns, labels, range, hit, isOneCell }) {
+function toMarkdown({ scope, versions, columns, labels, range, hit, isOneCell }, fmt = mdTable) {
     const base = baseColor(scope.el)
     if (isOneCell) return runsText(trimRuns(rangeRuns(range))) // 按鈕不會出現；保險
     const isGb = isGbNow()
@@ -832,7 +975,7 @@ function toMarkdown({ scope, versions, columns, labels, range, hit, isOneCell })
         const isMulti = versions.length > 1
         const head = isMulti ? [isGb ? '译本' : '譯本', hasLabel ? (isGb ? '内容' : '內容') : (isGb ? '经文' : '經文')] : [verName(versions[0])]
         if (hasLabel) head.unshift(isGb ? '经文' : '經文')
-        return mdTable(head, list.map(a => [...(hasLabel ? [a.label] : []), ...(isMulti ? [verName(a.ver)] : []), runsText(a.runs)]))
+        return fmt(head, list.map(a => [...(hasLabel ? [a.label] : []), ...(isMulti ? [verName(a.ver)] : []), runsText(a.runs)]))
     }
     /** @param {Cell} c */
     const runsOf = c => c.lecs.flatMap((lec, i) => i ? [{ t: ' ' }, ...lecRuns(lec, range, base)] : lecRuns(lec, range, base))
@@ -841,8 +984,56 @@ function toMarkdown({ scope, versions, columns, labels, range, hit, isOneCell })
     const rows = []
     for (let r = 0; r < nRow; r++)
         rows.push(grid.map(col => col[r] === null ? merged : runsText(cellRuns(col[r], runsOf))))
-    return mdTable(names, rows)
+    return fmt(names, rows)
 }
+
+// ── ASCII 表格 (純文字畫框，格內過長自動換行；全形字算 2 欄寬) ───────────────
+const ASCII_MAX_W = 80
+/** 顯示欄寬：CJK / 全形標點 2，其餘 1 @param {string} s */
+const dispW = s => [...s].reduce((w, ch) => w + (/[\u1100-\u115f\u2e80-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe30-\ufe6f\uff00-\uff60\uffe0-\uffe6]/.test(ch) ? 2 : 1), 0)
+/** 依欄寬折行 (英文盡量在空白斷，CJK 隨處可斷) @param {string} s @param {number} w @returns {string[]} */
+function wrapW(s, w) {
+    const lines = []
+    let cur = '', cw = 0
+    for (const word of s.replace(/\s*\n\s*/g, ' ').trim().split(/(?<=[\u2e80-\uffff])|(?<= )/u)) {
+        const ww = dispW(word)
+        if (cw + dispW(word.trimEnd()) > w && cur) { lines.push(cur.trimEnd()); cur = ''; cw = 0 }
+        for (const ch of ww > w ? [...word] : [word]) { // 單一詞比欄寬長：逐字切
+            const c = dispW(ch)
+            if (cw + c > w && cur) { lines.push(cur.trimEnd()); cur = ''; cw = 0 }
+            cur += ch; cw += c
+        }
+    }
+    lines.push(cur.trimEnd())
+    return lines
+}
+/** @param {string[]} head @param {string[][]} rows */
+function asciiTable(head, rows) {
+    const n = head.length
+    const flat = s => s.replace(/\s*\n\s*/g, ' ').trim()
+    const natural = head.map((h, i) => Math.max(dispW(flat(h)), ...rows.map(r => dispW(flat(r[i] ?? '')))))
+    // 欄寬：自然寬度超過上限就按比例縮，每欄至少 8 (表頭夠寬時以表頭為準)
+    const avail = Math.max(ASCII_MAX_W - (3 * n + 1), 8 * n)
+    const total = natural.reduce((a, b) => a + b, 0)
+    const widths = total <= avail ? natural : natural.map((w, i) => Math.max(8, Math.min(w, Math.floor(w * avail / total))))
+    const sep = '+' + widths.map(w => '-'.repeat(w + 2)).join('+') + '+'
+    // 補空格：含中文 (全形字) 的行用全形空白補 (2 欄寬一個，奇數再補一個半形)，非等寬字型也比較齊；純英文行用半形
+    const pad = (/** @type {string} */ t, /** @type {number} */ w) => {
+        const gap = Math.max(0, w - dispW(t))
+        return t + (dispW(t) > t.length ? '\u3000'.repeat(gap >> 1) + ' '.repeat(gap & 1) : ' '.repeat(gap))
+    }
+    const rowText = (/** @type {string[]} */ r) => {
+        const cells = widths.map((w, i) => wrapW(r[i] ?? '', w))
+        const h = Math.max(...cells.map(c => c.length))
+        return Array.from({ length: h }, (_, k) => '| ' + cells.map((c, i) => pad(c[k] ?? '', widths[i])).join(' | ') + ' |').join('\n')
+    }
+    return [sep, rowText(head), sep, ...rows.flatMap(r => [rowText(r), sep])].join('\n')
+}
+/** @param {CopyTable} table */
+const toAscii = table => toMarkdown(table, asciiTable)
+
+/** 包成完整 html 文件。Pages / Keynote 要有 DOCTYPE + meta charset 才把 text/html 當表格 (只給 <table> 片段會貼成純文字) @param {string} html */
+const asHtmlDoc = html => `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${html}</body></html>`
 
 /**
  * 同時寫 text/html 與 text/plain (html null → 只有純文字)；要在點擊當下呼叫 (中間不能 await，Safari)
@@ -850,20 +1041,14 @@ function toMarkdown({ scope, versions, columns, labels, range, hit, isOneCell })
  * @returns {Promise<boolean>}
  */
 async function writeClipboard(html, plain) {
-    if (navigator.clipboard?.write && window.ClipboardItem && window.isSecureContext) {
-        try {
-            const items = { 'text/plain': new Blob([plain], { type: 'text/plain' }) }
-            if (html != null) items['text/html'] = new Blob([html], { type: 'text/html' })
-            await navigator.clipboard.write([new ClipboardItem(items)])
-            return true
-        } catch (err) {
-            console.warn('clipboard.write 失敗，改用 execCommand：', err)
-        }
-    }
-    // 退回：攔 copy 事件塞兩種格式 (capture + stopPropagation，不讓上面的 #onCopy 再蓋掉)
+    showCopyDebug(html, plain)
+    // Pages / Keynote 要完整文件 (DOCTYPE + meta charset + body) 才認得表格 (Chrome 原生複製也是這樣寫)，所以包起來
+    const doc = html == null ? null : asHtmlDoc(html)
+    // 先攔 copy 事件用 setData (不經 clipboard.write 的 html 消毒，meta / DOCTYPE 才留得住)
+    // (capture + stopPropagation，不讓 #onCopy 再蓋掉)
     let ok = false
     const onCopy = e => {
-        if (html != null) e.clipboardData.setData('text/html', html)
+        if (doc != null) e.clipboardData.setData('text/html', doc)
         e.clipboardData.setData('text/plain', plain)
         e.preventDefault()
         e.stopPropagation()
@@ -871,5 +1056,16 @@ async function writeClipboard(html, plain) {
     }
     document.addEventListener('copy', onCopy, true)
     try { document.execCommand('copy') } finally { document.removeEventListener('copy', onCopy, true) }
-    return ok
+    if (ok) return true
+    if (navigator.clipboard?.write && window.ClipboardItem && window.isSecureContext) {
+        try {
+            const items = { 'text/plain': new Blob([plain], { type: 'text/plain' }) }
+            if (doc != null) items['text/html'] = new Blob([doc], { type: 'text/html' })
+            await navigator.clipboard.write([new ClipboardItem(items)])
+            return true
+        } catch (err) {
+            console.warn('clipboard.write 失敗：', err)
+        }
+    }
+    return false
 }

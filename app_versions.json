@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "7.5.1",
+        "last": "7.5.3",
         "historys": [
             {
                 "na": "TODOs",
@@ -13,6 +13,15 @@
                     "⏳ 等待來源: 中文標準譯本詩篇卷首 (詩 1、42、73、90、107) 的 &lt;h3&gt;&lt;i&gt; 沒有結尾標籤，已暫時繞過；來源修好後移除 cvt_others.js 的補丁 (見 docs/z261008d)",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "7.5.3",
+                "na2":
+                [
+                    "🆕 新功能: 複製表格貼到 Pages 也是表格了 (以前會變純文字)",
+                    "🆕 新功能: 複製按鈕新增 ASCII (純文字畫框的表格) 與 ⚙ 選項：可選字色、框線、背景色、字型、字級、依目前主題、表頭樣式",
+                    "📈 優化: 按鈕多時分兩列 (文字類 / 表格類)，字級跟著介面大小",
+                    "Info) 貼到 Pages 若出現灰底，是 Pages 的「交換列顏色」，到表格格式取消勾選即可"
                 ]
             },{
                 "na": "7.5.1",
