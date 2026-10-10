@@ -1,6 +1,23 @@
 import { rtAsync } from '../index/rtAsync.js';
 import { splitStringByRegex } from '../index/splitStringByRegex.es2023.js';
 import { BibleConstantHelper } from './../index/BibleConstantHelper.es2023.js'
+const MAX_PARALLEL = 4
+const MAX_TRY = 3
+
+/** @param {DFoot} foot @returns {Promise<string | null>} 查不到或失敗為 null */
+async function fetchFootTextAsync(foot) {
+    for (let i = 0; i < MAX_TRY; i++) {
+        try {
+            const re = await rtAsync({ book: foot.book, chap: foot.chap, id: foot.id, ver: foot.version })
+            return re?.record?.[0]?.text ?? null // success 但 record_count 0：查不到，不必重試
+        } catch (e) {
+            if (i == MAX_TRY - 1) console.warn('注腳載入失敗', foot.version, foot.book, foot.chap, foot.id, e)
+            else await new Promise(r => setTimeout(r, 300 * (i + 1)))
+        }
+    }
+    return null
+}
+
 /**
  * 檢查，若有 dtexts 有 foot 且 footContent 為 null，則用 rtAsync 查詢注腳內容並填入。
  * 會同步取得所有，再用 Promise.all 等待完成。
@@ -9,22 +26,33 @@ import { BibleConstantHelper } from './../index/BibleConstantHelper.es2023.js'
  */
 export async function queryFootsAsync(dtexts_with_addr, ver) {
 
-    const tasks = []
-
+    /** @type {Map<string, DText[]>} 同一個注腳 (版本、書、章、id) 只查一次：同節常有相同編號 (例 哈2:1 兩個【1】) */
+    const todo = new Map()
     for (const one_record of dtexts_with_addr) {
         for (const dtext of one_record[3]) {
             if (dtext.foot != null && dtext.foot.footContent == null) {
                 const foot = dtext.foot
-
-                const task = rtAsync({ book: foot.book, chap: foot.chap, id: foot.id, ver: foot.version }).then(re3 => {
-                    dtext.foot.footContent = [{ w: re3.record[0].text }];
-                })
-                tasks.push(task)
+                const key = `${foot.version}|${foot.book}|${foot.chap}|${foot.id}`
+                if (!todo.has(key)) todo.set(key, [])
+                todo.get(key).push(dtext)
             }
         }
     }
 
-    await Promise.all(tasks)
+    // 一次太多 rt.php 會被伺服器回 503 (回傳 html，json 解析失敗)：限制同時數量，失敗重試。
+    // 呂振中譯本 (lcc) 有些 id 查不到 (record_count 0，回應沒有 record，例 創1 的 id 2)；
+    // 任何一個失敗都只讓那個注腳維持【n】 (footContent 留 null)，不讓整批 (整個經文區渲染) 失敗
+    const entries = [...todo.values()]
+    let next = 0
+    const worker = async () => {
+        while (next < entries.length) {
+            const dtexts = entries[next++]
+            const foot = dtexts[0].foot
+            const text = await fetchFootTextAsync(foot)
+            if (text != null) for (const d of dtexts) d.foot.footContent = [{ w: text }]
+        }
+    }
+    await Promise.all(Array.from({ length: Math.min(MAX_PARALLEL, entries.length) }, worker))
 
     // csb 中文標準譯本 1:23 《以賽亞書》7:14。
     if (ver == 'csb') {
