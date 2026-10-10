@@ -20,7 +20,7 @@
  * - 搜尋結果、交互參照 (VerseGrid)：一律如所見一段一列 (.paragraph 的 data-row，各批 grid 各自編號)；
  *   左側的經文位置 (標籤欄) 也複製：並排多譯本 → 表格第一欄；單一譯本、交錯 → 每列開頭
  *
- * - 按鈕依情形：Case1 同一格「文字」；Case2 跨列不跨欄「文字|連續文字|連續含出處|表格|MD」；Case3 跨欄「表格|MD」
+ * - 按鈕依情形：Case1 同一格「文字|含出處」(含出處：沒選到的頭尾以 ... 表示，例 `9 ... 免得受審判。 ...(雅5:9_和合本)`)；Case2 跨列不跨欄「文字|連續文字|連續含出處|表格|MD」；Case3 跨欄「表格|MD」
  *   (連續文字 = 各列接成空白、不換行；見 toPlainText)
  * - 「MD」鈕 (docs/z261002c)：Markdown 表格只放 text/plain，不保留顏色；起訖在同一格時不顯示
  *   並排 → 表頭譯本名 (有標籤欄時第一欄「經文」)；mode 1 併入上節 (rowspan) 被佔的格寫「（併入上節）」
@@ -209,7 +209,10 @@ export class LecCopyTable {
         // Case1 同一格：文字；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD
         const { text, flat, cite, table: tbl, md, ascii } = this.#btns
         text.hidden = table.isCrossCol
-        flat.hidden = cite.hidden = table.isOneCell || table.isCrossCol
+        flat.hidden = table.isOneCell || table.isCrossCol
+        cite.hidden = table.isCrossCol
+        // 同一格：「含出處」(沒選到的字以 ... 表示)；跨列：「連續含出處」
+        cite.dataset.label = cite.textContent = table.isOneCell ? '含出處' : '連續含出處'
         tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = table.isOneCell
         this.#layoutBtns()
         this.#btn.hidden = false
@@ -912,10 +915,23 @@ const citeVerName = v => v == 'unv' ? '和合本' : verName(v)
  */
 function toCitedText({ scope, range, hit }) {
     const base = baseColor(scope.el)
+    /** 一節：節碼 + 內容；單格反白時，頭尾沒選到的字以 ... 表示 @param {HTMLElement} lec */
+    const citedLec = lec => {
+        if (range == null) return runsText(lecRuns(lec, range, base))
+        const full = contentRange(lec, null), part = contentRange(lec, range)
+        const pre = full.cloneRange(), post = full.cloneRange()
+        pre.setEnd(part.startContainer, part.startOffset)
+        post.setStart(part.endContainer, part.endOffset)
+        const hasText = r => runsText(rangeRuns(r)).trim() != ''
+        const num = lec.querySelector('.verseNumber')
+        const numText = num ? runsText(trimRuns(rangeRuns(rangeOfNode(num), base))) : ''
+        const body = runsText(trimRuns(rangeRuns(part, base)))
+        return [numText, hasText(pre) ? '...' : '', body + (hasText(post) ? ' ...' : '')].filter(a => a != '').join(' ')
+    }
     const vers = [...new Set(hit.map(a => a.getAttribute('ver')))]
     return vers.map(ver => {
         const lecs = hit.filter(a => a.getAttribute('ver') == ver).sort((a, b) => addrOf(a) - addrOf(b))
-        const text = lecs.map(lec => runsText(lecRuns(lec, range, base))).join(' ').replace(/\s*\n\s*/g, ' ')
+        const text = lecs.map(citedLec).join(' ').replace(/\s*\n\s*/g, ' ')
         // 出處同交互參照的寫法 (不連續：詩33:5;35:6-7,11;創1:2-3)
         const addr = cvtAddrsToRef(lecs.map(l => ({ book: +l.getAttribute('book'), chap: +l.getAttribute('chap'), verse: +l.getAttribute('sec') })), isGbNow() ? '罗' : '羅')
         return `${text}(${addr}_${citeVerName(ver)})`
