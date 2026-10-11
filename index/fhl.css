@@ -2301,7 +2301,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
 }
 #lecMain > .lec-grid .paragraph {
     min-width: 0;
-    padding: 7px 0.25rem;
+    padding: 0.4375em 0.25rem; /* 7px @ 12pt；用 em 讓上下留白跟字大小走，字縮到 70% 時節與節之間不會比一行還高 */
     border-left: 1px dashed var(--col-line);
     border-right: 1px dashed var(--col-line);
 }
@@ -2553,7 +2553,7 @@ body.lec-col-resizing, body.lec-col-resizing * {
 .verse-grid > .vercol { display: contents; }
 .verse-grid .paragraph {
     min-width: 0;
-    padding: 5px 0.4rem;
+    padding: 0.3125em 0.4rem; /* 5px @ 12pt，同上用 em */
     border-top: 1px solid var(--vg-line);
     border-left: 1px dashed var(--col-line);
 }
