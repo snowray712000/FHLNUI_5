@@ -1,4 +1,5 @@
 import { TPPageState } from './TPPageState.es2023.js'
+import { startLongPress } from './ColWidth.es2023.js'
 
 const OB_YEAR_SELS = [
     { t: "全部", y: "0-9999" },
@@ -187,18 +188,20 @@ export class FhlInfoOb {
             this.state.expanded_id = this.state.expanded_id === id ? null : id
             this.dom.find('.ob_results').html(this.#html_results())
         })
-        // 表格欄寬:拖表頭右緣調整(第一次拖時把所有欄量成 px,之後各欄固定),雙擊回自動寬度
-        d.off('dblclick', '.ob_colgrip').on('dblclick', '.ob_colgrip', ev => {
-            ev.stopPropagation()
+        // 表格欄寬:拖表頭右緣調整(第一次拖時把所有欄量成 px,之後各欄固定),雙擊 (平板長按) 回自動寬度
+        const resetColWidths = () => {
             saveColWidths(null)
             const t = this.dom.find('.ob_table')
             t.removeClass('ob_fixed').find('col').css('width', '')
             t.find('.ob_colgrip').removeClass('custom')
-        })
+        }
+        d.off('dblclick', '.ob_colgrip').on('dblclick', '.ob_colgrip', ev => { ev.stopPropagation(); resetColWidths() })
+        d.off('contextmenu', '.ob_colgrip').on('contextmenu', '.ob_colgrip', ev => ev.preventDefault())
         d.off('pointerdown', '.ob_colgrip').on('pointerdown', '.ob_colgrip', ev0 => {
             const ev = ev0.originalEvent
             ev.preventDefault(); ev.stopPropagation()
             const grip = ev0.currentTarget
+            const gesture = startLongPress(ev, grip, resetColWidths)
             const table = grip.closest('table')
             const idx = Number(grip.dataset.col)
             const cols = [...table.querySelectorAll('col')]
@@ -209,12 +212,14 @@ export class FhlInfoOb {
             grip.setPointerCapture(ev.pointerId)
             document.body.classList.add('lec-col-resizing')
             const move = (/** @type {PointerEvent} */ e) => {
+                if (gesture.fired) return
                 ws[idx] = Math.max(OB_COL_MIN, w0 + e.clientX - x0)
                 cols[idx].style.width = ws[idx] + 'px'
             }
             const up = () => {
                 grip.removeEventListener('pointermove', move); grip.removeEventListener('pointerup', up); grip.removeEventListener('pointercancel', up)
                 document.body.classList.remove('lec-col-resizing')
+                if (gesture.fired) return // 長按已還原
                 saveColWidths(ws.map(Math.round))
                 table.querySelectorAll('.ob_colgrip').forEach(g => g.classList.add('custom'))
             }
@@ -428,7 +433,7 @@ export class FhlInfoOb {
         const cw = readColWidths()
         const colgroup = `<colgroup>${titles.map((_, i) => `<col${cw ? ` style="width:${cw[i]}px"` : ''}>`).join('')}</colgroup>`
         // 最後一欄是閱讀按鈕,不放把手
-        const head = `<thead><tr>${titles.map((t, i) => `<th>${this.#esc(t)}${i < titles.length - 1 ? `<span class="lec-col-handle ob_colgrip${cw ? ' custom' : ''}" data-col="${i}" title="${isgb ? "拖曳调整栏宽;双击恢复自动宽度" : "拖曳調整欄寬；雙擊恢復自動寬度"}"></span>` : ''}</th>`).join('')}</tr></thead>`
+        const head = `<thead><tr>${titles.map((t, i) => `<th>${this.#esc(t)}${i < titles.length - 1 ? `<span class="lec-col-handle ob_colgrip${cw ? ' custom' : ''}" data-col="${i}" title="${isgb ? "拖曳调整栏宽;双击 (平板长按) 恢复自动宽度" : "拖曳調整欄寬；雙擊 (平板長按) 恢復自動寬度"}"></span>` : ''}</th>`).join('')}</tr></thead>`
         const rows = records.map(a1 =>
             `<tr class="ob_row"><td>${this.#esc(a1.age)}</td>` +
             `<td class="ob_row_title">${this.#esc(a1.title)}</td><td>${this.#esc(a1.author)}</td>` +

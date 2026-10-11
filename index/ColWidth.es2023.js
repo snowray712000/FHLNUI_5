@@ -53,19 +53,18 @@ export class ColWidth {
     #createHandle(i, isCustom) {
         const h = document.createElement('span')
         h.className = 'lec-col-handle' + (isCustom ? ' custom' : '')
-        h.title = isCustom ? '拖曳調整欄寬；雙擊恢復自動' : '拖曳調整欄寬 (目前自動)'
+        h.title = isCustom ? '拖曳調整欄寬；雙擊 (平板長按) 恢復自動' : '拖曳調整欄寬 (目前自動)'
         h.addEventListener('click', e => e.stopPropagation()) // 不要觸發表頭的「選譯本」
-        h.addEventListener('dblclick', e => {
-            e.stopPropagation()
+        const gesture = resetGesture(h, () => {
             saveCustom(this.#o.versions, null)
             this.apply()
         })
-        h.addEventListener('pointerdown', e => this.#drag(e, i, h))
+        h.addEventListener('pointerdown', e => this.#drag(e, i, h, gesture))
         return h
     }
 
-    /** @param {PointerEvent} e @param {number} i @param {HTMLElement} h */
-    #drag(e, i, h) {
+    /** @param {PointerEvent} e @param {number} i @param {HTMLElement} h @param {{ fired: boolean }} gesture */
+    #drag(e, i, h, gesture) {
         e.preventDefault()
         e.stopPropagation()
         const widths = this.#o.getHeadCells().map(a => a.getBoundingClientRect().width)
@@ -76,6 +75,7 @@ export class ColWidth {
         document.body.classList.add('lec-col-resizing')
         let cur = widths
         const onMove = (/** @type {PointerEvent} */ ev) => {
+            if (gesture.fired) return
             const a = Math.min(Math.max(widths[i] + ev.clientX - x0, MIN_PX), pair - MIN_PX)
             cur = widths.map((w, k) => k == i ? a : k == i + 1 ? pair - a : w)
             this.#setTemplate(cur)
@@ -85,7 +85,7 @@ export class ColWidth {
             h.removeEventListener('pointerup', onUp)
             h.removeEventListener('pointercancel', onUp)
             document.body.classList.remove('lec-col-resizing')
-            if (cur == widths) return
+            if (gesture.fired || cur == widths) return // 長按已還原，不要再存
             const mean = cur.reduce((s, w) => s + w, 0) / cur.length
             saveCustom(this.#o.versions, cur.map(w => w / mean))
             this.apply()
@@ -94,6 +94,53 @@ export class ColWidth {
         h.addEventListener('pointerup', onUp)
         h.addEventListener('pointercancel', onUp)
     }
+}
+
+/** 長按幾毫秒算「還原」(平板用)；手指移動超過幾 px 就當作在拖，不算長按 */
+const LONG_PRESS_MS = 600, LONG_PRESS_MOVE = 8
+
+/**
+ * 分隔線「回到預設」的手勢：滑鼠雙擊；觸控 (平板) 沒辦法連擊，改為長按不動。
+ * 呼叫端的 pointerdown (拖曳) 要在這之後才註冊，並在 move / up 檢查回傳的 fired (長按已還原就不再動欄寬、不存)
+ * @param {HTMLElement} h @param {() => void} onReset
+ * @returns {{ fired: boolean }}
+ */
+export function resetGesture(h, onReset) {
+    let cur = { fired: false }
+    h.addEventListener('dblclick', e => { e.stopPropagation(); onReset() })
+    h.addEventListener('contextmenu', e => e.preventDefault()) // 長按不要跳系統選單
+    h.addEventListener('pointerdown', e => { cur = startLongPress(e, h, onReset) })
+    return { get fired() { return cur.fired } }
+}
+
+/**
+ * 在 pointerdown 時呼叫 (觸控 / 筆才有效；滑鼠回傳 fired 恆為 false)：不動按住 LONG_PRESS_MS 就呼叫 onReset 並把 fired 設 true。
+ * 給事件委派的把手用 (把手會重畫，沒辦法一個個掛 resetGesture) @param {PointerEvent} e @param {HTMLElement} h @param {() => void} onReset
+ */
+export function startLongPress(e, h, onReset) {
+    const state = { fired: false }
+    if (e.pointerType == 'mouse') return state
+    const { clientX: x0, clientY: y0, pointerId } = e
+    const stop = () => {
+        clearTimeout(timer)
+        h.removeEventListener('pointermove', onMove)
+        h.removeEventListener('pointerup', stop)
+        h.removeEventListener('pointercancel', stop)
+    }
+    const onMove = (/** @type {PointerEvent} */ ev) => {
+        if (ev.pointerId == pointerId && Math.hypot(ev.clientX - x0, ev.clientY - y0) > LONG_PRESS_MOVE) stop()
+    }
+    const timer = setTimeout(() => {
+        stop()
+        state.fired = true
+        document.body.classList.remove('lec-col-resizing')
+        try { navigator.vibrate?.(30) } catch { /* 不支援就算了 */ }
+        onReset()
+    }, LONG_PRESS_MS)
+    h.addEventListener('pointermove', onMove)
+    h.addEventListener('pointerup', stop)
+    h.addEventListener('pointercancel', stop)
+    return state
 }
 
 // ── 依譯本組合記 (三處共用) ──

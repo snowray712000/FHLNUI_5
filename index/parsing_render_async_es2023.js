@@ -5,6 +5,7 @@ import { parsing_render_bottom_table } from "./parsing_render_bottom_table.es202
 import { parsing_render_top } from "./parsing_render_top.es2023.js";
 import { ParsingCache } from "./ParsingCache_es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
+import { resetGesture } from "./ColWidth.es2023.js";
 
 
 export async function parsing_render_async() {
@@ -25,7 +26,7 @@ export async function parsing_render_async() {
     // 工具列隨內容捲動，不佔固定的列 (與串珠一致)。flex 直排，表格吃剩下的高度，見 fhl.css #parsingBody
     const table = parsing_render_bottom_table(jsonObj, jsonObj.N == 1 ? 'H' : 'G').replace(/<\/div>\s*$/, top.barBottom + '</div>')
     const html = "<div id='parsingBody'>" + top.top
-        + "<div id='parsingSplit' title='拖曳調整上下高度；雙擊恢復預設'></div>"
+        + "<div id='parsingSplit' title='拖曳調整上下高度；雙擊 (平板長按) 恢復預設'></div>"
         + table + "</div>";
 
     FhlInfoContent.s.dom.html(html);
@@ -46,7 +47,7 @@ function setupSplit(host) {
     try { saved = +(localStorage.getItem(SPLIT_KEY) ?? 0) } catch { /* 不記也能用 */ }
     if (saved >= SPLIT_MIN) host.style.setProperty('--parsing-top-h', saved + 'px'); else host.style.removeProperty('--parsing-top-h')
     const save = (/** @type {number | null} */ h) => { try { h ? localStorage.setItem(SPLIT_KEY, String(Math.round(h))) : localStorage.removeItem(SPLIT_KEY) } catch { /* ignore */ } }
-    bar.addEventListener('dblclick', () => { host.style.removeProperty('--parsing-top-h'); save(null) })
+    const gesture = resetGesture(/** @type {HTMLElement} */ (bar), () => { host.style.removeProperty('--parsing-top-h'); save(null) })
     bar.addEventListener('pointerdown', e => {
         e.preventDefault()
         const topEl = /** @type {HTMLElement} */ (host.querySelector('#parsingTop'))
@@ -55,10 +56,11 @@ function setupSplit(host) {
         let cur = h0
         bar.setPointerCapture(e.pointerId)
         document.body.classList.add('parsing-split-resizing')
-        const move = (/** @type {PointerEvent} */ ev) => { cur = Math.min(Math.max(h0 + ev.clientY - y0, SPLIT_MIN), max); host.style.setProperty('--parsing-top-h', cur + 'px') }
+        const move = (/** @type {PointerEvent} */ ev) => { if (gesture.fired) return; cur = Math.min(Math.max(h0 + ev.clientY - y0, SPLIT_MIN), max); host.style.setProperty('--parsing-top-h', cur + 'px') }
         const up = () => {
             bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', up); bar.removeEventListener('pointercancel', up)
             document.body.classList.remove('parsing-split-resizing')
+            if (gesture.fired) return // 長按已還原
             save(cur)
         }
         bar.addEventListener('pointermove', move); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up)

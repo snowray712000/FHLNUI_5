@@ -1933,6 +1933,8 @@ body {
 }
 /* 上下之間的灰框 (可拖曳)：中間一個小方塊把手，手指時高度加到 --touch-min */
 #parsingSplit {
+    -webkit-touch-callout: none; /* 平板長按 = 恢復預設 */
+    user-select: none;
     position: relative;
     flex: none;
     height: 12px;
@@ -2248,6 +2250,8 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     z-index: 1;
     cursor: col-resize;
     touch-action: none;
+    -webkit-touch-callout: none; /* 平板長按 = 恢復自動，不要跳 iOS 選單 */
+    user-select: none;
 }
 .lec-col-handle::after { /* 看得到的細線 */
     content: '';

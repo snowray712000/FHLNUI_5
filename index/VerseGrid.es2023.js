@@ -14,6 +14,7 @@ import { render_dtexts } from './render_dtexts.js'
 import { generate_verse_number_jdom } from './lecture/FhlLecture_render_mode_common_es2023.js'
 import { SnFilter } from './SnFilter.es2023.js'
 import { gbText } from './gbText.es2023.js'
+import { resetGesture } from './ColWidth.es2023.js'
 
 /**
  * 併入上節：qsb.php 那節的 bible_text 是 "a" (例 和合本 西2:21 併入 20)。經文區、交互參照、搜尋結果共用
@@ -179,20 +180,21 @@ export function addLabelHandle(cell, host) {
     if (!cell) return
     const h = document.createElement('span')
     h.className = 'lec-col-handle' + (readLabelW() ? ' custom' : '') // custom = 已自訂 (強調色)
-    h.title = '拖曳調整出處欄寬；雙擊恢復預設'
+    h.title = '拖曳調整出處欄寬；雙擊 (平板長按) 恢復預設'
     const save = (/** @type {number | null} */ w) => { try { w ? localStorage.setItem(LABEL_W_KEY, String(Math.round(w))) : localStorage.removeItem(LABEL_W_KEY) } catch { /* 不記也能用 */ } }
     h.addEventListener('click', e => e.stopPropagation())
-    h.addEventListener('dblclick', e => { e.stopPropagation(); host.style.removeProperty('--vg-label-w'); save(null); h.classList.remove('custom') })
+    const gesture = resetGesture(h, () => { host.style.removeProperty('--vg-label-w'); save(null); h.classList.remove('custom') })
     h.addEventListener('pointerdown', e => {
         e.preventDefault(); e.stopPropagation()
         const w0 = cell.getBoundingClientRect().width, x0 = e.clientX
         let cur = w0
         h.setPointerCapture(e.pointerId)
         document.body.classList.add('lec-col-resizing')
-        const move = (/** @type {PointerEvent} */ ev) => { cur = Math.max(40, w0 + ev.clientX - x0); host.style.setProperty('--vg-label-w', cur + 'px') }
+        const move = (/** @type {PointerEvent} */ ev) => { if (gesture.fired) return; cur = Math.max(40, w0 + ev.clientX - x0); host.style.setProperty('--vg-label-w', cur + 'px') }
         const up = () => {
             h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up)
             document.body.classList.remove('lec-col-resizing')
+            if (gesture.fired) return // 長按已還原
             save(cur); h.classList.add('custom')
         }
         h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up)
