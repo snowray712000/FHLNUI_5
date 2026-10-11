@@ -92,11 +92,12 @@
     --danger: var(--systemRed);                 /* 關閉、刪除、hover 紅 */
     --danger-fg: var(--red-fg);
     --danger-bg: color-mix(in srgb, var(--systemRed) var(--hl-1), transparent);
-    /* 對話框標題列：blitzer 原本的紅 (#cc0000 漸層)。主經文與對話框內容同底色，紅標題才分得出是對話框；
-       systemRed 上的白字不到 4.5:1，混黑 (高對比深色的紅更亮，--dlg-k 70%)；白字各主題都是白 (不用 --fg-on-accent，高對比深色那是黑) */
-    --dlg-title-bg: color-mix(in srgb, var(--systemRed) var(--dlg-k, 80%), var(--darkText));
-    --dlg-title-fg: var(--label-dark);
-    --dlg-title-line: color-mix(in srgb, var(--systemRed) 60%, var(--darkText));
+    /* 對話框標題列：灰 (systemGray3)。原本是 blitzer 的紅 (7.2.1)，有人反應太刺眼。
+       主經文與對話框內容同底色，標題列要比內容深一階才分得出是對話框：Gray3 比白 / 黑底明顯，又不搶眼；
+       字用 --fg，各主題都 ≥ 4.5:1 (淺 12.7、深 9.3、高對比淺 9.5、高對比深 7.1) */
+    --dlg-title-bg: var(--systemGray3);
+    --dlg-title-fg: var(--fg);
+    --dlg-title-line: var(--systemGray2);
     --neutral: var(--systemGray);               /* 次要按鈕 (btn-secondary) */
     /* 綠、青當「白字的底」時太亮 (systemGreen + 白字只有 2:1)，混黑；比例 --fill-k 依主題 */
     --success-fill: color-mix(in srgb, var(--systemGreen) var(--fill-k), var(--darkText));
@@ -215,7 +216,6 @@
 :root[data-theme="hc-dark"] {
     --fg-on-accent: var(--darkText);
     --fill-k: 100%;
-    --dlg-k: 70%;
     --tint: 75%;
     --tint-bright: 85%;
 }
@@ -223,7 +223,6 @@
     :root:not([data-theme]) {
         --fg-on-accent: var(--darkText);
         --fill-k: 100%;
-        --dlg-k: 70%;
         --tint: 75%;
         --tint-bright: 85%;
     }

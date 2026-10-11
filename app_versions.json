@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "7.5.11",
+        "last": "7.5.11.1",
         "historys": [
             {
                 "na": "TODOs",
@@ -12,6 +12,12 @@
                     "⏳ 等待來源: 中文標準譯本詩篇卷首 (詩 1、42、73、90、107) 的 &lt;h3&gt;&lt;i&gt; 沒有結尾標籤，已暫時繞過；來源修好後移除 cvt_others.js 的補丁 (見 docs/z261008d)",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "7.5.11.1",
+                "na2":
+                [
+                    "📈 優化: 對話框 (交互參照、搜尋、字典等) 的標題列由紅色改為灰色，不再刺眼；仍比內容深一階，分得出是對話框，淺色、深色、高對比主題都適用"
                 ]
             },{
                 "na": "7.5.11",
