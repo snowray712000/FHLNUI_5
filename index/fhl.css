@@ -1390,6 +1390,9 @@ body {
 #lecMainTitle > .lecContent:only-child { padding-left: var(--nv-w); padding-right: calc(var(--nv-w) * 3); }
 
 #lecMainTitle {
+    user-select: none; /* 譯本名不需要選字 (平板長按分隔線還原欄寬時會選到) */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     background-color: var(--frame-bg);
     height: var(--bar-h);
     font-size: calc(12pt * var(--ui-k, 1));
@@ -2555,6 +2558,9 @@ body.lec-col-resizing, body.lec-col-resizing * {
     border-left: 1px dashed var(--col-line);
 }
 .verse-grid .vg-head {
+    user-select: none; /* 同 #lecMainTitle：搜尋結果、交互參照的譯本名也不選字 */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     position: sticky;
     top: 0;
     z-index: 1;
