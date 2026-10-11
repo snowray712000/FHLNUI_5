@@ -99,6 +99,7 @@ function bundleLegacyScripts() {
   let pending = null
   return {
     name: 'bundle-legacy-scripts',
+  'docs/搜尋說明.md', // 搜尋框旁「?」讀這份 (IntroHelp.es2023.js)
     apply: 'build',
     configResolved(config) {
       root = config.root

@@ -1,5 +1,7 @@
 import { SearchDialog } from "./SearchDialog_es2023.js";
 import { gbText } from "./gbText.es2023.js";
+import { bindIntroHelp } from "./IntroHelp.es2023.js";
+import { bindScopeButton, scopeButtonHtml } from "./SearchScopeDialog.es2023.js";
 
 /*
 ### 工具列右上的搜尋框
@@ -11,6 +13,8 @@ import { gbText } from "./gbText.es2023.js";
   <button.st-go> 放大鏡 </button>
   <input.st-input.searchBox>
   <button.st-clear> × </button>
+  <button.intro-help.st-help> ? </button>  按了開說明 (docs/搜尋說明.md)
+  <button.search-scope-btn> ⚙ </button>  搜尋範圍設定 (SearchScopeDialog.es2023.js)
 </form>
 */
 export class SearchTool {
@@ -41,6 +45,8 @@ export class SearchTool {
         this.#input.trigger('focus').trigger('select')
     }
     registerEvents(ps) {
+        bindIntroHelp(this.dom, 'search')
+        bindScopeButton(this.dom, () => SearchDialog.s.applyScopeChange())
         this.dom.on('submit', '.st-box', e => {
             e.preventDefault() // Enter 或按放大鏡
             this.search()
@@ -56,6 +62,8 @@ export class SearchTool {
             <button type="submit" class="st-go" title="${gbText('搜尋')}"><i class="fa fa-search"></i></button>
             <input type="text" class="st-input searchBox" placeholder="${placeholder}" autocomplete="off">
             <button type="button" class="st-clear" title="${gbText('清除')}"><i class="fa fa-times-circle"></i></button>
+            <button type="button" class="intro-help st-help" title="${gbText('搜尋怎麼用？')}">?</button>
+            ${scopeButtonHtml()}
         </form>`);
     }
 }

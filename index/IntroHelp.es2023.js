@@ -7,6 +7,7 @@ import { TPPageState } from "./TPPageState.es2023.js";
 /** 說明 md (docs/*.md)，build 時由 vite.config.js 的 LEGACY_COPY 複製到 dist/ */
 const SAME_HELP_URL = 'docs/同源字說明.md'
 const SN_HELP_URL = 'docs/SN說明.md'
+const SEARCH_HELP_URL = 'docs/搜尋說明.md'
 
 /** @type {DialogHtml | null} */
 let helpDlg = null
@@ -22,10 +23,10 @@ export const SAME_TITLE_HTML = `<span class="item-title">同源字${helpButtonHt
 /**
  * 在 root 內按 .intro-help 開說明 (同時只開一個)
  * @param {JQuery<HTMLElement>} root
- * @param {'same'|'sn'} [kind]
+ * @param {'same'|'sn'|'search'} [kind]
  */
 export function bindIntroHelp(root, kind = 'same') {
-    const [url, title] = kind == 'sn' ? [SN_HELP_URL, '原文SN'] : [SAME_HELP_URL, '同源字']
+    const [url, title] = { sn: [SN_HELP_URL, '原文SN'], search: [SEARCH_HELP_URL, '搜尋'] }[kind] ?? [SAME_HELP_URL, '同源字']
     root.off('click.introHelp').on('click.introHelp', '.intro-help', e => { e.stopPropagation(); showIntroHelpAsync(e.currentTarget, url, title) })
 }
 export const bindSameHelp = dlg => bindIntroHelp(dlg, 'same')

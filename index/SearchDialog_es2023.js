@@ -20,6 +20,9 @@ import { SnFilter } from './SnFilter.es2023.js'
 import { queryFootsAsync } from './queryFootsAsync.js'
 import { showFootPopupAsync } from './showFootPopupAsync.es2023.js'
 import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
+import { bindIntroHelp } from './IntroHelp.es2023.js'
+import { bindScopeButton, scopeButtonHtml, currentScopeLabel } from './SearchScopeDialog.es2023.js'
+import { readScope, scopeBooks, scopeGroups } from './SearchScope.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -80,6 +83,7 @@ export class SearchDialog {
             gb: ps.gb == 1 ? 1 : 0,
             strong: ps.strong == 1 ? 1 : 0,
             engs: BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1],
+            scope: currentScope(ps.bookIndex - 1),
         })
         session.compare = readCompare()
 
@@ -106,9 +110,49 @@ export class SearchDialog {
             return
         }
 
-        this.filter = Search_suggestFilter(session.cntOfBook, fhl.g_book_group, ps.bookIndex - 1, SearchDialog.MIN_COUNT_TO_NARROW)
+        this.filter = this.#suggestFilter(session)
         this.#renderGroups()
+        this.#renderScopeNote()
         this.#applyFilterAsync()
+    }
+
+    /**
+     * 結果一出來先選哪裡
+     * - 範圍只有目前這卷：選這卷 (不管幾節)，分類都不選
+     * - 範圍有勾別的分類：同以前的規則 (這卷夠多選這卷；否則由小到大選第一個夠多的分類；都不夠，範圍內全部)，只是候選的分類限定在範圍內
+     * - 沒有限定 (整本聖經)：同以前的規則
+     * @param {SearchSession} session
+     */
+    #suggestFilter(session) {
+        const ibook = fhl.engs_2_iBook(session.engs)
+        if (session.scope != null && session.scope.size == 1) return { group_name: ALL_GROUP, ibook }
+        const groups = session.scope == null ? fhl.g_book_group : scopeGroups(fhl.g_book_group, readScope(fhl.g_book_group))
+        return Search_suggestFilter(session.cntOfBook, groups, ibook, SearchDialog.MIN_COUNT_TO_NARROW)
+    }
+
+    /** 搜尋範圍設定改了 (⚙)：不重新搜尋，只重新篩選目前這次搜尋的結果 */
+    applyScopeChange() {
+        const session = this.session
+        if (session == null || session.kind == 'reference' || this.#dlgHtml?.dlg == null) return
+        const ibook = fhl.engs_2_iBook(session.engs)
+        session.setScope(currentScope(ibook))
+        this.filter = this.#suggestFilter(session)
+        this.#renderGroups()
+        this.#renderScopeNote()
+        this.#applyFilterAsync()
+    }
+
+    /** 範圍外還有幾節；點了這次搜尋改成整本聖經 (設定不變) */
+    #renderScopeNote() {
+        const session = this.session
+        const n = session?.kind == 'reference' ? 0 : session?.outOfScope ?? 0
+        const note$ = this.#dlg.find('.sd-scope-note').empty()
+        if (session == null || session.kind == 'reference' || session.scope == null) return // 整本聖經 (或這次已全部顯示) 不必列
+        $('<span class="sd-scope-label">').text(`${gbText('範圍')}：${currentScopeLabel(fhl.engs_2_iBook(session.engs))}`).appendTo(note$)
+        if (n == 0) return
+        $('<button type="button" class="sd-scope-more">').text(`${gbText('範圍外還有')} ${n} ${gbText('節')}，${gbText('全部顯示')}`)
+            .attr('title', gbText('這次搜尋改成整本聖經 (設定不變)；範圍用旁邊的 ⚙ 設定'))
+            .appendTo(note$)
     }
 
     #open() {
@@ -124,9 +168,12 @@ export class SearchDialog {
                 <form class="sd-bar">
                     <input class="sd-input" type="search" placeholder="${gbText('關鍵字、G80、#羅 1:3|')}">
                     <button class="sd-go" type="submit"><i class="fa fa-search"></i></button>
+                    <button type="button" class="intro-help sd-help" title="${gbText('搜尋怎麼用？')}">?</button>
+                    ${scopeButtonHtml()}
                     <label class="sd-compare" title="${gbText('每節都列出目前所有譯本，不只找到關鍵字的')}"><input type="checkbox"${readCompare() ? ' checked' : ''}> ${gbText('譯本對照')}</label>
                     <button class="sd-fold" type="button" hidden></button>
                     <span class="sd-status"></span>
+                    <span class="sd-scope-note"></span>
                 </form>
                 <div class="sd-groups"></div>
                 <div class="sd-books"></div>
@@ -147,6 +194,8 @@ export class SearchDialog {
     /** @param {JQuery<HTMLElement>} dlg */
     #registerEvents(dlg) {
         const that = this
+        bindIntroHelp(dlg, 'search')
+        bindScopeButton(dlg, () => this.applyScopeChange())
         dlg.on('submit', '.sd-bar', e => {
             e.preventDefault()
             that.searchAsync(dlg.find('.sd-input').val())
@@ -155,6 +204,14 @@ export class SearchDialog {
             const session = that.session
             if (session == null || session.kind == 'reference') return // 經文查詢本來就列所有譯本
             session.compare = this.checked
+            that.#applyFilterAsync()
+        }).on('click', '.sd-scope-more', function () {
+            const session = that.session
+            if (session == null) return
+            session.setScope(null)
+            that.filter = that.#suggestFilter(session)
+            that.#renderGroups()
+            that.#renderScopeNote()
             that.#applyFilterAsync()
         }).on('click', '.sd-fold', function () {
             const folded = !dlg.find('.search-dlg').addBack('.search-dlg').first().hasClass('sd-folded')
@@ -230,17 +287,23 @@ export class SearchDialog {
         if (session.kind == 'reference' || session.verses.length == 0) return
         const folded = this.#dlg.find('.search-dlg').addBack('.search-dlg').first().hasClass('sd-folded')
         const names0 = BibleConstantHelper.getBookNameArrayChineseShort()
-        const cur = this.filter.ibook != null ? names0[this.filter.ibook] : gbText(this.filter.group_name)
+        const cur = this.filter.ibook != null ? names0[this.filter.ibook] : gbText(session.scope != null && this.filter.group_name == ALL_GROUP ? '範圍內全部' : this.filter.group_name)
         fold$.prop('hidden', false).text(`${gbText('篩選')} ${folded ? '▸' : '▾'}` + (folded ? `：${cur}` : ''))
 
         const cnt = books => books.reduce((sum, b) => sum + (session.cntOfBook[b] ?? 0), 0)
+        // 搜尋範圍有限定時，只列範圍內的分類 (全部那顆改叫「範圍內全部」)；範圍只有目前這卷，分類沒有意義，一顆都不列
+        const scoped = session.scope != null
+        const inScope = scoped ? scopeGroups(fhl.g_book_group, readScope(fhl.g_book_group)) : null
+        const onlyCur = scoped && session.scope.size == 1
         for (const [group_name, books] of Object.entries(fhl.g_book_group)) {
+            if (onlyCur || (scoped && group_name != ALL_GROUP && !(group_name in inScope))) continue
             const n = cnt(books)
             if (n == 0) continue
             $('<button type="button" class="sd-chip sd-group">')
                 .attr('group_name', group_name)
-                .toggleClass('selected', group_name == this.filter.group_name)
-                .append($('<span>').text(gbText(group_name)), $('<small>').text(n))
+                // 選了單卷、又沒有對應的分類 (全部) 時，只有書卷是選取的
+                .toggleClass('selected', group_name == this.filter.group_name && !(this.filter.ibook != null && group_name == ALL_GROUP))
+                .append($('<span>').text(gbText(scoped && group_name == ALL_GROUP ? '範圍內全部' : group_name)), $('<small>').text(n))
                 .appendTo(groups$)
         }
 
@@ -322,12 +385,13 @@ export class SearchDialog {
         this.#loadingToken = null
         if (rows == null) return
 
-        const keys = session.kind == 'sn' ? { sn: session.sn } : { words: session.kind == 'keyword' ? session.keyword : '' }
+        const keys = session.kind == 'sn' ? { sns: session.sns } : { words: session.kind == 'keyword' ? session.keyword : '' }
         const $grid = renderVerseGrid({ ...gridOpt(session), rows: verseRows })
         $grid.find('.sn').addClass('seSN sebutton') // 搜尋結果的 SN 樣式 (灰、小)、點了開字典
         markSearchKeys($grid, keys)
-        // 搜尋的 SN：SN 篩選開著、它又不在篩選內時也要顯示 (例 篩選「連接詞」搜 G80 → 連接詞 + G80)；SnFilter 對 .seKey 一律顯示
-        if (keys.sn != null) SnFilter.s.apply($grid, { offShowsAll: true })
+        // 搜尋的 SN：SN 篩選開著、它又不在篩選內時也要顯示 (例 篩選「連接詞」搜 G80 → 連接詞 + G80)；SnFilter 對 .seKey 一律顯示；
+        // SN 關閉時只顯示搜尋的 SN (複製成文字時，才不會冒出一堆原本淡灰色的 SN)
+        if (keys.sns != null) SnFilter.s.apply($grid, { offShowsAll: true })
         results$.append($grid)
         if (this.#colWidth) { // 這個範圍的第一批：量欄寬
             this.#colWidth.apply()
@@ -356,6 +420,13 @@ export class SearchDialog {
         $(document).trigger('chapchanged') // 更新網址 hash (pushState)，可按上一頁回來
     }
 }
+
+/** 搜尋範圍設定 (⚙)：要搜尋的書卷，null 是整本聖經 @param {number} ibookCur 目前閱讀的書卷 0based */
+function currentScope(ibookCur) {
+    return scopeBooks(fhl.g_book_group, readScope(fhl.g_book_group), ibookCur)
+}
+
+const ALL_GROUP = '整卷聖經' // fhl.g_book_group 的第一個，全部
 
 const FOLD_KEY = 'fhlSearchFold'
 /** 篩選區收合 (會記住) */
@@ -395,7 +466,7 @@ function gridOpt(session) {
         layout: ps.show_mode == 2 || ps.show_mode == 4 ? 'interleaved' : 'side',
         isLabel: true,
         labelWidth: 'var(--vg-label-w, 6.5em)', // 出處欄寬：表頭可拖 (LABEL_W_KEY)，各批 grid 共用才對齊
-        snOpt: { offShowsAll: true }, // 搜 SN 時會強制帶 SN，SN 關閉也要顯示
+        snOpt: { offShowsAll: true }, // 搜 SN 時會強制帶 SN；SN 關閉時只顯示搜尋的那些 (SnFilter.apply)
         cellExtra: () => $('<span class="sd-copy" title="copy"><i class="fa fa-files-o"></i></span>'),
     }
 }
@@ -452,12 +523,13 @@ async function toVerseRowsAsync(rows) {
 /**
  * 查詢的 SN、關鍵字加 .seKey (渲染後在 DOM 上標，SN 的數字不動)
  * @param {JQuery<HTMLElement>} $root
- * @param {{sn?: string, words?: string}} keys sn 例 `80` `652a`；words 以空白分隔
+ * @param {{sns?: string[], words?: string}} keys sns 例 `['80', '652a']`；words 以空白分隔
  */
 export function markSearchKeys($root, keys) {
-    if (keys.sn != null) {
+    if (keys.sns != null) {
+        const sns = new Set(keys.sns)
         $root.find('.sn').each((i, e) => {
-            if (e.getAttribute('sn') == keys.sn && !/^WT/.test(e.getAttribute('tp2') ?? '')) e.classList.add('seKey')
+            if (sns.has(e.getAttribute('sn')) && !/^WT/.test(e.getAttribute('tp2') ?? '')) e.classList.add('seKey')
         })
     }
 

@@ -24,8 +24,8 @@ export function Search_suggestFilter(cnt_of_book, book_group, ibook, min_count =
         .filter(g => g.books.includes(ibook))
         .sort((a, b) => a.books.length - b.books.length || b.order - a.order)
         .map(g => [g.name, g.books])
-    if (groups.length === 0) {
-        return { group_name: ALL, ibook: null }
+    if (groups.length === 0) { // 例 搜尋範圍限定時，沒有分類包含這卷
+        return { group_name: ALL, ibook: (cnt_of_book[ibook] ?? 0) >= min_count ? ibook : null }
     }
 
     if ((cnt_of_book[ibook] ?? 0) >= min_count) {

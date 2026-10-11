@@ -1,5 +1,6 @@
 import { searchKeywordAsync, searchSnAsync, queryQsbAsync, addrsToQstr, isGreekKeyword } from './SearchApi_es2023.js'
 import { isHebrewKeyword } from './hebCode.es2023.js'
+import { parseSnQuery, combineSnResults, termsOf, positiveTermsOf, assertSnQuery } from './snQuery.es2023.js'
 
 /**
  * ### 一次搜尋的資料與狀態 (不碰 DOM)
@@ -18,6 +19,8 @@ import { isHebrewKeyword } from './hebCode.es2023.js'
 export class SearchSession {
     /** 一次取幾節經文 */
     static BATCH = 30
+    /** SN 搜尋一次最多幾個 SN (or / and 合計) */
+    static MAX_SN_TERMS = 60
 
     /** @type {string} */ keyword
     /** @type {SearchKind} */ kind
@@ -25,11 +28,14 @@ export class SearchSession {
     /** @type {0|1} */ gb
     /** @type {0|1} 經文是否帶 SN */ strong
     /** @type {string} 目前閱讀的書卷，reference 省略書卷時用 */ engs
-    /** @type {string} sn 搜尋時，純數字 (上色用) */ sn = null
+    /** @type {string} sn 搜尋時，純數字 (上色用)；多項時是第一項 */ sn = null
+    /** @type {string[]} sn 搜尋的所有 SN，純數字 (上色用) */ sns = []
     /** @type {string[]} 使用者目前選的譯本 (原文關鍵字時 versions 會被換掉，譯本對照仍用這個) */ userVersions
     /** 譯本對照：每節都取 compareVersions 全部譯本的經文 (不只找到關鍵字的)；改了要重新 setFilter */ compare = false
 
-    /** @type {SearchVerse[]} 已排序 */ verses = []
+    /** @type {Set<number> | null} 搜尋範圍 (0based ibook)，null 是整本聖經；見 SearchScope.es2023.js。改了呼叫 setScope */ scope = null
+    /** @type {SearchVerse[]} 所有符合的節 (已排序，不受 scope 限制) */ allVerses = []
+    /** @type {SearchVerse[]} 範圍內的節 (已排序) */ verses = []
     /** @type {Object.<number, number>} 0based ibook → 節數 */ cntOfBook = {}
     /** @type {{ver: string, reason: string}[]} 無法搜尋的譯本 */ failedVersions = []
     /** @type {string[]} 新約原文搜尋結果太多、沒有列入的書卷 (engs) */ tooManyBooks = []
@@ -41,7 +47,7 @@ export class SearchSession {
     #abort = new AbortController()
 
     /**
-     * @param {{keyword: string, versions: string[], gb: 0|1, strong: 0|1, engs: string}} arg
+     * @param {{keyword: string, versions: string[], gb: 0|1, strong: 0|1, engs: string, scope?: Set<number> | null}} arg
      */
     constructor(arg) {
         this.keyword = arg.keyword.trim()
@@ -50,6 +56,7 @@ export class SearchSession {
         this.gb = arg.gb
         this.strong = arg.strong
         this.engs = arg.engs
+        this.scope = arg.scope ?? null
         this.kind = SearchSession.determineKind(this.keyword)
         // 希臘文：查新約原文 (fhlwh) 與七十士譯本 (lxx)，不論目前選的譯本
         if (this.kind == 'keyword' && isGreekKeyword(this.keyword)) this.versions = ['fhlwh', 'lxx']
@@ -59,14 +66,14 @@ export class SearchSession {
 
     /**
      * - reference：`#羅 1:3|`，或是書卷名開頭接數字 `羅1:3`、`約壹 2:1-3`
-     * - sn：`G80`、`H2316`、`652a`
+     * - sn：`G80`、`H2316`、`652a`；多項：`G3114 G3115` (and)、`G3114 or G3115` (or)，見 parseSnQuery
      * - keyword：其它
      * @param {string} keyword
      * @returns {SearchKind}
      */
     static determineKind(keyword) {
         if (keyword.startsWith('#') || keyword.endsWith('|')) return 'reference'
-        if (/^[GH]?\d+[a-z]?$/i.test(keyword)) return 'sn'
+        if (parseSnQuery(keyword) != null) return 'sn'
         const names = [...fhl.g_book_all, ...fhl.g_book_allGb].flatMap(a1 => [a1[2], a1[3]])
         names.sort((a, b) => b.length - a.length) // 長的先比對，例 約壹 優先於 約
         if (names.some(na => keyword.startsWith(na) && /^\s*\d/.test(keyword.slice(na.length)))) return 'reference'
@@ -87,12 +94,26 @@ export class SearchSession {
         /** @type {{ver: string, addrs: SearchAddr[]}[]} */
         let perVer
         if (this.kind == 'sn') {
-            const m = /^([GH])?(\d+[a-z]?)$/i.exec(this.keyword)
+            const groups = parseSnQuery(this.keyword)
+            assertSnQuery(groups)
             // 沒寫 G 或 H 時，依目前閱讀的是舊約或新約
-            const isOld = m[1] != null ? m[1].toUpperCase() == 'H' : fhl.engs_2_iBook(this.engs) < 39
-            this.sn = `${parseInt(m[2])}${m[2].replace(/^\d+/, '')}`
+            const defaultOld = fhl.engs_2_iBook(this.engs) < 39
+            const keyOf = t => `${t.isOld ?? defaultOld ? 'H' : 'G'}${t.sn}`
+            const terms = new Map(termsOf(groups).map(t => [keyOf(t), { sn: t.sn, isOld: t.isOld ?? defaultOld }]))
+            if (terms.size > SearchSession.MAX_SN_TERMS) throw new Error(`SN 一次最多 ${SearchSession.MAX_SN_TERMS} 個 (範圍也一個一個算)`)
+            this.sns = [...new Set(positiveTermsOf(groups).map(t => t.sn))] // 標示用，不含 not 的
+            this.sn = this.sns[0]
             this.strong = 1 // 搜尋 SN 時，結果顯示 SN (但主經文保持原設定)
-            perVer = [{ ver: 'unv', addrs: await searchSnAsync(m[2], isOld, signal) }]
+            // se.php 沒有 or，各 SN 分別查，在本機做 and (交集)、or (聯集)、not (差集)；一次最多 3 個請求
+            const results = new Map()
+            const queue = [...terms.entries()]
+            await Promise.all(Array.from({ length: Math.min(3, queue.length) }, async () => {
+                for (let kv; (kv = queue.shift()) != null;) {
+                    results.set(kv[0], await searchSnAsync(kv[1].sn, kv[1].isOld, signal))
+                }
+            }))
+            const addrs = combineSnResults(groups, t => results.get(keyOf(t)))
+            perVer = [{ ver: 'unv', addrs }]
         } else {
             perVer = await searchKeywordAsync(this.keyword, this.versions, this.gb, signal)
             this.failedVersions = perVer.failed
@@ -117,12 +138,27 @@ export class SearchSession {
                 if (!v.vers.includes(ver)) v.vers.push(ver)
             }
         }
-        this.verses = [...map.values()].sort(compareAddr)
+        this.allVerses = [...map.values()].sort(compareAddr)
+        this.#applyScope()
+    }
+
+    /** 依 scope 篩出 verses，重算每卷節數 */
+    #applyScope() {
+        this.verses = this.scope == null ? this.allVerses : this.allVerses.filter(v => this.scope.has(v.ibook))
         this.cntOfBook = {}
         for (const v of this.verses) {
             this.cntOfBook[v.ibook] = (this.cntOfBook[v.ibook] ?? 0) + 1
         }
     }
+
+    /** 改搜尋範圍 (不重新搜尋)；之後要再 setFilter @param {Set<number> | null} scope */
+    setScope(scope) {
+        this.scope = scope
+        this.#applyScope()
+    }
+
+    /** 範圍外的節數 */
+    get outOfScope() { return this.allVerses.length - this.verses.length }
 
     async #runReferenceAsync(signal) {
         const qstr = this.keyword.replace(/^#/, '').replace(/\|$/, '').trim()

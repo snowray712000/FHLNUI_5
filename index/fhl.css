@@ -1474,6 +1474,20 @@ body {
 .fn-search-sn:hover {
     color: var(--accent);
 }
+/* 同源字旁的「搜尋全部」 */
+.fn-search-same {
+    margin: 0 0.5em 0 0.2em;
+    padding: 0 0.5em;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--sn-fg);
+    font-size: 0.85em;
+    cursor: pointer;
+}
+.fn-search-same:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
 /* SN 篩選 (docs/z260928e) */
 .sn-dim {
     opacity: 0.3;
@@ -2101,7 +2115,9 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     color: var(--pos-title-fg);
 }
 /* 同源字旁的 ?，按了開說明 (IntroHelp.es2023.js)；跟介面大小 */
-.intro-help {
+.intro-help,
+.search-scope-btn {
+    flex: none; /* 在 flex 容器裡被擠扁就不是正圓了 */
     width: calc(18px * var(--ui-k, 1));
     height: calc(18px * var(--ui-k, 1));
     margin: 0 2px;
@@ -2120,7 +2136,9 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
     justify-content: center;
     box-sizing: border-box;
 }
-.intro-help:hover { background: var(--brand); color: var(--fg-on-accent); }
+.intro-help:hover,
+.search-scope-btn:hover { background: var(--brand); color: var(--fg-on-accent); }
+.search-scope-btn { font-size: calc(0.65rem * var(--ui-k, 1)); }
 .intro-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
 .parsing-verb {
     /* 鮮橘色 動作感強 */

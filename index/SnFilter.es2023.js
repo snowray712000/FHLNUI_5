@@ -291,11 +291,12 @@ export class SnFilter {
     /**
      * @param {JQuery<HTMLElement>|Element|Document} root
      * @param {{offShowsAll?: boolean, addr?: string, ver?: string}} [opt]
-     *   offShowsAll: 搜尋結果，SN 關閉時仍顯示 (搜 SN 時會強制帶 SN)
+     *   offShowsAll: 搜尋結果。SN 關閉時 (搜 SN 時會強制帶 SN) 只顯示搜尋的那些 (.seKey)，其它隱藏，
+     *   這樣複製成文字時 (沒有顏色) 才不會冒出一堆原本淡灰色的 SN；篩選開時 = 篩選的 + 搜尋的；全部時全部
      *   addr "book.chap.sec"、ver 譯本：root 還沒放進 .lec 時 (主經文逐節產生時) 由呼叫端給
      */
     apply(root, opt = {}) {
-        const mode = this.mode == 'off' && opt.offShowsAll ? 'all' : this.mode
+        const mode = this.mode == 'off' && opt.offShowsAll ? 'keys' : this.mode
         if (mode == 'filter' || this.colorBy != 'off') this.#ensureDataThenApplyAll()
         const all = $(root).find('.sn, .sn-text, .lec[book]').toArray()
         const els = all.filter(e => !isWord(e))
@@ -312,6 +313,7 @@ export class SnFilter {
                 e.classList.add('sn-hidden') // 標記不是字，變淡模式也不顯示
                 continue
             }
+            if (mode == 'keys') isShow = e.classList.contains('seKey')
             if (mode == 'filter') {
                 if (isTvm(e)) {
                     isShow = isLastWordShow && this.cfgOf(e.getAttribute('tp')).showTvm

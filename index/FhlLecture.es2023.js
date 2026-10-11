@@ -1317,6 +1317,13 @@ function mouseenter_sn_dialog(e) {
                 // filter .csn != sn
                 let same2 = same.filter(a1 => a1.csn != sn)
 
+                // 搜尋全部同源字 (含自己)：G3114 or G3115 …，見 snQuery.es2023.js
+                if (same2.length > 0) {
+                    $('<span class="fn-search-same">').text('搜尋全部').attr('title', '搜尋有這些字的任何一節 (SN 用 or 連起來)')
+                        .attr('query', [...new Set([sn, ...same2.map(a1 => a1.csn)])].map(n => tp + n).join(' or '))
+                        .insertAfter(span_same.children().first())
+                }
+
                 // 產生許多 <span class='one-same'>...</span>
                 for (let i1 = 0; i1 < same2.length; i1++) {
                     const onesame3 = same2[i1]
@@ -1412,6 +1419,13 @@ function mouseenter_sn_dialog(e) {
 
                     // 先關掉所有 dialog 再搜尋，否則剛開的搜尋 dialog 也會被關掉
                     SearchTool.s.search(hgSn)
+                })
+
+                // 同源字「搜尋全部」
+                dlg.parent().on('click', '.fn-search-same', a1 => {
+                    const query = $(a1.currentTarget).attr('query')
+                    $('.ui-dialog-title').siblings('.ui-dialog-titlebar-close').trigger('click')
+                    SearchTool.s.search(query)
                 })
 
                 // hover 的那一節 (active address)，同節/同章的經文引用高亮
