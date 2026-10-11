@@ -32,8 +32,57 @@ export default defineConfig({
     include: ['tests/**/*.test.js'],
   },
   // bundleLegacyScripts 要在 versionLegacyUrls 之前（同為 transformIndexHtml post，依陣列順序執行）
-  plugins: [serveLegacyRaw(), copyLegacyFiles(), bundleLegacyScripts(), preloadIjnjsFiles(), versionLegacyUrls()],
+  plugins: [demoIndex(), serveLegacyRaw(), copyLegacyFiles(), bundleLegacyScripts(), preloadIjnjsFiles(), versionLegacyUrls()],
 })
+
+/** demoIndex 掃描時略過的目錄（第三方、build 產物、對話框 html 片段） */
+const DEMO_SKIP_DIRS = new Set(['node_modules', 'dist', '.git', 'static', 'libs', 'DialogTemplate', 'fixtures', 'tools', 'images'])
+
+/**
+ * dev 專用：開 http://127.0.0.1:5173/demo/ 會列出專案內所有試作 / 測試的 .html 連結（依資料夾分組），
+ * 免得每個都要手打路徑。每次請求重新掃描，新增的 demo 重新整理就看得到。build 不受影響。
+ */
+function demoIndex() {
+  const scan = (root) => {
+    /** @type {Map<string, string[]>} */
+    const groups = new Map()
+    const walk = (dir) => {
+      for (const d of fs.readdirSync(dir, { withFileTypes: true })) {
+        const abs = path.join(dir, d.name)
+        if (d.isDirectory()) {
+          if (!DEMO_SKIP_DIRS.has(d.name)) walk(abs)
+        } else if (/\.html$/i.test(d.name) && !/\.min\.html$/i.test(d.name)) {
+          const rel = path.relative(root, abs).split(path.sep).join('/')
+          if (rel === 'index.html') continue
+          const g = path.posix.dirname(rel)
+          if (!groups.has(g)) groups.set(g, [])
+          groups.get(g).push(rel)
+        }
+      }
+    }
+    walk(root)
+    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
+  }
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  return {
+    name: 'demo-index',
+    apply: 'serve',
+    configureServer(server) {
+      const root = path.resolve(server.config.root)
+      server.middlewares.use((req, res, next) => {
+        const p = (req.url ?? '').split('?')[0]
+        if (p !== '/demo' && p !== '/demo/') return next()
+        const body = scan(root).map(([dir, files]) =>
+          `<h2>${esc(dir)}</h2>\n<ul>\n${files.sort().map((f) =>
+            `<li><a href="/${encodeURI(f)}">${esc(path.posix.basename(f))}</a></li>`).join('\n')}\n</ul>`).join('\n')
+        res.setHeader('Content-Type', 'text/html; charset=utf-8')
+        res.end(`<!doctype html><meta charset="utf-8"><title>demo</title>
+<style>body{font:15px/1.6 sans-serif;margin:1.5rem auto;max-width:48rem;padding:0 1rem}h2{font-size:1rem;margin:1.2rem 0 .2rem;color:#555}ul{margin:0}</style>
+<h1>demo / 試作</h1>\n${body}`)
+      })
+    },
+  }
+}
 
 /** 執行時才以 <script src>、$.ajax、fetch 載入的檔案，照原路徑複製到 dist/。 */
 const LEGACY_COPY = [
@@ -50,6 +99,7 @@ const LEGACY_COPY = [
   'docs/SN讀經組合說明.md', // SN 篩選「讀經組合」的「?」讀這份 (SnFilterDialog.es2023.js)
   'docs/同源字說明.md', // 即時 SN 視窗「同源字 ?」讀這份 (IntroHelp.es2023.js)
   'docs/SN說明.md', // 設定「原文SN ?」讀這份 (IntroHelp.es2023.js)
+  'docs/搜尋說明.md', // 搜尋框旁「?」讀這份 (IntroHelp.es2023.js)
   'docs/信望愛資源說明.md', // ▦ 信望愛資源面板連結旁的「?」讀這份 (Resources.es2023.js)
 ]
 
@@ -99,7 +149,6 @@ function bundleLegacyScripts() {
   let pending = null
   return {
     name: 'bundle-legacy-scripts',
-  'docs/搜尋說明.md', // 搜尋框旁「?」讀這份 (IntroHelp.es2023.js)
     apply: 'build',
     configResolved(config) {
       root = config.root
