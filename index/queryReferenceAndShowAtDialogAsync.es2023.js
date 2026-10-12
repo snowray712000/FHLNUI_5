@@ -4,7 +4,7 @@ import { splitReference } from "./splitReference.es2023.js" // 經文章節，�
 import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml, contentFontK } from "./DialogHtml.es2023.js"
 import { ColWidth } from "./ColWidth.es2023.js"
-import { showRefChooseBar } from "./RefChooseBar.es2023.js"
+import { showRefChooseBar, showFloatBar } from "./RefChooseBar.es2023.js"
 import { SnFilter } from "./SnFilter.es2023.js"
 import { renderVerseGrid, readLabelW, addLabelHandle, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from "./VerseGrid.es2023.js"
 import { cvtAddrsToRef } from "./cvtAddrsToRef.es2023.js"
@@ -30,6 +30,7 @@ import { showFootPopupAsync } from "./showFootPopupAsync.es2023.js"
  * @prop {string} [version] - (舊) 只在 ps.version 為空時用
  * @prop {number} [bookDefault] - 預設書卷，1-based，預設 45 (羅馬書)，用於 addrsDescription 的查詢
  * @prop {MouseEvent} [event] - 點擊事件，若有，則會根據 TPPageState.s.reference_method 的設定來決定顯示方式
+ * @prop {{book: number, chap: number, sec: number, secEnd?: number}} [focusAddr] - 開 dialog 後，捲到並標示這幾節 (例：「上下文」開整章，標示被點的那節)
  * @prop {number} [method] - 顯示方式，0: 每次詢問, 1: 一律預覽 (小視窗), 2: 一律前往 (主畫面跳過去)
  */
 
@@ -121,6 +122,16 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         ViewHistory.s.render();
         $(document).trigger('chapchanged') // 更新網址 hash (pushState)，alt+←/→ 才回得去
     }
+    /** jo.focusAddr：標示並捲到那幾節 (版面寬度由 dialog 決定，晚一個 frame 才量得準) @param {HTMLElement} host */
+    function focus_addr(host) {
+        const f = jo.focusAddr
+        if (f == null) return
+        const end = f.secEnd ?? f.sec
+        const hits = [...host.querySelectorAll('.lec')].filter(a => +a.getAttribute('book') == f.book && +a.getAttribute('chap') == f.chap
+            && +a.getAttribute('sec') >= f.sec && +a.getAttribute('sec') <= end)
+        hits.forEach(a => a.classList.add('selected'))
+        requestAnimationFrame(() => hits[0]?.scrollIntoView({ block: 'center' }))
+    }
     function show_in_dialog() {
         const ps = TPPageState.s
         const addrsDescription = jo.addrsDescription != null ? jo.addrsDescription : cvtAddrsToRef(jo.addrs, '羅')
@@ -194,11 +205,21 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
                         if (data) queryReferenceAndShowAtDialogAsync({ addrs: JSON.parse(data), event: ev })
                         else if ($t.attr('addr-desc')) queryReferenceAndShowAtDialogAsync({ addrsDescription: $t.attr('addr-desc'), event: ev })
                     })
-                    // 經文位置：經文區跳到那裡
+                    // 經文位置：浮出 上下文｜前往 (上下文 = 另開那一章的 dialog，捲到這幾節；前往 = 經文區跳到那裡)
                     dlg.on('click', '[data-goto]', ev => {
-                        const [book, chap, verse] = JSON.parse($(ev.currentTarget).attr('data-goto'))
-                        show_in_embed({ book, chap, verse })
+                        const [book, chap, verse, secEnd] = JSON.parse($(ev.currentTarget).attr('data-goto'))
+                        showFloatBar(ev.currentTarget, [
+                            {
+                                label: '上下文', title: '另開一個視窗，顯示這一章，讀經位置不動',
+                                onPick: () => queryReferenceAndShowAtDialogAsync({
+                                    addrs: BibleConstantHelper.generateAddressesTpF(book, chap),
+                                    focusAddr: { book, chap, sec: verse, secEnd },
+                                }),
+                            },
+                            { label: '前往', title: '經文區直接跳到這裡', onPick: () => show_in_embed({ book, chap, verse }) },
+                        ])
                     })
+                    focus_addr(dlg[0])
                 }
             })
         }
@@ -281,7 +302,7 @@ function render_reference_grid(order, byVer, versions, ps) {
             }
             cells[ver] = verses
         }
-        return { label: labelOf(g), labelAttrs: { 'data-goto': JSON.stringify(g[0]), title: '經文區跳到這裡' }, cells }
+        return { label: labelOf(g), labelAttrs: { 'data-goto': JSON.stringify([...g[0], g[g.length - 1][2]]), title: '看上下文，或經文區跳到這裡' }, cells }
     })
 
     const isGb = ps.gb == 1

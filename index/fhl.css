@@ -2594,6 +2594,8 @@ body.lec-col-resizing, body.lec-col-resizing * {
 .verse-grid .vg-group { font-weight: bold; }
 .verse-grid .vg-merged { color: var(--merged-fg); } /* 併入上節 (搜尋結果、交互參照從這節開始) */
 .verse-grid.vg-interleaved .vg-label { font-size: 0.85em; color: var(--fg-muted); }
+/* 「上下文」開整章時，標示被點的那幾節 (與經文區同色) */
+.ref-dlg .lec.selected { background: var(--lec-selected-bg); }
 .ref-dlg-bar {
     display: inline-flex;
     align-items: center;
