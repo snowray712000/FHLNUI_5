@@ -21,8 +21,8 @@ function render_reference_method(ps, dom){
     const html = `<div>${gbText("交互參照方法", ps.gb)}:</div>
 <select id="reference_method">
     <option value="0">每次詢問</option>
-    <option value="1">直接方法1️⃣</option>
-    <option value="2">直接方法2️⃣</option>
+    <option value="1">一律預覽</option>
+    <option value="2">一律前往</option>
 </select>`
 
     dom.html(html);

@@ -4,6 +4,7 @@ import { splitReference } from "./splitReference.es2023.js" // 經文章節，�
 import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml, contentFontK } from "./DialogHtml.es2023.js"
 import { ColWidth } from "./ColWidth.es2023.js"
+import { showRefChooseBar } from "./RefChooseBar.es2023.js"
 import { SnFilter } from "./SnFilter.es2023.js"
 import { renderVerseGrid, readLabelW, addLabelHandle, isMergedWithPrev, extendVerseLabel, mergedPlaceholderDTexts } from "./VerseGrid.es2023.js"
 import { cvtAddrsToRef } from "./cvtAddrsToRef.es2023.js"
@@ -29,7 +30,7 @@ import { showFootPopupAsync } from "./showFootPopupAsync.es2023.js"
  * @prop {string} [version] - (舊) 只在 ps.version 為空時用
  * @prop {number} [bookDefault] - 預設書卷，1-based，預設 45 (羅馬書)，用於 addrsDescription 的查詢
  * @prop {MouseEvent} [event] - 點擊事件，若有，則會根據 TPPageState.s.reference_method 的設定來決定顯示方式
- * @prop {number} [method] - 顯示方式，0: 每次詢問, 1: 直接方法1, 2: 直接方法2
+ * @prop {number} [method] - 顯示方式，0: 每次詢問, 1: 一律預覽 (小視窗), 2: 一律前往 (主畫面跳過去)
  */
 
 /**
@@ -60,49 +61,27 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
 
     return
     function show_dialog_choose_method() {
-        // 取得滑鼠目前位置，或是「點擊位置(若是平板)」
-        if (jo.event != null) {
-            let position = { my: "right top", at: "right top", of: $(jo.event.target) }
-
-            let dlg2 = new DialogHtml()
-            dlg2.showDialog({
-                html: '<div class="method-buttons"><button class="method1">1️⃣方法</button><button class="method2">2️⃣方法</button><button class="help">❓說明</button></div>',
-                getTitle: () => "交互參照",
-                width: window.innerWidth * 0.3,
-                position: position,
-                registerEventWhenShowed: dlg => {
-                    dlg.on('click', '.method1', () => {
-                        dlg2.closeDialogViaTriggerCloseButton()
-                        setTimeout(() => {
-                            show_in_dialog()
-                        }, 0);
-                    })
-                    dlg.on('click', '.method2', () => {
-                        dlg2.closeDialogViaTriggerCloseButton()
-                        setTimeout(() => {
-                            show_in_embed()
-                        }, 0);
-                    })
-                    dlg.on('click', '.help', ev => {
-                        show_help_dialog(ev)
-                    })
-                }
-            })
-        }
+        // 點擊處旁邊浮出 [預覽] [前往] [?]，不開對話框 (RefChooseBar)
+        const anchor = jo.event.target.closest?.('.ref') ?? jo.event.target
+        showRefChooseBar(anchor, {
+            onPreview: show_in_dialog,
+            onGoto: () => show_in_embed(),
+            onHelp: () => show_help_dialog(anchor),
+        })
     }
-    function show_help_dialog(ev) {
+    function show_help_dialog(anchor) {
         let ps = TPPageState.s
 
         let htmlContent = `<ul>
-        <li>1️⃣方法：會開啟一個對話框，顯示經文內容。</li>
-        <li>2️⃣方法：將目前頁面，跳至此範圍的第一個章節。</li>
-        </ui><hr/>
+        <li><b>預覽</b>：跳出小視窗顯示這段經文，原本讀的地方不動。</li>
+        <li><b>前往</b>：主畫面直接跳到這段範圍的第一節。</li>
+        </ul><hr/>
         目前設定值：<select id="reference_method">
             <option value="0">每次詢問</option>
-            <option value="1">直接方法1️⃣</option>
-            <option value="2">直接方法2️⃣</option>
+            <option value="1">一律預覽</option>
+            <option value="2">一律前往</option>
         </select>`
-        let position = { my: "right top", at: "right top", of: $(ev.target) }
+        let position = { my: "right top", at: "right top", of: $(anchor) }
 
         let dlg = new DialogHtml()
         dlg.showDialog({
@@ -111,13 +90,15 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
             position: position,
             width: window.innerWidth * 0.3,
             registerEventWhenShowed: dlg => {
-                $('#reference_method').val(TPPageState.s.reference_method); // 初始化為當前狀態
+                // 設定面板也有同 id 的下拉，這裡只動對話框裡的
+                dlg.find('#reference_method').val(TPPageState.s.reference_method); // 初始化為當前狀態
 
                 // 更新設定值時
                 dlg.on('change', '#reference_method', function () {
                     let ps = TPPageState.s
                     ps.reference_method = parseInt($(this).val());
-                    pageState.reference_method = ps.reference_method;
+                    ps.saveToLocalStorage();
+                    $('#settingsScrollDiv #reference_method').val(ps.reference_method); // 設定面板同步
                 });
 
             }

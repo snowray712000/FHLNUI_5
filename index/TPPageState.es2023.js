@@ -99,7 +99,7 @@ export class TPPageState {
     this.swVer = "0.0.0"
     /** @type {0|1|2} 0是早期顯示版本，1是併排，2是交錯 */
     this.show_mode = 1
-    /** @type {0|1|2} 0: 每次詢問，1: 直接方法1，2: 直接方法2*/
+    /** @type {0|1|2} 0: 每次詢問 (浮出 預覽|前往|?)，1: 一律預覽，2: 一律前往*/
     this.reference_method = 0
     /** @type {0|1} 切換經文方法，0: 依視窗大小，1: 簡易 */
     this.book_select_method = 0 // 0: 依視窗大小，1: 簡易

@@ -2145,6 +2145,12 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
 .search-scope-btn:hover { background: var(--brand); color: var(--fg-on-accent); }
 .search-scope-btn { font-size: calc(0.65rem * var(--ui-k, 1)); }
 .intro-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
+/* 藍色膠囊列 (預覽|前往|?) 裡的 ?：圓形白底，離按鈕留一點空，滑過去稍微變藍 */
+.ref-choose .intro-help { align-self: center; margin: 0 8px 0 4px; }
+.ref-choose .intro-help:hover { background: color-mix(in srgb, var(--surface-bg) 75%, var(--lct-bg)); color: var(--brand-fg); }
+@media (pointer: coarse) {
+    .ref-choose .intro-help { width: 28px; height: 28px; }
+}
 .parsing-verb {
     /* 鮮橘色 動作感強 */
     color: var(--pos-verb-fg);
@@ -2462,7 +2468,8 @@ body.lec-col-resizing, body.lec-col-resizing * {
 /* 跨格：原生反白照 DOM 順序畫 (第一欄到底、中間整欄)，會誤導 → 透明，改成整格 (.paragraph) 上底色 */
 .lct-crossed ::selection { background: transparent; }
 .lct-crossed .lct-cell { background: var(--lct-hl); }
-.lec-copy-table {
+.lec-copy-table,
+.ref-choose { /* ref-choose: 點交互參照時的 [預覽] [前往] [?] (index/RefChooseBar.es2023.js)，同一個膠囊樣式 */
     position: fixed;
     z-index: 2000;
     display: flex;
