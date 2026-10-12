@@ -1065,7 +1065,7 @@ const OPTS_KEY = 'fhlCopyTableOpts'
 /** @type {Record<string, [label: string, def: boolean, tip: string]>} */
 const OPT_DEFS = {
     color: ['字色', true, '寫入文字顏色 (節碼、註的顏色另外一定會有)'],
-    border: ['框線', true, '表格加框線 (border="1"、border-collapse)'],
+    border: ['框線', true, '表格加框線 (border="1"、border-collapse，每格也寫 border，PowerPoint 只認每格的)'],
     background: ['背景色', false, '寫入底色；不勾就不寫，貼上後用對方的底色'],
     fontFamily: ['字型', false, '寫入經文區目前的字型；不勾就用對方軟體的預設'],
     fontSize: ['字級', false, '寫入經文區目前的字級 (內容字級，不是介面字級)；不勾就用對方軟體的預設'],
@@ -1119,8 +1119,25 @@ function tableOpen(elScope) {
     if (cs && o.fontSize) st.push(`font-size:${cs.fontSize}`)
     return `<table border="${o.border ? 1 : 0}"${st.length ? ` style="${st.join(';')}"` : ''}>`
 }
-/** 表頭格 @param {string} name */
-const headCell = name => loadOpts().th ? `<th>${esc(name)}</th>` : `<td><b>${esc(name)}</b></td>`
+/**
+ * 整張表：開頭標籤 + 列；勾「框線」時每個 td / th 也寫 border
+ * (PowerPoint 不認 table 的 border="1"，貼成無框線的表格；Excel / Word 複製出來的 html 也是每格寫 border)
+ * 框線顏色用字色 (淺色主題下近黑，同 PowerPoint 手動「所有框線」的樣子)
+ * @param {Element | undefined} elScope @param {string} rows `<tr>…</tr>…`
+ */
+function tableHtml(elScope, rows) {
+    if (!loadOpts().border) return `${tableOpen(elScope)}${rows}</table>`
+    const c = elScope ? getComputedStyle(elScope).color : ''
+    const bd = `border:1pt solid${c ? ' ' + c : ''}`
+    // 格內的字都經 esc，不會有 <td / <th 字樣
+    const body = rows.replace(/<(td|th)\b([^>]*)>/g, (_, tag, attrs) => / style="/.test(attrs)
+        ? `<${tag}${attrs.replace(' style="', ` style="${bd};`)}>`
+        : `<${tag}${attrs} style="${bd}">`)
+    return `${tableOpen(elScope)}${body}</table>`
+}
+/** 表頭格 (譯本名稱)：水平、垂直置中；style 之外也寫 align / valign 給 Word、PowerPoint @param {string} name */
+const HEAD_ATTRS = ' align="center" valign="middle" style="text-align:center;vertical-align:middle"'
+const headCell = name => loadOpts().th ? `<th${HEAD_ATTRS}>${esc(name)}</th>` : `<td${HEAD_ATTRS}><b>${esc(name)}</b></td>`
 const baseColor = el => el ? getComputedStyle(el).color : undefined
 
 /**
@@ -1186,7 +1203,7 @@ function toClipboardData({ scope, versions, columns, labels, range, hit, isOneCe
     }
     return {
         plain: plainRows.join('\n'),
-        html: `${tableOpen(scope.el)}${htmlRows}</table>`,
+        html: tableHtml(scope.el, htmlRows),
     }
 }
 
@@ -1279,8 +1296,8 @@ function interleavedData(hit, range, base, elScope) {
         .map(a => ({ ...a, runs: a.label ? [{ t: a.label + ' ' }, ...a.runs] : a.runs }))
     return {
         plain: list.map(a => runsText(a.runs)).join('\n'),
-        html: `${tableOpen(elScope)}${list.map(a =>
-            `<tr><td${a.rtl ? ' dir="rtl"' : ''} style="vertical-align:top">${runsHtml(a.runs)}</td></tr>`).join('')}</table>`,
+        html: tableHtml(elScope, list.map(a =>
+            `<tr><td${a.rtl ? ' dir="rtl"' : ''} style="vertical-align:top">${runsHtml(a.runs)}</td></tr>`).join('')),
     }
 }
 
