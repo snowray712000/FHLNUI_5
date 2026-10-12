@@ -20,8 +20,8 @@
  * - 搜尋結果、交互參照 (VerseGrid)：一律如所見一段一列 (.paragraph 的 data-row，各批 grid 各自編號)；
  *   左側的經文位置 (標籤欄) 也複製：並排多譯本 → 表格第一欄；單一譯本、交錯 → 每列開頭
  *
- * - 按鈕依情形：Case1 同一格「文字|含出處」(含出處：沒選到的頭尾以 ... 表示，例 `9 ... 免得受審判。 ...(雅5:9_和合本)`)；Case2 跨列不跨欄「文字|連續文字|連續含出處|表格|MD」；Case3 跨欄「表格|MD」
- *   (連續文字 = 各列接成空白、不換行；見 toPlainText)
+ * - 按鈕依情形：Case1 同一格「文字|含出處」(含出處：沒選到的頭尾以 ... 表示，例 `9 ... 免得受審判。 ...(雅5:9_和合本)`)；Case2 跨列不跨欄「文字|連續|含出處|繼續選|表格|MD|ASCII」；Case3 跨欄「表格|MD|ASCII|繼續選」
+ *   (連續 = 各列接成空白、不換行；見 toPlainText)
  * - 「MD」鈕 (docs/z261002c)：Markdown 表格只放 text/plain，不保留顏色；起訖在同一格時不顯示
  *   並排 → 表頭譯本名 (有標籤欄時第一欄「經文」)；mode 1 併入上節 (rowspan) 被佔的格寫「（併入上節）」
  *   交錯 → 「譯本 | 經文」兩欄 (有經文位置時「經文 | 譯本 | 內容」)；交錯只有一個譯本 → 一欄，表頭譯本名
@@ -61,7 +61,7 @@ export class LecCopyTable {
 
     /** @type {HTMLElement} 按鈕組 (複製對照表 + MD)，整組一起定位 */
     #btn = null
-    /** @type {Record<'text' | 'flat' | 'cite' | 'table' | 'md' | 'ascii' | 'cont', HTMLButtonElement>} 文字 / 連續文字 / 表格 / Markdown / ASCII / 繼續選 */
+    /** @type {Record<'text' | 'flat' | 'cite' | 'table' | 'md' | 'ascii' | 'cont', HTMLButtonElement>} 文字 / 連續 / 含出處 / 表格 / Markdown / ASCII / 繼續選 */
     #btns = null
     /** @type {HTMLButtonElement} ⚙ 表格複製選項 */
     #gear = null
@@ -132,8 +132,8 @@ export class LecCopyTable {
         }
         this.#btns = {
             text: mk('text', '文字', '複製為純文字 (跨列時每列一行)'),
-            flat: mk('flat', '連續文字', '複製為純文字，各列接成連續一段 (不換行)'),
-            cite: mk('cite', '連續含出處', '複製為連續純文字，結尾加出處，例：(詩107:1-3_和合本)'),
+            flat: mk('flat', '連續', '複製為純文字，各列接成連續一段 (不換行)'),
+            cite: mk('cite', '含出處', '複製為純文字 (跨列時各列接成連續一段)，結尾加出處，例：(詩107:1-3_和合本)'),
             table: mk('table', '表格', '把反白的經文複製成對照表 (含節碼)，貼上時是表格；⚙ 可選字色、框線等'),
             md: mk('md', 'MD', '複製為 Markdown 表格 (純文字，不含顏色)'),
             ascii: mk('ascii', 'ASCII', '複製為純文字畫框的表格 (格內過長自動換行，全形字算 2 欄寬，用等寬字型看才對齊)'),
@@ -343,13 +343,13 @@ export class LecCopyTable {
         // 多段 (繼續選) 的片段都在同一格內：按鈕同 Case1；跨格的多段與一般跨格一樣依 table 的 isCrossCol 分 Case2 / Case3
         const oneCell = table.isOneCell || (this.#multi != null && this.#multiOneCell)
         this.#setCrossed(oneCell ? null : table, hideNative)
-        // Case1 同一格：文字 | 含出處 | 繼續選；Case2 跨列不跨欄：文字 | 連續文字 | 連續含出處 | 表格 | MD | ASCII | 繼續選；Case3 跨欄：表格 | MD | ASCII | 繼續選
+        // Case1 同一格：文字 | 含出處 | 繼續選；Case2 跨列不跨欄：文字 | 連續 | 含出處 | 表格 | MD | ASCII | 繼續選；Case3 跨欄：表格 | MD | ASCII | 繼續選
         const { text, flat, cite, table: tbl, md, ascii, cont } = this.#btns
         text.hidden = !oneCell && table.isCrossCol
         flat.hidden = oneCell || table.isCrossCol
         cite.hidden = !oneCell && table.isCrossCol
-        // 同一格：「含出處」(沒選到的字以 ... 表示)；跨列：「連續含出處」
-        cite.dataset.label = oneCell ? '含出處' : '連續含出處'
+        // 含出處：同一格時沒選到的字以 ... 表示；跨列時各節接成連續一段
+        cite.dataset.label = '含出處'
         if (cite.dataset.mark == null) cite.textContent = cite.dataset.label // 顯示 ✓ / ✗ 時不要蓋掉
         tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = oneCell
         // 電腦按著 Ctrl / ⌘ 時已經在繼續選，不必顯示
@@ -521,7 +521,7 @@ export class LecCopyTable {
         this.#rafAuto = requestAnimationFrame(step)
     }
 
-    /** 文字類 (文字 / 連續文字 / 連續含出處) 與表格類 (表格 / MD / ASCII / ⚙) 都有、且超過 4 顆時排成兩列，各佔一整列 (12 欄格) */
+    /** 文字類 (文字 / 連續 / 含出處) 與表格類 (表格 / MD / ASCII / ⚙) 都有、且超過 4 顆時排成兩列，各佔一整列 (12 欄格) */
     #layoutBtns() {
         const { text, flat, cite, cont } = this.#btns
         // 繼續選緊接在含出處後面 (單 column) 時算文字類，排在同一列
@@ -1220,7 +1220,7 @@ function sideGrid(versions, columns, labels) {
 }
 
 /**
- * 純文字 (「文字」「連續文字」鈕)：同一格 → 照反白；跨列 → 每個 .paragraph 一列 (有經文位置時開頭加位置)，
+ * 純文字 (「文字」「連續」鈕)：同一格 → 照反白；跨列 → 每個 .paragraph 一列 (有經文位置時開頭加位置)，
  * flat 時列與列、格內換行都接成空白，不換行
  * @param {CopyTable} table @param {boolean} flat
  */
@@ -1235,7 +1235,7 @@ function toPlainText({ scope, range, hit, isOneCell }, flat) {
 const citeVerName = v => v == 'unv' ? '和合本' : verName(v)
 
 /**
- * 連續含出處：每個譯本一段，各節 (含節碼) 接成連續文字，結尾 (書 章:節-節_譯本)
+ * 含出處 (跨列)：每個譯本一段，各節 (含節碼) 接成連續文字，結尾 (書 章:節-節_譯本)
  * @param {CopyTable} table
  */
 function toCitedText({ scope, range, hit }) {
