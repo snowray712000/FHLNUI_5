@@ -354,6 +354,9 @@ export class LecCopyTable {
         tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = oneCell
         // 電腦按著 Ctrl / ⌘ 時已經在繼續選，不必顯示
         cont.hidden = this.#ctrlDown
+        // 位置：單 column (有含出處) 放在含出處後面；跨欄沒有含出處，放在 ASCII 後面
+        const anchor = table.isCrossCol && !oneCell ? ascii : cite
+        anchor.after(cont)
         this.#layoutBtns()
         // 剛按下 Ctrl / ⌘：整排先藏起來，免得擋住接下來要選的字
         if (this.#ctrlFresh) return this.#hideBar()
@@ -520,8 +523,9 @@ export class LecCopyTable {
 
     /** 文字類 (文字 / 連續文字 / 連續含出處) 與表格類 (表格 / MD / ASCII / ⚙) 都有、且超過 4 顆時排成兩列，各佔一整列 (12 欄格) */
     #layoutBtns() {
-        const { text, flat, cite } = this.#btns
-        const g1 = [text, flat, cite].filter(b => !b.hidden)
+        const { text, flat, cite, cont } = this.#btns
+        // 繼續選緊接在含出處後面 (單 column) 時算文字類，排在同一列
+        const g1 = [text, flat, cite, ...(cont.previousElementSibling == cite ? [cont] : [])].filter(b => !b.hidden)
         const vis = [...this.#btn.children].filter(b => !b.hidden)
         const g2 = vis.filter(b => !g1.includes(b))
         const two = g1.length > 0 && g2.length > 0 && vis.length > 4
