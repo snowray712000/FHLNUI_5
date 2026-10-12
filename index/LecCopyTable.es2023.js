@@ -59,7 +59,7 @@ export class LecCopyTable {
 
     /** @type {HTMLElement} 按鈕組 (複製對照表 + MD)，整組一起定位 */
     #btn = null
-    /** @type {Record<'text' | 'flat' | 'cite' | 'table' | 'md' | 'ascii', HTMLButtonElement>} 文字 / 連續文字 / 表格 / Markdown / ASCII */
+    /** @type {Record<'text' | 'flat' | 'cite' | 'table' | 'md' | 'ascii' | 'cont', HTMLButtonElement>} 文字 / 連續文字 / 表格 / Markdown / ASCII / 繼續選 */
     #btns = null
     /** @type {HTMLButtonElement} ⚙ 表格複製選項 */
     #gear = null
@@ -107,6 +107,17 @@ export class LecCopyTable {
     #multi = null
     /** @type {Seg[] | null} 按下按鈕當下的多段選取 (同 #pressRange) */
     #pressMulti = null
+    /** 「繼續選」中：等著選下一段 (按了「繼續選」或 Ctrl / ⌘ + 按下)；整排按鈕先藏起來免得擋住要選的字，新片段選好才再跳出 */
+    #continuing = false
+    /** Ctrl / ⌘ 正按著 (電腦)；按著時不必再顯示「繼續選」 */
+    #ctrlDown = false
+    /** 剛按下 Ctrl / ⌘、還沒按滑鼠：按鈕先藏起來 (放開 Ctrl 或按下滑鼠就解除) */
+    #ctrlFresh = false
+    /** 滑鼠 (觸控筆) 按著中；「繼續選」拖曳時按鈕不出來，放開才出來 */
+    #pointerDown = false
+    #contTimer = 0
+    /** @type {{ t: number, x: number, y: number } | null} 觸控按下的時間與位置 (判斷輕點空白 → 清掉記下的片段) */
+    #tapTouch = null
 
     init() {
         if (this.#btn) return
@@ -122,6 +133,10 @@ export class LecCopyTable {
             table: mk('table', '表格', '把反白的經文複製成對照表 (含節碼)，貼上時是表格；⚙ 可選字色、框線等'),
             md: mk('md', 'MD', '複製為 Markdown 表格 (純文字，不含顏色)'),
             ascii: mk('ascii', 'ASCII', '複製為純文字畫框的表格 (格內過長自動換行，全形字算 2 欄寬，用等寬字型看才對齊)'),
+            cont: el('button', {
+                type: 'button', class: 'lct-btn', title: '再選另一段 (不連續的幾段一起複製)；電腦也可按著 Ctrl / ⌘ 再拖曳',
+                onclick: () => this.#continueSelecting(),
+            }, '繼續選'),
         }
         this.#btn = el('div', {
             class: 'lec-copy-table', hidden: true,
@@ -159,19 +174,53 @@ export class LecCopyTable {
         document.addEventListener('pointerdown', e => {
             const isOurs = e.target instanceof Element && e.target.closest('.lec-copy-table, .lct-opts, .lct-knob')
             this.#tap = this.#isSticky && !isOurs ? { t: e.timeStamp, x: e.clientX, y: e.clientY } : null
-            // 電腦：Ctrl / ⌘ + 按下 → 把現有選取記起來 (接著瀏覽器會開新選取)；一般按下 → 放掉先前記的片段
-            if (isOurs || e.button != 0 || e.pointerType == 'touch' || !(e.target instanceof Element)) return
+            if (isOurs || !(e.target instanceof Element)) return
+            clearTimeout(this.#contTimer)
+            this.#ctrlFresh = false
+            if (e.pointerType == 'touch') { this.#tapTouch = { t: e.timeStamp, x: e.clientX, y: e.clientY }; return }
+            this.#tapTouch = null
+            if (e.button != 0) return
+            this.#pointerDown = true
+            // 電腦：Ctrl / ⌘ + 按下 → 把現有選取記起來 (接著瀏覽器會開新選取)，進入「繼續選」；
+            // 一般按下 → 放掉先前記的片段 (「繼續選」中的一般按下就是要選下一段，不放掉)
             if (e.ctrlKey || e.metaKey) { if (e.target.closest(SCOPE_SEL)) this.#stashLive() }
-            else if (this.#extra.length) this.#setExtra([])
+            else if (this.#extra.length && !this.#continuing) this.#setExtra([])
         }, true)
         document.addEventListener('keydown', e => {
-            if (e.key == 'Escape' && this.#extra.length) { this.#setExtra([]); this.#update() }
+            if (e.key == 'Escape' && (this.#extra.length || this.#continuing)) { this.#continuing = false; this.#setExtra([]); this.#update(); return }
+            if ((e.key == 'Control' || e.key == 'Meta') && !e.repeat) {
+                // 按鈕正顯示、可以繼續選時：Ctrl 一按就先藏起來 (通常不會放開，要選下一段)
+                this.#ctrlFresh = !this.#btn.hidden && !this.#btns.cont.hidden
+                this.#ctrlDown = true
+                if (this.#ctrlFresh) this.#update()
+            }
         })
-        document.addEventListener('pointerup', e => {
+        const ctrlUp = () => { if (!this.#ctrlDown && !this.#ctrlFresh) return; this.#ctrlDown = this.#ctrlFresh = false; this.#update() }
+        document.addEventListener('keyup', e => { if (e.key == 'Control' || e.key == 'Meta') ctrlUp() })
+        window.addEventListener('blur', () => { this.#pointerDown = false; ctrlUp() })
+        const onPointerEnd = (/** @type {PointerEvent} */ e) => {
             const tap = this.#tap
             this.#tap = null
             if (tap && this.#isSticky && e.timeStamp - tap.t < 450 && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) < 10) this.#hide()
-        }, true)
+            const touch = this.#tapTouch
+            this.#tapTouch = null
+            this.#pointerDown = false
+            if (!this.#extra.length && !this.#continuing) return
+            const isTap = touch != null && e.timeStamp - touch.t < 450 && Math.hypot(e.clientX - touch.x, e.clientY - touch.y) < 10
+            const isOurs = e.target instanceof Element && e.target.closest('.lec-copy-table, .lct-opts, .lct-knob')
+            // 放開後選取才定案：選到新片段 → 按鈕再跳出 (「繼續選」結束)
+            setTimeout(() => {
+                this.#update()
+                if (isOurs || liveSegments().length) return
+                // 沒選到字：觸控輕點空白 (不在「繼續選」中) → 全部取消；「繼續選」中點了空白 → 稍後放棄繼續、按鈕回來 (間隔內再按 = 雙擊選字，不算)
+                if (isTap && !this.#continuing) { this.#setExtra([]); this.#update() }
+                else if (this.#continuing) {
+                    this.#contTimer = setTimeout(() => { if (this.#continuing && !this.#pointerDown && !liveSegments().length) { this.#continuing = false; this.#update() } }, 400)
+                }
+            }, isTap ? 60 : 0)
+        }
+        document.addEventListener('pointerup', onPointerEnd, true)
+        document.addEventListener('pointercancel', e => { this.#pointerDown = false; if (e.pointerType != 'touch') onPointerEnd(e) }, true)
         // 手指按著 / 放開：放開時若已跨格，才收掉原生選取 (按著時收掉，水滴會跟著不見、拖不下去)
         document.addEventListener('touchstart', () => { this.#touching = true }, { capture: true, passive: true })
         const onTouchEnd = (/** @type {TouchEvent} */ e) => {
@@ -185,8 +234,10 @@ export class LecCopyTable {
     }
 
     #update() {
-        // Ctrl / ⌘ + 拖曳加選過 (或 Firefox 原生就有多段)：走多段選取
-        if (this.#extra.length || liveSegments().length > 1) return this.#updateMulti()
+        // 記下過先前的片段 (繼續選)、或 Firefox 原生就有多段：走多段選取
+        const group = this.#group()
+        if (group) return this.#updateMulti(group)
+        this.#continuing = false
         this.#multi = null
         const sel = selectionInScope()
         if (sel == null && this.#isSticky) return // 是自己收掉的原生選取
@@ -218,30 +269,55 @@ export class LecCopyTable {
         this.#isSticky = false
         this.#show(sel.scope, sel.range.cloneRange(), table)
     }
-    /** 多段 (不連續) 選取：片段 = 先前記下的 + 現在的原生選取；只剩一段有效時當作一般單段 */
-    #updateMulti() {
-        const items = this.#segments().filter(s => buildTable(s.scope, s.range))
+    /**
+     * 多段 (不連續) 選取，目前只做同一格內：片段 = 先前記下的 + 現在的原生選取 (已依 DOM 順序、重疊 / 相接的併成一段)。
+     * 只剩一段時當作一般單段 (按鈕不變)
+     * @param {{ segs: Seg[], hasLive: boolean }} group
+     */
+    #updateMulti({ segs, hasLive }) {
+        // 「繼續選」中：新片段選好 (電腦：滑鼠放開；觸控：長按出現選取) 才結束；之前整排按鈕都藏起來
+        if (this.#continuing && hasLive && (matchMedia('(pointer: coarse)').matches || !this.#pointerDown)) this.#continuing = false
+        if (this.#continuing) return this.#hideBar()
+        const items = segs.filter(s => buildTable(s.scope, s.range))
         if (items.length == 0) return this.#hide()
-        const last = items[items.length - 1]
+        const last = items[items.length - 1] // 最低的那段：按鈕跟著它
         this.#isSticky = false
         this.#multi = items.length > 1 ? items : null
         this.#show(last.scope, last.range.cloneRange(), buildTable(last.scope, last.range))
     }
-    /** Ctrl / ⌘ + 按下當下：把現有的原生選取併進先前記下的片段 */
-    #stashLive() {
-        const live = liveSegments()
-        if (live.length == 0) return
-        const old = this.#extra[0]?.scope.el == live[0].scope.el ? this.#extra : []
-        this.#setExtra(mergeSegs([...old, ...live]))
-    }
-    /** 先前記下的片段 + 現在的原生選取 (同一個範圍)，依 DOM 順序、重疊的併起來 @returns {Seg[]} */
-    #segments() {
+    /**
+     * 先前記下的片段 + 現在的原生選取，必須都在同一格內；null = 不是多段 (沒記過、原生也只有一段)。
+     * 現在的選取跑到別格 / 跨格：先前記下的作廢，當作新選取
+     * @returns {{ segs: Seg[], hasLive: boolean } | null}
+     */
+    #group() {
         const alive = this.#extra.filter(s => s.range.startContainer.isConnected && !s.range.collapsed)
         if (alive.length != this.#extra.length) this.#setExtra(alive)
         const live = liveSegments()
-        if (this.#extra.length && live.length && live[0].scope.el != this.#extra[0].scope.el) this.#setExtra([]) // 換了範圍：先前的作廢
-        const el = (this.#extra[0] ?? live[0])?.scope.el
-        return mergeSegs([...this.#extra, ...live.filter(s => s.scope.el == el)])
+        if (this.#extra.length == 0 && live.length <= 1) return null
+        const cell = cellOfSeg(this.#extra[0] ?? live[0])
+        const liveOk = live.filter(s => cell != null && cellOfSeg(s) == cell && s.scope.el == (this.#extra[0] ?? s).scope.el)
+        if (this.#extra.length && live.length && liveOk.length == 0) { this.#setExtra([]); this.#continuing = false; return null }
+        if (cell == null || (this.#extra.length == 0 && liveOk.length <= 1)) return null
+        return { segs: mergeSegs([...this.#extra, ...liveOk]), hasLive: liveOk.length > 0 }
+    }
+    /** Ctrl / ⌘ + 按下當下：把現有的原生選取 (必須在同一格內) 併進先前記下的片段，進入「繼續選」 */
+    #stashLive() {
+        const live = liveSegments().filter(s => cellOfSeg(s))
+        const old = live.length && this.#extra.length && cellOfSeg(this.#extra[0]) == cellOfSeg(live[0]) ? this.#extra : []
+        if (live.length) this.#setExtra(mergeSegs([...old, ...live]))
+        this.#continuing = this.#extra.length > 0
+    }
+    /** 按下「繼續選」：現在的選取記起來 (仍畫著底色)，收掉原生選取 (觸控的水滴也消失)，等著選下一段 */
+    #continueSelecting() {
+        const base = this.#pressMulti ?? (this.#pressRange && this.#pressScope ? [{ scope: this.#pressScope, range: this.#pressRange }] : null)
+        this.#pressing = false
+        this.#pressRange = this.#pressScope = this.#pressMulti = null
+        if (!base?.length || !cellOfSeg(base[0])) return
+        this.#setExtra(mergeSegs([...this.#extra, ...base]))
+        this.#continuing = true
+        getSelection()?.removeAllRanges()
+        this.#update()
     }
     /** @param {Seg[]} segs */
     #setExtra(segs) {
@@ -254,15 +330,20 @@ export class LecCopyTable {
         this.#scope = scope
         const isMulti = this.#multi != null
         this.#setCrossed(isMulti || table.isOneCell ? null : table)
-        // Case1 同一格：文字；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD；多段：文字 | 連續文字 | 含出處
-        const { text, flat, cite, table: tbl, md, ascii } = this.#btns
-        text.hidden = !isMulti && table.isCrossCol
-        flat.hidden = !isMulti && (table.isOneCell || table.isCrossCol)
-        cite.hidden = !isMulti && table.isCrossCol
-        // 同一格：「含出處」(沒選到的字以 ... 表示)；跨列：「連續含出處」；多段：每段各自帶出處
-        cite.dataset.label = cite.textContent = isMulti || table.isOneCell ? '含出處' : '連續含出處'
-        tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = isMulti || table.isOneCell
+        // Case1 同一格：文字 | 含出處 | 繼續選；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD；多段 (同一格內)：文字 | 含出處 | 繼續選
+        const { text, flat, cite, table: tbl, md, ascii, cont } = this.#btns
+        const oneCell = isMulti || table.isOneCell
+        text.hidden = !oneCell && table.isCrossCol
+        flat.hidden = oneCell || table.isCrossCol
+        cite.hidden = !oneCell && table.isCrossCol
+        // 同一格：「含出處」(沒選到的字以 ... 表示)；跨列：「連續含出處」
+        cite.dataset.label = cite.textContent = oneCell ? '含出處' : '連續含出處'
+        tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = oneCell
+        // 繼續選：只有同一格內 (跨格的以後再做)；電腦按著 Ctrl / ⌘ 時已經在繼續選，不必顯示
+        cont.hidden = !oneCell || this.#ctrlDown
         this.#layoutBtns()
+        // 剛按下 Ctrl / ⌘：整排先藏起來，免得擋住接下來要選的字
+        if (this.#ctrlFresh && oneCell) return this.#hideBar()
         this.#btn.hidden = false
         this.#place()
     }
@@ -278,14 +359,19 @@ export class LecCopyTable {
         sel.removeAllRanges()
         this.#show(scope, range, table)
     }
-    #hide() {
+    /** 只藏起按鈕、圓點與提示，選取狀態 (含先前記下的片段) 留著 */
+    #hideBar() {
         this.#opts.hidden = true
-        clearTimeout(this.#idleTimer)
-        this.#isSticky = false
         this.#btn.hidden = true
-        this.#knobEnd()
         for (const k of this.#knobs) k.hidden = true
         this.#tip.hidden = true
+    }
+    #hide() {
+        clearTimeout(this.#idleTimer)
+        this.#isSticky = false
+        this.#hideBar()
+        this.#knobEnd()
+        this.#continuing = false
         this.#range = null
         this.#scope = null
         this.#multi = null
@@ -454,7 +540,7 @@ export class LecCopyTable {
         if (!scope || !range) return
         const table = buildTable(scope, range)
         if (table == null) return
-        const { html, plain } = multi && (kind == 'text' || kind == 'flat' || kind == 'cite') ? { html: null, plain: multiText(kind, multi) }
+        const { html, plain } = multi && (kind == 'text' || kind == 'cite') ? { html: null, plain: multiCellText(multi, kind == 'cite') }
             : kind == 'md' ? { html: null, plain: toMarkdown(table) }
             : kind == 'ascii' ? { html: null, plain: toAscii(table) }
             : kind == 'table' ? inCopyPalette(() => toClipboardData(table))
@@ -469,10 +555,10 @@ export class LecCopyTable {
 
     /** Ctrl+C / 選單的複製：同一格 → 反白的純文字；跨格 → 對照表 @param {ClipboardEvent} e */
     #onCopy(e) {
-        // 多段 (不連續) 選取：每段一行純文字
-        if (e.clipboardData && (this.#extra.length || liveSegments().length > 1)) {
-            const segs = this.#segments()
-            const plain = multiText('text', segs)
+        // 多段 (不連續) 選取 (同一格內)：同「文字」鈕；只剩一段 (例：Ctrl + 點空白後原生選取沒了) 就用那一段
+        const group = this.#group()
+        if (group && group.segs.length > 1 && e.clipboardData) {
+            const plain = multiCellText(group.segs, false)
             if (plain) {
                 showCopyDebug(null, plain)
                 e.clipboardData.setData('text/plain', plain)
@@ -480,7 +566,7 @@ export class LecCopyTable {
                 return
             }
         }
-        const sel = selectionInScope() ?? (this.#isSticky ? { scope: this.#scope, range: this.#range } : null)
+        const sel = selectionInScope() ?? (group?.segs.length == 1 ? group.segs[0] : null) ?? (this.#isSticky ? { scope: this.#scope, range: this.#range } : null)
         if (!sel || !e.clipboardData) return
         const table = buildTable(sel.scope, sel.range)
         const data = table ? inCopyPalette(() => toClipboardData(table)) : { plain: runsText(trimRuns(rangeRuns(sel.range))), html: null }
@@ -588,17 +674,50 @@ function paintExtra(ranges) {
     if (ranges.length) CSS.highlights.set('lct-multi', new Highlight(...ranges))
     else CSS.highlights.delete('lct-multi')
 }
+/** 一段反白所在的格；起訖不在同一格 (跨格) 回 null @param {Seg} s */
+function cellOfSeg(s) {
+    const a = cellOfNode(s.range.startContainer), b = cellOfNode(s.range.endContainer)
+    return a != null && a == b ? a : null
+}
 /**
- * 多段 (不連續) 選取的文字：每段各自照單段的規則轉 (文字 / 連續文字 / 含出處)，
- * 文字、含出處每段一行；連續文字段與段之間以 … 接 (標明中間有省略)
- * @param {'text' | 'flat' | 'cite'} kind @param {Seg[]} segs
+ * 同一格內不連續的幾段：每節列出節碼，沒選到的頭尾、段與段之間以 ... 表示；withCite 時結尾加出處
+ * 例 `3 ... 長了銹； ... 4 ... 收割莊稼， ...(雅5:3-4_和合本)`；節不連續時出處是 `雅5:1,3-4`
+ * @param {Seg[]} segs 依 DOM 順序、互不重疊，都在同一格 @param {boolean} withCite
  */
-function multiText(kind, segs) {
-    const parts = segs.map(({ scope, range }) => {
-        const t = buildTable(scope, range)
-        return t == null ? '' : kind == 'cite' ? toCitedText(t) : toPlainText(t, kind == 'flat')
-    }).filter(a => a != '')
-    return parts.join(kind == 'flat' ? ' … ' : '\n')
+function multiCellText(segs, withCite) {
+    if (segs.length == 0) return ''
+    const scope = segs[0].scope, base = baseColor(scope.el)
+    const ranges = segs.map(s => s.range)
+    const lecs = /** @type {HTMLElement[]} */ ([...scope.el.querySelectorAll('.lec[ver]')])
+        .filter(lec => ranges.some(r => r.intersectsNode(lec) && hasVisibleText(contentRange(lec, r))))
+    const text = lecs.map(lec => partsOfLec(lec, ranges, base)).filter(a => a != '').join(' ').replace(/\s*\n\s*/g, ' ')
+    if (!withCite || lecs.length == 0) return text
+    const addr = cvtAddrsToRef(lecs.map(l => ({ book: +l.getAttribute('book'), chap: +l.getAttribute('chap'), verse: +l.getAttribute('sec') })), isGbNow() ? '罗' : '羅')
+    return `${text}(${addr}_${citeVerName(lecs[0].getAttribute('ver'))})`
+}
+/** @param {Range} r */
+const hasVisibleText = r => runsText(rangeRuns(r)).trim() != ''
+/**
+ * 一節裡被選到的幾段：節碼 + 各段文字；沒選到的頭尾、段與段之間有字就放 ...
+ * @param {HTMLElement} lec @param {Range[]} ranges 反白 (依 DOM 順序、互不重疊，不一定都碰到這一節) @param {string} base
+ */
+function partsOfLec(lec, ranges, base) {
+    const full = contentRange(lec, null)
+    const parts = ranges.filter(r => r.intersectsNode(lec)).map(r => contentRange(lec, r)).filter(hasVisibleText)
+    if (parts.length == 0) return ''
+    const num = lec.querySelector('.verseNumber')
+    const out = [num ? runsText(trimRuns(rangeRuns(rangeOfNode(num), base))) : '']
+    /** 從 (node, offset) 到 (node2, offset2) 之間有沒有字 */
+    const gap = (n1, o1, n2, o2) => { const g = document.createRange(); g.setStart(n1, o1); g.setEnd(n2, o2); return hasVisibleText(g) }
+    let [node, off] = [full.startContainer, full.startOffset]
+    for (const p of parts) {
+        if (gap(node, off, p.startContainer, p.startOffset)) out.push('...')
+        out.push(runsText(trimRuns(rangeRuns(p, base))))
+        node = p.endContainer
+        off = p.endOffset
+    }
+    if (gap(node, off, full.endContainer, full.endOffset)) out.push('...')
+    return out.filter(a => a != '').join(' ')
 }
 
 /** 選取非空、且整個在一個範圍內才回傳 @returns {{ range: Range, scope: Scope } | null} */
@@ -1025,16 +1144,7 @@ function toCitedText({ scope, range, hit }) {
     const base = baseColor(scope.el)
     /** 一節：節碼 + 內容；單格反白時，頭尾沒選到的字以 ... 表示 @param {HTMLElement} lec */
     const citedLec = lec => {
-        if (range == null) return runsText(lecRuns(lec, range, base))
-        const full = contentRange(lec, null), part = contentRange(lec, range)
-        const pre = full.cloneRange(), post = full.cloneRange()
-        pre.setEnd(part.startContainer, part.startOffset)
-        post.setStart(part.endContainer, part.endOffset)
-        const hasText = r => runsText(rangeRuns(r)).trim() != ''
-        const num = lec.querySelector('.verseNumber')
-        const numText = num ? runsText(trimRuns(rangeRuns(rangeOfNode(num), base))) : ''
-        const body = runsText(trimRuns(rangeRuns(part, base)))
-        return [numText, hasText(pre) ? '...' : '', body + (hasText(post) ? ' ...' : '')].filter(a => a != '').join(' ')
+        return range == null ? runsText(lecRuns(lec, range, base)) : partsOfLec(lec, [range], base)
     }
     const vers = [...new Set(hit.map(a => a.getAttribute('ver')))]
     return vers.map(ver => {
