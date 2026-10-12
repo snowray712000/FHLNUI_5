@@ -127,6 +127,7 @@ export function comment_register_events() {
         BookSelect.s.render(); // title 換章也要變
         $('#fhlInfoContent').scrollTop(0);
         ViewHistory.s.render();
+        $(document).trigger('chapchanged') // 更新網址 hash (pushState)，alt+←/→ 才回得去
     })
 
     $('.commentBackground').off('click').on('click', function (event) {

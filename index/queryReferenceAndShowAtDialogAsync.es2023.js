@@ -138,6 +138,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         FhlInfo.s.render(ps);
         FhlLecture.s.selectLecture(null, null, ps.sec);
         ViewHistory.s.render();
+        $(document).trigger('chapchanged') // 更新網址 hash (pushState)，alt+←/→ 才回得去
     }
     function show_in_dialog() {
         const ps = TPPageState.s

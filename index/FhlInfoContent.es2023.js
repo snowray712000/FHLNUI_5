@@ -243,6 +243,7 @@ export class FhlInfoContent {
                     FhlInfo.s.render(ps)
                     FhlLecture.s.selectLecture(null, null, sec)
                     ViewHistory.s.render()
+                    $(document).trigger('chapchanged') // 更新網址 hash (pushState)，alt+←/→ 才回得去
                 })
                 break;
             case "fhlInfoComment":
