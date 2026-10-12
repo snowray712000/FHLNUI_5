@@ -1,6 +1,6 @@
 {
     "nui": {
-        "last": "7.5.12.3",
+        "last": "7.5.12.4",
         "historys": [
             {
                 "na": "TODOs",
@@ -8,10 +8,15 @@
                     "🆕 新功能: SN 排序",
                     "🆕 新功能: 原文直譯, 用程式從 Parsing 整合入 SN",
                     "🆕 新功能: 自訂段落",
-                    "💬 待討論: 註腳同章 — rt.php 改成一章一次查回所有注腳 (省略 id = 整章)，減少請求、避免 503；需後端配合，規畫見 docs/z261010b",
                     "⏳ 等待來源: 中文標準譯本詩篇卷首 (詩 1、42、73、90、107) 的 &lt;h3&gt;&lt;i&gt; 沒有結尾標籤，已暫時繞過；來源修好後移除 cvt_others.js 的補丁 (見 docs/z261008d)",
                     "Info) NUI RWD 回報問題表單: <a href='https://forms.gle/BmuPe2rmKKWgMUr5A' target='_blank'>表單連結</a>",
                     "Info) 承上，工程師回覆: <a href='https://docs.google.com/spreadsheets/d/11zZ0A6cXONa44UKqs52g-K3JwnBr9SY40CadOfNxocE/#gid=773524517' target='_blank'>連結</a>"
+                ]
+            },{
+                "na": "7.5.12.4",
+                "na2":
+                [
+                    "📈 優化: 注腳 (呂振中譯本、中文標準譯本、NET聖經中譯本…) 改成一章一次載入，不再每個注腳各發一個請求；章節切換更快、注腳不再因同時請求太多而載入失敗，經文區也不會停在上一章 (後端 rt-nui.php，舊後端會自動退回逐筆載入)"
                 ]
             },{
                 "na": "7.5.12.3",

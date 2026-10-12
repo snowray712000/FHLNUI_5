@@ -1,4 +1,8 @@
-# rt.php 注腳：整章一次查 (規畫，後端尚未實作)
+# rt.php 注腳：整章一次查
+
+> **2026-10-12 狀態**：後端 `rt-nui.php` 已放在 bkbible.fhl.net（與 rt.php 的差別見 [z261011a](z261011a(rt-nui.php與rt.php的差別).md)），前端已改：`rtAsync` 端點改 `/json/rt-nui.php`，不帶 `id` = 整章；`queryFootsAsync` 依 (版本、書、章) 分組一次查整章並快取，回應沒有 `scope` 才退回逐 id。下面是當初的規畫。
+> 實測：非 lcc / csb（如 cnet）注腳 id 整本連號、`chap` 沒作用，回整本 (`scope: "book"`)；雅各書 engs 是 `James`；書名有空白 (`1 Sam`) 要 encode。
+> 待辦：bible.fhl.net 同步後確認正式站；本機開發 (`127.0.0.1:15600`) 後端若沒有 rt-nui.php 會走不通。
 
 ## 問題 (2026-10-10 實測)
 

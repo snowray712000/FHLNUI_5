@@ -1,4 +1,5 @@
 import { rtAsync } from '../index/rtAsync.js';
+import { TPPageState } from './TPPageState.es2023.js';
 import { splitStringByRegex } from '../index/splitStringByRegex.es2023.js';
 import { BibleConstantHelper } from './../index/BibleConstantHelper.es2023.js'
 const MAX_PARALLEL = 4
@@ -16,6 +17,51 @@ async function fetchFootTextAsync(foot) {
         }
     }
     return null
+}
+
+/**
+ * 整章 / 整本注腳快取。key = `ver|book|chap|gb` (chapter) 或 `ver|book|gb` (book)。
+ * 值是 Promise<Map<id, text>>；失敗時移除，下次再試。
+ * @type {Map<string, Promise<Map<number, string>>>}
+ */
+const bulkCache = new Map()
+/** 後端不認得整章查詢 (回應沒有 scope，舊後端)：本頁面生命週期內不再試，直接逐 id 查 */
+let bulkUnsupported = false
+
+/**
+ * 一次取得同書 (章) 的所有注腳。
+ * @returns {Promise<Map<number, string> | null>} null = 後端不支援 / 失敗，呼叫端退回逐 id 查詢
+ */
+async function loadBulkAsync(foot) {
+    if (bulkUnsupported) return null
+    const gb = TPPageState.s.gb == 1 ? 1 : 0
+    const bookKey = `${foot.version}|${foot.book}|${gb}`
+    const chapKey = `${bookKey}|${foot.chap}`
+    const cached = bulkCache.get(bookKey) ?? bulkCache.get(chapKey)
+    if (cached) return cached
+
+    const p = (async () => {
+        for (let i = 0; i < MAX_TRY; i++) {
+            try {
+                const re = await rtAsync({ book: foot.book, chap: foot.chap, ver: foot.version, gb })
+                if (re?.status != 'success' || (re.scope != 'chapter' && re.scope != 'book')) {
+                    if (re?.status == 'success') bulkUnsupported = true // 成功但沒有 scope：舊後端
+                    return null
+                }
+                // 'book' 的 map 放在 bookKey (id 整本唯一)，'chapter' 放在 chapKey
+                if (re.scope == 'book') { bulkCache.set(bookKey, p) }
+                return new Map((re.record ?? []).map(r => [Number(r.id), r.text]))
+            } catch (e) {
+                if (i == MAX_TRY - 1) console.warn('整章注腳載入失敗，改逐筆', foot.version, foot.book, foot.chap, e)
+                else await new Promise(r => setTimeout(r, 300 * (i + 1)))
+            }
+        }
+        return null
+    })()
+    bulkCache.set(chapKey, p)
+    const map = await p
+    if (map == null) { bulkCache.delete(chapKey); bulkCache.delete(bookKey) } // 失敗不快取
+    return map
 }
 
 /**
@@ -39,20 +85,35 @@ export async function queryFootsAsync(dtexts_with_addr, ver) {
         }
     }
 
-    // 一次太多 rt.php 會被伺服器回 503 (回傳 html，json 解析失敗)：限制同時數量，失敗重試。
+    // 先照 (版本、書、章) 分組，每組用 rt-nui.php 一次查整章；後端不支援或失敗才退回逐 id 查詢。
+    // 逐 id 查詢一次太多會被伺服器回 503 (回傳 html，json 解析失敗)：限制同時數量，失敗重試。
     // 呂振中譯本 (lcc) 有些 id 查不到 (record_count 0，回應沒有 record，例 創1 的 id 2)；
     // 任何一個失敗都只讓那個注腳維持【n】 (footContent 留 null)，不讓整批 (整個經文區渲染) 失敗
-    const entries = [...todo.values()]
+    /** @type {Map<string, DText[][]>} */
+    const groups = new Map()
+    for (const dtexts of todo.values()) {
+        const f = dtexts[0].foot
+        const gk = `${f.version}|${f.book}|${f.chap}`
+        if (!groups.has(gk)) groups.set(gk, [])
+        groups.get(gk).push(dtexts)
+    }
+    const fill = (dtexts, text) => { if (text != null) for (const d of dtexts) d.foot.footContent = [{ w: text }] }
+
+    const list = [...groups.values()]
     let next = 0
     const worker = async () => {
-        while (next < entries.length) {
-            const dtexts = entries[next++]
-            const foot = dtexts[0].foot
-            const text = await fetchFootTextAsync(foot)
-            if (text != null) for (const d of dtexts) d.foot.footContent = [{ w: text }]
+        while (next < list.length) {
+            const entries = list[next++]
+            const map = await loadBulkAsync(entries[0][0].foot)
+            if (map != null) {
+                // 有 scope 就是權威：map 沒有的 id = 沒有這個注腳，留【n】
+                for (const dtexts of entries) fill(dtexts, map.get(Number(dtexts[0].foot.id)))
+            } else {
+                for (const dtexts of entries) fill(dtexts, await fetchFootTextAsync(dtexts[0].foot))
+            }
         }
     }
-    await Promise.all(Array.from({ length: Math.min(MAX_PARALLEL, entries.length) }, worker))
+    await Promise.all(Array.from({ length: Math.min(MAX_PARALLEL, list.length) }, worker))
 
     // csb 中文標準譯本 1:23 《以賽亞書》7:14。
     if (ver == 'csb') {
