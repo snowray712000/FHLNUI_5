@@ -337,7 +337,8 @@ export class LecCopyTable {
         flat.hidden = oneCell || table.isCrossCol
         cite.hidden = !oneCell && table.isCrossCol
         // 同一格：「含出處」(沒選到的字以 ... 表示)；跨列：「連續含出處」
-        cite.dataset.label = cite.textContent = oneCell ? '含出處' : '連續含出處'
+        cite.dataset.label = oneCell ? '含出處' : '連續含出處'
+        if (cite.dataset.mark == null) cite.textContent = cite.dataset.label // 顯示 ✓ / ✗ 時不要蓋掉
         tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = oneCell
         // 繼續選：只有同一格內 (跨格的以後再做)；電腦按著 Ctrl / ⌘ 時已經在繼續選，不必顯示
         cont.hidden = !oneCell || this.#ctrlDown
@@ -546,10 +547,9 @@ export class LecCopyTable {
             : kind == 'table' ? inCopyPalette(() => toClipboardData(table))
                 : { html: null, plain: kind == 'cite' ? toCitedText(table) : toPlainText(table, kind == 'flat') }
         const btn = this.#btns[kind]
-        const text = btn.dataset.label
         writeClipboard(html, plain).then(ok => {
-            btn.textContent = ok ? '✓' : '✗'
-            setTimeout(() => { btn.textContent = text }, 1200)
+            btn.textContent = btn.dataset.mark = ok ? '✓' : '✗'
+            setTimeout(() => { delete btn.dataset.mark; btn.textContent = btn.dataset.label }, 1200) // 標籤取當下的 (按鈕可能已換成別的情形)
         })
     }
 
