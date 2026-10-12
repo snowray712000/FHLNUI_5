@@ -41,6 +41,7 @@ import { Theme } from './theme/Theme.es2023.js'
  *   hit = 反白碰到的 .lec (畫面順序；跨格時擴成那些格的全部節)；labels = 每列的經文位置 (有標籤欄時)
  *   isOneCell 起訖在同一格 (Case1)；isCrossCol 並排且跨譯本欄 (Case3)；其餘是跨列不跨欄 (Case2)；range 跨格時為 null (整格，不截斷)
  * @typedef {{ t: string, c?: string }} Run 一段字與顏色 (c 省略 = 預設色)；t == '\n' 是換行
+ * @typedef {{ scope: Scope, range: Range }} Seg 一段反白 (多段選取的一段)
  */
 
 const SCOPE_SEL = '#lecMain, .sd-results, .ref-dlg'
@@ -100,6 +101,12 @@ export class LecCopyTable {
     #rafAuto = 0
     /** @type {Range | null} sticky 時收掉的原生選取；iOS 收掉後還會再報一次舊選取，不能當成「長按另一格」 */
     #removedRange = null
+    /** @type {Seg[]} Ctrl / ⌘ + 拖曳時，先前選好的片段 (瀏覽器只留一段原生選取，所以自己記)；依 DOM 順序、互不重疊 */
+    #extra = []
+    /** @type {Seg[] | null} 多段 (不連續) 選取時，要複製的全部片段 (含現在拖曳中的)；單段為 null */
+    #multi = null
+    /** @type {Seg[] | null} 按下按鈕當下的多段選取 (同 #pressRange) */
+    #pressMulti = null
 
     init() {
         if (this.#btn) return
@@ -118,7 +125,7 @@ export class LecCopyTable {
         }
         this.#btn = el('div', {
             class: 'lec-copy-table', hidden: true,
-            onpointerdown: e => { e.preventDefault(); this.#pressing = true; this.#pressRange = this.#range; this.#pressScope = this.#scope }, // 電腦：不讓選取消失
+            onpointerdown: e => { e.preventDefault(); this.#pressing = true; this.#pressRange = this.#range; this.#pressScope = this.#scope; this.#pressMulti = this.#multi }, // 電腦：不讓選取消失
             onpointercancel: () => { this.#pressing = false },
             onpointerleave: () => { this.#pressing = false },
         }, ...Object.values(this.#btns), this.#gear = el('button', {
@@ -152,7 +159,14 @@ export class LecCopyTable {
         document.addEventListener('pointerdown', e => {
             const isOurs = e.target instanceof Element && e.target.closest('.lec-copy-table, .lct-opts, .lct-knob')
             this.#tap = this.#isSticky && !isOurs ? { t: e.timeStamp, x: e.clientX, y: e.clientY } : null
+            // 電腦：Ctrl / ⌘ + 按下 → 把現有選取記起來 (接著瀏覽器會開新選取)；一般按下 → 放掉先前記的片段
+            if (isOurs || e.button != 0 || e.pointerType == 'touch' || !(e.target instanceof Element)) return
+            if (e.ctrlKey || e.metaKey) { if (e.target.closest(SCOPE_SEL)) this.#stashLive() }
+            else if (this.#extra.length) this.#setExtra([])
         }, true)
+        document.addEventListener('keydown', e => {
+            if (e.key == 'Escape' && this.#extra.length) { this.#setExtra([]); this.#update() }
+        })
         document.addEventListener('pointerup', e => {
             const tap = this.#tap
             this.#tap = null
@@ -171,6 +185,9 @@ export class LecCopyTable {
     }
 
     #update() {
+        // Ctrl / ⌘ + 拖曳加選過 (或 Firefox 原生就有多段)：走多段選取
+        if (this.#extra.length || liveSegments().length > 1) return this.#updateMulti()
+        this.#multi = null
         const sel = selectionInScope()
         if (sel == null && this.#isSticky) return // 是自己收掉的原生選取
         const isTouch = matchMedia('(pointer: coarse)').matches
@@ -201,19 +218,50 @@ export class LecCopyTable {
         this.#isSticky = false
         this.#show(sel.scope, sel.range.cloneRange(), table)
     }
+    /** 多段 (不連續) 選取：片段 = 先前記下的 + 現在的原生選取；只剩一段有效時當作一般單段 */
+    #updateMulti() {
+        const items = this.#segments().filter(s => buildTable(s.scope, s.range))
+        if (items.length == 0) return this.#hide()
+        const last = items[items.length - 1]
+        this.#isSticky = false
+        this.#multi = items.length > 1 ? items : null
+        this.#show(last.scope, last.range.cloneRange(), buildTable(last.scope, last.range))
+    }
+    /** Ctrl / ⌘ + 按下當下：把現有的原生選取併進先前記下的片段 */
+    #stashLive() {
+        const live = liveSegments()
+        if (live.length == 0) return
+        const old = this.#extra[0]?.scope.el == live[0].scope.el ? this.#extra : []
+        this.#setExtra(mergeSegs([...old, ...live]))
+    }
+    /** 先前記下的片段 + 現在的原生選取 (同一個範圍)，依 DOM 順序、重疊的併起來 @returns {Seg[]} */
+    #segments() {
+        const alive = this.#extra.filter(s => s.range.startContainer.isConnected && !s.range.collapsed)
+        if (alive.length != this.#extra.length) this.#setExtra(alive)
+        const live = liveSegments()
+        if (this.#extra.length && live.length && live[0].scope.el != this.#extra[0].scope.el) this.#setExtra([]) // 換了範圍：先前的作廢
+        const el = (this.#extra[0] ?? live[0])?.scope.el
+        return mergeSegs([...this.#extra, ...live.filter(s => s.scope.el == el)])
+    }
+    /** @param {Seg[]} segs */
+    #setExtra(segs) {
+        this.#extra = segs
+        paintExtra(segs.map(s => s.range))
+    }
     /** @param {Scope} scope @param {Range} range @param {CopyTable} table */
     #show(scope, range, table) {
         this.#range = range
         this.#scope = scope
-        this.#setCrossed(table.isOneCell ? null : table)
-        // Case1 同一格：文字；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD
+        const isMulti = this.#multi != null
+        this.#setCrossed(isMulti || table.isOneCell ? null : table)
+        // Case1 同一格：文字；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD；多段：文字 | 連續文字 | 含出處
         const { text, flat, cite, table: tbl, md, ascii } = this.#btns
-        text.hidden = table.isCrossCol
-        flat.hidden = table.isOneCell || table.isCrossCol
-        cite.hidden = table.isCrossCol
-        // 同一格：「含出處」(沒選到的字以 ... 表示)；跨列：「連續含出處」
-        cite.dataset.label = cite.textContent = table.isOneCell ? '含出處' : '連續含出處'
-        tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = table.isOneCell
+        text.hidden = !isMulti && table.isCrossCol
+        flat.hidden = !isMulti && (table.isOneCell || table.isCrossCol)
+        cite.hidden = !isMulti && table.isCrossCol
+        // 同一格：「含出處」(沒選到的字以 ... 表示)；跨列：「連續含出處」；多段：每段各自帶出處
+        cite.dataset.label = cite.textContent = isMulti || table.isOneCell ? '含出處' : '連續含出處'
+        tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = isMulti || table.isOneCell
         this.#layoutBtns()
         this.#btn.hidden = false
         this.#place()
@@ -240,6 +288,8 @@ export class LecCopyTable {
         this.#tip.hidden = true
         this.#range = null
         this.#scope = null
+        this.#multi = null
+        if (this.#extra.length) this.#setExtra([])
         this.#setCrossed(null)
     }
     /** @param {CopyTable} table */
@@ -399,11 +449,13 @@ export class LecCopyTable {
         this.#pressing = false
         const range = this.#pressRange ?? this.#range
         const scope = this.#pressScope ?? this.#scope
-        this.#pressRange = this.#pressScope = null
+        const multi = this.#pressMulti ?? this.#multi
+        this.#pressRange = this.#pressScope = this.#pressMulti = null
         if (!scope || !range) return
         const table = buildTable(scope, range)
         if (table == null) return
-        const { html, plain } = kind == 'md' ? { html: null, plain: toMarkdown(table) }
+        const { html, plain } = multi && (kind == 'text' || kind == 'flat' || kind == 'cite') ? { html: null, plain: multiText(kind, multi) }
+            : kind == 'md' ? { html: null, plain: toMarkdown(table) }
             : kind == 'ascii' ? { html: null, plain: toAscii(table) }
             : kind == 'table' ? inCopyPalette(() => toClipboardData(table))
                 : { html: null, plain: kind == 'cite' ? toCitedText(table) : toPlainText(table, kind == 'flat') }
@@ -417,6 +469,17 @@ export class LecCopyTable {
 
     /** Ctrl+C / 選單的複製：同一格 → 反白的純文字；跨格 → 對照表 @param {ClipboardEvent} e */
     #onCopy(e) {
+        // 多段 (不連續) 選取：每段一行純文字
+        if (e.clipboardData && (this.#extra.length || liveSegments().length > 1)) {
+            const segs = this.#segments()
+            const plain = multiText('text', segs)
+            if (plain) {
+                showCopyDebug(null, plain)
+                e.clipboardData.setData('text/plain', plain)
+                e.preventDefault()
+                return
+            }
+        }
         const sel = selectionInScope() ?? (this.#isSticky ? { scope: this.#scope, range: this.#range } : null)
         if (!sel || !e.clipboardData) return
         const table = buildTable(sel.scope, sel.range)
@@ -492,6 +555,51 @@ function visibleBox(el) {
 /** @param {Range} a @param {Range | null} b */
 const isSameRange = (a, b) => b != null && a.startContainer == b.startContainer && a.startOffset == b.startOffset
     && a.endContainer == b.endContainer && a.endOffset == b.endOffset
+
+/** 原生選取裡的每一段 (Firefox 的 Ctrl + 拖曳會有多段；其他瀏覽器最多一段)，非空且在範圍內才算 @returns {Seg[]} */
+function liveSegments() {
+    const sel = getSelection()
+    /** @type {Seg[]} */
+    const re = []
+    for (let i = 0; sel && i < sel.rangeCount; i++) {
+        const range = sel.getRangeAt(i)
+        const scope = range.collapsed ? null : scopeOf(range.commonAncestorContainer)
+        if (scope) re.push({ scope, range: range.cloneRange() })
+    }
+    return re
+}
+/** 依 DOM 順序排好，互相重疊 / 相接的併成一段 (同一個範圍才併；呼叫端保證同一個範圍) @param {Seg[]} segs @returns {Seg[]} */
+function mergeSegs(segs) {
+    const sorted = [...segs].sort((a, b) => a.range.compareBoundaryPoints(Range.START_TO_START, b.range))
+    /** @type {Seg[]} */
+    const re = []
+    for (const s of sorted) {
+        const cur = re[re.length - 1]
+        // s 的起點落在 cur 內 (含邊界) → 併起來
+        if (cur && cur.range.comparePoint(s.range.startContainer, s.range.startOffset) <= 0) {
+            if (cur.range.comparePoint(s.range.endContainer, s.range.endOffset) > 0) cur.range.setEnd(s.range.endContainer, s.range.endOffset)
+        } else re.push({ scope: s.scope, range: s.range.cloneRange() })
+    }
+    return re
+}
+/** 畫出先前記下的片段 (CSS Custom Highlight)；不支援的瀏覽器就沒有顏色，仍可複製 @param {Range[]} ranges */
+function paintExtra(ranges) {
+    if (typeof CSS == 'undefined' || !CSS.highlights || typeof Highlight == 'undefined') return
+    if (ranges.length) CSS.highlights.set('lct-multi', new Highlight(...ranges))
+    else CSS.highlights.delete('lct-multi')
+}
+/**
+ * 多段 (不連續) 選取的文字：每段各自照單段的規則轉 (文字 / 連續文字 / 含出處)，
+ * 文字、含出處每段一行；連續文字段與段之間以 … 接 (標明中間有省略)
+ * @param {'text' | 'flat' | 'cite'} kind @param {Seg[]} segs
+ */
+function multiText(kind, segs) {
+    const parts = segs.map(({ scope, range }) => {
+        const t = buildTable(scope, range)
+        return t == null ? '' : kind == 'cite' ? toCitedText(t) : toPlainText(t, kind == 'flat')
+    }).filter(a => a != '')
+    return parts.join(kind == 'flat' ? ' … ' : '\n')
+}
 
 /** 選取非空、且整個在一個範圍內才回傳 @returns {{ range: Range, scope: Scope } | null} */
 function selectionInScope() {
