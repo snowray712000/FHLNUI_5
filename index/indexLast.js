@@ -46,6 +46,7 @@ function doLast1() {
           $('body').append(r3)
 
           var lastScrollTop = 0
+          var restoreOnFocus = false
           var cy = $(window).height()
           var cx = $(window).width()
           r3.dialog({
@@ -63,8 +64,16 @@ function doLast1() {
               effect: 'highlight'
             },
             // display:none 會丟掉捲動位置：關閉前記下來，打開 (內容已存在) 時還原
-            beforeClose: function () { lastScrollTop = r3.scrollTop() },
+            // jQuery UI 在 show 動畫結束後會 focus 第一個 tabbable (頂端的連結)，瀏覽器為了讓它可見會捲回最上面，
+            // 這發生在 open 事件之後，所以 focus 事件再還原一次 (只在剛開啟的那一次)
+            beforeClose: function () { lastScrollTop = r3.scrollTop(); restoreOnFocus = false },
+            focus: function () {
+              if (!restoreOnFocus) return
+              restoreOnFocus = false
+              r3.scrollTop(lastScrollTop)
+            },
             open: function (event, ui) {
+              restoreOnFocus = true
               r3.scrollTop(lastScrollTop)
               var r4 = r3.find('.contents')
               if (r4.children().length == 0) {
@@ -230,6 +239,9 @@ function doLast1() {
 
             },
           });
+          // 開啟時 jQuery UI 預設 focus 內容裡第一個 tabbable (頂端的連結)，會把內容捲到最上面。
+          // 改成 focus 視窗本身 (Esc 仍可關閉；連結仍可用 Tab 走到)，就不會動到捲動位置
+          r3.dialog('instance')._focusTabbable = function () { this.uiDialog.trigger('focus') }
           $(r1).click(() => {
             r3.dialog("open")
           })
