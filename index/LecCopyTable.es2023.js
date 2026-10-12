@@ -37,11 +37,13 @@ import { Theme } from './theme/Theme.es2023.js'
 /**
  * @typedef {{ lecs: HTMLElement[], rs: number }} Cell 一格的節 (mode 3 一段可多節)；空陣列 = 空格 (沒反白到)
  * @typedef {{ el: HTMLElement, isSide: boolean, byParagraph: boolean }} Scope 可複製的範圍；isSide 並排；byParagraph 一段一列 (否則一節一列)
- * @typedef {{ scope: Scope, versions: string[], columns: Cell[][], labels: string[] | null, range: Range | null, hit: HTMLElement[], isOneCell: boolean, isCrossCol: boolean }} CopyTable
+ * @typedef {{ scope: Scope, versions: string[], columns: Cell[][], labels: string[] | null, range: Range | LecParts | null, hit: HTMLElement[], isOneCell: boolean, isCrossCol: boolean, shade?: Element[] }} CopyTable
  *   hit = 反白碰到的 .lec (畫面順序；跨格時擴成那些格的全部節)；labels = 每列的經文位置 (有標籤欄時)
- *   isOneCell 起訖在同一格 (Case1)；isCrossCol 並排且跨譯本欄 (Case3)；其餘是跨列不跨欄 (Case2)；range 跨格時為 null (整格，不截斷)
+ *   isOneCell 起訖在同一格 (Case1)；isCrossCol 並排且跨譯本欄 (Case3)；其餘是跨列不跨欄 (Case2)；range 跨格時為 null (整格，不截斷)；
+ *   多段選取 (繼續選) 跨格時 range 是 LecParts (每節各自的範圍，沒選到的字以 ... 表示)，shade = 要上底色的整格
  * @typedef {{ t: string, c?: string }} Run 一段字與顏色 (c 省略 = 預設色)；t == '\n' 是換行
- * @typedef {{ scope: Scope, range: Range }} Seg 一段反白 (多段選取的一段)
+ * @typedef {{ scope: Scope, range: Range, whole?: HTMLElement[] }} Seg 一段反白 (多段選取的一段)；whole = 這一段是單次選取跨格，已展開成整格 (那些格的全部節)，沒有就是照 range 的字
+ * @typedef {Map<HTMLElement, Range[] | null>} LecParts 多段選取時每一節被選到的範圍；null = 整節 (整格)
  */
 
 const SCOPE_SEL = '#lecMain, .sd-results, .ref-dlg'
@@ -116,6 +118,8 @@ export class LecCopyTable {
     /** 滑鼠 (觸控筆) 按著中；「繼續選」拖曳時按鈕不出來，放開才出來 */
     #pointerDown = false
     #contTimer = 0
+    /** 多段選取的片段都在同一格內 (按鈕是 文字 | 含出處 | 繼續選) */
+    #multiOneCell = false
     /** @type {{ t: number, x: number, y: number } | null} 觸控按下的時間與位置 (判斷輕點空白 → 清掉記下的片段) */
     #tapTouch = null
 
@@ -270,69 +274,77 @@ export class LecCopyTable {
         this.#show(sel.scope, sel.range.cloneRange(), table)
     }
     /**
-     * 多段 (不連續) 選取，目前只做同一格內：片段 = 先前記下的 + 現在的原生選取 (已依 DOM 順序、重疊 / 相接的併成一段)。
+     * 多段 (不連續) 選取：片段 = 先前記下的 + 現在的原生選取 (已依 DOM 順序、重疊 / 相接的併成一段)。
      * 只剩一段時當作一般單段 (按鈕不變)
-     * @param {{ segs: Seg[], hasLive: boolean }} group
+     * @param {{ segs: Seg[], hasLive: boolean, liveWhole: boolean }} group
      */
-    #updateMulti({ segs, hasLive }) {
+    #updateMulti({ segs, hasLive, liveWhole }) {
         // 「繼續選」中：新片段選好 (電腦：滑鼠放開；觸控：長按出現選取) 才結束；之前整排按鈕都藏起來
         if (this.#continuing && hasLive && (matchMedia('(pointer: coarse)').matches || !this.#pointerDown)) this.#continuing = false
         if (this.#continuing) return this.#hideBar()
-        const items = segs.filter(s => buildTable(s.scope, s.range))
+        const items = segs.filter(s => s.whole ? s.whole.some(l => l.isConnected) : buildTable(s.scope, s.range))
         if (items.length == 0) return this.#hide()
         const last = items[items.length - 1] // 最低的那段：按鈕跟著它
         this.#isSticky = false
         this.#multi = items.length > 1 ? items : null
-        this.#show(last.scope, last.range.cloneRange(), buildTable(last.scope, last.range))
+        this.#multiOneCell = items.length > 1 && sameCellSegs(items)
+        const table = this.#multi && !this.#multiOneCell ? tableOfSegs(items) : buildTable(last.scope, last.range)
+        if (table == null) return this.#hide()
+        // 多段時原生選取只有現在拖的那段；它跨格 (整格底色) 才把原生反白藏起來
+        this.#show(last.scope, last.range.cloneRange(), table, { hideNative: !this.#multi || liveWhole })
     }
     /**
-     * 先前記下的片段 + 現在的原生選取，必須都在同一格內；null = 不是多段 (沒記過、原生也只有一段)。
-     * 現在的選取跑到別格 / 跨格：先前記下的作廢，當作新選取
-     * @returns {{ segs: Seg[], hasLive: boolean } | null}
+     * 先前記下的片段 + 現在的原生選取 (同一個範圍)；null = 不是多段 (沒記過、原生也只有一段)。
+     * 現在的選取跑到別的範圍 (經文區 / 搜尋結果 / 交互參照)：先前記下的作廢，當作新選取。
+     * 單次選取跨格的片段展開成整格 (whole)；「繼續選」加選的片段不展開，各自保留選到的字
+     * @returns {{ segs: Seg[], hasLive: boolean, liveWhole: boolean } | null}
      */
     #group() {
         const alive = this.#extra.filter(s => s.range.startContainer.isConnected && !s.range.collapsed)
         if (alive.length != this.#extra.length) this.#setExtra(alive)
         const live = liveSegments()
         if (this.#extra.length == 0 && live.length <= 1) return null
-        const cell = cellOfSeg(this.#extra[0] ?? live[0])
-        const liveOk = live.filter(s => cell != null && cellOfSeg(s) == cell && s.scope.el == (this.#extra[0] ?? s).scope.el)
+        const el = (this.#extra[0] ?? live[0])?.scope.el
+        const liveOk = live.filter(s => s.scope.el == el)
         if (this.#extra.length && live.length && liveOk.length == 0) { this.#setExtra([]); this.#continuing = false; return null }
-        if (cell == null || (this.#extra.length == 0 && liveOk.length <= 1)) return null
-        return { segs: mergeSegs([...this.#extra, ...liveOk]), hasLive: liveOk.length > 0 }
+        const liveSegs = liveOk.map(snapSeg).filter(a => a != null)
+        if (this.#extra.length == 0 && liveSegs.length <= 1) return null
+        return { segs: mergeSegs([...this.#extra, ...liveSegs]), hasLive: liveSegs.length > 0, liveWhole: liveSegs.some(a => a.whole) }
     }
-    /** Ctrl / ⌘ + 按下當下：把現有的原生選取 (必須在同一格內) 併進先前記下的片段，進入「繼續選」 */
+    /** Ctrl / ⌘ + 按下當下：把現有的原生選取併進先前記下的片段，進入「繼續選」 */
     #stashLive() {
-        const live = liveSegments().filter(s => cellOfSeg(s))
-        const old = live.length && this.#extra.length && cellOfSeg(this.#extra[0]) == cellOfSeg(live[0]) ? this.#extra : []
+        const live = liveSegments().map(snapSeg).filter(a => a != null)
+        const old = live.length && this.#extra.length && this.#extra[0].scope.el != live[0].scope.el ? [] : this.#extra
         if (live.length) this.#setExtra(mergeSegs([...old, ...live]))
         this.#continuing = this.#extra.length > 0
     }
     /** 按下「繼續選」：現在的選取記起來 (仍畫著底色)，收掉原生選取 (觸控的水滴也消失)，等著選下一段 */
     #continueSelecting() {
-        const base = this.#pressMulti ?? (this.#pressRange && this.#pressScope ? [{ scope: this.#pressScope, range: this.#pressRange }] : null)
+        const one = this.#pressRange && this.#pressScope ? snapSeg({ scope: this.#pressScope, range: this.#pressRange }) : null
+        const base = this.#pressMulti ?? (one ? [one] : null)
         this.#pressing = false
         this.#pressRange = this.#pressScope = this.#pressMulti = null
-        if (!base?.length || !cellOfSeg(base[0])) return
-        this.#setExtra(mergeSegs([...this.#extra, ...base]))
+        if (!base?.length) return
+        this.#setExtra(mergeSegs([...(this.#extra[0]?.scope.el == base[0].scope.el ? this.#extra : []), ...base]))
         this.#continuing = true
+        this.#isSticky = false
         getSelection()?.removeAllRanges()
         this.#update()
     }
     /** @param {Seg[]} segs */
     #setExtra(segs) {
         this.#extra = segs
-        paintExtra(segs.map(s => s.range))
+        paintExtra(segs.filter(a => !a.whole).map(a => a.range)) // 展開成整格的用整格底色 (.lct-cell)
     }
-    /** @param {Scope} scope @param {Range} range @param {CopyTable} table */
-    #show(scope, range, table) {
+    /** @param {Scope} scope @param {Range} range @param {CopyTable} table @param {{ hideNative?: boolean }} [opt] hideNative 跨格時把原生反白藏起來 (預設藏) */
+    #show(scope, range, table, { hideNative = true } = {}) {
         this.#range = range
         this.#scope = scope
-        const isMulti = this.#multi != null
-        this.#setCrossed(isMulti || table.isOneCell ? null : table)
-        // Case1 同一格：文字 | 含出處 | 繼續選；Case2 跨列不跨欄：文字 | 連續文字 | 表格 | MD；Case3 跨欄：表格 | MD；多段 (同一格內)：文字 | 含出處 | 繼續選
+        // 多段 (繼續選) 的片段都在同一格內：按鈕同 Case1；跨格的多段與一般跨格一樣依 table 的 isCrossCol 分 Case2 / Case3
+        const oneCell = table.isOneCell || (this.#multi != null && this.#multiOneCell)
+        this.#setCrossed(oneCell ? null : table, hideNative)
+        // Case1 同一格：文字 | 含出處 | 繼續選；Case2 跨列不跨欄：文字 | 連續文字 | 連續含出處 | 表格 | MD | ASCII | 繼續選；Case3 跨欄：表格 | MD | ASCII | 繼續選
         const { text, flat, cite, table: tbl, md, ascii, cont } = this.#btns
-        const oneCell = isMulti || table.isOneCell
         text.hidden = !oneCell && table.isCrossCol
         flat.hidden = oneCell || table.isCrossCol
         cite.hidden = !oneCell && table.isCrossCol
@@ -340,11 +352,11 @@ export class LecCopyTable {
         cite.dataset.label = oneCell ? '含出處' : '連續含出處'
         if (cite.dataset.mark == null) cite.textContent = cite.dataset.label // 顯示 ✓ / ✗ 時不要蓋掉
         tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = oneCell
-        // 繼續選：只有同一格內 (跨格的以後再做)；電腦按著 Ctrl / ⌘ 時已經在繼續選，不必顯示
-        cont.hidden = !oneCell || this.#ctrlDown
+        // 電腦按著 Ctrl / ⌘ 時已經在繼續選，不必顯示
+        cont.hidden = this.#ctrlDown
         this.#layoutBtns()
         // 剛按下 Ctrl / ⌘：整排先藏起來，免得擋住接下來要選的字
-        if (this.#ctrlFresh && oneCell) return this.#hideBar()
+        if (this.#ctrlFresh) return this.#hideBar()
         this.#btn.hidden = false
         this.#place()
     }
@@ -379,8 +391,8 @@ export class LecCopyTable {
         if (this.#extra.length) this.#setExtra([])
         this.#setCrossed(null)
     }
-    /** @param {CopyTable} table */
-    #setCrossed(table) {
+    /** @param {CopyTable | null} table @param {boolean} [hideNative] 跨格時原生反白透明 (不然會與整格底色並存) */
+    #setCrossed(table, hideNative = true) {
         this.#crossed = table
         const old = this.#crossedEl
         if (old) {
@@ -388,9 +400,9 @@ export class LecCopyTable {
             old.querySelectorAll('.lct-cell').forEach(a => a.classList.remove('lct-cell'))
         }
         this.#crossedEl = table?.scope.el ?? null
-        this.#crossedEl?.classList.add('lct-crossed')
-        // 整格 (.paragraph 整個 div) 上底色
-        if (table) for (const cell of new Set(table.hit.map(a => a.closest('.paragraph') ?? a))) cell.classList.add('lct-cell')
+        if (hideNative) this.#crossedEl?.classList.add('lct-crossed')
+        // 整格 (.paragraph 整個 div) 上底色；多段 (繼續選) 只有展開成整格的那些 (shade)
+        if (table) for (const cell of new Set(table.shade ?? table.hit.map(a => a.closest('.paragraph') ?? a))) cell.classList.add('lct-cell')
     }
     /** 電腦：放在選取範圍最後一行的右下；觸控：畫面下方中央 (選取旁會被 iOS 的拷貝選單擋住) */
     #place() {
@@ -539,9 +551,10 @@ export class LecCopyTable {
         const multi = this.#pressMulti ?? this.#multi
         this.#pressRange = this.#pressScope = this.#pressMulti = null
         if (!scope || !range) return
-        const table = buildTable(scope, range)
+        // 多段 (繼續選) 都在同一格內：文字 / 含出處用 multiCellText；跨格的多段合成一個表格，其餘同一般跨格
+        const table = multi && !sameCellSegs(multi) ? tableOfSegs(multi) : buildTable(scope, range)
         if (table == null) return
-        const { html, plain } = multi && (kind == 'text' || kind == 'cite') ? { html: null, plain: multiCellText(multi, kind == 'cite') }
+        const { html, plain } = multi && sameCellSegs(multi) && (kind == 'text' || kind == 'cite') ? { html: null, plain: multiCellText(multi, kind == 'cite') }
             : kind == 'md' ? { html: null, plain: toMarkdown(table) }
             : kind == 'ascii' ? { html: null, plain: toAscii(table) }
             : kind == 'table' ? inCopyPalette(() => toClipboardData(table))
@@ -555,13 +568,14 @@ export class LecCopyTable {
 
     /** Ctrl+C / 選單的複製：同一格 → 反白的純文字；跨格 → 對照表 @param {ClipboardEvent} e */
     #onCopy(e) {
-        // 多段 (不連續) 選取 (同一格內)：同「文字」鈕；只剩一段 (例：Ctrl + 點空白後原生選取沒了) 就用那一段
+        // 多段 (不連續) 選取：同一格內 → 同「文字」鈕；跨格 → 複製對照表 (同一般跨格的 Ctrl+C)；只剩一段就用那一段
         const group = this.#group()
         if (group && group.segs.length > 1 && e.clipboardData) {
-            const plain = multiCellText(group.segs, false)
-            if (plain) {
-                showCopyDebug(null, plain)
-                e.clipboardData.setData('text/plain', plain)
+            const data = sameCellSegs(group.segs) ? { plain: multiCellText(group.segs, false), html: null } : (t => t ? inCopyPalette(() => toClipboardData(t)) : null)(tableOfSegs(group.segs))
+            if (data?.plain) {
+                showCopyDebug(data.html, data.plain)
+                if (data.html) e.clipboardData.setData('text/html', asHtmlDoc(data.html))
+                e.clipboardData.setData('text/plain', data.plain)
                 e.preventDefault()
                 return
             }
@@ -654,7 +668,11 @@ function liveSegments() {
     }
     return re
 }
-/** 依 DOM 順序排好，互相重疊 / 相接的併成一段 (同一個範圍才併；呼叫端保證同一個範圍) @param {Seg[]} segs @returns {Seg[]} */
+/**
+ * 依 DOM 順序排好，互相重疊 / 相接的併成一段 (同一個範圍才併；呼叫端保證同一個範圍)；
+ * 展開成整格的 (whole) 不併，各自留著
+ * @param {Seg[]} segs @returns {Seg[]}
+ */
 function mergeSegs(segs) {
     const sorted = [...segs].sort((a, b) => a.range.compareBoundaryPoints(Range.START_TO_START, b.range))
     /** @type {Seg[]} */
@@ -662,11 +680,58 @@ function mergeSegs(segs) {
     for (const s of sorted) {
         const cur = re[re.length - 1]
         // s 的起點落在 cur 內 (含邊界) → 併起來
-        if (cur && cur.range.comparePoint(s.range.startContainer, s.range.startOffset) <= 0) {
+        if (cur && !cur.whole && !s.whole && cur.range.comparePoint(s.range.startContainer, s.range.startOffset) <= 0) {
             if (cur.range.comparePoint(s.range.endContainer, s.range.endOffset) > 0) cur.range.setEnd(s.range.endContainer, s.range.endOffset)
-        } else re.push({ scope: s.scope, range: s.range.cloneRange() })
+        } else re.push({ ...s, range: s.range.cloneRange() })
     }
     return re
+}
+/**
+ * 單次選取跨格 → 展開成整格 (whole)；在一格內就照選到的字。看不到字的 (只選到隱藏的、節碼) 回 null
+ * @param {Seg} s @returns {Seg | null}
+ */
+function snapSeg(s) {
+    const t = buildTable(s.scope, s.range)
+    if (t == null) return null
+    return t.isOneCell ? s : { ...s, whole: t.hit }
+}
+/** 多段的片段都在同一格內 (沒有展開成整格的) @param {Seg[]} segs */
+function sameCellSegs(segs) {
+    const cell = cellOfSeg(segs[0])
+    return cell != null && segs.every(s => !s.whole && cellOfSeg(s) == cell)
+}
+/**
+ * 多段 (繼續選) 跨格：每一節記下被選到的範圍 (整格的是 null)，合成一個 CopyTable；
+ * 表格 / 文字的規則同一般跨格，只是沒選到的字以 ... 表示、沒碰到的節 / 列不放
+ * @param {Seg[]} segs 依 DOM 順序，同一個範圍 @returns {CopyTable | null}
+ */
+function tableOfSegs(segs) {
+    const scope = segs[0].scope
+    /** @type {LecParts} */
+    const parts = new Map()
+    for (const s of segs) {
+        if (s.whole) { for (const lec of s.whole) if (lec.isConnected) parts.set(lec, null); continue }
+        for (const lec of selectedLecs(scope.el, s.range)) {
+            const cur = parts.get(lec)
+            if (cur === null) continue // 整格的優先
+            if (cur) cur.push(s.range); else parts.set(lec, [s.range])
+        }
+    }
+    const all = /** @type {HTMLElement[]} */ ([...scope.el.querySelectorAll('.lec[ver]')])
+    const hit = all.filter(a => parts.has(a))
+    if (hit.length == 0) return null
+    const hitVers = new Set(hit.map(a => a.getAttribute('ver')))
+    const versions = [...new Set(all.map(a => a.getAttribute('ver')))].filter(v => hitVers.has(v))
+    const isCrossCol = scope.isSide && versions.length > 1
+    const shade = [...parts].filter(([, v]) => v === null).map(([lec]) => lec.closest('.paragraph') ?? lec)
+    const rowOf = rowKeyFn(scope.el)
+    if (scope.byParagraph) {
+        const { columns, labels } = columnsByParagraph(versions, hit, rowOf)
+        return { scope, versions, columns, labels, range: parts, hit, isOneCell: false, isCrossCol, shade }
+    }
+    const addrs = hit.map(addrOf)
+    const columns = columnsByVerse(versions, all, new Set(hit), Math.min(...addrs), Math.max(...addrs), new Set(addrs))
+    return { scope, versions, columns, labels: null, range: parts, hit, isOneCell: false, isCrossCol, shade }
 }
 /** 畫出先前記下的片段 (CSS Custom Highlight)；不支援的瀏覽器就沒有顏色，仍可複製 @param {Range[]} ranges */
 function paintExtra(ranges) {
@@ -697,6 +762,13 @@ function multiCellText(segs, withCite) {
 }
 /** @param {Range} r */
 const hasVisibleText = r => runsText(rangeRuns(r)).trim() != ''
+/** 從 (n1, o1) 到 (n2, o2) 之間有沒有看得到的字 @param {Node} n1 @param {number} o1 @param {Node} n2 @param {number} o2 */
+function hasTextBetween(n1, o1, n2, o2) {
+    const g = document.createRange()
+    g.setStart(n1, o1)
+    g.setEnd(n2, o2)
+    return hasVisibleText(g)
+}
 /**
  * 一節裡被選到的幾段：節碼 + 各段文字；沒選到的頭尾、段與段之間有字就放 ...
  * @param {HTMLElement} lec @param {Range[]} ranges 反白 (依 DOM 順序、互不重疊，不一定都碰到這一節) @param {string} base
@@ -707,8 +779,7 @@ function partsOfLec(lec, ranges, base) {
     if (parts.length == 0) return ''
     const num = lec.querySelector('.verseNumber')
     const out = [num ? runsText(trimRuns(rangeRuns(rangeOfNode(num), base))) : '']
-    /** 從 (node, offset) 到 (node2, offset2) 之間有沒有字 */
-    const gap = (n1, o1, n2, o2) => { const g = document.createRange(); g.setStart(n1, o1); g.setEnd(n2, o2); return hasVisibleText(g) }
+    const gap = hasTextBetween
     let [node, off] = [full.startContainer, full.startOffset]
     for (const p of parts) {
         if (gap(node, off, p.startContainer, p.startOffset)) out.push('...')
@@ -848,10 +919,11 @@ function buildTable(scope, range) {
 /**
  * 一節一列 (mode 1 及交錯)；此譯本併入上節 ("a") 的節 → 上一格 rowspan
  * @param {string[]} versions @param {HTMLElement[]} all @param {Set<HTMLElement>} hitSet @param {number} lo @param {number} hi
+ * @param {Set<number>} [rowsOnly] 只放這些節 (多段不連續時，中間沒選到的節不放)
  * @returns {Cell[][]}
  */
-function columnsByVerse(versions, all, hitSet, lo, hi) {
-    const rows = [...new Set(all.filter(a => versions.includes(a.getAttribute('ver')) && addrOf(a) >= lo && addrOf(a) <= hi).map(addrOf))]
+function columnsByVerse(versions, all, hitSet, lo, hi, rowsOnly) {
+    const rows = [...new Set(all.filter(a => versions.includes(a.getAttribute('ver')) && addrOf(a) >= lo && addrOf(a) <= hi && (rowsOnly == null || rowsOnly.has(addrOf(a)))).map(addrOf))]
         .sort((a, b) => a - b)
     /** @param {HTMLElement} lec @returns {Cell} */
     const cellOf = lec => ({ lecs: lec && hitSet.has(lec) ? [lec] : [], rs: 1 })
@@ -1049,12 +1121,34 @@ function tableOpen(elScope) {
 const headCell = name => loadOpts().th ? `<th>${esc(name)}</th>` : `<td><b>${esc(name)}</b></td>`
 const baseColor = el => el ? getComputedStyle(el).color : undefined
 
-/** 一節的字：節碼 + 內容 @param {HTMLElement} lec @param {Range} range @param {string} base */
+/**
+ * 一節的字：節碼 + 內容
+ * @param {HTMLElement} lec @param {Range | LecParts | null} range Range 截在範圍內；null 整節；LecParts (多段) 取這一節各段，沒選到的頭尾 / 段與段之間以 ... 表示
+ * @param {string} base
+ */
 function lecRuns(lec, range, base) {
     const num = lec.querySelector('.verseNumber')
     const numRuns = num ? trimRuns(rangeRuns(rangeOfNode(num), base)) : []
-    const content = trimRuns(rangeRuns(contentRange(lec, range), base))
+    const parts = range instanceof Map ? range.get(lec) ?? null : null
+    const content = parts ? partRuns(lec, parts, base) : trimRuns(rangeRuns(contentRange(lec, range instanceof Map ? null : range), base))
     return numRuns.length ? [...numRuns, { t: ' ' }, ...content] : content
+}
+/** 一節裡被選到的幾段 (有顏色)，頭尾沒選到的、段與段之間有字就放 ... (同 partsOfLec) @param {HTMLElement} lec @param {Range[]} ranges @param {string} base @returns {Run[]} */
+function partRuns(lec, ranges, base) {
+    const full = contentRange(lec, null)
+    const parts = ranges.filter(r => r.intersectsNode(lec)).map(r => contentRange(lec, r)).filter(hasVisibleText)
+    /** @type {Run[]} */
+    const out = []
+    const add = (/** @type {Run[]} */ runs) => { if (out.length) out.push({ t: ' ' }); out.push(...runs) }
+    let node = full.startContainer, off = full.startOffset
+    for (const p of parts) {
+        if (hasTextBetween(node, off, p.startContainer, p.startOffset)) add([{ t: '...' }])
+        add(trimRuns(rangeRuns(p, base)))
+        node = p.endContainer
+        off = p.endOffset
+    }
+    if (parts.length && hasTextBetween(node, off, full.endContainer, full.endOffset)) add([{ t: '...' }])
+    return out
 }
 
 // ── 輸出 ──────────────────────────────────────────────────────────────
@@ -1144,7 +1238,8 @@ function toCitedText({ scope, range, hit }) {
     const base = baseColor(scope.el)
     /** 一節：節碼 + 內容；單格反白時，頭尾沒選到的字以 ... 表示 @param {HTMLElement} lec */
     const citedLec = lec => {
-        return range == null ? runsText(lecRuns(lec, range, base)) : partsOfLec(lec, [range], base)
+        const rs = range instanceof Map ? range.get(lec) ?? null : range == null ? null : [range]
+        return rs == null ? runsText(lecRuns(lec, null, base)) : partsOfLec(lec, rs, base)
     }
     const vers = [...new Set(hit.map(a => a.getAttribute('ver')))]
     return vers.map(ver => {
