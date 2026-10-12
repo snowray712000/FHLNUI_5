@@ -20,7 +20,7 @@
  * - 搜尋結果、交互參照 (VerseGrid)：一律如所見一段一列 (.paragraph 的 data-row，各批 grid 各自編號)；
  *   左側的經文位置 (標籤欄) 也複製：並排多譯本 → 表格第一欄；單一譯本、交錯 → 每列開頭
  *
- * - 按鈕依情形：Case1 同一格「文字|含出處」(含出處：沒選到的頭尾以 ... 表示，例 `9 ... 免得受審判。 ...(雅5:9_和合本)`)；Case2 跨列不跨欄「文字|連續|含出處|繼續選|表格|MD|ASCII」；Case3 跨欄「表格|MD|ASCII|繼續選」
+ * - 按鈕依情形：Case1 同一格「文字|含出處」(含出處：沒選到的頭尾以 ... 表示，例 `9 ... 免得受審判。 ...(雅5:9_和合本)`)；Case2 跨列不跨欄「文字|連續|含出處|繼續選|表格|MD|ASCII」；Case3 跨欄「含出處|繼續選|表格|MD|ASCII」
  *   (連續 = 各列接成空白、不換行；見 toPlainText)
  * - 「MD」鈕 (docs/z261002c)：Markdown 表格只放 text/plain，不保留顏色；起訖在同一格時不顯示
  *   並排 → 表頭譯本名 (有標籤欄時第一欄「經文」)；mode 1 併入上節 (rowspan) 被佔的格寫「（併入上節）」
@@ -343,20 +343,18 @@ export class LecCopyTable {
         // 多段 (繼續選) 的片段都在同一格內：按鈕同 Case1；跨格的多段與一般跨格一樣依 table 的 isCrossCol 分 Case2 / Case3
         const oneCell = table.isOneCell || (this.#multi != null && this.#multiOneCell)
         this.#setCrossed(oneCell ? null : table, hideNative)
-        // Case1 同一格：文字 | 含出處 | 繼續選；Case2 跨列不跨欄：文字 | 連續 | 含出處 | 表格 | MD | ASCII | 繼續選；Case3 跨欄：表格 | MD | ASCII | 繼續選
+        // Case1 同一格：文字 | 含出處 | 繼續選；Case2 跨列不跨欄：文字 | 連續 | 含出處 | 表格 | MD | ASCII | 繼續選；Case3 跨欄：含出處 | 繼續選 | 表格 | MD | ASCII
         const { text, flat, cite, table: tbl, md, ascii, cont } = this.#btns
         text.hidden = !oneCell && table.isCrossCol
         flat.hidden = oneCell || table.isCrossCol
-        cite.hidden = !oneCell && table.isCrossCol
+        cite.hidden = false // 跨欄時每個譯本一行、各自帶出處
         // 含出處：同一格時沒選到的字以 ... 表示；跨列時各節接成連續一段
         cite.dataset.label = '含出處'
         if (cite.dataset.mark == null) cite.textContent = cite.dataset.label // 顯示 ✓ / ✗ 時不要蓋掉
         tbl.hidden = md.hidden = ascii.hidden = this.#gear.hidden = oneCell
         // 電腦按著 Ctrl / ⌘ 時已經在繼續選，不必顯示
         cont.hidden = this.#ctrlDown
-        // 位置：單 column (有含出處) 放在含出處後面；跨欄沒有含出處，放在 ASCII 後面
-        const anchor = table.isCrossCol && !oneCell ? ascii : cite
-        anchor.after(cont)
+        cite.after(cont) // 繼續選緊接在含出處後面
         this.#layoutBtns()
         // 剛按下 Ctrl / ⌘：整排先藏起來，免得擋住接下來要選的字
         if (this.#ctrlFresh) return this.#hideBar()
@@ -524,8 +522,8 @@ export class LecCopyTable {
     /** 文字類 (文字 / 連續 / 含出處) 與表格類 (表格 / MD / ASCII / ⚙) 都有、且超過 4 顆時排成兩列，各佔一整列 (12 欄格) */
     #layoutBtns() {
         const { text, flat, cite, cont } = this.#btns
-        // 繼續選緊接在含出處後面 (單 column) 時算文字類，排在同一列
-        const g1 = [text, flat, cite, ...(cont.previousElementSibling == cite ? [cont] : [])].filter(b => !b.hidden)
+        // 文字類 (繼續選緊接在含出處後面，跟著一列)
+        const g1 = [text, flat, cite, cont].filter(b => !b.hidden)
         const vis = [...this.#btn.children].filter(b => !b.hidden)
         const g2 = vis.filter(b => !g1.includes(b))
         const two = g1.length > 0 && g2.length > 0 && vis.length > 4
