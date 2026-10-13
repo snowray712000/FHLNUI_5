@@ -20,6 +20,7 @@ import { SnFilter } from './SnFilter.es2023.js'
 import { queryFootsAsync } from './queryFootsAsync.js'
 import { showFootPopupAsync } from './showFootPopupAsync.es2023.js'
 import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
+import { showFloatBar } from './RefChooseBar.es2023.js'
 import { bindIntroHelp } from './IntroHelp.es2023.js'
 import { bindScopeButton, scopeButtonHtml, currentScopeLabel } from './SearchScopeDialog.es2023.js'
 import { readScope, scopeBooks, scopeGroups } from './SearchScope.es2023.js'
@@ -232,8 +233,19 @@ export class SearchDialog {
             that.#renderGroups()
             that.#applyFilterAsync()
         }).on('click', '[data-goto]', function () {
+            // 與交互參照視窗的出處標籤一樣：浮出 上下文｜前往 (z261012b)
             const [book, chap, sec] = JSON.parse($(this).attr('data-goto'))
-            that.#goto(book - 1, chap, sec)
+            showFloatBar(this, [
+                {
+                    label: '上下文', title: gbText('另開一個視窗，顯示這一章，讀經位置不動'),
+                    onPick: () => queryReferenceAndShowAtDialogAsync({
+                        addrs: BibleConstantHelper.generateAddressesTpF(book, chap),
+                        focusAddr: { book, chap, sec },
+                        versions: that.#shownVersions(),
+                    }),
+                },
+                { label: '前往', title: gbText('經文區直接跳到這裡'), onPick: () => that.#goto(book - 1, chap, sec) },
+            ])
         }).on('click', '.sd-copy', function () {
             const p = $(this).closest('.paragraph')
             const lec = p.find('.lec')
@@ -405,6 +417,12 @@ export class SearchDialog {
         }
     }
 
+    /** 結果表頭目前顯示的譯本 (上下文要用同樣的譯本)；交錯排列沒有表頭 → undefined，用目前閱讀的譯本 */
+    #shownVersions() {
+        const vers = [...new Set(this.#dlg.find('.sd-results .vg-head-row .vg-head[data-ver]').map((i, e) => e.dataset.ver).get())]
+        return vers.length ? vers : undefined
+    }
+
     /** 主畫面跳到該節，dialog 保留 */
     #goto(ibook, chap, sec) {
         const ps = TPPageState.s
@@ -514,7 +532,7 @@ async function toVerseRowsAsync(rows) {
         }
         return {
             label: `${names[row.ibook]} ${row.chap}:${row.sec}`,
-            labelAttrs: { 'data-goto': JSON.stringify([book, row.chap, row.sec]), title: gbText('經文區跳到這裡') },
+            labelAttrs: { 'data-goto': JSON.stringify([book, row.chap, row.sec]), title: gbText('看上下文，或經文區跳到這裡') },
             cells,
         }
     })
