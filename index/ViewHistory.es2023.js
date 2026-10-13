@@ -8,6 +8,7 @@ import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 import { assert } from './assert_es2023.js'
 import { testThenDoAsync } from './testThenDo.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
+import { displayOrder } from './viewHistoryPins.es2023.js'
 
 /**
  * - 歷史記錄 繪圖 核心在這裡
@@ -39,12 +40,17 @@ export class ViewHistory {
             
             // book name 下面要用的
             const booknames = BibleConstantHelper.getBookNameArrayChineseShort()
-            datas.map(function (a1) {                
+            // 釘住的排前面，所以顯示順序 ≠ datas 順序，li 帶 didx (在 datas 中的位置) 供點擊使用
+            displayOrder(datas).forEach(({ item: a1, idx }) => {
                 const sec = a1.sec || 1; // 預設是 1
+                const pinned = !!a1.pin
 
                 // 不再使用 chineses, 使用 book 來查詢 chineses ... 1based 所以要 -1 
-                $("<li>").attr('book', a1.book).attr('chap', a1.chap).attr('sec', sec).text(booknames[a1.book-1] + a1.chap + ':' + sec).appendTo(ul);
-            })            
+                $("<li>").attr('book', a1.book).attr('chap', a1.chap).attr('sec', sec).attr('didx', idx).toggleClass('pinned', pinned)
+                    .text(booknames[a1.book - 1] + a1.chap + ':' + sec)
+                    .append($('<i>', { class: 'vh-pin', text: '📌', title: pinned ? '拔掉釘選' : '釘住這一章 (換節仍會更新，不會被擠掉、也不被清除)' }))
+                    .appendTo(ul);
+            })
         }
         const document_bind = {
             vh_init: function (e, p1) {   
@@ -62,13 +68,10 @@ export class ViewHistory {
         $vh.on({
             click: function (e) {
 
-                // 傳出第幾個被點 ( 考慮 可5 可8 可5 ... 到底哪個可5被點 ) 0-based
-                var ul = $vh.find('ul').first();
-                var lis = ul.children();
-                for (var i = 0; i < lis.length; i++) {
-                    if (lis[i] == this)
-                        break;
-                }
+                if ($(e.target).closest('.vh-pin').length) return // 📌 另外處理，不跳轉
+
+                // 傳出是 datas 中的第幾個 (顯示順序 ≠ datas 順序，所以讀 didx) 0-based
+                const i = parseInt($(this).attr('didx'));
 
                 const book = parseInt($(this).attr('book'));
                 const chap = parseInt($(this).attr('chap'));
@@ -90,9 +93,16 @@ export class ViewHistory {
                 BookSelect.s.render();
                 FhlInfo.s.render(ps);
                 FhlLecture.s.render();
+                $(document).trigger('chapchanged') // 更新網址 hash (pushState)，alt+←/→ 才回得去
                 // that.render(ps, that.dom); // 已經處理了. vh_itemchanged 會處理
             }
         }, 'li').on({
+            click: function (e) {
+                e.stopPropagation(); // 不要連帶跳轉
+                const $li = $(this).closest('li');
+                $li.trigger('pintoggle', { book: parseInt($li.attr('book')), chap: parseInt($li.attr('chap')) });
+            }
+        }, '.vh-pin').on({
             click: function (e) {
                 $(this).trigger('clearall');
             }
@@ -128,6 +138,16 @@ export class ViewHistory {
         }).then(()=>{
             $(this.dom).on({
                 liclick: fn
+            }, 'li');
+        })
+    }
+    /** 📌 被按下 (釘或拔掉) fn(e, {book, chap}) */
+    when_pintoggle(fn){
+        testThenDoAsync({
+            cbTest: () => this.dom != null
+        }).then(()=>{
+            $(this.dom).on({
+                pintoggle: fn
             }, 'li');
         })
     }

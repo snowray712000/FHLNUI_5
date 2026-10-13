@@ -1172,6 +1172,20 @@ body {
 #viewHistory li:hover {
     color: var(--accent-fg);
 }
+/* 📌：同譯本選擇的 .vpin。沒釘 = 平常幾乎看不到 (滑過才浮出，觸控裝置恆淡顯)，釘住 = 恆亮 */
+#viewHistory li .vh-pin {
+    cursor: pointer;
+    margin-left: 0.5em;
+    font-style: normal;
+    opacity: 0;
+    filter: grayscale(1);
+}
+#viewHistory li:hover .vh-pin { opacity: 0.45; }
+#viewHistory li .vh-pin:hover, #viewHistory li.pinned .vh-pin { opacity: 1; filter: none; }
+@media (pointer: coarse) {
+    #viewHistory li .vh-pin { opacity: 0.35; padding: 0 0.4em; }
+    #viewHistory li.pinned .vh-pin { opacity: 1; }
+}
 #viewHistory .clearHistory{
     position: absolute;
     top: 10px;

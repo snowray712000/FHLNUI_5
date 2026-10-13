@@ -47,7 +47,7 @@ ${RESOURCES_HTML}</div></div>
 <li><div id="themeTool"></div></li></ul></div></div></div>
 <div id="versionSelect"></div>
 <div id="viewHistory"><div class="secondLevelInside"><p>▶&nbsp;歷史紀錄</p>
-<span class="clearHistory">清除記錄</span>
+<span class="clearHistory" title="釘住 (📌) 的章會保留">清除記錄</span>
 <div id="viewHistoryScrollDiv"><ul class="viewHistoryList"></ul></div></div></div></div></div>
 <div id="fhlMidWindow"><div id="fhlLecture"><div class="chapBack chapControl"><span>❮</span></div>
 <div class="chapNext chapControl"><span>❯</span></div>

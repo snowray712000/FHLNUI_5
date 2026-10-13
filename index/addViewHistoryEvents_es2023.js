@@ -22,7 +22,8 @@ export function makeSure_ps_history_not_empty(){
         }
         const chap = parseInt(a1.chap, 10);
         const sec = parseInt(a1.sec, 10) || 1;
-        return { book, chap, sec };
+        const pin = Number(a1.pin) > 0 ? { pin: Number(a1.pin) } : {};
+        return { book, chap, sec, ...pin };
     }).filter(a1 => a1.book >= 1 && a1.book <= 66 && a1.chap >= 1);
 
     if (TPPageState.s.history.length == 0) {
@@ -64,8 +65,12 @@ export function addViewHistoryEvents(){
     })
     // viewHistory 主界面, 按下清除所有的時候, 觸發 items changed
     ViewHistory.s.when_clearall(function (e) {
-        ViewHistoryData.s.datas = [ViewHistoryData.s.datas[0]];
-        ViewHistoryData.s.idx = 0;
+        ViewHistoryData.s.main_clear_keep_pinned(); // 釘住的留著
+        trigger_vh_itemschanged();
+    });
+    // viewHistory 主界面, 按下 📌 的時候 (釘的是章, 見 viewHistoryPins.es2023.js)
+    ViewHistory.s.when_pintoggle(function (e, p1) {
+        ViewHistoryData.s.main_toggle_pin(p1);
         trigger_vh_itemschanged();
     });
 

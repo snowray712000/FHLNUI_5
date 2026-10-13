@@ -1,6 +1,7 @@
 import { makeSure_ps_history_not_empty } from './addViewHistoryEvents_es2023.js';
 import { testThenDoAsync } from './testThenDo.es2023.js';
 import { TPPageState } from './TPPageState.es2023.js';
+import { pushAddress, togglePin, clearKeepPinned } from './viewHistoryPins.es2023.js';
 
 export class ViewHistoryData {
     static #s = null;
@@ -41,23 +42,19 @@ export class ViewHistoryData {
         const chap = address.chap || 1;
         const sec = address.sec || 1;
 
-        // 清除所有同樣 book chap 的
-        let datas2 = this.datas.filter(a1 => !(a1.book == book && a1.chap == chap));
-
-        // 將 address 加入到 [0] 位置
-        datas2.unshift({
-            book: book,
-            chap: chap,
-            sec: sec
-        });
-
-        // 留保 24 個
-        if (datas2.length > 24) {
-            datas2 = datas2.slice(0, 24);
-        }
+        // 同章舊的拿掉 (📌 帶過來)、放最前面、超過 24 個丟沒釘的最舊
+        this.datas = pushAddress(this.datas, { book, chap, sec });
 
         // 設定為第 0 個
-        this.datas = datas2;
+        this.idx = 0;
+    }
+    /** 📌 釘 / 拔掉 某章 (順序不變，idx 不變) */
+    main_toggle_pin(address) {
+        this.datas = togglePin(this.datas, address);
+    }
+    /** 清除記錄：留目前這個與釘住的 */
+    main_clear_keep_pinned() {
+        this.datas = clearKeepPinned(this.datas);
         this.idx = 0;
     }
     /**
