@@ -37,8 +37,13 @@ describe('viewHistoryPins', () => {
         const d2 = [h(59, 5, 1, 9), h(2, 2)]
         expect(clearKeepPinned(d2)).toEqual([h(59, 5, 1, 9)])
     })
-    it('顯示順序：釘住的在前依釘的先後，idx 指回 datas', () => {
+    it('顯示順序：釘住的在前，兩群各自照瀏覽順序，idx 指回 datas', () => {
         const d = [h(1, 1), h(2, 2, 1, 20), h(3, 3), h(4, 4, 1, 10)]
-        expect(displayOrder(d).map(x => x.idx)).toEqual([3, 1, 0, 2])
+        expect(displayOrder(d).map(x => x.idx)).toEqual([1, 3, 0, 2])
+    })
+    it('釘住的之間：看過的章浮到釘住群最上面 (雅5、雅4、雅2 都釘，切到雅2 → 雅2、雅5、雅4)', () => {
+        let d = [h(59, 5, 1, 3), h(59, 4, 1, 2), h(59, 2, 1, 1)]
+        d = pushAddress(d, { book: 59, chap: 2, sec: 1 })
+        expect(displayOrder(d).map(x => x.item.chap)).toEqual([2, 5, 4])
     })
 })

@@ -2,7 +2,7 @@
  * 歷史記錄的 📌 釘選 (純函式，不碰 DOM，好測試)
  * - 釘的單位是「章」(book + chap)；sec 只是那章最後看到的節，所以釘了雅5:1，看到雅5:2，仍是同一個釘，節會跟著更新
  * - 釘住的不被「超過上限」擠掉、不被「清除記錄」清掉
- * - 資料存在歷史的每一筆 `pin: number` (釘的時間，顯示時釘住的依它排序，不隨瀏覽順序跳動)
+ * - 資料存在歷史的每一筆 `pin: number` (釘的時間，只當「有釘」的旗標；順序不看它，釘住的之間仍照瀏覽順序)
  * @typedef {{book:number; chap:number; sec:number; pin?:number}} HistoryItem
  */
 
@@ -59,12 +59,12 @@ export function clearKeepPinned(datas) {
 }
 
 /**
- * 顯示順序：釘住的在前 (依釘的先後)，其餘照原順序。idx 是在 datas 中的位置 (點擊時要用，因為顯示順序不等於 datas 順序)
+ * 顯示順序：釘住的在前，其餘在後；兩群各自照原順序 (最近看的在前)，所以釘住的之間，剛看過的會浮到釘住群的最上面。idx 是在 datas 中的位置 (點擊時要用，因為顯示順序不等於 datas 順序)
  * @param {HistoryItem[]} datas
  * @returns {{item: HistoryItem; idx: number}[]}
  */
 export function displayOrder(datas) {
     const all = datas.map((item, idx) => ({ item, idx }))
-    const pinned = all.filter(a => a.item.pin).sort((a, b) => a.item.pin - b.item.pin)
+    const pinned = all.filter(a => a.item.pin)
     return [...pinned, ...all.filter(a => !a.item.pin)]
 }
