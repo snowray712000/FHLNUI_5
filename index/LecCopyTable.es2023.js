@@ -111,7 +111,7 @@ export class LecCopyTable {
     #pressMulti = null
     /** 「繼續選」中：等著選下一段 (按了「繼續選」或 Ctrl / ⌘ + 按下)；整排按鈕先藏起來免得擋住要選的字，新片段選好才再跳出 */
     #continuing = false
-    /** Ctrl / ⌘ 正按著 (電腦)；按著時不必再顯示「繼續選」 */
+    /** Ctrl / ⌘ 正按著 (電腦)；按著時視為「繼續選」：按鈕不跳出，放開 Ctrl 才出來 */
     #ctrlDown = false
     /** 剛按下 Ctrl / ⌘、還沒按滑鼠：按鈕先藏起來 (放開 Ctrl 或按下滑鼠就解除) */
     #ctrlFresh = false
@@ -185,6 +185,7 @@ export class LecCopyTable {
             this.#tapTouch = null
             if (e.button != 0) return
             this.#pointerDown = true
+            this.#ctrlDown = e.ctrlKey || e.metaKey // 以事件為準 (放開 Ctrl 的 keyup 若被吃掉，這裡校正)
             // 電腦：Ctrl / ⌘ + 按下 → 把現有選取記起來 (接著瀏覽器會開新選取)，進入「繼續選」；
             // 一般按下 → 放掉先前記的片段 (「繼續選」中的一般按下就是要選下一段，不放掉)
             if (e.ctrlKey || e.metaKey) { if (e.target.closest(SCOPE_SEL)) this.#stashLive() }
@@ -356,8 +357,8 @@ export class LecCopyTable {
         cont.hidden = this.#ctrlDown
         cite.after(cont) // 繼續選緊接在含出處後面
         this.#layoutBtns()
-        // 剛按下 Ctrl / ⌘：整排先藏起來，免得擋住接下來要選的字
-        if (this.#ctrlFresh) return this.#hideBar()
+        // Ctrl / ⌘ 按著 (剛按下，或一直按著在選字)：視為「繼續選」，整排先藏起來，免得擋住接下來要選的字；放開 Ctrl 才跳出
+        if (this.#ctrlFresh || this.#ctrlDown) return this.#hideBar()
         this.#btn.hidden = false
         this.#place()
     }
