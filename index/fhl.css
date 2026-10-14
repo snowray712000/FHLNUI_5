@@ -1729,12 +1729,44 @@ body {
 .snf-dlg .snf-q:hover {
     background: var(--pressed-bg);
 }
+/* SN 對話框的分頁 (組合 / 本章排行 / 細項) 與細項的新約 | 舊約切換：分段按鈕，手指時不低於 --touch-min */
+.snf-dlg .snf-tabs,
+.snf-dlg .snf-segs {
+    display: flex;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.snf-dlg .snf-tabs { margin: 0 0 0.6em; }
+.snf-dlg .snf-segs { flex: none; }
+.snf-dlg .snf-tab,
+.snf-dlg .snf-seg {
+    flex: 1;
+    min-height: max(calc(28px * var(--ui-k, 1)), var(--touch-min, 0px));
+    padding: 0 0.8em;
+    white-space: nowrap;
+    border: 0;
+    border-left: 1px solid var(--line-strong);
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+}
+.snf-dlg .snf-tab:first-child,
+.snf-dlg .snf-seg:first-child { border-left: 0; }
+.snf-dlg .snf-tab:hover,
+.snf-dlg .snf-seg:hover { background: var(--hover-bg); }
+.snf-dlg .snf-tab.active,
+.snf-dlg .snf-seg.active {
+    background: var(--accent-bg);
+    color: var(--accent-fg);
+    font-weight: bold;
+}
+.snf-dlg .snf-rank-title {
+    font-weight: bold;
+    margin: 0.2em 0;
+}
 .snf-dlg .snf-rank {
     margin: 0.4em 0;
-}
-.snf-dlg .snf-rank > details > summary {
-    cursor: pointer;
-    font-weight: bold;
 }
 .snf-dlg .snf-rk-list {
     max-height: 16em;

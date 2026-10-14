@@ -648,11 +648,17 @@ export class SnFilter {
         this.isOn = true
         this.save()
     }
-    /** 目前的設定與哪個組合相同 @returns {string|null} id (同 lensCfgs) */
+    /**
+     * 目前的設定與哪個組合相同 @returns {string|null} id (同 lensCfgs)
+     * 內建組合的「前幾名」是可以調的參數 (例：本章主導詞預設前 5 名，改成前 3 名還是同一個組合)，比較時只看有沒有用
+     */
     get activeLensId() {
+        const loose = c => cfgKey({ ...c, leitTop: c.leitTop > 0 ? 1 : 0 })
         const cur = cfgKey(this.nt) + cfgKey(this.ot)
-        const ids = [...this.custom.map((a, i) => 'u' + i), ...SN_LENSES.map(a => a.id)] // 與內建相同時，亮我的組合
-        return ids.find(id => { const c = this.lensCfgs(id); return cfgKey(c.nt) + cfgKey(c.ot) == cur }) ?? null
+        const curLoose = loose(this.nt) + loose(this.ot)
+        const custom = this.custom.map((a, i) => 'u' + i).find(id => { const c = this.lensCfgs(id); return cfgKey(c.nt) + cfgKey(c.ot) == cur }) // 與內建相同時，亮我的組合
+        if (custom != null) return custom
+        return SN_LENSES.map(a => a.id).find(id => { const c = this.lensCfgs(id); return loose(c.nt) + loose(c.ot) == curLoose }) ?? null
     }
     /** 把目前的設定存成組合；同名的覆蓋 @param {string} name */
     saveCustom(name) {

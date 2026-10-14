@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
-import { normalizeSn, parseSnList, splitHelpSections, cfgKey, rankLeitwort, topOfRanking, chapterCounts, SN_LENSES, SN_PRESETS, MORPH_GROUPS, WORD_COLORS, morphName } from '../index/SnFilter.es2023.js'
+import { normalizeSn, parseSnList, splitHelpSections, cfgKey, rankLeitwort, topOfRanking, chapterCounts, SnFilter, SN_LENSES, SN_PRESETS, MORPH_GROUPS, WORD_COLORS, morphName } from '../index/SnFilter.es2023.js'
 
 describe('normalizeSn', () => {
     it('去 0、去 G H、a 小寫', () => {
@@ -111,6 +111,18 @@ describe('本章主導詞排名', () => {
         expect(r.len).toBe(7)
         expect(r.all).toBe(10)
         expect(r.total.get('1')).toBe(6)
+    })
+    it('本章主導詞：改前幾名，仍是同一個內建組合 (activeLensId)', () => {
+        const f = SnFilter.s
+        f.useLens('leit')
+        expect(f.activeLensId).toBe('leit')
+        f.nt.leitTop = 3
+        f.ot.leitTop = 8
+        expect(f.activeLensId).toBe('leit')
+        f.nt.leitTop = 0 // 不用主導詞，就不是這個組合
+        expect(f.activeLensId).toBeNull()
+        f.useLens('conj')
+        expect(f.activeLensId).toBe('conj')
     })
     it('cfgKey：前幾名不同就是不同的設定', () => {
         const a = { sns: [], exclude: [], presets: [], leitwort: 0, leitTop: 0, morph: {}, includeCurly: true, showTvm: true }
