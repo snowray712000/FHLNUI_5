@@ -10,6 +10,24 @@ export function contentFontK() {
     return Number.isFinite(v) ? Math.max(1, v / 12) : 1
 }
 
+/**
+ * 一邊操作一邊看經文的對話框 (例 SN 設定) 的初始幾何：貼在右側「工具」面板 (#fhlInfo) 上，標題列與面板同高、同一個右緣，
+ * 寬度跟面板一樣寬 (面板收起來或很窄時用 minWidth，使用者之後仍可拖曳調窄)，高度預設是視窗的 90%
+ * @param {{minWidth?: number, heightRatio?: number}} [opt] minWidth 預設寬度的下限 (px，已含字大時的倍率)
+ * @returns {{width: number, height: number, position: {my: string, at: string, of: Window, collision: string}}}
+ */
+export function dockRightGeometry(opt = {}) {
+    const info = document.getElementById('fhlInfo')
+    const rect = info?.getBoundingClientRect()
+    const isVisible = rect != null && rect.width > 0 && getComputedStyle(info).display != 'none'
+    const cssPx = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0
+    const top = isVisible ? rect.top : cssPx('--tb-h') + cssPx('--win-top')
+    const right = isVisible ? rect.right : window.innerWidth - 8
+    const width = Math.min(window.innerWidth - 16, Math.max(isVisible ? rect.width : 0, opt.minWidth ?? 480))
+    const height = Math.min(window.innerHeight * (opt.heightRatio ?? 0.9), window.innerHeight - top - 8)
+    return { width, height, position: { my: 'left top', at: `left+${Math.round(Math.max(8, right - width))} top+${Math.round(top)}`, of: window, collision: 'fit' } }
+}
+
 const SIZE_STORE = 'fhlDlgSize'
 /** @param {string | undefined} key @returns {{w:number,h:number} | null} */
 function readSize(key) {

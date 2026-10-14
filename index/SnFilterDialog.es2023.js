@@ -1,4 +1,4 @@
-import { DialogHtml } from "./DialogHtml.es2023.js";
+import { DialogHtml, dockRightGeometry, contentFontK } from "./DialogHtml.es2023.js";
 import { SnFilter, SN_PRESETS, MORPH_GROUPS, SN_LENSES, WORD_COLORS, parseSnList, splitHelpSections, normalizeSn, topOfRanking } from "./SnFilter.es2023.js";
 import { ensureMarkdownItAsync, fixLinks } from "./Help.es2023.js";
 import { fetchTextAsync } from "./fetchAsync.es2023.js";
@@ -58,12 +58,15 @@ export class SnFilterDialog {
             this.render()
             return
         }
-        const isNarrow = window.innerWidth < 768
+        // 常是一邊按一邊看經文：貼在右側「工具」面板上 (標題列同高、同寬，面板收起來時用預設最小寬)，高度預設視窗的 90%
+        const geo = dockRightGeometry({ minWidth: 480 * contentFontK() })
         const dlgHtml = this.#dlgHtml = new DialogHtml()
         dlgHtml.showDialog({
             html: '<div class="snf-dlg"></div>',
-            width: isNarrow ? window.innerWidth - 16 : 560,
-            maxHeight: window.innerHeight * 0.85, // 高度依目前分頁的內容
+            width: geo.width,
+            height: geo.height,
+            maxHeight: window.innerHeight, // 高度依 geo (90%)，使用者可再拖曳
+            position: geo.position,
             getTitle: () => gbText('SN 篩選顯示', TPPageState.s.gb),
             registerEventWhenShowed: dlg => {
                 this.#root = dlg.find('.snf-dlg')[0]
@@ -247,9 +250,7 @@ export class SnFilterDialog {
         if (id == this.#tab) return
         this.#tab = id
         try { localStorage.setItem(TAB_KEY, id) } catch { }
-        this.render()
-        const dlg = this.#dlgHtml?.dlg
-        dlg?.dialog('option', 'position', dlg.dialog('option', 'position')) // 高度變了，重新定位，才不會超出視窗下緣
+        this.render() // 對話框高度固定，不必重新定位 (使用者拖過位置也不會被拉回去)
     }
 
     /** 經文區換了內容 (換章、換譯本) 就重畫排行榜；字是從畫面上抓的 */
