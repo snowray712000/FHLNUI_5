@@ -65,6 +65,7 @@ import { TopBar } from './TopBar.es2023.js'
 import { FhlMidWindow } from './FhlMidWindow.es2023.js'
 import { windowAdjust } from './windowAdjust.es2023.js'
 import './DialogFit.es2023.js' // 視窗大小變 (含進出全螢幕) 時，開著的對話框重算位置與大小
+import './DialogEsc.es2023.js' // 點對話框標題列 (拖曳) 之後，按 Esc 也能關閉
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
 import { initPageStateFlow } from './initPageStateFlow.es2023.js'
 import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
