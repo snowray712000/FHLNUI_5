@@ -1,10 +1,12 @@
 import { DialogHtml } from "./DialogHtml.es2023.js";
-import { SnFilter, SN_PRESETS, MORPH_GROUPS, SN_LENSES, WORD_COLORS, parseSnList, splitHelpSections } from "./SnFilter.es2023.js";
+import { SnFilter, SN_PRESETS, MORPH_GROUPS, SN_LENSES, WORD_COLORS, parseSnList, splitHelpSections, normalizeSn } from "./SnFilter.es2023.js";
 import { ensureMarkdownItAsync, fixLinks } from "./Help.es2023.js";
 import { fetchTextAsync } from "./fetchAsync.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { el } from "./auDom.es2023.js";
+import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
+import { SN_Act_Color } from "./SN_Act_Color.es2023.js";
 
 /** 讀經組合的說明；build 時由 vite.config.js 的 LEGACY_COPY 複製到 dist/ */
 const LENS_HELP_URL = 'docs/SN讀經組合說明.md'
@@ -25,6 +27,18 @@ export class SnFilterDialog {
     #root = null
     /** 細項展開 (render 重畫時保留) */
     #isDetailOpen = false
+    /** 本章排行榜展開 (render 重畫時保留) */
+    #isRankOpen = true
+    /** 排行榜顯示幾列 */
+    #rankN = 20
+    /** @type {HTMLElement|null} 排行榜的容器，經文換章時只重畫它 */
+    #rankBox = null
+    /** @type {MutationObserver|null} 經文區換內容 (換章) 時重畫排行榜 */
+    #lecObserver = null
+    /** @type {number} */
+    #rankTimer = 0
+    /** 點排行榜的列，依序跳到第幾個出現的位置 @type {Map<string, number>} */
+    #rankIdx = new Map()
     /** @type {DialogHtml} 組合說明 */
     #helpDlg = null
     /** @type {Promise<string>|null} 說明 md */
@@ -45,7 +59,11 @@ export class SnFilterDialog {
             getTitle: () => gbText('SN 篩選顯示', TPPageState.s.gb),
             registerEventWhenShowed: dlg => {
                 this.#root = dlg.find('.snf-dlg')[0]
-                dlg.on('dialogclose', () => { this.#dlgHtml = null; this.#root = null })
+                dlg.on('dialogclose', () => {
+                    this.#dlgHtml = null; this.#root = null; this.#rankBox = null
+                    this.#lecObserver?.disconnect(); this.#lecObserver = null
+                    clearTimeout(this.#rankTimer)
+                })
                 this.render()
             },
         })
@@ -96,9 +114,26 @@ export class SnFilterDialog {
                         this.#changed()
                     },
                 }), t(p.name))
+            // 本章主導詞：前幾名 (依特色或次數) 或 ≥ N 次
+            const leitVal = cfg.leitTop > 0 ? 't' + cfg.leitTop : cfg.leitwort > 0 ? 'c' + cfg.leitwort : '0'
+            const leitOpt = (v, text) => el('option', { value: v, selected: leitVal == v, text })
             const leitwort = el('select', {
-                onchange: e => { cfg.leitwort = parseInt(e.target.value); this.#changed() },
-            }, ...[0, 2, 3, 4, 5, 8].map(n => el('option', { value: n, selected: cfg.leitwort == n, text: n == 0 ? t('不用') : `≥ ${n} ${t('次')}` })))
+                onchange: e => {
+                    const v = e.target.value
+                    cfg.leitTop = v[0] == 't' ? parseInt(v.slice(1)) : 0
+                    cfg.leitwort = v[0] == 'c' ? parseInt(v.slice(1)) : 0
+                    this.#changed()
+                    this.#renderRank()
+                },
+            },
+                leitOpt('0', t('不用')),
+                ...[3, 5, 8, 10, 15].map(n => leitOpt('t' + n, `${t('前')} ${n} ${t('名')}`)),
+                ...[2, 3, 4, 5, 8].map(n => leitOpt('c' + n, `≥ ${n} ${t('次')}`)))
+            const leitBy = el('select', {
+                title: t('「前幾名」與排行榜的名次依據'),
+                onchange: e => { f.leitBy = e.target.value; this.#changed(); this.render() },
+            }, el('option', { value: 'feature', selected: f.leitBy == 'feature', text: t('依本章特色') }),
+                el('option', { value: 'count', selected: f.leitBy == 'count', text: t('依次數') }))
             const morphChip = (g, o) => el('label', { class: 'snf-chip', title: o.tip ? t(o.tip) : null },
                 el('input', {
                     type: 'checkbox', checked: (cfg.morph[g.id] ?? []).includes(o.id),
@@ -119,8 +154,8 @@ export class SnFilterDialog {
                 el('div', { class: 'snf-sub', text: t('動詞形態 (依每個字實際的形態；同一列任一、不同列都要符合，例：分詞 + 現在 = 現在分詞)') }),
                 ...morphRows,
                 el('div', { class: 'snf-row' },
-                    el('span', { text: t('本章主導詞') }), leitwort,
-                    el('span', { class: 'snf-note', text: t('本章 (和合本) 出現多次的名詞、動詞、形容詞') })),
+                    el('span', { text: t('本章主導詞') }), leitwort, leitBy,
+                    el('span', { class: 'snf-note', text: t('本章 (和合本) 的名詞、動詞、形容詞；特色 = 比它在全約的頻率該有的次數多出多少') })),
                 el('div', { class: 'snf-field' }, el('span', { text: t('另外加') }), snBox('sns', t('例') + ': ' + example)),
                 el('div', { class: 'snf-field' }, el('span', { text: t('排除') }), snBox('exclude', t('例') + ': ' + (tp == 'H' ? 'H853' : 'G846 G3588'))),
                 el('div', { class: 'snf-row' },
@@ -197,14 +232,132 @@ export class SnFilterDialog {
                 testament('ot', '舊約 (希伯來文 H)', 'H3068 H430 H3588'),
                 el('div', { class: 'snf-note', text: t('勾選的詞類、主導詞、另外加的 SN，符合任一就顯示；排除的一定不顯示。詞類以原文字典形判斷 (同一字可能兼兩種詞類)。SN 可貼上 G1063、<1063>，沒寫 G、H 的依所在的框。原文字典標題的「📌」可把該字加入或移出「另外加」。') }),
             ))
+        const rankBox = this.#rankBox = el('div', { class: 'snf-rank' })
         this.#root.replaceChildren(
             modeRow,
             lensRow,
             customRow,
             el('div', { class: isFilter ? '' : 'snf-disabled' }, hideRow),
+            rankBox,
             colorRow,
             detail,
         )
+        this.#renderRank()
+        this.#watchLecture()
+    }
+
+    /** 經文區換了內容 (換章、換譯本) 就重畫排行榜；字是從畫面上抓的 */
+    #watchLecture() {
+        const lec = document.getElementById('fhlLecture')
+        if (this.#lecObserver != null || lec == null) return
+        this.#lecObserver = new MutationObserver(() => {
+            clearTimeout(this.#rankTimer)
+            this.#rankTimer = setTimeout(() => this.#renderRank(), 400)
+        })
+        this.#lecObserver.observe(lec, { childList: true, subtree: true })
+    }
+
+    /** 本章排行 (依 SnFilter.leitBy)：名次、SN、字、次數；點一列在經文中標出，＋ 加入「另外加」 */
+    #renderRank() {
+        const box = this.#rankBox
+        if (box == null || !box.isConnected) return
+        const f = SnFilter.s
+        const ps = TPPageState.s
+        const t = s => gbText(s, ps.gb)
+        const r = f.chapterRanking()
+        const unit = ps.bookIndex >= 40 ? '新約' : '舊約'
+        const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[ps.bookIndex - 1] ?? ''
+        const title = el('summary', { text: `${t('本章排行')} ${bookName}${ps.chap}` })
+        const details = el('details', {
+            open: this.#isRankOpen,
+            ontoggle: e => {
+                this.#isRankOpen = e.target.open
+                const dlg = this.#dlgHtml?.dlg
+                dlg?.dialog('option', 'position', dlg.dialog('option', 'position'))
+            },
+        }, title)
+        const setBy = by => { f.leitBy = by; f.save(); f.applyAll(); this.render() }
+        const byRow = el('div', { class: 'snf-row' },
+            el('label', { class: 'snf-opt' }, el('input', { type: 'radio', name: 'snfrank', checked: f.leitBy == 'feature', onchange: () => setBy('feature') }), t('本章特色')),
+            el('label', { class: 'snf-opt' }, el('input', { type: 'radio', name: 'snfrank', checked: f.leitBy == 'count', onchange: () => setBy('count') }), t('次數')),
+            el('span', { class: 'snf-note', text: t('實詞，和合本的次數；特色 = 比它在全' + unit + '的頻率該有的次數多出多少 (常用字如「是」「說」不會排前面)') }))
+        details.append(byRow)
+        if (r == null) {
+            details.append(el('div', { class: 'snf-note', text: t('載入中…') }))
+            f.loadRankingDataAsync().then(() => this.#renderRank()).catch(e => console.error(e))
+        } else if (r.list.length == 0) {
+            details.append(el('div', { class: 'snf-note', text: t('這一章沒有重複出現的實詞') }))
+        } else {
+            const words = this.#wordsOnScreen()
+            const key = a => f.leitBy == 'count' ? a.c : a.score
+            const max = key(r.list[0]) || 1
+            const rows = r.list.slice(0, this.#rankN).map((a, i) => {
+                // 目前設定下這個字顯示嗎：規則 (藍)、另外加 (紅)、排除 (灰、刪除線)、不顯示 (灰)
+                const src = f.snSource(r.tp, a.sn)
+                const isShown = src == 'rule' || src == 'sns'
+                return el('div', {
+                    class: `snf-rk snf-rk-${src}`, title: t('點一下在經文中標出 (再點跳到下一個)'),
+                    onclick: () => this.#showInText(r.tp, a.sn),
+                },
+                    el('span', { class: 'snf-rk-n', text: i + 1 }),
+                    el('span', { class: 'snf-rk-sn', text: r.tp + a.sn }),
+                    el('span', { class: 'snf-rk-w', text: (words.get(r.tp + a.sn) ?? []).join('、') }),
+                    el('span', { class: 'snf-rk-bar' }, el('i', { style: `width:${Math.max(4, Math.round(key(a) / max * 100))}%` })),
+                    el('span', { class: 'snf-rk-c', text: a.c, title: `${t('本章')} ${a.c} ${t('次')}；${t('全' + unit)} ${a.total} ${t('次')}` }),
+                    el('span', {
+                        class: 'snf-rk-add', text: isShown ? '−' : '＋',
+                        title: t(isShown ? '不要顯示這個字 (排除)' : src == 'exclude' ? '取消排除' : '另外加進來顯示'),
+                        onclick: ev => { ev.stopPropagation(); f.setSnShown(r.tp, a.sn, !isShown); this.render() },
+                    }))
+            })
+            details.append(el('div', { class: 'snf-note snf-rk-legend' },
+                el('span', { class: 'snf-rk-sn snf-rk-lg-rule', text: t('藍') }), t('依規則顯示'), ' ',
+                el('span', { class: 'snf-rk-sn snf-rk-lg-sns', text: t('紅') }), t('另外加'), ' ',
+                el('span', { class: 'snf-rk-sn', text: t('灰') }), t('不顯示 (刪除線 = 排除)；按 ＋ / − 加入或排除')))
+            if (f.mode != 'filter') {
+                details.append(el('div', { class: 'snf-note' }, t('目前「顯示 SN」不是「只顯示指定的」，經文不會受影響。'),
+                    el('a', { href: '#', text: t('改成只顯示指定的'), onclick: ev => { ev.preventDefault(); this.#setMode('filter') } })))
+            }
+            details.append(el('div', { class: 'snf-rk-list' }, ...rows))
+            if (r.list.length > this.#rankN) {
+                details.append(el('div', {
+                    class: 'snf-note snf-rk-more', text: `${t('再多看')} ${Math.min(20, r.list.length - this.#rankN)} ${t('個')}`,
+                    onclick: () => { this.#rankN += 20; this.#renderRank() },
+                }))
+            }
+        }
+        box.replaceChildren(details)
+    }
+
+    /**
+     * 畫面上經文區各 SN 的字：最常見的兩種寫法 (和合本會夾著前後的字，例「我曾說」，次數少的不要)；SN 關閉時畫面沒有 SN，就是空的
+     * @returns {Map<string, string[]>} 'G3056' → ['道']
+     */
+    #wordsOnScreen() {
+        /** @type {Map<string, Map<string, number>>} */
+        const cnt = new Map()
+        for (const e of document.querySelectorAll('#lecMain .sn-text:not(.sn)[sn]')) {
+            const w = e.textContent.trim()
+            if (w == '') continue
+            const k = (e.getAttribute('tp') == 'H' ? 'H' : 'G') + normalizeSn(e.getAttribute('sn'))
+            const m = cnt.get(k) ?? new Map()
+            m.set(w, (m.get(w) ?? 0) + 1)
+            cnt.set(k, m)
+        }
+        return new Map([...cnt].map(([k, m]) => [k, [...m].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length).slice(0, 2).map(a => a[0])]))
+    }
+
+    /** 在經文中標出這個 SN (同滑鼠移過去的紅色)，並跳到第 n 個出現的位置；再點一次跳下一個 */
+    #showInText(tp, sn) {
+        SN_Act_Color.s.act_remove()
+        SN_Act_Color.s.act_add(sn, tp)
+        const list = [...document.querySelectorAll('#lecMain .sn-text[sn]')]
+            .filter(e => (e.getAttribute('tp') == 'H' ? 'H' : 'G') == tp && normalizeSn(e.getAttribute('sn')) == sn && e.offsetParent != null)
+        if (list.length == 0) return
+        const k = tp + sn
+        const i = (this.#rankIdx.get(k) ?? -1) + 1
+        this.#rankIdx.set(k, i % list.length)
+        list[i % list.length].scrollIntoView({ block: 'center', behavior: 'smooth' })
     }
 
     /**

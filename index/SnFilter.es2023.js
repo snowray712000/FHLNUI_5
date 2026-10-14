@@ -21,6 +21,7 @@ import { gbText } from "./gbText.es2023.js";
  * @property {string[]} exclude 排除的 SN (優先於其它規則)
  * @property {string[]} presets 預設組合 id，見 SN_PRESETS
  * @property {number} leitwort 本章主導詞：本章出現 ≥ 此次數的實詞；0 = 不用
+ * @property {number} leitTop 本章主導詞：排名前幾名的實詞 (名次依 SnFilter.leitBy)；0 = 不用
  * @property {Object<string,string[]>} morph 動詞形態，組 id → 選項 id (見 MORPH_GROUPS)；同組任一、不同組都要符合
  * @property {boolean} includeCurly 含未譯出的 {<…>}
  * @property {boolean} showTvm 顯示動詞時態碼
@@ -106,7 +107,7 @@ export const MORPH_GROUPS = {
 /**
  * 讀經組合：一個組合 = 一個要問經文的問題，套用時整組取代新約、舊約的細項設定 (未列的用 newCfg 的預設)。
  * 說明在 docs/SN讀經組合說明.md 的「## 名稱 (id)」一節。only：只對新約 G 或舊約 H 有意義 (另一約不顯示 SN)
- * @typedef {{presets?: string[], morph?: Object<string,string[]>, leitwort?: number, showTvm?: boolean}} DLensPart
+ * @typedef {{presets?: string[], morph?: Object<string,string[]>, leitwort?: number, leitTop?: number, showTvm?: boolean}} DLensPart
  * @type {{id: string, name: string, nt?: DLensPart, ot?: DLensPart, only?: 'G'|'H'}[]}
  */
 export const SN_LENSES = [
@@ -117,7 +118,7 @@ export const SN_LENSES = [
     { id: 'narr', name: '敘事主線', ot: { morph: { form: ['wy'] } }, only: 'H' },
     { id: 'perf', name: '完成時態', nt: { morph: { tense: ['x', 'y'] } }, only: 'G' },
     { id: 'god', name: '神的名號', nt: { presets: ['god'] }, ot: { presets: ['god'] } },
-    { id: 'leit', name: '本章主導詞', nt: { leitwort: 3 }, ot: { leitwort: 3 } },
+    { id: 'leit', name: '本章主導詞', nt: { leitTop: 5 }, ot: { leitTop: 5 } },
     { id: 'content', name: '實詞', nt: { presets: ['content'] }, ot: { presets: ['content'] } },
 ]
 
@@ -224,6 +225,73 @@ function isMorphOn(cfg) { return Object.values(cfg.morph).some(a => a.length > 0
 /** 代碼拆成各組的值 @param {'G'|'H'} tp @param {string} code */
 function splitMorph(tp, code) { return tp == 'H' ? code.split(':') : [...code] }
 
+/**
+ * 本章主導詞的排名 (docs/z261014a)。items 是本章出現的實詞，c = 本章次數 (和合本)，total = 整個約 (新約或舊約) 的次數；
+ * base.len = 本章全部字數，base.all = 整個約全部字數 (同一份統計，單位一致)
+ * - feature 本章特色：期望次數 E = len × total / all (這個字照全約的頻率，在這麼長的一章裡該出現幾次)，
+ *   分數 = c × ln(c / E)，次數遠高於期望才排前面；εἰμί、καί 這種到處都是的字 c 接近 E，分數低
+ * - count 次數：c 由多到少，同次數的依特色
+ * 只出現 1 次的不算主導詞 (c ≥ 2)；特色分數 0 (沒有高過期望) 的不排進 feature
+ * @param {{sn: string, c: number, total: number}[]} items
+ * @param {{len: number, all: number}} base
+ * @param {'feature'|'count'} by
+ * @returns {{sn: string, c: number, total: number, score: number}[]} 由前到後
+ */
+export function rankLeitwort(items, base, by) {
+    const re = []
+    for (const a of items) {
+        if (a.c < 2) continue
+        const e = base.len * a.total / base.all
+        const score = a.c > e ? a.c * Math.log(a.c / e) : 0
+        if (by != 'count' && score <= 0) continue
+        re.push({ ...a, score })
+    }
+    const sn = (a, b) => (a.sn < b.sn ? -1 : a.sn > b.sn ? 1 : 0)
+    return re.sort(by == 'count' ? (a, b) => b.c - a.c || b.score - a.score || sn(a, b) : (a, b) => b.score - a.score || b.c - a.c || sn(a, b))
+}
+/**
+ * 排名前 k 名；同分 (feature) 或同次數 (count) 的一起算進來，不會從並列中間切開
+ * @param {{c: number, score: number}[]} ranked rankLeitwort 的結果
+ * @param {number} k
+ * @param {'feature'|'count'} by
+ */
+export function topOfRanking(ranked, k, by) {
+    if (k <= 0 || ranked.length == 0) return []
+    const key = a => by == 'count' ? a.c : a.score
+    const cut = key(ranked[Math.min(k, ranked.length) - 1])
+    return ranked.filter(a => key(a) >= cut)
+}
+/** 整個約的各 SN 總次數與全部字數；資料很大，每份只算一次 @type {WeakMap<object, {total: Map<string, number>, all: number}>} */
+const TESTAMENT_TOTALS = new WeakMap()
+/**
+ * 某一章的統計 (sn_cnt_chap_unv 的資料：dict[sn][book][chap] = 次數)
+ * @param {Object<string, Object<number, Object<number, number>>>} dict 新約 G 或舊約 H 那一半
+ * @param {number} book @param {number} chap
+ * @returns {{counts: Map<string, number>, len: number, all: number, total: Map<string, number>}}
+ */
+export function chapterCounts(dict, book, chap) {
+    let t = TESTAMENT_TOTALS.get(dict)
+    if (t == null) {
+        t = { total: new Map(), all: 0 }
+        for (const [sn, books] of Object.entries(dict)) {
+            let sum = 0
+            for (const chaps of Object.values(books)) for (const n of Object.values(chaps)) sum += n
+            t.total.set(sn, sum)
+            t.all += sum
+        }
+        TESTAMENT_TOTALS.set(dict, t)
+    }
+    const counts = new Map()
+    let len = 0
+    for (const [sn, books] of Object.entries(dict)) {
+        const c = books[book]?.[chap]
+        if (c == null) continue
+        counts.set(sn, c)
+        len += c
+    }
+    return { counts, len, all: t.all, total: t.total }
+}
+
 export class SnFilter {
     static #s = null
     /** @returns {SnFilter} */
@@ -241,6 +309,9 @@ export class SnFilter {
     custom = []
     /** @type {'off'|'pos'|'verb'} 字上色 (與 SN 顯示無關，SN 關閉時也有作用)，見 WORD_COLORS */
     colorBy = 'off'
+
+    /** @type {'feature'|'count'} 本章主導詞的排名依據：本章特色 (預設) 或次數，排行榜與「前幾名」都用它 */
+    leitBy = 'feature'
 
     /** 會有經文 SN 的地方；註釋中的 SN 是作者寫的內容，不篩 */
     static SCOPES = ['#fhlLecture', '.search-dlg', '.sn-filter-scope']
@@ -348,6 +419,15 @@ export class SnFilter {
         if (!cfg.includeCurly && isCurly(e)) return false
         if (cfg.sns.includes(sn)) return true
 
+        if (this.#ruleMatch(tp, sn, cfg)) return true
+        if (isMorphOn(cfg) && this.#isMorphMatch(e, tp, sn, verse, verse.nth.get(e) ?? 0, cfg)) return true
+        return false
+    }
+    /**
+     * 這個 SN 是否符合「規則」：預設組合、本章主導詞 (≥ N 次、前幾名)。不看排除、另外加、動詞形態 (動詞形態是每個字各自判斷)
+     * @param {'G'|'H'} tp @param {string} sn 已 normalizeSn @param {DSnFilterOfTestament} cfg
+     */
+    #ruleMatch(tp, sn, cfg) {
         const pos = this.posOf(tp, sn)
         for (const id of cfg.presets) {
             const p = PRESET_MAP.get(id)
@@ -356,9 +436,43 @@ export class SnFilter {
             if (p.sns?.[tp]?.includes(sn)) return true
         }
         if (cfg.leitwort > 0 && CONTENT_POS.some(a => pos.includes(a)) && this.#cntInChap(tp, sn) >= cfg.leitwort) return true
-        if (isMorphOn(cfg) && this.#isMorphMatch(e, tp, sn, verse, verse.nth.get(e) ?? 0, cfg)) return true
+        if (cfg.leitTop > 0 && this.#leitTopSet(tp, cfg.leitTop)?.has(sn)) return true
         return false
     }
+    /**
+     * 目前的設定下，這個 SN 為什麼顯示 (排行榜的顏色用；動詞形態不算)
+     * @param {'G'|'H'|string} tp @param {string} sn
+     * @returns {'exclude'|'sns'|'rule'|'none'} 排除 / 另外加 / 符合規則 / 不顯示
+     */
+    snSource(tp, sn) {
+        const t = String(tp).toUpperCase() == 'H' ? 'H' : 'G'
+        const s = normalizeSn(sn)
+        const cfg = this.cfgOf(t)
+        if (cfg.exclude.includes(s)) return 'exclude'
+        if (cfg.sns.includes(s)) return 'sns'
+        return this.#ruleMatch(t, s, cfg) ? 'rule' : 'none'
+    }
+    /**
+     * 排行榜的 ＋ / −：要顯示或不要顯示這個 SN
+     * 不要 = 從「另外加」拿掉；規則仍會顯示它的話，再加進「排除」。要 = 從「排除」拿掉；規則不會顯示它的話，加進「另外加」
+     * @param {'G'|'H'|string} tp @param {string} sn @param {boolean} shown
+     */
+    setSnShown(tp, sn, shown) {
+        const t = String(tp).toUpperCase() == 'H' ? 'H' : 'G'
+        const s = normalizeSn(sn)
+        const cfg = this.cfgOf(t)
+        const remove = (a, v) => { const i = a.indexOf(v); if (i != -1) a.splice(i, 1) }
+        if (shown) {
+            remove(cfg.exclude, s)
+            if (!this.#ruleMatch(t, s, cfg) && !cfg.sns.includes(s)) cfg.sns.push(s)
+        } else {
+            remove(cfg.sns, s)
+            if (this.#ruleMatch(t, s, cfg) && !cfg.exclude.includes(s)) cfg.exclude.push(s)
+        }
+        this.save()
+        this.applyAll()
+    }
+
     /**
      * 這個字的動詞形態是否符合：每個有勾的組都要符合
      * 原文譯本 (fhlwh bhs) 是逐字對應，第 nth 次出現的 SN 對第 nth 個；
@@ -441,6 +555,45 @@ export class SnFilter {
         }
     }
 
+    /**
+     * 正在讀的這一章的實詞排名 (依 leitBy)；詞性表、章數統計還沒載入時是 null (呼叫 loadRankingDataAsync)
+     * 章的 SN 是和合本的統計，所以新約書卷只有 G、舊約書卷只有 H
+     * @returns {{tp: 'G'|'H', book: number, chap: number, list: {sn: string, c: number, total: number, score: number}[]}|null}
+     */
+    chapterRanking() {
+        const dict0 = Sn_cnt_chap_unv_json.s.filecontent
+        if (dict0 == null || Sn_pos_json.s.filecontent == null) return null
+        const ps = TPPageState.s
+        const book = ps.bookIndex, chap = ps.chap
+        const tp = book >= 40 ? 'G' : 'H'
+        const key = `${tp}.${book}.${chap}.${this.leitBy}`
+        if (this.#rankCache?.key != key) {
+            const st = chapterCounts(dict0[tp] ?? {}, book, chap)
+            const items = [...st.counts].filter(([sn]) => CONTENT_POS.some(a => this.posOf(tp, sn).includes(a)))
+                .map(([sn, c]) => ({ sn, c, total: st.total.get(sn) ?? c }))
+            this.#rankCache = { key, tp, book, chap, list: st.len > 0 ? rankLeitwort(items, { len: st.len, all: st.all }, this.leitBy) : [] }
+        }
+        const { tp: tp2, book: b2, chap: c2, list } = this.#rankCache
+        return { tp: tp2, book: b2, chap: c2, list }
+    }
+    /** @type {{key: string, tp: 'G'|'H', book: number, chap: number, list: object[]}|null} */
+    #rankCache = null
+    /** @type {{key: string, set: Set<string>}|null} */
+    #topCache = null
+    /** 本章排名前 k 名的 SN；資料還沒載入是 null @returns {Set<string>|null} */
+    #leitTopSet(tp, k) {
+        const r = this.chapterRanking()
+        if (r == null) return null
+        if (r.tp != tp) return new Set() // 例：七十士譯本 (G) 在舊約書卷，統計只有和合本
+        const key = `${r.tp}.${r.book}.${r.chap}.${this.leitBy}.${k}`
+        if (this.#topCache?.key != key) this.#topCache = { key, set: new Set(topOfRanking(r.list, k, this.leitBy).map(a => a.sn)) }
+        return this.#topCache.set
+    }
+    /** 排行榜需要的詞性表、章數統計；載好之後 resolve */
+    loadRankingDataAsync() {
+        return Promise.all([Sn_pos_json.s, Sn_cnt_chap_unv_json.s].filter(a => a._filecontent == null).map(a => a.loadAsync()))
+    }
+
     /** 此 SN 在正在讀的這一章 (和合本) 出現的次數 */
     #cntInChap(tp, sn) {
         const ps = TPPageState.s
@@ -453,8 +606,8 @@ export class SnFilter {
         const need = []
         const isFilter = this.mode == 'filter'
         const isColor = this.colorBy != 'off'
-        if (isColor || (isFilter && [this.nt, this.ot].some(c => c.presets.length > 0 || c.leitwort > 0))) need.push(Sn_pos_json.s)
-        if (isFilter && [this.nt, this.ot].some(c => c.leitwort > 0)) need.push(Sn_cnt_chap_unv_json.s)
+        if (isColor || (isFilter && [this.nt, this.ot].some(c => c.presets.length > 0 || c.leitwort > 0 || c.leitTop > 0))) need.push(Sn_pos_json.s)
+        if (isFilter && [this.nt, this.ot].some(c => c.leitwort > 0 || c.leitTop > 0)) need.push(Sn_cnt_chap_unv_json.s)
         const isMorphNt = this.colorBy == 'verb' || (isFilter && isMorphOn(this.nt))
         const isMorphOt = this.colorBy == 'verb' || (isFilter && isMorphOn(this.ot))
         if (isMorphNt) need.push(Sn_morph_nt_json.s)
@@ -515,7 +668,7 @@ export class SnFilter {
     }
 
     save() {
-        const jo = { isOn: this.isOn, hideMethod: this.hideMethod, nt: this.nt, ot: this.ot, custom: this.custom, colorBy: this.colorBy }
+        const jo = { isOn: this.isOn, hideMethod: this.hideMethod, nt: this.nt, ot: this.ot, custom: this.custom, colorBy: this.colorBy, leitBy: this.leitBy }
         try { localStorage.setItem(SnFilter.#KEY, JSON.stringify(jo)) } catch { }
     }
     #load() {
@@ -525,6 +678,7 @@ export class SnFilter {
         this.isOn = jo.isOn == true
         this.hideMethod = jo.hideMethod == 'dim' ? 'dim' : 'hide'
         this.colorBy = ['pos', 'verb'].includes(jo.colorBy) ? jo.colorBy : 'off'
+        this.leitBy = jo.leitBy == 'count' ? 'count' : 'feature'
         this.nt = cleanCfg('G', jo.nt)
         this.ot = cleanCfg('H', jo.ot)
         this.custom = (Array.isArray(jo.custom) ? jo.custom : [])
@@ -535,7 +689,7 @@ export class SnFilter {
 
 /** @returns {DSnFilterOfTestament} */
 function newCfg() {
-    return { sns: [], exclude: [], presets: [], leitwort: 0, morph: {}, includeCurly: true, showTvm: true }
+    return { sns: [], exclude: [], presets: [], leitwort: 0, leitTop: 0, morph: {}, includeCurly: true, showTvm: true }
 }
 /** localStorage 讀回的一約設定 @param {'G'|'H'} tp @returns {DSnFilterOfTestament} */
 function cleanCfg(tp, a) {
@@ -546,6 +700,7 @@ function cleanCfg(tp, a) {
         exclude: cleanSns(a.exclude),
         presets: Array.isArray(a.presets) ? a.presets.filter(id => PRESET_MAP.has(id)) : [],
         leitwort: Number.isInteger(a.leitwort) && a.leitwort > 0 ? a.leitwort : 0,
+        leitTop: Number.isInteger(a.leitTop) && a.leitTop > 0 ? a.leitTop : 0,
         morph: cleanMorph(tp, a.morph),
         includeCurly: a.includeCurly != false,
         showTvm: a.showTvm != false,
@@ -555,7 +710,7 @@ function cleanCfg(tp, a) {
 export function cfgKey(c) {
     const sorted = a => [...a].sort()
     const morph = Object.keys(c.morph).sort().filter(k => c.morph[k].length > 0).map(k => `${k}=${sorted(c.morph[k])}`)
-    return JSON.stringify([sorted(c.sns), sorted(c.exclude), sorted(c.presets), c.leitwort, morph, c.includeCurly, c.showTvm])
+    return JSON.stringify([sorted(c.sns), sorted(c.exclude), sorted(c.presets), c.leitwort, c.leitTop ?? 0, morph, c.includeCurly, c.showTvm])
 }
 /** localStorage 讀回的 morph，只留認得的組與選項 @param {'G'|'H'} tp */
 function cleanMorph(tp, morph) {

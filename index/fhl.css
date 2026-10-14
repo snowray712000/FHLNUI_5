@@ -1685,6 +1685,98 @@ body {
 .snf-dlg .snf-q:hover {
     background: var(--pressed-bg);
 }
+.snf-dlg .snf-rank {
+    margin: 0.4em 0;
+}
+.snf-dlg .snf-rank > details > summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+.snf-dlg .snf-rk-list {
+    max-height: 16em;
+    overflow-y: auto;
+}
+.snf-dlg .snf-rk {
+    display: grid;
+    grid-template-columns: 2em 5em minmax(3em, 1fr) 6em 3em 1.8em;
+    align-items: center;
+    gap: 0 0.5em;
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.snf-dlg .snf-rk:hover {
+    background: var(--hover-bg);
+}
+.snf-dlg .snf-rk-n {
+    text-align: right;
+    color: var(--fg-muted);
+}
+.snf-dlg .snf-rk-sn {
+    font-family: monospace;
+    color: var(--fg-muted);
+}
+.snf-dlg .snf-rk-rule .snf-rk-sn,
+.snf-dlg .snf-rk-lg-rule {
+    color: var(--accent);
+    font-weight: bold;
+}
+.snf-dlg .snf-rk-sns .snf-rk-sn,
+.snf-dlg .snf-rk-lg-sns {
+    color: var(--danger);
+    font-weight: bold;
+}
+.snf-dlg .snf-rk-none,
+.snf-dlg .snf-rk-exclude {
+    color: var(--fg-muted);
+}
+.snf-dlg .snf-rk-none .snf-rk-bar > i,
+.snf-dlg .snf-rk-exclude .snf-rk-bar > i {
+    background: var(--fg-muted);
+    opacity: 0.5;
+}
+.snf-dlg .snf-rk-sns .snf-rk-bar > i {
+    background: var(--danger);
+}
+.snf-dlg .snf-rk-exclude .snf-rk-w {
+    text-decoration: line-through;
+}
+.snf-dlg .snf-rk-w {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.snf-dlg .snf-rk-bar {
+    height: 0.6em;
+    border-radius: 3px;
+    background: var(--hover-bg);
+    overflow: hidden;
+}
+.snf-dlg .snf-rk-bar > i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+}
+.snf-dlg .snf-rk-c {
+    text-align: right;
+}
+.snf-dlg .snf-rk-add {
+    text-align: center;
+    color: var(--accent);
+}
+.snf-dlg .snf-rk-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.3em;
+}
+.snf-dlg .snf-rk-legend > .snf-rk-sn:not(:first-child) {
+    margin-left: 0.7em;
+}
+.snf-dlg .snf-rk-more {
+    cursor: pointer;
+    text-align: center;
+}
 .snf-dlg .snf-detail > summary {
     margin: 0.6em 0 0.2em;
     cursor: pointer;
