@@ -49,8 +49,9 @@ export class SnSelect {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
         
-        const html = '<div class="tgl-row">' + toggleBtnHtml("snOnOffSwitch", gbText("原文SN", ps.gb), ps.strong == 1)
-            + '<span id="snFilterBtn" class="sn-filter-btn" role="button" title="' + gbText("SN 設定與篩選 (右鍵、長按：切換讀經組合)", ps.gb) + '"><i class="fa fa-cog"></i></span></div>';
+        // 設定面板同一列：⚙ SN 即時 (⚙ 開 SN 設定與篩選；即時在 RealTimePopUpSelect)
+        const html = '<button type="button" id="snFilterBtn" class="btn btn-sm btn-outline-secondary set-btn sn-filter-btn grp-first" title="' + gbText("SN 設定與篩選 (右鍵、長按：切換讀經組合)", ps.gb) + '"><i class="fa fa-cog"></i></button>'
+            + toggleBtnHtml("snOnOffSwitch", gbText("SN", ps.gb), ps.strong == 1, gbText("原文SN：在字旁顯示 Strong's Number", ps.gb), 'mid');
         dom.html(html);
         $('#snFilterBtn').toggleClass('active', SnFilter.s.mode == 'filter');
     }

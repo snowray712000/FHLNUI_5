@@ -32,7 +32,7 @@ export class MapTool {
             });
     }
     render(ps, dom) {
-        const html = toggleBtnHtml("mapToolOnOffSwitch", gbText("地圖顯示", ps.gb), !!ps.ispos)
+        const html = toggleBtnHtml("mapToolOnOffSwitch", gbText("地圖", ps.gb), !!ps.ispos, gbText("地圖顯示", ps.gb), 'first')
         dom.html(html);
     }
 }

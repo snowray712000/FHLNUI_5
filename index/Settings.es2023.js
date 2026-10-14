@@ -18,11 +18,11 @@ function register_reference_method(ps){
     });
 }
 function render_reference_method(ps, dom){
-    const html = `<div>${gbText("交互參照方法", ps.gb)}:</div>
-<select id="reference_method">
-    <option value="0">每次詢問</option>
-    <option value="1">一律預覽</option>
-    <option value="2">一律前往</option>
+    const t = s => gbText(s, ps.gb)
+    const html = `<select id="reference_method" class="set-select" title="${t("交互參照方法：點經文位置時")}">
+    <option value="0">${t("交互參照：每次詢問")}</option>
+    <option value="1">${t("交互參照：一律預覽")}</option>
+    <option value="2">${t("交互參照：一律前往")}</option>
 </select>`
 
     dom.html(html);
@@ -36,10 +36,10 @@ function register_book_select_method(ps){
     });
 }
 function render_book_select_method(ps, dom){
-        const html = `<div>${gbText("切換經文方法", ps.gb)}:</div>
-<select id="book_select_method">
-    <option value="0">依視窗大小</option>
-    <option value="1">簡易</option>
+        const t = s => gbText(s, ps.gb)
+        const html = `<select id="book_select_method" class="set-select" title="${t("切換經文方法：選書卷章的視窗樣式；手機上不好點時可改「簡易」")}">
+    <option value="0">${t("選章：依視窗大小")}</option>
+    <option value="1">${t("選章：簡易")}</option>
 </select>`
 
     dom.html(html);
@@ -54,43 +54,17 @@ function register_foot_note_show_method(ps){
     });
 }
 function render_foot_note_show_method(ps, dom){
-        const html = `<div>${gbText("註腳", ps.gb)}:</div>
-<select id="foot_note_show_method">
-    <option value="0">點擊顯示</option>
+        const t = s => gbText(s, ps.gb)
+        const html = `<select id="foot_note_show_method" class="set-select" title="${t("註腳顯示方法")}">
+    <option value="0">${t("註腳：點擊顯示")}</option>
     <!-- <option value="1">滑鼠移過</option> -->
-    <option value="2">直接載入</option>
+    <option value="2">${t("註腳：直接載入")}</option>
 </select>`
 
 dom.html(html);
     $('#foot_note_show_method').val(ps.foot_note_show_method); // 初始化為當前狀態
 }
 
-/**
- * @param {TPPageState} ps 
- */
-function render_tsk_show_mode(ps, dom){
-    // 0: TSK 原始資料，英文
-    // 1: 以中文顯示, 縮寫中文
-    // 2: 以中文顯示, 全名中文
-    const html = `<div>${gbText("TSK顯示模式", ps.gb)}:</div>
-<select id="tsk_show_mode">
-    <option value="0">英文</option>
-    <option value="1">中文(縮寫)</option>
-    <option value="2">中文(全名)</option>
-</select>`
-    dom.html(html);
-    $('#tsk_show_mode').val(ps?.tsk_show_mode || 2); // 初始化為當前狀態  
-}
-function register_tsk_show_mode(ps){
-    $('#tsk_show_mode').off('change').on('change', function () {
-        const ps = TPPageState.s;
-        console.log($(this));
-        console.log($(this).val());
-        
-        ps.tsk_show_mode = parseInt($(this).val() ?? 0);
-        ps.saveToLocalStorage();
-    });
-}
 export class Settings {
     static #s = null
     /** @returns {Settings} */
@@ -133,10 +107,7 @@ export class Settings {
         render_foot_note_show_method(ps, $('#foot_note_show_method_tool'));
         register_foot_note_show_method(ps);
 
-        // tsk show mode
-        $('#settingsScrollDiv ul').append("<li><div id='tsk_show_mode_tool'></div></li>");
-        render_tsk_show_mode(ps, $('#tsk_show_mode_tool'));
-        register_tsk_show_mode(ps);
+        // TSK 顯示模式已移到串珠分頁工具列的 ⚙ (index/tsks/renderTsk.js)
 
     }
     registerEvents(ps) {

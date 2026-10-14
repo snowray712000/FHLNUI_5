@@ -30,7 +30,7 @@
 | `index/theme/theme-vars.css` | **語意變數** (§四)、`color-scheme`、`html` 底色 | 同上，緊接在後 |
 | `index/theme/theme-3rd.css` | 第三方樣式的覆寫 (§六) | `index.js` 以 `<style>` 接在 fhl.css **後面** |
 | `index/theme/Theme.es2023.js` | `Theme.s.mode` 讀寫、`onChange`、`withLightPalette`、`cssVar` | module；`window.theme` |
-| `index/ThemeTool.es2023.js` | 設定面板的切換列 | `Settings.es2023.js` |
+| `index/ThemeTool.es2023.js` | 設定面板的切換列 (7.5.16.5 起是兩列分段按鈕 `[淺色｜深色]` `[自動｜高對比]`，見 docs/z261014b) | `Settings.es2023.js` |
 
 - 前兩支只有 `:root` 變數與 `html` 底色，放最前面不影響其他規則的先後。驗證：改動前後，全頁 2369 個元素「排除顏色屬性」的 computed style 只差在設定清單多了一列 (之後的 li 往下移)
 - **不閃白**：`<head>` 開頭的 inline script 讀 localStorage `fhlTheme`，設 `<html data-theme>`；加上 `html { background: var(--app-bg) }`，fhl.css (index.js 執行時才插入) 還沒來時底色就對。保持 inline：寫成 `<script src>` 會被 build 併入 defer 的 legacy bundle，太晚 (CLAUDE.md)

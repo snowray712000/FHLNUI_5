@@ -58,9 +58,6 @@
     --note-bg: color-mix(in srgb, var(--systemYellow) var(--hl-1), var(--popup-bg)); /* 原文分析的浮出框 (原淡黃) */
     --btn-bg: var(--secondarySystemFill);       /* 小按鈕 (A− A+) */
     --btn-hover-bg: var(--tertiarySystemFill);
-    --switch-on-bg: var(--systemGreen);         /* 設定的開關 .onOffSwitch */
-    --switch-off-bg: var(--systemGray5);
-    --switch-knob: var(--systemBackground);
     --scroll-thumb: var(--systemGray2);
     --handle-bg: color-mix(in srgb, var(--systemBackground) 75%, transparent); /* 欄寬拖曳把手 */
     --nav-hover-bg: color-mix(in srgb, var(--systemGray) 75%, transparent);  /* ❮ ❯ hover 的漸層 */

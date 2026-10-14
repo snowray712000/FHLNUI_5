@@ -33,7 +33,7 @@ export class ImageTool {
             });
     }
     render(ps, dom) {
-        const html = toggleBtnHtml("imageToolOnOffSwitch", gbText("圖片顯示", ps.gb), !!ps.ispho)
+        const html = toggleBtnHtml("imageToolOnOffSwitch", gbText("照片", ps.gb), !!ps.ispho, gbText("圖片顯示", ps.gb), 'last')
         dom.html(html);
     }
 };

@@ -55,12 +55,16 @@ function render_interleaved(contentVm, fontSizeOfPs) {
     const versions = contentVm.versions
     const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0)
     for (let pi = 0; pi < maxP; pi++) {
+        /** @type {JQuery<HTMLElement>|null} 這一節 (mode 4 是這一段) 最後一個譯本 */
+        let $last = null
         for (const v of versions) {
             const paragraph = v.paragraphs[pi]
             if (paragraph == null) continue
             if (paragraph.verses.length && paragraph.verses.every(a => a.hideVerseContent)) continue // 整段併入上節 (mode 2 一節一段)
-            $vercol.append(render_paragraph_div({ version: v.version, isRtl: v.isRtl, paragraph }))
+            $last = render_paragraph_div({ version: v.version, isRtl: v.isRtl, paragraph })
+            $vercol.append($last)
         }
+        $last?.addClass('il-end') // 一節結束：下面畫一條虛線 (同並排時譯本之間的線)，見 fhl.css .il-end
     }
     return $htmlContent
 }

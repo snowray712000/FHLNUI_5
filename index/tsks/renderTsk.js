@@ -10,6 +10,7 @@
 import { TPPageState } from "./../TPPageState.es2023.js";
 import { BibleConstantHelper } from "../BibleConstantHelper.es2023.js";
 import { isRDLocation } from "../isRDLocation.es2023.js";
+import { gbText } from "../gbText.es2023.js";
 
 import { parseTsk } from "./parseTsk.js"
 import { cvt_tsk_blocks_to_dtexts } from "./cvt_tsk_blocks_to_dtexts.js"
@@ -82,11 +83,13 @@ async function api_tsk() {
     return data
 }
 
-function gen_toolbar_jqhtml() {
+/** @param {boolean} [withGear] 上面那一列才有 ⚙ (TSK 顯示模式) */
+function gen_toolbar_jqhtml(withGear = false) {
     const $topToolbar = $('<div>').addClass('toolbar tsk').html(`
         <button class="btnPrev btn btn-sm btn-outline-secondary">前</button>
         <button class="btnNext btn btn-sm btn-outline-secondary">後</button>
         <button class="btnTitle btn btn-sm btn-outline-secondary">創1:1</button>
+        ${withGear ? `<button class="btnTskGear btn btn-sm btn-outline-secondary" title="${gbText('TSK顯示模式', TPPageState.s.gb)}"><i class="fa fa-cog" aria-hidden="true"></i></button>` : ''}
     `)
     // // 頂部 toolbar
     // const $topToolbar = $('<div>').addClass('toolbar').html(`
@@ -131,6 +134,43 @@ function cvt_ref_to_chinese_in_dtext(dtext, isgb, show_mode) {
 }
 
 
+/**
+ * TSK 顯示模式 (交互參照的書卷名)：英文 / 中文(縮寫) / 中文(全名)，只有串珠會用到，所以放在串珠工具列的 ⚙，不放設定面板
+ * 0: TSK 原始資料，英文；1: 中文縮寫 (預設)；2: 中文全名
+ * @param {HTMLElement} anchor
+ */
+function openTskModeMenu(anchor) {
+    document.querySelector('.snf-menu')?.remove()
+    const ps = TPPageState.s
+    const cur = ps.tsk_show_mode ?? 1
+    const close = () => { menu.remove(); document.removeEventListener('pointerdown', onOutside, true) }
+    const onOutside = e => { if (!menu.contains(e.target)) close() }
+    const item = (mode, text) => {
+        const d = document.createElement('div')
+        d.className = 'snf-menu-item' + (mode == cur ? ' active' : '')
+        d.textContent = gbText(text, ps.gb)
+        d.onclick = () => {
+            close()
+            if (mode == cur) return
+            ps.tsk_show_mode = mode
+            ps.saveToLocalStorage()
+            renderTsk()
+        }
+        return d
+    }
+    const menu = document.createElement('div')
+    menu.className = 'snf-menu'
+    const title = document.createElement('div')
+    title.className = 'snf-menu-title'
+    title.textContent = gbText('TSK顯示模式', ps.gb)
+    menu.append(title, item(0, '英文'), item(1, '中文(縮寫)'), item(2, '中文(全名)'))
+    document.body.append(menu)
+    const r = anchor.getBoundingClientRect()
+    menu.style.left = `${Math.max(4, Math.min(r.left, window.innerWidth - menu.offsetWidth - 4))}px`
+    menu.style.top = `${Math.min(r.bottom + 4, window.innerHeight - menu.offsetHeight - 4)}px`
+    setTimeout(() => document.addEventListener('pointerdown', onOutside, true))
+}
+
 // 事件: .ref click 在 fhlInfoContent 一起用, 所以不在 .tsk 中
 $(() => {
     testThenDoAsync({
@@ -150,6 +190,7 @@ $(() => {
             // trigger renderTsk
             renderTsk()
         })
+        $('#fhlInfoContent').on('click', '.toolbar.tsk .btnTskGear', e => openTskModeMenu(e.currentTarget))
     })
 })
 
@@ -179,7 +220,7 @@ export async function renderTsk() {
     $('#fhlInfoContent').empty()
 
     // TODO: toolbar
-    const $toolbar = gen_toolbar_jqhtml()
+    const $toolbar = gen_toolbar_jqhtml(true)
     $('#fhlInfoContent').append($toolbar)
 
     const $tskContent = $('<div>').addClass('tsk_content')

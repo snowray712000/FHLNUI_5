@@ -19,52 +19,31 @@ export class GbSelect {
         this.dom = dom;
         this.render(ps, this.dom);
     }
+    /** 繁中 / 簡中 兩個按鈕 (樣式同顯示切換 .sm-seg / .sm-btn)；ps.gb 0 = 繁、1 = 簡 */
     registerEvents(ps) {
-        $('#gbSelectSwitch').off('change').on('change',
-            function () {
-                const ps = TPPageState.s
-
-                if ($(this).is(':checked')) {
-                    ps.gb = 1;
-                    FhlLecture.s.render(ps, FhlLecture.s.dom);
-                    FhlInfoTitle.s.render(ps, FhlInfoTitle.s.dom);
-                    FhlInfoTitle.s.registerEvents(ps);
-                    FhlInfo.s.render(ps);
-                    BookSelectName.s.init(ps, $('#bookSelectName'));
-                    BookSelectName.s.registerEvents(ps);
-
-                    TopBar.s.setTitle(1);
-                    alert('重新載入後生效')
-                }
-                else {
-                    ps.gb = 0;
-                    FhlLecture.s.render(ps, FhlLecture.s.dom);
-                    FhlInfoTitle.s.render(ps, FhlInfoTitle.s.dom);
-                    FhlInfoTitle.s.registerEvents(ps);
-                    FhlInfo.s.render(ps);
-                    TopBar.s.setTitle(0);
-                    BookSelectName.s.init(ps, $('#bookSelectName'));
-                    BookSelectName.s.registerEvents(ps);
-                    alert('重新載入後生效')
-                }
-                triggerGoEventWhenPageStateAddressChange(ps);
-                ps.saveToLocalStorage()
-            });
+        $('#gbSelect').off('click.gb').on('click.gb', '.sm-btn', function () {
+            const ps = TPPageState.s
+            const gb = this.dataset.v == 'gb' ? 1 : 0
+            if (gb == ps.gb) return
+            ps.gb = gb
+            GbSelect.s.render(ps, $('#gbSelect'))
+            FhlLecture.s.render(ps, FhlLecture.s.dom);
+            FhlInfoTitle.s.render(ps, FhlInfoTitle.s.dom);
+            FhlInfoTitle.s.registerEvents(ps);
+            FhlInfo.s.render(ps);
+            BookSelectName.s.init(ps, $('#bookSelectName'));
+            BookSelectName.s.registerEvents(ps);
+            TopBar.s.setTitle(gb)
+            alert('重新載入後生效')
+            triggerGoEventWhenPageStateAddressChange(ps);
+            ps.saveToLocalStorage()
+        });
     }
     render(ps = null, dom = null) {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
 
-        var html = "<div> " + gbText('繁簡切換', ps.gb) + ":</div>";
-        html += '<div class="onOffSwitch">\
-                              <input type="checkbox" name="gbSelectSwitch" class="onOffSwitch-checkbox" id="gbSelectSwitch">\
-                              <label class="onOffSwitch-label" for="gbSelectSwitch">\
-                                  <span class="onOffSwitch-inner traditional-simpleSwitch"></span>\
-                                  <span class="onOffSwitch-switch"></span>\
-                              </label>\
-                          </div>';
-        //html += '<span style="color: #770000;">施工中...</span>';
-        dom.html(html);
-        $('#gbSelectSwitch').attr("checked", (ps.gb == 1) ? true : false);
+        const btn = (v, text, on) => `<button type="button" class="btn btn-sm btn-outline-secondary set-btn sm-btn${on ? ' active' : ''}" data-v="${v}" aria-pressed="${on}">${text}</button>`
+        dom.html(`<div class="sm-ctl" role="group" title="${gbText('繁簡切換', ps.gb)}"><div class="btn-group sm-seg">${btn('big5', '繁中', ps.gb != 1)}${btn('gb', '簡中', ps.gb == 1)}</div></div>`)
     }
 }

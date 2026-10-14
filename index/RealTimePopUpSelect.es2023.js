@@ -38,7 +38,7 @@ export class RealTimePopUpSelect {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
 
-        const html = toggleBtnHtml("realTimeOnOffSwitch", gbText("即時SN", ps.gb), ps.realTimePopUp == 1)
+        const html = toggleBtnHtml("realTimeOnOffSwitch", gbText("即時", ps.gb), ps.realTimePopUp == 1, gbText("即時SN：滑到 SN 即時彈出字典", ps.gb), 'last')
         dom.html(html);
     }
 }

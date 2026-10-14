@@ -168,7 +168,7 @@ body {
 }
 @media (pointer: coarse) {
     body { --touch-min: 44px; }
-    .fs-btn, .th-btn { min-height: var(--touch-min); }
+    .fs-btn { min-height: var(--touch-min); }
 }
 body {
     margin: 0px;
@@ -901,105 +901,15 @@ body {
     margin-right: 20px;
 }
 
-/*float: right; top: 12px;*/
-.onOffSwitch {
-    position: relative; width: 59px; /*float: right;*/ top: 3px;
-    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
-}
-.onOffSwitch-checkbox {
-    display: none;
-}
-.onOffSwitch-label {
-    display: block; overflow: hidden; cursor: pointer;
-    border: 2px solid var(--line-strong); border-radius: 20px;
-}
-.onOffSwitch-inner {
-    display: block; width: 200%; margin-left: -100%;
-    -moz-transition: margin 0.3s ease-in 0s; -webkit-transition: margin 0.3s ease-in 0s;
-    -o-transition: margin 0.3s ease-in 0s; transition: margin 0.3s ease-in 0s;
-}
-.onOffSwitch-inner:before, .onOffSwitch-inner:after {
-    display: block; float: left; width: 50%; height: 12px; padding: 0; line-height: 12px;
-    font-size: 12px; color: var(--fg-on-accent); font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
-    -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
-}
-.onOffSwitch-inner:before {
-    content: "ON";
-    padding-left: 9px;
-    background-color: var(--switch-on-bg); color: var(--fg-on-accent);
-}
-.onOffSwitch-inner:after {
-    content: "OFF";
-    padding-right: 9px;
-    background-color: var(--switch-off-bg); color: var(--fg);
-    text-align: right;
-}
-.traditional-simpleSwitch.onOffSwitch-inner:before {
-    content: "簡";
-}
-.traditional-simpleSwitch.onOffSwitch-inner:after {
-    content: "繁";
-}
-.showmodeSwitch.onOffSwitch-inner:before {
-    content: "交錯";
-}
-.showmodeSwitch.onOffSwitch-inner:after {
-    content: "並列";
-}
-.onOffSwitch-switch {
-    display: block; width: 19px; margin: -3.5px;
-    background: var(--switch-knob);
-    border: 2px solid var(--line-strong); border-radius: 20px;
-    position: absolute; top: 0; bottom: 0; right: 43px;
-    -moz-transition: all 0.3s ease-in 0s; -webkit-transition: all 0.3s ease-in 0s;
-    -o-transition: all 0.3s ease-in 0s; transition: all 0.3s ease-in 0s; 
-}
-.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner {
-    margin-left: 0;
-}
-.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
-    right: 0px; 
-}
-/* 設定面板的開關按鈕 (ToggleBtn.es2023.js)：按鈕本身就是標籤，開 = 亮藍並有 ✓ (不只靠顏色)，關 = 灰框；手指時高度不低於 --touch-min */
-#settings li > div > div.tgl-row:first-child {
+/* 字型大小：側邊欄 ⚙ A− 數字 A+ (⚙ 在最前面，左欄很窄時至少看得到)，按鈕寬度、數字寬度固定，按了不會移動 */
+#settings li > div > div.fs-ctl:first-child {
     float: none;
     margin-right: 0;
-    display: flex;
-    align-items: stretch; /* 開關按鈕與 ⚙ 一樣高 */
-    gap: 6px;
 }
-.tgl-btn {
-    position: relative;
-    flex: 1;
-    margin: 0; /* Bootstrap 的 label 有 margin-bottom，會把按鈕與 ⚙ 錯開 */
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    min-width: 0;
-    min-height: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
-    padding: 0 0.7em;
-    border: 1px solid var(--line-strong);
-    border-radius: 8px;
-    color: var(--fg-muted);
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-}
-.tgl-btn:hover { border-color: var(--accent); }
-.tgl-btn:has(.tgl-input:checked) {
-    background: var(--accent-bg);
-    border-color: var(--accent);
-    color: var(--accent-fg);
-    font-weight: bold;
-}
-.tgl-btn:has(.tgl-input:checked)::before { content: "\2713\00a0"; }
-.tgl-btn:has(.tgl-input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
-.tgl-input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
-/* 字型大小：側邊欄 ⚙ A− 數字 A+ (⚙ 在最前面，左欄很窄時至少看得到)，按鈕寬度、數字寬度固定，按了不會移動 */
 #settings .fs-ctl {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+    display: flex;
+    align-items: center; /* ⚙ A− A+ 100% 垂直置中 (原本標題在上、控制列貼上緣) */
+    gap: 0; /* ⚙ A− A+ 合成一組 (.grp-*)，100% 靠 .fs-val 的 margin 隔開 */
 }
 .fs-btn {
     flex: none;
@@ -1027,53 +937,121 @@ body {
 }
 /* 側邊欄字型大小這一列固定大小，不乘 --ui-k：A− A+ 調的就是整體大小 (介面也跟著)，跟著變的話按一下按鈕就跑走 */
 #fontSizeTool, #fontSizeTool div:not(.ui-resizable-handle) { font-size: 10pt; }
-#fontSizeTool .fs-btn { font-size: 10pt; }
-#fontSizeTool .fs-btn.fs-big { font-size: 12pt; }
-#fontSizeTool .fs-gear { font-size: 14pt; }
+/* 設定面板的按鈕 (.set-btn)：Bootstrap 的 .btn .btn-sm .btn-outline-secondary (同串珠工具列等其它按鈕)，這裡只定尺寸；字型這一列固定大小，不乘 --ui-k */
+#fontSizeTool .set-btn {
+    min-width: max(26px, var(--touch-min, 0px));
+    min-height: max(26px, var(--touch-min, 0px));
+    font-size: 10pt;
+}
+#fontSizeTool .fs-step { width: 2.4em; }
+#fontSizeTool .fs-step.fs-big { font-size: 12pt; }
 #settings .fs-val {
     width: 3em;
     text-align: center;
     font-variant-numeric: tabular-nums;
 }
-.fs-gear {
-    flex: none;
-    margin-right: 4px;
-    font-size: calc(14pt * var(--ui-k, 1));
-    color: var(--fg-muted);
-    cursor: pointer;
-}
-.fs-gear:hover {
-    color: var(--fg);
-}
 /* 主題：側邊欄 [自動] [淺色] [深色] ☐ 高對比 (ThemeTool.es2023.js、docs/z261003b) */
-#settings .th-ctl {
-    display: inline-flex;
-    border: 1px solid var(--line-strong);
-    border-radius: 6px;
-    overflow: hidden;
-}
-.th-btn {
-    padding: 1px 8px;
-    border: none;
-    border-left: 1px solid var(--line-strong);
-    background: var(--btn-bg);
-    color: var(--fg);
-    font-size: calc(10pt * var(--ui-k, 1));
-    white-space: nowrap;
-    cursor: pointer;
-}
-.th-btn:first-child { border-left: none; }
-.th-btn:hover { background: var(--btn-hover-bg); }
-.th-btn.active { background: var(--selected-bg); color: var(--selected-fg); }
-#settings .th-hc {
+/* ===== 設定面板的按鈕、分段按鈕、下拉選單 (ToggleBtn / Show_mode / ThemeTool / GbSelect / SnSelect，docs/z261014b) =====
+   用 Bootstrap 的 .btn .btn-sm .btn-outline-secondary (theme-3rd.css 已接上主題色)，這裡只定尺寸、一列放幾個、「開」的樣子 */
+#settings .set-btn {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    margin: 0 0 0 8px;
+    justify-content: center;
+    min-width: 0;
+    min-height: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
+    padding: 0 0.5em;
     font-size: calc(10pt * var(--ui-k, 1));
-    cursor: pointer;
+    line-height: 1.2;
+    white-space: nowrap;
+    border-radius: 8px;
 }
-#settings .th-hc.disabled { color: var(--fg-disabled); cursor: default; }
+/* 滑過去只是淡淡的底 (Bootstrap 預設會整個填灰、字變白，太重) */
+#settings .set-btn:hover {
+    color: var(--fg);
+    background-color: var(--hover-bg);
+    border-color: var(--neutral);
+}
+/* 合併成一組的按鈕 (⚙｜SN｜即時、地圖｜照片、A−｜A+、分段按鈕)：只有兩端有圓角，中間框線疊在一起 */
+#settings .grp-first { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+#settings .grp-mid { border-radius: 0; margin-left: -1px; }
+#settings .grp-last { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
+/* 開 (開關按鈕勾起、分段按鈕選中、SN 篩選開啟的 ⚙)：字由灰變藍、底淡藍、框藍、粗體 */
+#settings .btn-check:checked + .tgl-btn,
+#settings .sm-btn.active,
+#settings .sn-filter-btn.active {
+    color: var(--accent-fg);
+    background-color: var(--accent-bg);
+    border-color: var(--accent);
+    font-weight: bold;
+    position: relative;
+    z-index: 1; /* 疊框時藍框蓋過旁邊的灰框 */
+}
+.btn-check:focus-visible + .tgl-btn { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* 同一列放幾個 (⚙ SN 即時 / 地圖 照片)：li 是 flex，裡面的 div 不佔版面 (display: contents)，⚙ 與按鈕直接排在 li 裡，一樣高 */
+#settings li.tgl-li {
+    display: flex;
+    align-items: stretch;
+    gap: 0; /* 同一列的按鈕合併成一組 (.grp-first / .grp-mid / .grp-last) */
+}
+#settings li.tgl-li > div {
+    display: contents;
+}
+#settings .tgl-btn { flex: 1; margin-bottom: 0; } /* Bootstrap 的 label 有 margin-bottom，會把這一列撐高、⚙ 與按鈕不一樣高 */
+/* ⚙ 按鈕：方形 */
+#settings .sn-filter-btn,
+#fontSizeTool .fs-gear {
+    flex: none;
+    min-width: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
+}
+#fontSizeTool .set-btn { min-width: max(26px, var(--touch-min, 0px)); }
+#settings .fs-val { margin-left: 6px; }
+/* 分段按鈕 (顯示切換、主題、繁中｜簡中)：Bootstrap 的 .btn-group；放不下時整組換行 */
+/* #settings li div div { display: inline-block } (更上面的舊規則) 會蓋掉 flex，所以加 #settings 提高優先度 */
+#settings li > div#show_mode,
+#settings li > div#themeTool,
+#settings li > div#gbSelect {
+    display: block;
+}
+#settings li > div > div.sm-ctl:first-child {
+    float: none;
+    margin-right: 0;
+}
+#settings .sm-ctl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+#settings .sm-seg {
+    flex: 1 1 4.5em; /* 放得下就同一列，字大時自己換行 */
+    display: flex;
+}
+#settings .sm-seg > .sm-btn { flex: 1 1 0; }
+/* 分段按鈕的兩端圓角與單顆按鈕一樣大 (Bootstrap 的 .btn-group 預設只有 .2rem) */
+#settings .sm-seg > .sm-btn:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+#settings .sm-seg > .sm-btn:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+#settings .sm-rows .sm-seg { flex-basis: 100%; } /* 主題：一組一列 */
+#settings .sm-btn.disabled { opacity: 0.5; pointer-events: auto; cursor: default; } /* 自動時的高對比：灰的，但停上去還看得到說明 */
+/* 下拉選單 (交互參照、選章、註腳)：沒有標題列，選項文字就帶名稱 (例「交互參照：每次詢問」)，一列一個、整列寬、與按鈕同高 */
+#settings li > div:has(> select) { display: block; }
+#settings li select.set-select {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
+    padding: 0 1.6em 0 0.6em;
+    font-size: calc(10pt * var(--ui-k, 1));
+    color: var(--fg);
+    background-color: transparent;
+    border: 1px solid var(--neutral);
+    border-radius: 0.2rem;
+    appearance: none;
+    -webkit-appearance: none;
+    /* 箭頭：兩個三角形，用 currentColor (跟主題走) */
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 0.95em) 52%, calc(100% - 0.6em) 52%;
+    background-size: 0.35em 0.35em, 0.35em 0.35em;
+    background-repeat: no-repeat;
+}
+#settings li select.set-select:hover { border-color: var(--accent); }
 /* 字型大小對話框 (組合樣式沿用 .snf-dlg)
    對話框內容原本跟著 --fontsize (.ui-dialog-content)，這裡固定，拖曳時控制項才不會跟著變大跑走；預覽區仍跟著 */
 .fs-dlg {
@@ -1557,26 +1535,6 @@ body {
     opacity: 1;
     filter: none;
 }
-.sn-filter-btn {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    min-width: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
-    min-height: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
-    border: 1px solid var(--line-strong);
-    border-radius: 8px;
-    cursor: pointer;
-    color: var(--fg-subtle);
-}
-.sn-filter-btn:hover {
-    color: var(--fg-muted);
-}
-.sn-filter-btn.active {
-    color: var(--accent-fg);
-    border-color: var(--accent);
-}
 .snf-dlg .snf-row {
     display: flex;
     flex-wrap: wrap;
@@ -2049,15 +2007,28 @@ body {
 /* 註釋 / 原文解析分頁：「前 後 [書卷背景] 標題」一列在捲動內容的最前面、一列在最後面 (與串珠一致)：
    捲動時上面那列被推走不佔空間，捲到底不必回到上面就能按下一個 */
 #fhlInfoContent .info-bar {
-    display: flex;
-    align-items: center;
-    gap: 4px;
     padding: 2px 0;
     box-shadow: none; /* #parsingTable div 的內距 / 陰影不要套到工具列 */
 }
+/* 各分頁的工具列 (串珠 / 註釋 / 原文解析)：前｜後｜[書卷背景]｜標題｜⚙ 合成一組，只有兩端圓角，中間框線疊在一起；標題吃剩下的寬度 */
+#fhlInfoContent .toolbar.tsk {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+#fhlInfoContent .toolbar.tsk > .btn {
+    flex: none;
+    white-space: nowrap;
+    border-radius: 0;
+    margin-left: -1px;
+    position: relative;
+}
+#fhlInfoContent .toolbar.tsk > .btn:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; margin-left: 0; }
+#fhlInfoContent .toolbar.tsk > .btn:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+#fhlInfoContent .toolbar.tsk > .btn:hover { z-index: 1; }
 #parsingTable .info-bar { padding: 6pt; }
 #fhlInfoContent .info-bar .btn { flex: none; white-space: nowrap; }
-#fhlInfoContent .info-bar .btnTitle { /* 標題：吃剩下的寬度，太長就截斷 (title 屬性看全文) */
+#fhlInfoContent .toolbar.tsk > .btnTitle { /* 標題：吃剩下的寬度，太長就截斷 (title 屬性看全文) */
     flex: 1 1 0;
     min-width: 0;
     overflow: hidden;
@@ -2502,6 +2473,9 @@ body.lec-col-resizing, body.lec-col-resizing * {
     border-left: 1px dashed var(--col-line);
     border-right: 1px dashed var(--col-line);
 }
+.vercol > .paragraph.il-end:not(:last-child) {
+    border-bottom: 1px dashed var(--col-line); /* 交錯 (mode 2 / 4)：一節 (或一段) 的各譯本輪流完了，畫線再接下一節，同並排時譯本之間的虛線 */
+}
 .vercol {
     border-right-width: 1px;
     border-right-style: dashed;
@@ -2636,6 +2610,11 @@ body.lec-col-resizing, body.lec-col-resizing * {
 }
 .snf-menu hr {
     margin: 0.3em 0;
+}
+.snf-menu-title {
+    padding: 0.2em 1em;
+    color: var(--fg-muted);
+    font-size: 0.85em;
 }
 .snf-menu-item {
     padding: 0.25em 1em;
