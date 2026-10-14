@@ -960,6 +960,41 @@ body {
 .onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
     right: 0px; 
 }
+/* 設定面板的開關按鈕 (ToggleBtn.es2023.js)：按鈕本身就是標籤，開 = 亮藍並有 ✓ (不只靠顏色)，關 = 灰框；手指時高度不低於 --touch-min */
+#settings li > div > div.tgl-row:first-child {
+    float: none;
+    margin-right: 0;
+    display: flex;
+    align-items: stretch; /* 開關按鈕與 ⚙ 一樣高 */
+    gap: 6px;
+}
+.tgl-btn {
+    position: relative;
+    flex: 1;
+    margin: 0; /* Bootstrap 的 label 有 margin-bottom，會把按鈕與 ⚙ 錯開 */
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
+    padding: 0 0.7em;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    color: var(--fg-muted);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.tgl-btn:hover { border-color: var(--accent); }
+.tgl-btn:has(.tgl-input:checked) {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent-fg);
+    font-weight: bold;
+}
+.tgl-btn:has(.tgl-input:checked)::before { content: "\2713\00a0"; }
+.tgl-btn:has(.tgl-input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tgl-input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
 /* 字型大小：側邊欄 ⚙ A− 數字 A+ (⚙ 在最前面，左欄很窄時至少看得到)，按鈕寬度、數字寬度固定，按了不會移動 */
 #settings .fs-ctl {
     display: inline-flex;
@@ -1523,15 +1558,24 @@ body {
     filter: none;
 }
 .sn-filter-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
+    min-height: max(calc(26px * var(--ui-k, 1)), var(--touch-min, 0px));
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
     cursor: pointer;
-    margin-left: 0.3em;
     color: var(--fg-subtle);
 }
 .sn-filter-btn:hover {
     color: var(--fg-muted);
 }
 .sn-filter-btn.active {
-    color: var(--danger-fg);
+    color: var(--accent-fg);
+    border-color: var(--accent);
 }
 .snf-dlg .snf-row {
     display: flex;
@@ -2254,6 +2298,12 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
 .search-scope-btn:hover { background: var(--brand); color: var(--fg-on-accent); }
 .search-scope-btn { font-size: calc(0.65rem * var(--ui-k, 1)); }
 .intro-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
+/* 對話框標題列裡的 ? (SN 篩選顯示)：標題文字與 ? 垂直置中對齊 (vertical-align: middle 對中文字會偏低) */
+.ui-dialog-title:has(> .intro-help) {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+}
 /* 藍色膠囊列 (預覽|前往|?) 裡的 ?：圓形白底，離按鈕留一點空，滑過去稍微變藍 */
 .ref-choose .intro-help { align-self: center; margin: 0 8px 0 4px; }
 .ref-choose .intro-help:hover { background: color-mix(in srgb, var(--surface-bg) 75%, var(--lct-bg)); color: var(--brand-fg); }

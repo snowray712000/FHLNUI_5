@@ -4,6 +4,7 @@ import { FhlInfoContent } from "./FhlInfoContent.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
+import { toggleBtnHtml } from "./ToggleBtn.es2023.js";
 
 export class RealTimePopUpSelect {
     static #s = null
@@ -37,15 +38,7 @@ export class RealTimePopUpSelect {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
 
-        var html = "<div>" + gbText("即時SN", ps.gb) + ":</div>";
-        html += '<div class="onOffSwitch">\
-                              <input type="checkbox" name="realTimeOnOffSwitch" class="onOffSwitch-checkbox" id="realTimeOnOffSwitch">\
-                              <label class="onOffSwitch-label" for="realTimeOnOffSwitch">\
-                                  <span class="onOffSwitch-inner"></span>\
-                                  <span class="onOffSwitch-switch"></span>\
-                              </label>\
-                          </div>';
+        const html = toggleBtnHtml("realTimeOnOffSwitch", gbText("即時SN", ps.gb), ps.realTimePopUp == 1)
         dom.html(html);
-        $('#realTimeOnOffSwitch').attr("checked", (ps.realTimePopUp == 1) ? true : false);
     }
 }

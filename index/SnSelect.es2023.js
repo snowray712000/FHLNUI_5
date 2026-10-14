@@ -2,8 +2,8 @@ import { FhlLecture } from "./FhlLecture.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
+import { toggleBtnHtml } from "./ToggleBtn.es2023.js";
 import { SnFilter } from "./SnFilter.es2023.js";
-import { helpButtonHtml, bindIntroHelp } from "./IntroHelp.es2023.js";
 import { SnFilterDialog } from "./SnFilterDialog.es2023.js";
 
 export class SnSelect {
@@ -39,7 +39,6 @@ export class SnSelect {
                 SnFilter.s.applyAll(); // 搜尋結果、交互參照對話框
                 SnFilterDialog.s.render();
             });
-        bindIntroHelp($('#snFilterBtn').parent(), 'sn')
         $('#snFilterBtn').off('click').on('click', () => SnFilterDialog.s.open())
             .off('contextmenu').on('contextmenu', ev => { // 右鍵、手機長按：快速切換讀經組合
                 ev.preventDefault();
@@ -50,18 +49,9 @@ export class SnSelect {
         if (ps == null) ps = TPPageState.s
         if (dom == null) dom = this.dom
         
-        var html = "<div>" + gbText("原文SN", ps.gb) + helpButtonHtml("原文SN")
-            + '<span id="snFilterBtn" class="sn-filter-btn" title="' + gbText("SN 篩選：只顯示指定的 SN (右鍵、長按：切換讀經組合)", ps.gb) + '"><i class="fa fa-filter"></i></span>'
-            + ":</div>";
-        html += '<div class="onOffSwitch">\
-                              <input type="checkbox" name="snOnOffSwitch" class="onOffSwitch-checkbox" id="snOnOffSwitch">\
-                              <label class="onOffSwitch-label" for="snOnOffSwitch">\
-                                  <span class="onOffSwitch-inner"></span>\
-                                  <span class="onOffSwitch-switch"></span>\
-                              </label>\
-                          </div>';
+        const html = '<div class="tgl-row">' + toggleBtnHtml("snOnOffSwitch", gbText("原文SN", ps.gb), ps.strong == 1)
+            + '<span id="snFilterBtn" class="sn-filter-btn" role="button" title="' + gbText("SN 設定與篩選 (右鍵、長按：切換讀經組合)", ps.gb) + '"><i class="fa fa-cog"></i></span></div>';
         dom.html(html);
-        $('#snOnOffSwitch').attr("checked", (ps.strong == 1) ? true : false);
         $('#snFilterBtn').toggleClass('active', SnFilter.s.mode == 'filter');
     }
 }

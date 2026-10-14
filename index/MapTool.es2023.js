@@ -3,6 +3,7 @@ import { FhlLecture } from './FhlLecture.es2023.js';
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from './gbText.es2023.js';
+import { toggleBtnHtml } from './ToggleBtn.es2023.js';
 export class MapTool {
     static #s = null
     /** @returns {MapTool} */
@@ -31,17 +32,8 @@ export class MapTool {
             });
     }
     render(ps, dom) {
-        var html = "<div>" + gbText("地圖顯示", ps.gb) + ":</div>";
-        html += '<div class="onOffSwitch">\
-                              <input type="checkbox" name="mapToolOnOffSwitch" class="onOffSwitch-checkbox" id="mapToolOnOffSwitch">\
-                              <label class="onOffSwitch-label" for="mapToolOnOffSwitch">\
-                                  <span class="onOffSwitch-inner"></span>\
-                                  <span class="onOffSwitch-switch"></span>\
-                              </label>\
-                          </div>';
-        //html += '<span style="color: #770000;">施工中...</span>';
+        const html = toggleBtnHtml("mapToolOnOffSwitch", gbText("地圖顯示", ps.gb), !!ps.ispos)
         dom.html(html);
-        $('#mapToolOnOffSwitch').attr("checked", ps.ispos);
     }
 }
 // (function(root){

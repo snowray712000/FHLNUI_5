@@ -5,6 +5,7 @@ import { fetchTextAsync } from "./fetchAsync.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
 import { el } from "./auDom.es2023.js";
+import { helpButtonHtml, bindIntroHelp } from "./IntroHelp.es2023.js";
 import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { SN_Act_Color } from "./SN_Act_Color.es2023.js";
 
@@ -59,6 +60,10 @@ export class SnFilterDialog {
             getTitle: () => gbText('SN 篩選顯示', TPPageState.s.gb),
             registerEventWhenShowed: dlg => {
                 this.#root = dlg.find('.snf-dlg')[0]
+                // 「原文SN 是什麼」的 ? 放在標題列 (設定面板那一行只留開關和 ⚙)
+                const bar = dlg.dialog('widget').find('.ui-dialog-titlebar')
+                bar.find('.ui-dialog-title').append(helpButtonHtml('原文SN'))
+                bindIntroHelp(bar, 'sn')
                 dlg.on('dialogclose', () => {
                     this.#dlgHtml = null; this.#root = null; this.#rankBox = null
                     this.#lecObserver?.disconnect(); this.#lecObserver = null

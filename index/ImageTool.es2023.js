@@ -2,6 +2,7 @@ import { FhlLecture } from "./FhlLecture.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { gbText } from "./gbText.es2023.js";
+import { toggleBtnHtml } from "./ToggleBtn.es2023.js";
 
 
 export class ImageTool {
@@ -32,16 +33,7 @@ export class ImageTool {
             });
     }
     render(ps, dom) {
-        var html = "<div>" + gbText("圖片顯示", ps.gb) + ":</div>";
-        html += '<div class="onOffSwitch">\
-                              <input type="checkbox" name="imageToolOnOffSwitch" class="onOffSwitch-checkbox" id="imageToolOnOffSwitch">\
-                              <label class="onOffSwitch-label" for="imageToolOnOffSwitch">\
-                                  <span class="onOffSwitch-inner"></span>\
-                                  <span class="onOffSwitch-switch"></span>\
-                              </label>\
-                          </div>';
-        //html += '<span style="color: #770000;">施工中...</span>';
+        const html = toggleBtnHtml("imageToolOnOffSwitch", gbText("圖片顯示", ps.gb), !!ps.ispho)
         dom.html(html);
-        $('#imageToolOnOffSwitch').attr("checked", ps.ispho);
     }
 };
