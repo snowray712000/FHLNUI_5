@@ -195,6 +195,9 @@ body {
     --tb-hover: var(--accent);
     --tb-on-bg: var(--pressed-bg); /* 側欄開著時，按鈕的底色 */
 }
+/* 全螢幕 (整份文件，見 requestFullscreen.es2023.js)：工具列藏起來，三個視窗從最上面開始 */
+:root:fullscreen { --tb-h: 0px; }
+:root:fullscreen #fhlTopMenu { display: none; }
 #fhlTopMenu {
     position: fixed;
     top: 0;

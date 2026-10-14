@@ -15,7 +15,7 @@
 */
 
 import { FhlLecture } from "./FhlLecture.es2023.js";
-import { requestFullscreen } from "./requestFullscreen.es2023.js";
+import { toggleFullscreen, watchFullscreen } from "./requestFullscreen.es2023.js";
 import { coreInfoWindowShowHide } from "./coreInfoWindowShowHide.es2023.js";
 
 export class WindowControl {
@@ -63,20 +63,9 @@ export class WindowControl {
         }
       }
     );
-    // 第4個功能 全螢幕顯示與隱藏
-    $('#fullscreenControl').on('click',
-      function (e) {
-        const that = $(e.currentTarget)
-
-        if (that.hasClass('selected')) {
-          setTimeout(function () { that.removeClass('selected'); }, 1);
-        }
-        else {
-          requestFullscreen();
-          setTimeout(function () { that.addClass('selected'); }, 1);
-        }
-      }
-    )
+    // 第4個功能 全螢幕顯示與隱藏 (按鈕的 selected 由 fullscreenchange 決定，按 Esc 離開也會跟著)
+    watchFullscreen()
+    $('#fullscreenControl').on('click', () => toggleFullscreen())
 
   }
   render(ps, dom) {
