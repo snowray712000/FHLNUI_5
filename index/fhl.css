@@ -2301,6 +2301,8 @@ body.parsing-split-resizing, body.parsing-split-resizing * { cursor: row-resize 
 .search-scope-btn:hover { background: var(--brand); color: var(--fg-on-accent); }
 .search-scope-btn { font-size: calc(0.65rem * var(--ui-k, 1)); }
 .intro-help-body { font-size: calc(12pt * var(--ui-k, 1)); }
+.intro-help-wide { max-width: 60em; margin: 0 auto; } /* 視窗幾乎滿版時，文字欄限寬置中才好讀 */
+.intro-help-body details > summary { cursor: pointer; font-weight: bold; margin: 0.6em 0 0.3em; color: var(--brand-fg); } /* 紫色 (同 ? 按鈕)，一眼看出可以點開 */
 /* 對話框標題列裡的 ? (SN 篩選顯示)：標題文字與 ? 垂直置中對齊 (vertical-align: middle 對中文字會偏低) */
 .ui-dialog-title:has(> .intro-help) {
     display: flex;

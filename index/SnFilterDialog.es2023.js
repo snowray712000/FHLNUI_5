@@ -303,6 +303,7 @@ export class SnFilterDialog {
         const setBy = by => { f.leitBy = by; f.save(); f.applyAll(); this.#renderRank() }
         const byRow = el('div', { class: 'snf-row' },
             el('label', { class: 'snf-opt' }, el('input', { type: 'radio', name: 'snfrank', checked: f.leitBy == 'feature', onchange: () => setBy('feature') }), t('本章特色')),
+            el('button', { type: 'button', class: 'intro-help', title: t('本章特色是什麼？'), text: '?' }),
             el('label', { class: 'snf-opt' }, el('input', { type: 'radio', name: 'snfrank', checked: f.leitBy == 'count', onchange: () => setBy('count') }), t('次數')),
             el('span', { class: 'snf-note', text: t('實詞，和合本的次數；特色 = 比它在全' + unit + '的頻率該有的次數多出多少 (常用字如「是」「說」不會排前面)') }))
         details.append(byRow)
@@ -351,6 +352,7 @@ export class SnFilterDialog {
             }
         }
         box.replaceChildren(details)
+        bindIntroHelp($(box), 'leit') // 本章特色旁的 ?
     }
 
     /**
