@@ -7,7 +7,9 @@ var fhlmap_engs_prev = ""; //防止同一章一直載入
 var fhlmap_chap_prev = -1; //防止同一章一直載入
 var fhlmap_titleId_prev = ""; //當切換成地圖以外功能,又切換回來的時候.要切換章才會顯示
 var ptsAllForAutoZoom = []; // 一章載入後，所有的點資訊，作為 auto zoom 使用。
-var markersLast = []; // 切換到下一章的時候，要清除掉上一章的所有 marker
+var markersLast = [];
+var fhlmap_resizeObs = null; // 拖分隔條時容器變大小，window 沒有 resize 事件，要自己通知 leaflet
+ // 切換到下一章的時候，要清除掉上一章的所有 marker
 
 function generateMap(idMapDiv) {
   var ptJerusalem = [31.786235, 35.202731]; //耶路撒冷
@@ -43,6 +45,31 @@ function generateMap(idMapDiv) {
     'Humanitarian 高對比圖': humanitarianLayer
   }).addTo(map);
 
+  // 「自動範圍」按鈕：回到本章所有地名的範圍 (本章沒有地名就不動)
+  var FitControl = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: function () {
+      var bar = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+      var a = L.DomUtil.create('a', 'fhlmap-fit', bar);
+      a.href = '#';
+      a.title = '自動範圍：縮放到本章所有地名';
+      a.setAttribute('role', 'button');
+      a.innerHTML = '&#9974;'; // ⛶
+      L.DomEvent.disableClickPropagation(bar);
+      L.DomEvent.on(a, 'click', function (e) {
+        L.DomEvent.preventDefault(e);
+        if (ptsAllForAutoZoom.length != 0) map.fitBounds(ptsAllForAutoZoom);
+      });
+      return bar;
+    }
+  });
+  new FitControl().addTo(map);
+
+  if (window.ResizeObserver) {
+    fhlmap_resizeObs = new ResizeObserver(function () { map.invalidateSize(); });
+    fhlmap_resizeObs.observe(idMapDiv);
+  }
+
   return map;
 }
 
@@ -64,6 +91,10 @@ function objpath2coordinate(objpathStr) {
  * 否則 leaflet 的 wheel(preventDefault)、touch-action:none 會留著，其它分頁 (如註釋) 就無法捲動
  */
 function fhlmap_dispose() {
+  if (fhlmap_resizeObs != null) {
+    fhlmap_resizeObs.disconnect();
+    fhlmap_resizeObs = null;
+  }
   if (rfhlmap != null) {
     rfhlmap.remove();
     rfhlmap = null;
