@@ -1719,6 +1719,11 @@ body {
     color: var(--accent-fg);
     font-weight: bold;
 }
+.snf-dlg.snf-tabpane { /* 右側「排序」分頁：撐滿分頁高度，清單自己捲 */
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0.4em 0.6em;
+}
 .snf-dlg .snf-rank-title {
     font-weight: bold;
     margin: 0.2em 0;

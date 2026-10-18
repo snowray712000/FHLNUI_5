@@ -20,6 +20,7 @@ import { BookSelect } from './BookSelect.es2023.js'
 import { ParsingCache } from './ParsingCache_es2023.js'
 import { parsing_render_async } from './parsing_render_async_es2023.js'
 import { assert } from './assert_es2023.js'
+import { SnFilterDialog } from './SnFilterDialog.es2023.js'
 
 /**
  * 延後載入：切到該分頁才下載，build 後各自成為獨立 chunk（首次載入少約 250KB 原始碼）。
@@ -264,6 +265,9 @@ export class FhlInfoContent {
             case "fhlInfoParsing":
                 parsing_render_async()
                 break;
+            case "fhlSnRank":
+                SnFilterDialog.s.renderRankTab(dom?.[0] ?? dom)
+                break
             case "fhlInfoComment":
                 lazyComment.run(ps.titleId, m => m.comment_render_async())
                 break

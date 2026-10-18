@@ -10,9 +10,9 @@ import { BibleConstantHelper } from "./BibleConstantHelper.es2023.js";
 import { SN_Act_Color } from "./SN_Act_Color.es2023.js";
 
 const TAB_KEY = 'snfTab'
-/** 上次停的分頁 @returns {'combo'|'rank'|'detail'} */
+/** 上次停的分頁 (本章排行已移到右側工具列的「排序」分頁) @returns {'combo'|'detail'} */
 function readTab() {
-    try { const v = localStorage.getItem(TAB_KEY); if (v == 'rank' || v == 'detail') return v } catch { }
+    try { const v = localStorage.getItem(TAB_KEY); if (v == 'detail') return v } catch { }
     return 'combo'
 }
 
@@ -33,7 +33,7 @@ export class SnFilterDialog {
     #dlgHtml = null
     /** @type {HTMLElement} */
     #root = null
-    /** 目前的分頁 (存 localStorage，下次開啟回到這裡) @type {'combo'|'rank'|'detail'} */
+    /** 目前的分頁 (存 localStorage，下次開啟回到這裡) @type {'combo'|'detail'} */
     #tab = readTab()
     /** 細項分頁正在編輯新約 G 或舊約 H；null = 跟著正在讀的書卷 (使用者切過就固定，到對話框關閉) @type {'G'|'H'|null} */
     #detailTp = null
@@ -75,9 +75,7 @@ export class SnFilterDialog {
                 bar.find('.ui-dialog-title').append(helpButtonHtml('原文SN'))
                 bindIntroHelp(bar, 'sn')
                 dlg.on('dialogclose', () => {
-                    this.#dlgHtml = null; this.#root = null; this.#rankBox = null; this.#detailTp = null
-                    this.#lecObserver?.disconnect(); this.#lecObserver = null
-                    clearTimeout(this.#rankTimer)
+                    this.#dlgHtml = null; this.#root = null; this.#detailTp = null
                 })
                 this.render()
             },
@@ -225,27 +223,33 @@ export class SnFilterDialog {
                 detailTp == 'G'
                     ? testament('nt', '新約 (希臘文 G，含七十士譯本)', 'G1063 G1161 G3767')
                     : testament('ot', '舊約 (希伯來文 H)', 'H3068 H430 H3588'),
-                el('div', { class: 'snf-note', text: t('勾選的詞類、主導詞、另外加的 SN，符合任一就顯示；排除的一定不顯示。詞類以原文字典形判斷 (同一字可能兼兩種詞類)。主導詞在「本章排行」分頁設定。SN 可貼上 G1063、<1063>，沒寫 G、H 的會自動放到對的框。') })))
+                el('div', { class: 'snf-note', text: t('勾選的詞類、主導詞、另外加的 SN，符合任一就顯示；排除的一定不顯示。詞類以原文字典形判斷 (同一字可能兼兩種詞類)。主導詞在工具列的「排序」分頁設定。SN 可貼上 G1063、<1063>，沒寫 G、H 的會自動放到對的框。') })))
         const comboPanel = el('div', {},
             modeRow,
             lensRow,
             customRow,
             el('div', { class: isFilter ? '' : 'snf-disabled' }, hideRow),
             colorRow)
-        this.#rankBox = this.#tab == 'rank' ? el('div', { class: 'snf-rank' }) : null
-        const panels = { combo: comboPanel, rank: this.#rankBox, detail: detailPanel }
+        const panels = { combo: comboPanel, detail: detailPanel }
         const tabBtn = (id, text) => el('button', {
             type: 'button', class: 'snf-tab' + (id == this.#tab ? ' active' : ''), role: 'tab', 'aria-selected': id == this.#tab, text: t(text),
             onclick: () => this.#setTab(id),
         })
         this.#root.replaceChildren(
-            el('div', { class: 'snf-tabs', role: 'tablist' }, tabBtn('combo', '組合'), tabBtn('rank', '本章排行'), tabBtn('detail', '細項')),
+            el('div', { class: 'snf-tabs', role: 'tablist' }, tabBtn('combo', '組合'), tabBtn('detail', '細項')),
             panels[this.#tab])
+        this.#renderRank() // 「排序」分頁開著時一起更新
+    }
+
+    /** 右側工具列「排序」分頁：把本章排行畫進 dom (FhlInfoContent 呼叫)，換章時自動更新 */
+    renderRankTab(dom) {
+        const box = this.#rankBox = el('div', { class: 'snf-rank' })
+        dom.replaceChildren(el('div', { class: 'snf-dlg snf-tabpane' }, box))
         this.#renderRank()
         this.#watchLecture()
     }
 
-    /** @param {'combo'|'rank'|'detail'} id */
+    /** @param {'combo'|'detail'} id */
     #setTab(id) {
         if (id == this.#tab) return
         this.#tab = id
@@ -331,7 +335,7 @@ export class SnFilterDialog {
                     el('span', {
                         class: 'snf-rk-add', text: isShown ? '−' : '＋',
                         title: t(isShown ? '不要顯示這個字 (排除)' : src == 'exclude' ? '取消排除' : '另外加進來顯示'),
-                        onclick: ev => { ev.stopPropagation(); f.setSnShown(r.tp, a.sn, !isShown); this.render() },
+                        onclick: ev => { ev.stopPropagation(); f.setSnShown(r.tp, a.sn, !isShown); this.render(); this.#renderRank() },
                     }))
             })
             details.append(el('div', { class: 'snf-note snf-rk-legend snf-rk-hint' },
@@ -500,6 +504,7 @@ export class SnFilterDialog {
             f.applyAll()
         }
         this.render()
+        this.#renderRank()
     }
 
     /**

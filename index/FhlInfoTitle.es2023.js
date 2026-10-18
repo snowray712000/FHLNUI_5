@@ -163,6 +163,7 @@ export class FhlInfoTitle {
         if (ps.gb === 1) {
             this.title = [
                 { "name": "原文", "id": "fhlInfoParsing" },
+                { "name": "排序", "id": "fhlSnRank" },
                 { "name": "注释", "id": "fhlInfoComment" },
                 { "name": "讲道", "id": "fhlInfoPreach" },
                 { "name": "串珠", "id": "fhlInfoTsk" },
@@ -175,6 +176,7 @@ export class FhlInfoTitle {
         } else {
             this.title = [
                 { "name": "原文", "id": "fhlInfoParsing" },
+                { "name": "排序", "id": "fhlSnRank" },
                 { "name": "註釋", "id": "fhlInfoComment" },
                 { "name": "講道", "id": "fhlInfoPreach" },
                 { "name": "串珠", "id": "fhlInfoTsk" },
