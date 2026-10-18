@@ -1726,18 +1726,57 @@ body {
 .snf-dlg .snf-rank {
     margin: 0.4em 0;
 }
+/* 本章排行：清單撐滿對話框剩下的高度 (不再固定 16em，下方不留空白) */
+.ui-dialog-content:has(> .snf-dlg > .snf-rank) {
+    display: flex;
+    flex-direction: column;
+}
+.snf-dlg:has(> .snf-rank) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.snf-dlg .snf-rank {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.snf-dlg .snf-rank-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
 .snf-dlg .snf-rk-list {
-    max-height: 16em;
+    flex: 1;
+    min-height: 6em;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 .snf-dlg .snf-rk {
     display: grid;
-    grid-template-columns: 2em 5em minmax(3em, 1fr) 6em 3em 1.8em;
+    grid-template-columns: 2em 5em minmax(2em, 1fr) minmax(0, 6em) 3em 1.8em; /* 窄時藍條先縮，次數與 ＋− 一直露出 */
     align-items: center;
     gap: 0 0.5em;
     padding: 0.1em 0.3em;
     border-radius: 4px;
     cursor: pointer;
+}
+.snf-dlg .snf-rank {
+    container-type: inline-size;
+}
+/* 窄時：欄與欄的空白收緊 (序號 / SN / 字 / 藍條 / 次數 / ＋−) */
+@container (max-width: 30em) {
+    .snf-dlg .snf-rank .snf-rk-hint {
+        display: none;
+    }
+    .snf-dlg .snf-rk {
+        grid-template-columns: 1.3em 3.6em minmax(2em, 1fr) minmax(0, 4em) 2em 1.3em;
+        gap: 0 0.2em;
+        padding: 0.1em 0;
+    }
 }
 .snf-dlg .snf-rk:hover {
     background: var(--hover-bg);

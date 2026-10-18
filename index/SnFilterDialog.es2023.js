@@ -294,7 +294,7 @@ export class SnFilterDialog {
             ...[2, 3, 4, 5, 8].map(n => leitOpt('c' + n, `≥ ${n} ${t('次')}`)))
         details.append(el('div', { class: 'snf-row' },
             el('span', { class: 'snf-lbl', text: t('本章主導詞') }), leitSel,
-            el('span', { class: 'snf-note', text: t('依下面的名次顯示前幾名，或出現 ≥ N 次的名詞、動詞、形容詞；SN 要設成「只顯示指定的」才會套用到經文') })))
+            el('span', { class: 'snf-note snf-rk-hint', text: t('依下面的名次顯示前幾名，或出現 ≥ N 次的名詞、動詞、形容詞；SN 要設成「只顯示指定的」才會套用到經文') })))
         if (r != null && cfg.leitTop > 0) {
             // 並列的一起算進來，實際個數可能多於設定 (例：第 3 名有 3 個字同分，設前 3 名會顯示 5 個)
             const n = topOfRanking(r.list, cfg.leitTop, f.leitBy).length
@@ -304,8 +304,7 @@ export class SnFilterDialog {
         const byRow = el('div', { class: 'snf-row' },
             el('label', { class: 'snf-opt' }, el('input', { type: 'radio', name: 'snfrank', checked: f.leitBy == 'feature', onchange: () => setBy('feature') }), t('本章特色')),
             el('button', { type: 'button', class: 'intro-help', title: t('本章特色是什麼？'), text: '?' }),
-            el('label', { class: 'snf-opt' }, el('input', { type: 'radio', name: 'snfrank', checked: f.leitBy == 'count', onchange: () => setBy('count') }), t('次數')),
-            el('span', { class: 'snf-note', text: t('實詞，和合本的次數；特色 = 比它在全' + unit + '的頻率該有的次數多出多少 (常用字如「是」「說」不會排前面)') }))
+            el('label', { class: 'snf-opt' }, el('input', { type: 'radio', name: 'snfrank', checked: f.leitBy == 'count', onchange: () => setBy('count') }), t('次數')))
         details.append(byRow)
         if (r == null) {
             details.append(el('div', { class: 'snf-note', text: t('載入中…') }))
@@ -335,7 +334,7 @@ export class SnFilterDialog {
                         onclick: ev => { ev.stopPropagation(); f.setSnShown(r.tp, a.sn, !isShown); this.render() },
                     }))
             })
-            details.append(el('div', { class: 'snf-note snf-rk-legend' },
+            details.append(el('div', { class: 'snf-note snf-rk-legend snf-rk-hint' },
                 el('span', { class: 'snf-rk-sn snf-rk-lg-rule', text: t('藍') }), t('依規則顯示'), ' ',
                 el('span', { class: 'snf-rk-sn snf-rk-lg-sns', text: t('紅') }), t('另外加'), ' ',
                 el('span', { class: 'snf-rk-sn', text: t('灰') }), t('不顯示 (刪除線 = 排除)；按 ＋ / − 加入或排除')))
