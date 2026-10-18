@@ -174,7 +174,7 @@ body {
     margin: 0px;
     overflow: hidden;
     background-color: var(--app-bg);
-    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif !important;
+    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "WenQuanYi Micro Hei", "Microsoft JhengHei", sans-serif !important;
 }
 #mainWindow {
     position: absolute;
@@ -1432,7 +1432,7 @@ body {
     border-width: 1px 1px 0px;
 }
 #lecMain {
-    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif !important;
+    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "WenQuanYi Micro Hei", "Microsoft JhengHei", sans-serif !important;
     position: absolute;
     top: var(--bar-h);
     left: 0px;
@@ -1458,7 +1458,7 @@ body {
     margin:0px;
     font-size: var(--fontsize-sn);
     font-weight: bold;
-    font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+    font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "WenQuanYi Micro Hei", sans-serif;
 }
 .sn-text {
     cursor: pointer;
@@ -1762,7 +1762,7 @@ body {
 }
 .snf-dlg .snf-rk {
     display: grid;
-    grid-template-columns: 2em 5em minmax(2em, 1fr) minmax(0, 6em) 3em 1.8em; /* 窄時藍條先縮，次數與 ＋− 一直露出 */
+    grid-template-columns: 2.4em 5em minmax(2em, 1fr) minmax(0, 6em) 3em 1.8em; /* 窄時藍條先縮，次數與 ＋− 一直露出 */
     align-items: center;
     gap: 0 0.5em;
     padding: 0.1em 0.3em;
@@ -1778,7 +1778,7 @@ body {
         display: none;
     }
     .snf-dlg .snf-rk {
-        grid-template-columns: 1.3em 3.6em minmax(2em, 1fr) minmax(0, 4em) 2em 1.3em;
+        grid-template-columns: 1.9em 3.6em minmax(2em, 1fr) minmax(0, 4em) 2em 1.3em;
         gap: 0 0.2em;
         padding: 0.1em 0;
     }
@@ -1787,6 +1787,7 @@ body {
     background: var(--hover-bg);
 }
 .snf-dlg .snf-rk-n {
+    white-space: nowrap; /* 字大時序號 (十位數以上) 不要折行 */
     text-align: right;
     color: var(--fg-muted);
 }
@@ -2032,7 +2033,7 @@ body {
   bottom: 0px;
   /*font: 18px/24px bold ,Microsoft JhengHei;*/
   font: calc(10pt * var(--ui-k, 1))/1.5 bold;
-  font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif !important;
+  font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "WenQuanYi Micro Hei", "Microsoft JhengHei", sans-serif !important;
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
   padding-right:0px;/*15px*/
@@ -2108,7 +2109,7 @@ body {
     text-decoration: underline;
 }
 #commentContent {
-    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    font-family: LatinQuotes,'Zen Maru Gothic','GenSenRounded', "Hiragino Maru Gothic ProN", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "WenQuanYi Micro Hei", "Microsoft JhengHei", sans-serif;
     position: relative;
     flex: 1 1 auto;
     min-height: 0;
