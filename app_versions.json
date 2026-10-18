@@ -21,7 +21,7 @@
                 "na": "7.6.2.5",
                 "na2":
                 [
-                    "🐞 修正: Mac / iPad (Safari) 沒有安裝圓體字型時，經文與介面不再退回瀏覽器預設字型；加入蘋方、Noto Sans TC、微軟正黑體等後備字型，沒有 Zen Maru Gothic 的電腦也能顯示乾淨的無襯線體"
+                    "🐞 修正: Mac / iPad (Safari) 沒有安裝圓體字型時，經文與介面不再退回瀏覽器預設字型；加入蘋方、Noto Sans TC / Noto Sans CJK TC (Ubuntu)、文泉驛微米黑、微軟正黑體等後備字型，沒有 Zen Maru Gothic 的電腦也能顯示乾淨的無襯線體"
                 ]
             },{
                 "na": "7.6.2.4",
