@@ -8,6 +8,7 @@ import { cssVar } from './theme/Theme.es2023.js'
 import { BookRegistry } from './BookRegistry.es2023.js'
 import { getBookFunc } from './getBookFunc.es2023.js'
 import { BookSelectPopUp } from './BookSelectPopUp.es2023.js';
+import { bindIntroHelp } from './IntroHelp.es2023.js'
 import { FhlLecture } from './FhlLecture.es2023.js';
 import { FhlInfo } from './FhlInfo.es2023.js';
 import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js';
@@ -71,6 +72,7 @@ export class BookSelect {
                     $(document).trigger('chapchanged');
                 })
                 
+                bindIntroHelp($('#book-chap-dialog'), 'af') // 「使徒教父」頁籤按鈕裡的 ?
                 Ijnjs.BookChapDialog.s.show({ book: ps.bookIndex, chap: ps.chap, isGb: ps.gb == 1 })
             } else {
                 if (BookSelectPopUp.s.dom.is(":visible")) {

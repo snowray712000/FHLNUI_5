@@ -9,6 +9,7 @@ const SAME_HELP_URL = 'docs/同源字說明.md'
 const SN_HELP_URL = 'docs/SN說明.md'
 const SEARCH_HELP_URL = 'docs/搜尋說明.md'
 const LEIT_HELP_URL = 'docs/本章特色說明.md'
+const AF_HELP_URL = 'docs/使徒教父說明.md'
 
 /** @type {DialogHtml | null} */
 let helpDlg = null
@@ -24,10 +25,10 @@ export const SAME_TITLE_HTML = `<span class="item-title">同源字${helpButtonHt
 /**
  * 在 root 內按 .intro-help 開說明 (同時只開一個)
  * @param {JQuery<HTMLElement>} root
- * @param {'same'|'sn'|'search'|'leit'} [kind]
+ * @param {'same'|'sn'|'search'|'leit'|'af'} [kind]
  */
 export function bindIntroHelp(root, kind = 'same') {
-    const [url, title, isWide] = { sn: [SN_HELP_URL, '原文SN'], search: [SEARCH_HELP_URL, '搜尋'], leit: [LEIT_HELP_URL, '本章特色', true] }[kind] ?? [SAME_HELP_URL, '同源字']
+    const [url, title, isWide] = { sn: [SN_HELP_URL, '原文SN'], search: [SEARCH_HELP_URL, '搜尋'], leit: [LEIT_HELP_URL, '本章特色', true], af: [AF_HELP_URL, '使徒教父', true] }[kind] ?? [SAME_HELP_URL, '同源字']
     root.off('click.introHelp').on('click.introHelp', '.intro-help', e => { e.stopPropagation(); showIntroHelpAsync(e.currentTarget, url, title, isWide) })
 }
 export const bindSameHelp = dlg => bindIntroHelp(dlg, 'same')

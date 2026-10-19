@@ -178,7 +178,9 @@
                 // 依 opt 屬性找按鈕，不用位置 (加了「使徒教父」之後位置會變)
                 var af = window.bookRegistry // 使徒教父 (201–217) 的書卷表 (index/BookRegistry.es2023.js)，載入失敗就沒有這一頁
                 toolbarOpt('af').toggle(!!af && af.ids('af').length > 0)
-                toolbarOpt('af').off('click').on('click', function () {
+                toolbarOpt('af').off('click').on('click', function (e) {
+                    // 按鈕裡的 ? (說明 docs/使徒教父說明.md，點擊由 BookSelect.es2023.js 綁 bindIntroHelp)：只開說明，不切到使徒教父這一頁
+                    if ($(e.target).closest('.intro-help').length) return
                     // 使徒教父
                     $(this).trigger('focus')
                     lastClickToolbarItem = $(this)

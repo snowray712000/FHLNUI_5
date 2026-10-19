@@ -3,6 +3,7 @@ import { getBookFunc } from "./getBookFunc.es2023.js"
 import { gbText } from "./gbText.es2023.js";
 import { BibleConstant } from "./BibleConstant.es2023.js";
 import { BookRegistry } from "./BookRegistry.es2023.js";
+import { helpButtonHtml, bindIntroHelp } from "./IntroHelp.es2023.js";
 export class BookSelectName {
     static #s = null
     /** @returns {BookSelectName} */
@@ -213,7 +214,7 @@ export class BookSelectName {
         // 使徒教父 (201–217)：書卷表由 BookRegistry.loadAfAsync 載入 (hash_change_on_initial)，沒載到就沒有這一欄
         const afIds = BookRegistry.ids('af')
         if (afIds.length) {
-            html += "<li class='af-col'><span class='bookClass'>" + gbt("使徒教父") + "</span><ul>";
+            html += "<li class='af-col'><span class='bookClass'>" + gbt("使徒教父") + helpButtonHtml('使徒教父') + "</span><ul>";
             for (const id of afIds) {
                 html += "<li data-bid='" + id + "' chineses='" + BookRegistry.nameShort(id, ps.gb == 1) + "'><span>" + BookRegistry.nameFull(id, ps.gb == 1) + "<i class='fa fa-angle-right fa-fw'></i></span></li>";
             }
@@ -222,6 +223,7 @@ export class BookSelectName {
         html += "<li></li></ul></div>";
 
         dom.html(html);
+        bindIntroHelp(dom, 'af') // 「使徒教父」欄標題旁的 ?
 
         for (var i = 0; i < nagb.length; i++) { // 只有新舊約 66 卷；使徒教父的 li 上面已經帶屬性
             dom.find('li li:eq(' + i + ')').attr('chineses', BibleConstant.CHINESE_BOOK_ABBREVIATIONS[i]);
