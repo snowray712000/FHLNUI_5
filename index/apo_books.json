@@ -1,0 +1,25 @@
+{
+  "note": "由 tools/gen_apo_books.mjs 產生 (npm run gen:apo)，不要手改。verses[chap-1] = 該章最大節號 (c1933 與 chdc 的聯集)；merged = c1933 文字只有 a (併入上節) 的 \"章:節\"；missing = 各文本沒有的章。nameZh / abbrZh 是信望愛站名 (預設)，nameAlt / abbrAlt 是天主教通行名",
+  "generated": "2026-10-19",
+  "source": "qsub.php (c1933 1933年聖公會出版、chdc 1933年次經全書)",
+  "corpus": "apo",
+  "idRange": [101, 199],
+  "versions": ["c1933","chdc"],
+  "books": [
+    {"id":101,"nameZh":"瑪喀比傳上卷","nameZhGb":"玛喀比传上卷","abbrZh":"馬一","abbrZhGb":"马一","nameAlt":"瑪加伯上","nameAltGb":"玛加伯上","abbrAlt":"加上","abbrAltGb":"加上","engs":"1Mc","chapCount":16,"verses":[64,70,60,61,68,63,50,32,73,89,74,53,53,49,41,24],"merged":["1:6","3:48","4:4","6:23","6:24","9:29","10:26","15:12"],"missing":{"c1933":[],"chdc":[]}},
+    {"id":102,"nameZh":"瑪喀比傳下卷","nameZhGb":"玛喀比传下卷","abbrZh":"馬二","abbrZhGb":"马二","nameAlt":"瑪加伯下","nameAltGb":"玛加伯下","abbrAlt":"加下","abbrAltGb":"加下","engs":"2Mc","chapCount":15,"verses":[36,32,40,50,27,31,42,36,29,38,38,45,26,46,39],"merged":["1:21"],"missing":{"c1933":[],"chdc":[]}},
+    {"id":103,"nameZh":"多比傳","nameZhGb":"多比传","abbrZh":"比","abbrZhGb":"比","nameAlt":"多俾亞傳","nameAltGb":"多俾亚传","abbrAlt":"多俾","abbrAltGb":"多俾","engs":"Tb","chapCount":14,"verses":[22,14,17,21,22,17,18,21,6,13,18,22,18,15],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":104,"nameZh":"猶滴傳","nameZhGb":"犹滴传","abbrZh":"滴","abbrZhGb":"滴","nameAlt":"友弟德傳","nameAltGb":"友弟德传","abbrAlt":"友弟","abbrAltGb":"友弟","engs":"Jth","chapCount":16,"verses":[16,28,10,15,24,21,32,36,14,23,23,20,20,19,14,25],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":105,"nameZh":"便西拉智訓","nameZhGb":"便西拉智训","abbrZh":"便","abbrZhGb":"便","nameAlt":"德訓篇","nameAltGb":"德训篇","abbrAlt":"德訓","abbrAltGb":"德训","engs":"Sir","chapCount":51,"verses":[30,18,31,31,15,37,36,19,18,32,34,18,26,27,20,30,32,33,30,31,28,27,27,34,26,29,30,26,28,25,31,24,31,26,20,26,31,34,35,30,22,25,33,24,26,20,24,25,16,29,30],"merged":["3:19","10:15","17:7","19:3","20:3","24:6","24:7","24:8","25:8","28:9","37:21","43:7"],"missing":{"c1933":[],"chdc":[]}},
+    {"id":106,"nameZh":"所羅門智訓","nameZhGb":"所罗门智训","abbrZh":"所","abbrZhGb":"所","nameAlt":"智慧篇","nameAltGb":"智慧篇","abbrAlt":"智慧","abbrAltGb":"智慧","engs":"Ws","chapCount":19,"verses":[16,24,19,20,23,25,30,21,18,21,26,27,19,31,19,29,21,25,22],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":107,"nameZh":"以斯拉續編上卷","nameZhGb":"以斯拉续编上卷","abbrZh":"拉上","abbrZhGb":"拉上","nameAlt":"以斯拉上","nameAltGb":"以斯拉上","abbrAlt":"拉上","abbrAltGb":"拉上","engs":"1Es","chapCount":5,"verses":[107,1,24,63,6],"merged":["3:2","4:52"],"missing":{"c1933":[],"chdc":[1,2]}},
+    {"id":108,"nameZh":"以斯拉續編下卷","nameZhGb":"以斯拉续编下卷","abbrZh":"拉下","abbrZhGb":"拉下","nameAlt":"以斯拉下","nameAltGb":"以斯拉下","abbrAlt":"拉下","abbrAltGb":"拉下","engs":"2Es","chapCount":16,"verses":[40,48,36,52,56,59,140,63,47,59,46,51,58,48,63,78],"merged":["14:3","16:35","16:48"],"missing":{"c1933":[],"chdc":[]}},
+    {"id":109,"nameZh":"巴錄書","nameZhGb":"巴录书","abbrZh":"巴","abbrZhGb":"巴","nameAlt":"巴錄書","nameAltGb":"巴录书","abbrAlt":"巴","abbrAltGb":"巴","engs":"Bar","chapCount":5,"verses":[22,35,37,37,9],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":110,"nameZh":"耶利米書信","nameZhGb":"耶利米书信","abbrZh":"耶信","abbrZhGb":"耶信","nameAlt":"耶利米書信","nameAltGb":"耶利米书信","abbrAlt":"耶信","abbrAltGb":"耶信","engs":"EpJer","chapCount":1,"verses":[73],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":111,"nameZh":"瑪拿西禱言","nameZhGb":"玛拿西祷言","abbrZh":"禱","abbrZhGb":"祷","nameAlt":"瑪拿西禱詞","nameAltGb":"玛拿西祷词","abbrAlt":"禱","abbrAltGb":"祷","engs":"PrM","chapCount":1,"verses":[15],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":112,"nameZh":"三童歌","nameZhGb":"三童歌","abbrZh":"童","abbrZhGb":"童","nameAlt":"三童歌","nameAltGb":"三童歌","abbrAlt":"童","abbrAltGb":"童","engs":"STHC","chapCount":1,"verses":[68],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":113,"nameZh":"蘇撒拿傳","nameZhGb":"苏撒拿传","abbrZh":"蘇","abbrZhGb":"苏","nameAlt":"蘇撒拿傳","nameAltGb":"苏撒拿传","abbrAlt":"蘇","abbrAltGb":"苏","engs":"Sus","chapCount":1,"verses":[64],"merged":[],"missing":{"c1933":[],"chdc":[]}},
+    {"id":114,"nameZh":"比勒與大龍","nameZhGb":"比勒与大龙","abbrZh":"勒","abbrZhGb":"勒","nameAlt":"彼勒與大龍","nameAltGb":"彼勒与大龙","abbrAlt":"勒","abbrAltGb":"勒","engs":"Bel","chapCount":1,"verses":[42],"merged":[],"missing":{"c1933":[],"chdc":[1]}},
+    {"id":115,"nameZh":"以斯帖補編","nameZhGb":"以斯帖补编","abbrZh":"斯補","abbrZhGb":"斯补","nameAlt":"以斯帖補篇","nameAltGb":"以斯帖补篇","abbrAlt":"斯補","abbrAltGb":"斯补","engs":"Re","chapCount":6,"verses":[17,7,30,16,24,11],"merged":[],"missing":{"c1933":[],"chdc":[]}}
+  ]
+}

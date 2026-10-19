@@ -5,7 +5,7 @@ import { BibleConstant } from "./BibleConstant.es2023.js";
  *
  * 書卷 id 用上游的真實編號，每一類佔一個百位段，id 不再是陣列索引 (不能再寫 `NAMES[book - 1]`)：
  * - 1–66     新舊約 (canon)，由 BibleConstant 填入
- * - 101–199  次經 (apo)，之後
+ * - 101–199  次經 (apo)，index/apo_books.json (npm run gen:apo)
  * - 201–299  使徒教父 (af)，index/af_books.json (npm run gen:af)
  * - 日後新增的資源，同類用下一個百位段
  *
@@ -22,6 +22,14 @@ import { BibleConstant } from "./BibleConstant.es2023.js";
  * @property {string} engs 英文縮寫
  * @property {number} chapCount 章數
  * @property {number[]} verses verses[chap - 1] = 該章最大節號；0 = 只有一個沒編號的段落 (sec=0)
+ * @property {string} [nameAlt] 另一套書名 (次經的天主教通行名)；沒有就只有 nameZh 這一套
+ * @property {string} [nameAltGb]
+ * @property {string} [abbrAlt]
+ * @property {string} [abbrAltGb]
+ * @property {string[]} [merged] 文字是「併入上節」佔位的節 "章:節" (次經 c1933)
+ * @property {Record<string, number[]>} [missing] 各文本沒有的章 (次經 chdc 沒有 107 第 1、2 章)
+ *
+ * @typedef {'fhl'|'alt'} NameStyle fhl = 信望愛站名 (預設)；alt = 通行名 (只對有 nameAlt 的書，目前是次經)
  */
 
 /** 每一類的 id 範圍 (含頭尾)。新類別在這裡加一列 */
@@ -64,15 +72,31 @@ export class BookRegistry {
         return [...books.values()].filter(b => b.corpus === corpus).map(b => b.id).sort((a, b) => a - b)
     }
 
+    /**
+     * 有兩套書名的書 (次經) 顯示哪一套：'fhl' 信望愛站名 (預設)、'alt' 通行名。
+     * 只影響 nameFull / nameShort；兩套名字不論設定都認得 (idOfName)。沒有第二套的書不受影響
+     * @param {NameStyle} style
+     */
+    static setNameStyle(style) {
+        if (style !== 'fhl' && style !== 'alt') throw new Error(`未知的書名樣式: ${style}`)
+        nameStyle = style
+    }
+    /** @returns {NameStyle} */
+    static getNameStyle() { return nameStyle }
+
     /** 中文全名。沒有這一卷回 '' @param {number} id @param {boolean|0|1} [gb] */
     static nameFull(id, gb = false) {
         const b = books.get(id)
-        return b ? (gb ? b.nameZhGb : b.nameZh) : ''
+        if (!b) return ''
+        if (nameStyle === 'alt' && b.nameAlt) return gb ? b.nameAltGb : b.nameAlt
+        return gb ? b.nameZhGb : b.nameZh
     }
     /** 中文簡稱 */
     static nameShort(id, gb = false) {
         const b = books.get(id)
-        return b ? (gb ? b.abbrZhGb : b.abbrZh) : ''
+        if (!b) return ''
+        if (nameStyle === 'alt' && b.abbrAlt) return gb ? b.abbrAltGb : b.abbrAlt
+        return gb ? b.abbrZhGb : b.abbrZh
     }
     /** 英文縮寫 */
     static engs(id) { return books.get(id)?.engs ?? '' }
@@ -172,7 +196,9 @@ export class BookRegistry {
 
         for (const b of list) {
             books.set(b.id, { ...b, corpus })
-            for (const key of [b.nameZh, b.nameZhGb, b.abbrZh, b.abbrZhGb, b.engs]) {
+            // 第二套書名 (nameAlt…，次經) 也登記，所以不論顯示哪一套，輸入哪一套都認得
+            for (const key of [b.nameZh, b.nameZhGb, b.abbrZh, b.abbrZhGb, b.engs, b.nameAlt, b.nameAltGb, b.abbrAlt, b.abbrAltGb]) {
+                if (!key) continue
                 const k = key.toLowerCase()
                 const old = nameToId.get(k)
                 if (old != null && old !== b.id) throw new Error(`名稱 "${key}" 同時是 ${old} 與 ${b.id}`)
@@ -182,19 +208,29 @@ export class BookRegistry {
     }
 
     /**
-     * 載入使徒教父的書卷表 (index/af_books.json)，註冊成 af 類別。路徑相對於頁面 (dist/ 也是)
-     * P1 要在 index.js 啟動時 await 它，並把 af_books.json 加進 dist 的複製清單
+     * 載入某一類的書卷表 (index/af_books.json、index/apo_books.json)，註冊成該類別。路徑相對於頁面 (dist/ 也是；
+     * `index/` 整個資料夾都會複製到 dist，所以不用另外加複製清單)。同一類只載入一次，失敗 (離線) 下次可以再試
+     * @param {'af'|'apo'} corpus
      * @param {string} [url]
      */
-    static loadAfAsync(url = './index/af_books.json') {
-        afLoading ??= (async () => {
-            const { fetchJsonAsync } = await import('./fetchAsync.es2023.js')
-            const data = await fetchJsonAsync(url)
-            BookRegistry.registerCorpus('af', data.books)
-        })()
-        afLoading.catch(() => { afLoading = null }) // 失敗 (離線) 下次可以再試
-        return afLoading
+    static loadCorpusAsync(corpus, url = CORPUS_FILES[corpus]) {
+        if (!url) throw new Error(`沒有書卷表檔案的類別: ${corpus}`)
+        let p = corpusLoading.get(corpus)
+        if (p == null) {
+            p = (async () => {
+                const { fetchJsonAsync } = await import('./fetchAsync.es2023.js')
+                const data = await fetchJsonAsync(url)
+                BookRegistry.registerCorpus(corpus, data.books)
+            })()
+            corpusLoading.set(corpus, p)
+            p.catch(() => corpusLoading.delete(corpus))
+        }
+        return p
     }
+    /** 使徒教父 (保留舊名，呼叫端不用改) @param {string} [url] */
+    static loadAfAsync(url) { return BookRegistry.loadCorpusAsync('af', url) }
+    /** 次經 @param {string} [url] */
+    static loadApoAsync(url) { return BookRegistry.loadCorpusAsync('apo', url) }
 
     /**
      * 解析「書名 章[:節]」，只認新舊約以外已註冊的書，例如 `遺訓1:2`、`黑馬牧人書3`。
@@ -211,8 +247,12 @@ export class BookRegistry {
     }
 }
 
-/** @type {Promise<void>|null} */
-let afLoading = null
+/** 各類書卷表的檔案，路徑相對於頁面 */
+const CORPUS_FILES = { af: './index/af_books.json', apo: './index/apo_books.json' }
+/** @type {Map<string, Promise<void>>} */
+const corpusLoading = new Map()
+/** @type {NameStyle} */
+let nameStyle = 'fhl'
 
 // 新舊約：由 BibleConstant 的陣列填入 (陣列是 0 起算，id 是 1 起算)
 BookRegistry.registerCorpus('canon', BibleConstant.CHINESE_BOOK_NAMES.map((nameZh, i) => ({

@@ -1,14 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import fs from 'node:fs'
 import { BookRegistry, CORPUS_RANGES } from '../index/BookRegistry.es2023.js'
 import { BibleConstant } from '../index/BibleConstant.es2023.js'
 import { BibleConstantHelper } from '../index/BibleConstantHelper.es2023.js'
 
 const afJson = JSON.parse(fs.readFileSync(new URL('../index/af_books.json', import.meta.url), 'utf8'))
+const apoJson = JSON.parse(fs.readFileSync(new URL('../index/apo_books.json', import.meta.url), 'utf8'))
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
 
-// 每個測試前都重新註冊 af，免得測試註冊錯誤輸入時留下半套狀態
-beforeEach(() => BookRegistry.registerCorpus('af', afJson.books))
+// 每個測試前都重新註冊 af、apo，免得測試註冊錯誤輸入時留下半套狀態 (名稱與別類衝突的話，這裡就會丟錯)
+beforeEach(() => {
+    BookRegistry.setNameStyle('fhl')
+    BookRegistry.registerCorpus('af', afJson.books)
+    BookRegistry.registerCorpus('apo', apoJson.books)
+})
 
 describe('corpusOf / isCanon', () => {
     it('依百位段分類', () => {
@@ -111,12 +116,114 @@ describe('使徒教父 (index/af_books.json)', () => {
     })
 })
 
+describe('次經 (index/apo_books.json)', () => {
+    it('101–115 連續 15 本，都屬於 apo', () => {
+        expect(BookRegistry.ids('apo')).toEqual(range(101, 115))
+        expect(apoJson.books.map(b => b.id)).toEqual(range(101, 115))
+        for (const id of range(101, 115)) expect(BookRegistry.corpusOf(id)).toBe('apo')
+        expect(apoJson.corpus).toBe('apo')
+        expect(apoJson.idRange).toEqual(CORPUS_RANGES.apo)
+    })
+    it('每本都有兩套書名 + 簡體 + 英文縮寫，verses 與 chapCount 一致，沒有 sec=0', () => {
+        for (const b of apoJson.books) {
+            for (const k of ['nameZh', 'nameZhGb', 'abbrZh', 'abbrZhGb', 'nameAlt', 'nameAltGb', 'abbrAlt', 'abbrAltGb', 'engs']) expect(b[k], `${b.id} ${k}`).toBeTruthy()
+            expect(b.verses).toHaveLength(b.chapCount)
+            expect(b.verses.every(n => Number.isInteger(n) && n >= 1)).toBe(true) // 次經沒有 sec=0 的章
+        }
+    })
+    it('章數 (2026-10-19 實測)', () => {
+        expect(Object.fromEntries(apoJson.books.map(b => [b.id, b.chapCount]))).toEqual({
+            101: 16, 102: 15, 103: 14, 104: 16, 105: 51, 106: 19, 107: 5, 108: 16, 109: 5,
+            110: 1, 111: 1, 112: 1, 113: 1, 114: 1, 115: 6,
+        })
+    })
+    it('節數取 c1933 與 chdc 的聯集最大值 (chdc 多出 101:1:64、108:9:47)', () => {
+        expect(BookRegistry.countVerse(101, 1)).toBe(64)
+        expect(BookRegistry.countVerse(108, 9)).toBe(47)
+        expect(BookRegistry.countVerse(107, 1)).toBe(107)
+        expect(BookRegistry.countVerse(107, 2)).toBe(1)
+        expect(BookRegistry.countVerse(110, 1)).toBe(73)
+        expect(BookRegistry.countVerse(105, 51)).toBe(30)
+    })
+    it('併入上節共 26 節；缺章只有 chdc 的 107:1–2 與 114:1', () => {
+        expect(apoJson.books.flatMap(b => b.merged).length).toBe(26)
+        expect(BookRegistry.get(101).merged).toContain('1:6')
+        expect(BookRegistry.get(107).missing).toEqual({ c1933: [], chdc: [1, 2] })
+        expect(BookRegistry.get(114).missing).toEqual({ c1933: [], chdc: [1] })
+        for (const b of apoJson.books) expect(b.missing.c1933).toEqual([])
+    })
+    it('預設顯示信望愛站名，簡稱用上游 chineses', () => {
+        expect(BookRegistry.nameFull(103)).toBe('多比傳')
+        expect(BookRegistry.nameFull(103, true)).toBe('多比传')
+        expect(BookRegistry.nameShort(101)).toBe('馬一')
+        expect(BookRegistry.nameShort(111, true)).toBe('祷')
+        expect(BookRegistry.engs(115)).toBe('Re')
+    })
+    it('setNameStyle("alt") 只換次經的顯示；新舊約、使徒教父不變', () => {
+        BookRegistry.setNameStyle('alt')
+        expect(BookRegistry.getNameStyle()).toBe('alt')
+        expect(BookRegistry.nameFull(103)).toBe('多俾亞傳')
+        expect(BookRegistry.nameFull(104, true)).toBe('友弟德传')
+        expect(BookRegistry.nameShort(105)).toBe('德訓')
+        expect(BookRegistry.nameFull(1)).toBe('創世記')
+        expect(BookRegistry.nameFull(212)).toBe('十二使徒遺訓')
+        expect(BookRegistry.nameShort(212)).toBe('遺訓')
+        BookRegistry.setNameStyle('fhl')
+        expect(BookRegistry.nameFull(103)).toBe('多比傳')
+        expect(() => BookRegistry.setNameStyle('zzz')).toThrow(/未知/)
+        expect(BookRegistry.getNameStyle()).toBe('fhl')
+    })
+    it('兩套名字 (繁 / 簡 / 簡稱 / 英文) 不論顯示哪一套都認得', () => {
+        for (const style of ['fhl', 'alt']) {
+            BookRegistry.setNameStyle(style)
+            expect(BookRegistry.idOfName('猶滴傳')).toBe(104)
+            expect(BookRegistry.idOfName('友弟德傳')).toBe(104)
+            expect(BookRegistry.idOfName('友弟德传')).toBe(104)
+            expect(BookRegistry.idOfName('滴')).toBe(104)
+            expect(BookRegistry.idOfName('友弟')).toBe(104)
+            expect(BookRegistry.idOfName('JTH')).toBe(104)
+            expect(BookRegistry.idOfName('瑪加伯上')).toBe(101)
+            expect(BookRegistry.idOfName('瑪喀比傳上卷')).toBe(101)
+            expect(BookRegistry.idOfName('马一')).toBe(101)
+            expect(BookRegistry.idOfName('德訓篇')).toBe(105)
+            expect(BookRegistry.idOfName('便西拉智訓')).toBe(105)
+        }
+    })
+    it('簡稱不搶新舊約：多 = 提多書、拉 = 以斯拉記、斯 = 以斯帖記', () => {
+        expect(BookRegistry.idOfName('多')).toBe(56)
+        expect(BookRegistry.idOfName('拉')).toBe(15)
+        expect(BookRegistry.idOfName('斯')).toBe(17)
+        expect(BookRegistry.idOfName('拉上')).toBe(107)
+        expect(BookRegistry.idOfName('斯補')).toBe(115)
+    })
+    it('parseRef：兩套書名都能跳', () => {
+        expect(BookRegistry.parseRef('猶滴傳1:2')).toEqual({ book: 104, chap: 1, sec: 2 })
+        expect(BookRegistry.parseRef('友弟德傳3')).toEqual({ book: 104, chap: 3, sec: 1 })
+        expect(BookRegistry.parseRef('馬一2:3')).toEqual({ book: 101, chap: 2, sec: 3 })
+    })
+    it('同類別內上一卷 / 下一卷、上一章 / 下一章；不跨進 canon、af', () => {
+        expect(BookRegistry.nextBook(103)).toBe(104)
+        expect(BookRegistry.prevBook(101)).toBeNull()
+        expect(BookRegistry.nextBook(115)).toBeNull()
+        expect(BookRegistry.nextChap(101, 16)).toEqual([102, 1])
+        expect(BookRegistry.prevChap(102, 1)).toEqual([101, 16])
+        expect(BookRegistry.prevChap(101, 1)).toBeNull()
+        expect(BookRegistry.nextChap(115, 6)).toBeNull()
+        expect(BookRegistry.nextChap(110, 1)).toEqual([111, 1]) // 單章書也銜接
+    })
+    it('clampAddr', () => {
+        expect(BookRegistry.clampAddr(110, 9, 999)).toEqual({ book: 110, chap: 1, sec: 73 })
+        expect(BookRegistry.clampAddr(105, 99, 99)).toEqual({ book: 105, chap: 51, sec: 30 })
+    })
+})
+
 describe('名稱不能重複 (跨類別也是)', () => {
     it('全部書卷的 全名 / 簡稱 / 英文縮寫 (繁簡、小寫後) 一個名字只指一卷', () => {
         const seen = new Map()
-        for (const corpus of ['canon', 'af']) for (const id of BookRegistry.ids(corpus)) {
+        for (const corpus of ['canon', 'af', 'apo']) for (const id of BookRegistry.ids(corpus)) {
             const b = BookRegistry.get(id)
-            for (const k of new Set([b.nameZh, b.nameZhGb, b.abbrZh, b.abbrZhGb, b.engs].map(s => s.toLowerCase()))) {
+            const keys = [b.nameZh, b.nameZhGb, b.abbrZh, b.abbrZhGb, b.engs, b.nameAlt, b.nameAltGb, b.abbrAlt, b.abbrAltGb]
+            for (const k of new Set(keys.filter(Boolean).map(s => s.toLowerCase()))) {
                 expect(seen.has(k) ? `${k} → ${seen.get(k)} 與 ${id}` : null).toBeNull()
                 seen.set(k, id)
             }
@@ -192,14 +299,20 @@ describe('clampAddr (hash、搜尋框跳轉共用)', () => {
 })
 
 describe('沒註冊的書：安全的預設值，不丟錯', () => {
-    it('apo (之後才有)', () => {
-        expect(BookRegistry.has(101)).toBe(false)
-        expect(BookRegistry.get(101)).toBeNull()
+    it('apo 範圍內但沒有這一卷 (116)；apo 整類還沒載入時也一樣', () => {
+        for (const reg of [() => {}, () => BookRegistry.registerCorpus('apo', [])]) {
+            reg()
+            expect(BookRegistry.has(116)).toBe(false)
+            expect(BookRegistry.get(116)).toBeNull()
+            expect(BookRegistry.nameFull(116)).toBe('')
+            expect(BookRegistry.nameShort(116)).toBe('')
+            expect(BookRegistry.engs(116)).toBe('')
+            expect(BookRegistry.countChap(116)).toBe(0)
+            expect(BookRegistry.corpusOf(116)).toBe('apo') // 只看範圍
+        }
         expect(BookRegistry.ids('apo')).toEqual([])
         expect(BookRegistry.nameFull(101)).toBe('')
-        expect(BookRegistry.nameShort(101)).toBe('')
-        expect(BookRegistry.engs(101)).toBe('')
-        expect(BookRegistry.countChap(101)).toBe(0)
+        expect(BookRegistry.idOfName('猶滴傳')).toBe(-1)
     })
 })
 
@@ -232,5 +345,28 @@ describe('registerCorpus', () => {
         BookRegistry.registerCorpus('af', [])
         expect(BookRegistry.ids('canon')).toEqual(range(1, 66))
         expect(BibleConstant.CHINESE_BOOK_NAMES).toHaveLength(66)
+    })
+})
+
+describe('loadCorpusAsync', () => {
+    afterEach(() => vi.unstubAllGlobals())
+    const okFetch = data => vi.fn(async () => ({ ok: true, status: 200, json: async () => data, text: async () => JSON.stringify(data) }))
+
+    it('載入後註冊；同一類只載入一次；失敗不留快取、下次可再試', async () => {
+        BookRegistry.registerCorpus('apo', []) // 先清空
+        const bad = vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}), text: async () => '' }))
+        vi.stubGlobal('fetch', bad)
+        await expect(BookRegistry.loadApoAsync('./x/apo_books.json')).rejects.toThrow()
+        expect(BookRegistry.ids('apo')).toEqual([])
+
+        const good = okFetch(apoJson)
+        vi.stubGlobal('fetch', good)
+        await BookRegistry.loadApoAsync('./x/apo_books.json')
+        expect(BookRegistry.ids('apo')).toEqual(range(101, 115))
+        await BookRegistry.loadApoAsync('./x/apo_books.json')
+        expect(good).toHaveBeenCalledTimes(1)
+    })
+    it('沒有書卷表檔案的類別 → 丟錯', () => {
+        expect(() => BookRegistry.loadCorpusAsync('canon')).toThrow(/沒有書卷表/)
     })
 })
