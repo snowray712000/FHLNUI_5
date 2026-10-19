@@ -19,8 +19,18 @@ export const QSUB_URL = 'https://bible.fhl.net/api/qsub.php'
 export const APO_VERSION = 'c1933'
 export const APO_VERSION_NAME = '1933年聖公會出版'
 export const APO_VERSION_NAME_GB = '1933年圣公会出版'
-/** 次經的文本代碼 (chdc 的 HTML 解析之後才做，P3) */
+/** 次經的文本代碼：c1933 純文字；chdc 是 HTML (<p>、<u> 專有名詞、<h1> 小標…，cvt_others 處理)，少 107 第 1–2 章、114 第 1 章 */
 export const APO_VERSIONS = /** @type {const} */ (['c1933', 'chdc'])
+/** 各文本的名稱 [繁, 簡]；上游的 v_name 也是這兩個 (gb=1 時簡體)，但沒有資料的章不一定帶，所以自己留一份 */
+export const APO_NAMES = { c1933: ['1933年聖公會出版', '1933年圣公会出版'], chdc: ['1933年次經全書', '1933年次经全书'] }
+/** @param {string} ver 次經的文本代碼 @param {boolean} [isGb] */
+export function apoVersionName(ver, isGb = false) {
+    return APO_NAMES[ver]?.[isGb ? 1 : 0] ?? ver
+}
+/** @param {string} ver @returns {boolean} 是不是次經的文本 (c1933、chdc；不是新舊約的譯本) */
+export function isApoVersion(ver) {
+    return APO_VERSIONS.includes(/** @type {any} */ (ver))
+}
 
 /**
  * @typedef {import('./qafAsync.es2023.js').QafRecord} QsubRecord
@@ -47,13 +57,15 @@ export function qsubUrl({ bid, chap, sec = null, version = APO_VERSION, gb = fal
 /**
  * 上游回應 → 站內格式 (record 加 book、數字欄位轉數字、補預設譯本名稱)。不改傳入的物件
  * @param {any} json 上游回應
+ * @param {string} [version] 上游沒給 version / v_name 時用的文本代碼
  * @returns {QsubResult}
  */
-export function normalizeQsub(json) {
-    return normalizeCorpus(json, { label: 'qsub', version: APO_VERSION, v_name: APO_VERSION_NAME })
+export function normalizeQsub(json, version = APO_VERSION) {
+    return normalizeCorpus(json, { label: 'qsub', version, v_name: apoVersionName(version) })
 }
 
-const fetchQsub = makeCachedFetcher(normalizeQsub)
+/** 每個文本一個 (快取的鍵是網址，已含 version、gb) */
+const fetchers = Object.fromEntries(APO_VERSIONS.map(v => [v, makeCachedFetcher(json => normalizeQsub(json, v))]))
 
 /**
  * 取次經的一章 (或某幾節)。同一章同一文本同一簡繁只打一次，失敗的不留
@@ -61,5 +73,5 @@ const fetchQsub = makeCachedFetcher(normalizeQsub)
  * @returns {Promise<QsubResult>}
  */
 export function qsubAsync(args) {
-    return fetchQsub(qsubUrl(args))
+    return fetchers[args.version ?? APO_VERSION](qsubUrl(args))
 }

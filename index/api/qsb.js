@@ -26,6 +26,7 @@
  * @property {DQsbRecord[]} record - 返回的經文記錄陣列  
  */
 
+import { canonVersions } from '../lectureVersions.es2023.js'
 import { TPPageState } from '../TPPageState.es2023.js';
 import { BibleConstantHelper } from '../BibleConstantHelper.es2023.js';
 import { get_domain } from './get_domain.js';
@@ -63,7 +64,7 @@ function gen_payload_qsb(args) {
 
     const gb = args.isGb || ps.gb || 0
     const sn = args.isSn || 1
-    const ver = args.ver || ps.version?.[0] || 'unv'
+    const ver = args.ver || canonVersions(ps.version ?? [])[0]
     const bookDefault = args.bookDefault || ps?.bookIndex || 1
     const qstr = args.qstr
 

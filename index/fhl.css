@@ -1427,6 +1427,8 @@ body {
 }
 /* 第一個與最後一個譯本名讓出按鈕的位置，名字太長就省略 */
 #lecMainTitle .versionName { white-space: nowrap; text-overflow: ellipsis; }
+/* 次經的文本沒有這一章 / 取不到：標題旁的備註 */
+#lecMainTitle .vn-note { margin-left: 0.4em; color: var(--fg-muted); font-size: 0.85em; }
 #lecMainTitle > .lecContent { box-sizing: border-box; }
 #lecMainTitle > .lecContent:first-child { padding-left: var(--nv-w); }
 #lecMainTitle > .lecContent:last-child { padding-right: calc(var(--nv-w) * 3); }

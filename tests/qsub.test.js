@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import fs from 'node:fs'
 import { BookRegistry } from '../index/BookRegistry.es2023.js'
-import { qsubUrl, normalizeQsub, QSUB_URL, APO_VERSION, APO_VERSION_NAME } from '../index/qsubAsync.es2023.js'
+import { qsubUrl, normalizeQsub, QSUB_URL, APO_VERSION, APO_VERSION_NAME, apoVersionName, isApoVersion, APO_VERSIONS } from '../index/qsubAsync.es2023.js'
 import { qafUrl } from '../index/qafAsync.es2023.js'
-import { lectureVersions } from '../index/lectureVersions.es2023.js'
+import { lectureVersions, canonVersions, apoVersionsOf } from '../index/lectureVersions.es2023.js'
 import { checkSec, checkChap } from '../index/corpusApi.es2023.js'
 
 const read = f => JSON.parse(fs.readFileSync(new URL(f, import.meta.url), 'utf8')).books
@@ -104,17 +104,51 @@ describe('normalizeQsub', () => {
         normalizeQsub(up)
         expect(up).toEqual(copy)
     })
+    it('chdc：沒給 version / v_name 時補 chdc 的名稱 (沒有資料的章上游不一定帶)', () => {
+        const r = normalizeQsub({ status: 'success', record: [] }, 'chdc')
+        expect(r.version).toBe('chdc')
+        expect(r.v_name).toBe('1933年次經全書')
+    })
 })
 
-describe('lectureVersions：次經目前只有 c1933', () => {
-    const ps = book => ({ bookIndex: book, version: ['unv', 'kjv'] })
-    it('次經只有 c1933，不管選了什麼', () => {
-        expect(lectureVersions(ps(103))).toEqual(['c1933'])
-        expect(lectureVersions(ps(101))).toEqual(['c1933'])
+describe('次經的文本', () => {
+    it('c1933 / chdc 的名稱 (繁、簡)，不認得的原樣回', () => {
+        expect(apoVersionName('c1933')).toBe('1933年聖公會出版')
+        expect(apoVersionName('c1933', true)).toBe('1933年圣公会出版')
+        expect(apoVersionName('chdc')).toBe('1933年次經全書')
+        expect(apoVersionName('chdc', true)).toBe('1933年次经全书')
+        expect(apoVersionName('unv')).toBe('unv')
     })
-    it('新舊約、使徒教父不受影響', () => {
-        expect(lectureVersions(ps(1))).toEqual(['unv', 'kjv'])
-        expect(lectureVersions(ps(212))).toEqual(['afhuang'])
+    it('isApoVersion', () => {
+        expect(APO_VERSIONS.every(isApoVersion)).toBe(true)
+        for (const v of ['unv', 'afhuang', '', undefined]) expect(isApoVersion(v), String(v)).toBe(false)
+    })
+})
+
+describe('lectureVersions：次經可選 c1933 / chdc，新舊約不並排次經的文本', () => {
+    const ps = (book, version) => ({ bookIndex: book, version })
+    it('次經：使用者選的次經文本 (依 ps.version 的順序)，新舊約的譯本不並排', () => {
+        expect(lectureVersions(ps(103, ['unv', 'kjv']))).toEqual(['c1933']) // 沒選次經文本 → 預設 c1933
+        expect(lectureVersions(ps(103, ['unv', 'chdc']))).toEqual(['chdc'])
+        expect(lectureVersions(ps(103, ['chdc', 'unv', 'c1933']))).toEqual(['chdc', 'c1933'])
+        expect(lectureVersions(ps(101, ['c1933', 'chdc']))).toEqual(['c1933', 'chdc'])
+        expect(lectureVersions(ps(101, ['c1933', 'c1933']))).toEqual(['c1933']) // 不重複
+    })
+    it('新舊約：拿掉次經的文本；沒剩下就用和合本', () => {
+        expect(lectureVersions(ps(1, ['unv', 'c1933', 'kjv', 'chdc']))).toEqual(['unv', 'kjv'])
+        expect(lectureVersions(ps(66, ['chdc']))).toEqual(['unv'])
+        expect(lectureVersions(ps(66, []))).toEqual(['unv'])
+        expect(lectureVersions(ps(1, ['esv']))).toEqual(['esv'])
+    })
+    it('使徒教父不受影響', () => {
+        expect(lectureVersions(ps(212, ['unv', 'chdc']))).toEqual(['afhuang'])
+    })
+    it('canonVersions / apoVersionsOf 不改傳入的陣列', () => {
+        const v = ['unv', 'c1933']
+        expect(canonVersions(v)).toEqual(['unv'])
+        expect(apoVersionsOf(v)).toEqual(['c1933'])
+        expect(v).toEqual(['unv', 'c1933'])
+        expect(canonVersions(undefined)).toEqual(['unv'])
     })
 })
 

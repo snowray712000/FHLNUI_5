@@ -43,6 +43,9 @@ function cvt_one(record_with_addr, version) {
     // - 轉成 dtexts。 這樣才會是 inplace 操作
     const dtexts_with_addr = cvt_dtexts_with_addr(record_with_addr);
 
+    // - 次經 1933年次經全書 (chdc)：HTML 裡有縮排換行與多餘的 <p>，要在換行處理 (replaceNewLineToBr) 之前清掉
+    if (version === 'chdc') cleanChdc(dtexts_with_addr);
+
     // - 將換行符號替換成 <br/>。 這樣後面的操作才一致 
     // - 一定要在 title 前處理
     replaceNewLineToBr(dtexts_with_addr)
@@ -79,6 +82,31 @@ function cvt_one(record_with_addr, version) {
     }
 
     return dtexts_with_addr
+}
+
+/**
+ * 次經 1933年次經全書 (chdc，qsub.php?version=chdc) 一節的 HTML 整理：
+ * - `<p>`、`</p>` 拿掉：上游有巢狀的 `<p><p>`、多餘的 `</p>` (例 便西拉智訓 1:11 `<p><h1>…</h1></p></p>`)，DOMParser 會補出一堆空段落，
+ *   又沒有分段的用途 (詩體的換行靠 `<br/>`)
+ * - 原始碼的縮排換行拿掉 (中文不需要空白)，否則會變成一堆 `<br/>` 與空格
+ * - 節尾多餘的 `<br/>` 拿掉 (詩體每行結尾都有一個，最後一個會多一個空行)
+ * 保留 `<u>` (專有名詞)、`<h1>` (小標)、`<i>`、`<br/>`，由 getAllDTextsFromAllChildrenNode 處理
+ * @param {string} html
+ * @returns {string}
+ */
+export function cleanChdcHtml(html) {
+    return String(html ?? '')
+        .replace(/<\/?p\b[^>]*>/gi, '')
+        .replace(/\s*[\r\n]\s*/g, '')
+        .replace(/(?:<br\s*\/?>)+$/gi, '')
+        .replace(/^(?:<br\s*\/?>)+/gi, '')
+        .trim();
+}
+/** @param {DTextsWithAddr} dtexts_with_addr */
+function cleanChdc(dtexts_with_addr) {
+    for (const dt of dtexts_with_addr[3]) {
+        if (typeof dt.w === 'string') dt.w = cleanChdcHtml(dt.w);
+    }
 }
 
 /**

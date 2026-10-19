@@ -8,7 +8,8 @@ import { TPPageState } from "./TPPageState.es2023.js";
 import { qsb } from "./api/qsb.js";
 import { BookRegistry } from "./BookRegistry.es2023.js";
 import { qafAsync } from "./qafAsync.es2023.js";
-import { qsubAsync } from "./qsubAsync.es2023.js";
+import { qsubAsync, apoVersionName } from "./qsubAsync.es2023.js";
+import { lectureVersions } from "./lectureVersions.es2023.js";
 
 // renderLectureHtml @ FhlLecture.js
 /**
@@ -25,12 +26,18 @@ export async function lecture_get_data_async() {
     if (BookRegistry.corpusOf(book) === 'af') {
         return [await qafAsync({ bid: book, chap })]
     }
-    // 次經 (qsub.php)：P1 先只有預設文本 c1933，不管 ps.version 選了什麼 (兩個文本並排是之後，docs/z261019b P3)。簡繁由上游 gb=1 處理
+    // 次經 (qsub.php)：使用者選的次經文本 (c1933、chdc，並排；沒選就 c1933)，不並排新舊約的譯本。簡繁由上游 gb=1 處理。
+    // 某個文本取不到 (網路、上游錯誤) 只讓那一欄空白並註明，不影響另一欄；全部都失敗才算失敗
     if (BookRegistry.corpusOf(book) === 'apo') {
-        return [await qsubAsync({ bid: book, chap, gb })]
+        const versions = lectureVersions(ps)
+        const settled = await Promise.allSettled(versions.map(version => qsubAsync({ bid: book, chap, version, gb })))
+        if (settled.every(r => r.status === 'rejected')) throw settled[0].reason
+        return settled.map((r, i) => r.status === 'fulfilled'
+            ? { ...r.value, version: versions[i], missingChap: r.value.record.length === 0 } // 該文本沒有這一章：欄是空的，標題註明
+            : { status: 'success', version: versions[i], v_name: apoVersionName(versions[i], gb == 1), record_count: 0, record: [], prev: null, next: null, failedMsg: String(r.reason?.message ?? r.reason) })
     }
 
-    const versionPromises = ps.version.map(ver => {
+    const versionPromises = lectureVersions(ps).map(ver => {
         if (ver == "fhlwh") {
             return get_orig_async(Bible_fhlwh_json.s, "fhlwh", "新約原文", book, chap)
         } else if (ver == "bhs") {

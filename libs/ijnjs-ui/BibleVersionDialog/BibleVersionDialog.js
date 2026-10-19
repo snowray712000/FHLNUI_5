@@ -72,6 +72,13 @@
           ]
         },
         {
+          // 次經：只有讀次經 (101–115) 時才有資料，新舊約不顯示；可選一個或兩個並排 (docs/z261019b)。名稱在 abvphp_api.js 的 extraVersions
+          na: 'apo', cna: '次經', od: 2, vers: [
+            { na: 'c1933', od: 1, cna: '1933年聖公會出版' },
+            { na: 'chdc', od: 3, cna: '1933年次經全書' },
+          ]
+        },
+        {
           na: 'en', cna: '英文', od: 3, vers: [
             { na: 'kjv', yr: 1611, od: 1 },
             { na: 'darby', yr: 1890, od: 3 },

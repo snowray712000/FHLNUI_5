@@ -1,4 +1,5 @@
 import { BookRegistry } from './BookRegistry.es2023.js'
+import { canonVersions } from './lectureVersions.es2023.js'
 import { splitReference } from './splitReference.es2023.js'
 import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
@@ -334,7 +335,7 @@ $(function () {
             const jaAddrs = addr_data ? JSON.parse(addr_data) : null
 
             const ps = TPPageState.s
-            const ver = ps.version[0]
+            const ver = canonVersions(ps.version)[0] // 次經的文本 (c1933、chdc) 在新舊約沒有資料
             queryReferenceAndShowAtDialogAsync({
                 addrs: jaAddrs,
                 addrsDescription: addr_desc,

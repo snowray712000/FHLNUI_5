@@ -1,4 +1,5 @@
 import { DialogHtml, contentFontK } from './DialogHtml.es2023.js'
+import { canonVersions, apoVersionsOf } from './lectureVersions.es2023.js'
 import { SearchSession } from './SearchSession_es2023.js'
 import { Search_suggestFilter } from './Search_suggestFilter_es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
@@ -23,6 +24,7 @@ import { readScope, scopeBooks, scopeGroups, checkedWithImplicit } from './Searc
 import { BookRegistry } from './BookRegistry.es2023.js'
 import { searchBookGroups } from './searchBookGroups.es2023.js'
 import { corpusOfVersion, isExternalVerse, SEARCH_CORPORA } from './searchCorpora.es2023.js'
+import { isApoVersion } from './qsubAsync.es2023.js'
 import { gotoAddress } from './gotoAddress.es2023.js'
 
 /**
@@ -88,13 +90,14 @@ export class SearchDialog {
         this.session?.abort()
         const session = this.session = new SearchSession({
             keyword,
-            versions: ps.version,
+            versions: canonVersions(ps.version), // 次經的文本 (c1933、chdc) 不是搜尋新舊約的譯本；次經由「搜尋範圍」決定
             gb: ps.gb == 1 ? 1 : 0,
             strong: ps.strong == 1 ? 1 : 0,
             // 使徒教父沒有 engs：reference 省略書卷、SN 沒寫 G/H 時要用，借新約 (希臘文) 的
             engs: BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1] ?? 'Rom',
             ibookCur: ps.bookIndex - 1,
             scope: currentScope(ps.bookIndex - 1),
+            apoVersions: apoVersionsOf(ps.version), // 譯本對照時，次經的節列使用者選的次經文本
         })
         session.compare = readCompare()
 
@@ -501,8 +504,8 @@ function gridOpt(session) {
     if (session.kind != 'reference') {
         const extVers = new Set(session.filtered.filter(isExternalVerse).map(v => v.vers[0]))
         if (extVers.size && session.filtered.every(isExternalVerse)) vers = []
-        vers = vers.filter(v => corpusOfVersion(v) == null)
-        for (const c of SEARCH_CORPORA) if (extVers.has(c.version)) vers.push(c.version)
+        vers = vers.filter(v => corpusOfVersion(v) == null && !isApoVersion(v))
+        for (const c of SEARCH_CORPORA) if (extVers.has(c.version)) vers.push(...session.externalColumns(c))
     }
     return {
         versions: vers.map(ver => ({ version: ver, name: versionName(ver, session.gb == 1), isRtl: ver == 'bhs' })),
@@ -535,7 +538,7 @@ async function toVerseRowsAsync(rows) {
     await Promise.all([...recordsOfVer].map(async ([ver, records]) => {
         const dtexts_with_addr = cvt_others(ver, records)
         // 使徒教父的注腳沒有整章查詢 (AF/rt.php 一則一次請求)，搜尋結果一次太多，所以維持【n】，點了才查 (showFootPopupAsync)；次經沒有注腳
-        if (isFootLoad && corpusOfVersion(ver) == null) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
+        if (isFootLoad && corpusOfVersion(ver) == null && !isApoVersion(ver)) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
         for (const [book, chap, sec, dtexts] of dtexts_with_addr) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
     }))
 

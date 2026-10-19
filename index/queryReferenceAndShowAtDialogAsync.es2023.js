@@ -1,5 +1,6 @@
 // TODO: 還沒完全重構
 
+import { canonVersions } from './lectureVersions.es2023.js'
 import { splitReference } from "./splitReference.es2023.js" // 經文章節，成為ref
 import { qsb } from "./api/qsb.js" // 為了引入 DQsbParam, DQsbResult
 import { DialogHtml, contentFontK } from "./DialogHtml.es2023.js"
@@ -136,7 +137,7 @@ export function queryReferenceAndShowAtDialogAsync(jo) {
         const ps = TPPageState.s
         const addrsDescription = jo.addrsDescription != null ? jo.addrsDescription : cvtAddrsToRef(jo.addrs, '羅')
         // 目前顯示的譯本 (以前寫死 unv，docs/z260930d P5)
-        const versions = jo.versions ?? (ps.version?.length ? ps.version : [jo.version ?? 'unv'])
+        const versions = jo.versions ?? (ps.version?.length ? canonVersions(ps.version) : [jo.version ?? 'unv'])
         const bookDefault = jo.bookDefault ?? 45 // 1-based，預設羅馬書；qstr 沒寫書卷時用
 
         Promise.all(versions.map(ver => qsb({ qstr: addrsDescription, ver, bookDefault })

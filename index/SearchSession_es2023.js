@@ -1,7 +1,8 @@
 import { searchKeywordAsync, searchSnAsync, queryQsbAsync, addrsToQstr, isGreekKeyword } from './SearchApi_es2023.js'
 import { isHebrewKeyword } from './hebCode.es2023.js'
 import { parseSnQuery, combineSnResults, termsOf, positiveTermsOf, assertSnQuery } from './snQuery.es2023.js'
-import { qsubAsync } from './qsubAsync.es2023.js'
+import { qsubAsync, APO_VERSION } from './qsubAsync.es2023.js'
+import { apoVersionsOf } from './lectureVersions.es2023.js'
 import { scopeHasGroup } from './SearchScope.es2023.js'
 import { searchBookGroups } from './searchBookGroups.es2023.js'
 import { SEARCH_CORPORA, isExternalVerse } from './searchCorpora.es2023.js'
@@ -39,6 +40,7 @@ export class SearchSession {
     /** @type {string} sn 搜尋時，純數字 (上色用)；多項時是第一項 */ sn = null
     /** @type {string[]} sn 搜尋的所有 SN，純數字 (上色用) */ sns = []
     /** @type {string[]} 使用者目前選的譯本 (原文關鍵字時 versions 會被換掉，譯本對照仍用這個) */ userVersions
+    /** @type {string[]} 使用者選的次經文本 (c1933、chdc；沒選是 c1933)。次經的節只在「譯本對照」時才多列 chdc */ apoVersions
     /** 譯本對照：每節都取 compareVersions 全部譯本的經文 (不只找到關鍵字的)；改了要重新 setFilter */ compare = false
 
     /** @type {Set<number> | null} 搜尋範圍 (0based ibook)，null 是整本聖經；見 SearchScope.es2023.js。改了呼叫 setScope */ scope = null
@@ -59,12 +61,13 @@ export class SearchSession {
     #abort = new AbortController()
 
     /**
-     * @param {{keyword: string, versions: string[], gb: 0|1, strong: 0|1, engs: string, ibookCur?: number, scope?: Set<number> | null}} arg
+     * @param {{keyword: string, versions: string[], gb: 0|1, strong: 0|1, engs: string, ibookCur?: number, scope?: Set<number> | null, apoVersions?: string[]}} arg
      */
     constructor(arg) {
         this.keyword = arg.keyword.trim()
         this.versions = arg.versions
         this.userVersions = arg.versions
+        this.apoVersions = apoVersionsOf(arg.apoVersions)
         this.gb = arg.gb
         this.strong = arg.strong
         this.engs = arg.engs
@@ -170,6 +173,16 @@ export class SearchSession {
         this.#mergeVerses()
     }
 
+    /**
+     * 使徒教父、次經的節在結果裡列哪幾欄 (文本代碼)：使徒教父只有一欄；次經平常是 c1933 (命中的文本)，
+     * 「譯本對照」時是使用者選的次經文本 (c1933、chdc，可並排)
+     * @param {import('./searchCorpora.es2023.js').SearchCorpus} c
+     * @returns {string[]}
+     */
+    externalColumns(c) {
+        return c.corpus == 'apo' && this.compare ? this.apoVersions : [c.version]
+    }
+
     /** 新舊約各譯本 (#perVer) 加使徒教父、次經 (#extHits) 合併成 allVerses */
     #mergeVerses() {
         /** @type {Map<string, SearchVerse>} */
@@ -269,6 +282,7 @@ export class SearchSession {
         const isAf = isExternalVerse
         const qsbBatch = batch.filter(v => !isAf(v))
         const extTexts = await this.#externalTextsAsync(batch.filter(v => isAf(v) && v.extText == null), signal)
+        const apoCorpus = SEARCH_CORPORA.find(c => c.corpus == 'apo')
         const searched = new Set(this.#searchedVersions)
         const textsPerVer = await Promise.all((qsbBatch.length ? this.#versionsOfBatch(qsbBatch) : []).map(ver => {
             const addrs = this.compare ? qsbBatch : qsbBatch.filter(v => v.vers.includes(ver))
@@ -284,30 +298,35 @@ export class SearchSession {
         return batch.map(v => ({
             ibook: v.ibook, chap: v.chap, sec: v.sec,
             texts: isAf(v)
-                ? [{ ibook: v.ibook, chap: v.chap, sec: v.sec, ver: v.vers[0], bible_text: v.extText ?? extTexts.get(`${v.ibook}:${v.chap}:${v.sec}`) ?? '' }]
+                ? (v.extText != null ? [v.vers[0]] : this.externalColumns(apoCorpus)).map(ver => ({
+                    ibook: v.ibook, chap: v.chap, sec: v.sec, ver, bible_text: v.extText ?? extTexts.get(`${ver}|${v.ibook}:${v.chap}:${v.sec}`) ?? '',
+                }))
                 : (this.compare ? this.compareVersions : v.vers).map(ver => map.get(`${ver}|${v.ibook}:${v.chap}:${v.sec}`)).filter(t => t != null),
         }))
     }
 
     /**
-     * 命中只有位置的文獻 (次經) 取經文：依章取整章 (qsub.php，簡繁跟 gb，與閱讀共用快取)，取不到的章留空 (不影響整批)
+     * 命中只有位置的文獻 (次經) 取經文：依章取整章 (qsub.php，簡繁跟 gb，與閱讀共用快取)，每個要列的文本各取；
+     * 取不到的章留空 (不影響整批)。譯本對照時 chdc 也要取 (chdc 沒有的節、章是空字)
      * @param {SearchVerse[]} verses
      * @param {AbortSignal} signal
-     * @returns {Promise<Map<string, string>>} "ibook:chap:sec" → 經文
+     * @returns {Promise<Map<string, string>>} "文本|ibook:chap:sec" → 經文
      */
     async #externalTextsAsync(verses, signal) {
         /** @type {Map<string, string>} */
         const out = new Map()
+        if (verses.length == 0) return out
+        const apoCorpus = SEARCH_CORPORA.find(c => c.corpus == 'apo')
         const chapters = [...new Set(verses.map(v => `${v.ibook}:${v.chap}`))]
-        await Promise.all(chapters.map(async key => {
+        await Promise.all(this.externalColumns(apoCorpus).flatMap(ver => chapters.map(async key => {
             const [ibook, chap] = key.split(':').map(Number)
             try {
-                const r = await qsubAsync({ bid: ibook + 1, chap, gb: this.gb })
-                for (const rec of r.record) out.set(`${ibook}:${rec.chap}:${rec.sec}`, rec.bible_text)
+                const r = await qsubAsync({ bid: ibook + 1, chap, version: ver, gb: this.gb })
+                for (const rec of r.record) out.set(`${ver}|${ibook}:${rec.chap}:${rec.sec}`, rec.bible_text)
             } catch (e) {
-                if (!signal.aborted) console.warn('次經經文取得失敗', key, e)
+                if (!signal.aborted) console.warn('次經經文取得失敗', ver, key, e)
             }
-        }))
+        })))
         return out
     }
 

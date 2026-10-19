@@ -1,4 +1,5 @@
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
+import { canonVersions } from './lectureVersions.es2023.js'
 import { splitReference } from './splitReference.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
 import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
@@ -127,7 +128,7 @@ function cvt_to_addrs_str_from_addrs(addrs) {
 async function show_in_dialog(addrs) {
     const addrs2 = addrs.map((x) => { return { book: x[0], chap: x[1], verse: x[2] } })
     const ps = TPPageState.s
-    const version = ps.version[0] ?? "unv"
+    const version = canonVersions(ps.version)[0]
 
     await queryReferenceAndShowAtDialogAsync({ addrs: addrs2, version: version })
 }

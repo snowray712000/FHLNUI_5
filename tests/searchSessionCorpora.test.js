@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
 import fs from 'node:fs'
 import { BookRegistry } from '../index/BookRegistry.es2023.js'
 import { setS2tTable } from '../index/s2t.es2023.js'
+import { SEARCH_CORPORA } from '../index/searchCorpora.es2023.js'
 
 const read = f => JSON.parse(fs.readFileSync(new URL(f, import.meta.url), 'utf8'))
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
@@ -33,7 +34,10 @@ function stubFetch({ sesub = [], seaf = [], qsub = {} } = {}) {
         let body = { status: 'success', record: [] }
         if (u.pathname.endsWith('sesub.php')) body = { status: 'success', record: sesub }
         else if (u.pathname.endsWith('seaf.php')) body = { status: 'success', record: seaf }
-        else if (u.pathname.endsWith('qsub.php')) body = { status: 'success', record: qsub[`${u.searchParams.get('bid')}:${u.searchParams.get('chap')}`] ?? [] }
+        else if (u.pathname.endsWith('qsub.php')) {
+            const key = `${u.searchParams.get('bid')}:${u.searchParams.get('chap')}`
+            body = { status: 'success', record: qsub[`${key}:${u.searchParams.get('version') ?? 'c1933'}`] ?? qsub[key] ?? [] }
+        }
         return { ok: true, status: 200, text: async () => JSON.stringify(body) }
     }))
     return urls
@@ -139,5 +143,24 @@ describe('SearchSession：次經、使徒教父 (選擇加入的搜尋分類)', 
         s.setFilter(null)
         const rows = await s.loadMoreAsync()
         expect(rows.map(r => r.texts[0].bible_text)).toEqual(['', '猶滴'])
+    })
+    it('譯本對照：次經的節多列使用者選的次經文本 (chdc)，chdc 沒有的節是空字；沒對照時只有 c1933', async () => {
+        const urls = stubFetch({
+            sesub: [rec(103, 1, 1), rec(103, 1, 2)],
+            qsub: { '103:1': [rec(103, 1, 1, '甲'), rec(103, 1, 2, '乙')], '103:1:chdc': [rec(103, 1, 1, '丙')] },
+        })
+        const s = mk(scopeOf('次經'), { apoVersions: ['unv', 'chdc', 'c1933'] })
+        expect(s.apoVersions).toEqual(['chdc', 'c1933']) // 只留次經的文本，依 ps.version 的順序
+        await s.ensureExternalAsync()
+        s.setScope(scopeOf('次經'))
+        s.setFilter(null)
+        const corpus = SEARCH_CORPORA.find(c => c.corpus == 'apo')
+        expect(s.externalColumns(corpus)).toEqual(['c1933']) // 沒對照
+        s.compare = true
+        expect(s.externalColumns(corpus)).toEqual(['chdc', 'c1933'])
+        const rows = await s.loadMoreAsync()
+        expect(rows.map(r => r.texts.map(t => `${t.ver}/${t.bible_text}`))).toEqual([['chdc/丙', 'c1933/甲'], ['chdc/', 'c1933/乙']])
+        expect(urls.filter(u => u.includes('qsub.php') && u.includes('version=chdc'))).toHaveLength(1) // 同一章只取一次
+        expect(SEARCH_CORPORA.find(c => c.corpus == 'af') && s.externalColumns(SEARCH_CORPORA.find(c => c.corpus == 'af'))).toEqual(['afhuang'])
     })
 })

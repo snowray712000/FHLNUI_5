@@ -14,6 +14,19 @@ var abvphp = abvphp || {};
 abvphp.g_bibleversions = {};
 abvphp.g_bibleversionsGb = {};
 
+// uiabv.php 沒有的文本：次經 (qsub.php，只有讀次經時才有資料，docs/z261019b)。譯本名稱的字典要有，
+// 譯本選擇對話框、複製、搜尋結果的表頭才查得到名稱。格式同快照：[book, 繁體名, 簡體名, ntonly, otonly, strong]
+abvphp.extraVersions = [
+  ["c1933", "1933年聖公會出版", "1933年圣公会出版", 0, 0, 0],
+  ["chdc", "1933年次經全書", "1933年次经全书", 0, 0, 0]
+]
+function addExtraVersions() {
+  abvphp.extraVersions.forEach(function (a) {
+    abvphp.g_bibleversions[a[1]] = { book: a[0], ntonly: a[3], otonly: a[4], strong: a[5] }
+    abvphp.g_bibleversionsGb[a[2]] = { book: a[0], ntonly: a[3], otonly: a[4], strong: a[5] }
+  })
+}
+
 // 先用快照填 (abvphp_snapshot.js，npm run gen:uiabv 產生)，開頁就有譯本名稱；uiabv.php 回來後再覆蓋
 if (typeof abvphpSnapshot != "undefined") {
   abvphpSnapshot.rows.forEach(function (a) {
@@ -21,6 +34,7 @@ if (typeof abvphpSnapshot != "undefined") {
     abvphp.g_bibleversionsGb[a[2]] = { book: a[0], ntonly: a[3], otonly: a[4], strong: a[5] }
   })
 }
+addExtraVersions()
 
 /**
  * index.js 裡會用, 因為它要確定抓過了嗎
@@ -59,11 +73,13 @@ abvphp.init_g_bibleversions = function init_g_bibleversions() {
   function fn2(r1) {
     abvphp.g_bibleversions = {};
     fnCore(r1, abvphp.g_bibleversions)
+    addExtraVersions() // uiabv.php 沒有的文本 (次經)，字典被換掉後要補回去
     console.log('完成 abvphp.')
   }
   function fn3(r1) {
     abvphp.g_bibleversionsGb = {};
     fnCore(r1, abvphp.g_bibleversionsGb)
+    addExtraVersions()
     console.log('完成 abvphpGb.')
   }
 

@@ -1,4 +1,5 @@
 import { copy_text_to_clipboard } from "./copy_text_to_clipboard_es2023.js";
+import { canonVersions } from './lectureVersions.es2023.js'
 import { help_ai_parsing_tp1 } from "./ai_parsing_help_tp1_es2023.js";
 import { help_ai_parsing_tp1a } from "./ai_parsing_help_tp1a_es2023.js";
 import { help_ai_parsing_tp1b } from "./ai_parsing_help_tp1b_es2023.js";
@@ -98,7 +99,7 @@ async function reg_on_click_ai_translation_async(event) {
     }
 
     const addrs = fn_get_addresses()
-    const translations = ps.version
+    const translations = canonVersions(ps.version) // 次經的文本 (c1933、chdc) 在新舊約沒有資料
 
     if (tp == "tp1" || tp == "tp2") {
         await copy_text_to_clipboard(async () => {

@@ -7,6 +7,7 @@ import { splitReference } from './splitReference.es2023.js'
 import { BibleConstant } from './BibleConstant.es2023.js'
 import { BookRegistry } from './BookRegistry.es2023.js'
 import { lectureVersions } from './lectureVersions.es2023.js'
+import { gbText } from './gbText.es2023.js'
 
 import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js"
 import { Sn_cnt_book_unv_json } from "./Sn_cnt_book_unv_json.es2023.js"
@@ -397,7 +398,12 @@ async function renderLectureHtml(that) {
             const cname = o.version == 'cbol' ? '原文直譯' : o.v_name
 
             // 目前 closeButton 已經沒用，但在重構階段，保持原本
-            dtitle.append($(`<div class=lecContent><div class=versionName>${o.v_name}<span class='closeButton' cname='${cname}'>x</span></div></div>`));
+            // 次經的文本沒有這一章 (chdc 沒有 107 第 1–2 章、114)、或取不到：欄是空的，標題註明 (v_name 是上游給的文字，備註用 .text 放)
+            const note = o.failedMsg != null ? gbText('（取得失敗）') : o.missingChap ? gbText('（沒有這一章）') : ''
+            const $name = $(`<div class=lecContent><div class=versionName><span class='vn-text'></span><span class='closeButton' cname='${cname}'>x</span></div></div>`)
+            $name.find('.vn-text').text(o.v_name)
+            if (note) $('<small class="vn-note">').text(note).attr('title', o.failedMsg ?? '').insertAfter($name.find('.vn-text'))
+            dtitle.append($name);
         }
     }
     async function render_pos_and_pho($htmlContent) {

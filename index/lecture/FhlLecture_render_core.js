@@ -43,6 +43,17 @@ export async function FhlLecture_render_core(rspApp, mode) {
 }
 
 /**
+ * 各譯本的段落對到同一列：用段落的 paragraphIndex (各譯本用同一份 paragraphDataUsed，所以同一個值就是同一段)，
+ * 取所有譯本的聯集排序後的名次當列。以前直接用「第幾個段落」，一個譯本少了某一節 (次經 chdc 比 c1933 少幾節) 就整欄錯位
+ * @param {VmVersion[]} versions
+ * @returns {Map<number, number>} paragraphIndex → 列 (0 起)
+ */
+function rowsOfParagraphs(versions) {
+    const keys = [...new Set(versions.flatMap(v => v.paragraphs.map(p => p.paragraphIndex)))].sort((a, b) => a - b)
+    return new Map(keys.map((k, i) => [k, i]))
+}
+
+/**
  * 交錯 (mode 2/4)：一個 .vercol，同一段 (mode 2 是每節) 的各譯本輪流
  * @param {ContentVm} contentVm
  * @param {number} fontSizeOfPs ps.fontSize
@@ -54,12 +65,13 @@ function render_interleaved(contentVm, fontSizeOfPs) {
         .css({ width: '100%', display: 'inline-block', 'vertical-align': 'top', 'margin-top': `${fontSizeOfPs * 1.25 - 15}px` })
         .appendTo($htmlContent)
     const versions = contentVm.versions
-    const maxP = Math.max(...versions.map(v => v.paragraphs.length), 0)
-    for (let pi = 0; pi < maxP; pi++) {
+    const rows = rowsOfParagraphs(versions)
+    const byRow = versions.map(v => new Map(v.paragraphs.map(p => [rows.get(p.paragraphIndex), p])))
+    for (let pi = 0; pi < rows.size; pi++) {
         /** @type {JQuery<HTMLElement>|null} 這一節 (mode 4 是這一段) 最後一個譯本 */
         let $last = null
-        for (const v of versions) {
-            const paragraph = v.paragraphs[pi]
+        for (const [iv, v] of versions.entries()) {
+            const paragraph = byRow[iv].get(pi)
             if (paragraph == null) continue
             if (paragraph.verses.length && paragraph.verses.every(a => a.hideVerseContent)) continue // 整段併入上節 (mode 2 一節一段)
             $last = render_paragraph_div({ version: v.version, isRtl: v.isRtl, paragraph })
@@ -87,14 +99,16 @@ function render_grid(contentVm, fontSizeOfPs) {
         .css({ '--lec-cols': String(Math.max(versions.length, 1)), 'padding-top': `${Math.max(fontSizeOfPs * 1.25 - 15, 0)}px` })
         .appendTo($htmlContent)
 
+    const rows = rowsOfParagraphs(versions)
     versions.forEach((v, iCol) => {
         const $vercol = $("<div class='vercol'></div>").attr('ver', v.version).appendTo($grid)
         /** @type {{$p: JQuery<HTMLElement>, row: number, span: number} | null} */
         let last = null
-        v.paragraphs.forEach((paragraph, iRow) => {
+        v.paragraphs.forEach(paragraph => {
+            const iRow = rows.get(paragraph.paragraphIndex) // 這個譯本少了某一段時，後面的列不會往上補
             if (paragraph.verses.length && paragraph.verses.every(a => a.hideVerseContent)) {
                 if (last) {
-                    last.span++
+                    last.span = iRow - last.row + 1
                     last.$p.css('grid-row', `${last.row + 1} / span ${last.span}`)
                 }
                 return
