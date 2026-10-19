@@ -16,7 +16,7 @@ export function cvtAddrsToRef(addrs, tp) {
     return r1.join(";")
 
     function getName(book) {
-        return BibleConstantHelper.getBookNameArrayWhereTp(tp)[book - 1]
+        return BibleConstantHelper.getBookNameWhereTp(book, tp) // 使徒教父 (id 201–217) 不能用陣列索引
     }
 }
 /**

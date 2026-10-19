@@ -1,3 +1,4 @@
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
 import { startLongPress } from './ColWidth.es2023.js'
 
@@ -826,7 +827,7 @@ export class FhlInfoOb {
         const isgb = this.props.isgb
         const menuLabel = isgb ? "回清单" : "回清單"
         const firstPageLabel = isgb ? "跳至第一页" : "跳至第一頁"
-        const bookName = fhl.g_book_allAuto(isgb)[this.props.ibook][3]
+        const bookName = fhl.g_book_allAuto(isgb)[this.props.ibook]?.[3] ?? BookRegistry.nameFull(this.props.ibook + 1, isgb)
         const addr = `${bookName}${this.props.ichap}章${this.props.isec}${isgb ? "节" : "節"}`
         const msg = (isgb ? "于 " : "於 ") + addr + (isgb ? " 无对应内容" : " 無對應內容")
 
@@ -883,6 +884,11 @@ export class FhlInfoOb {
     // obRecords 是 ob.php 的全域書目清單(可能來自快取);再依目前經節查有哪些書卷有資料,
     // 交集後寫入 state.obdata(不篩選;年代/文體等篩選在 #filtered() 即時算)。
     #query_book_all_and_set_obdata(obRecords) {
+        // 使徒教父等非新舊約的書沒有「對應經節」的典藏資料 (fhl.g_book_all 只有 66 卷)：清單是空的，書庫仍可從「回清單」逛
+        if (fhl.g_book_all[this.props.ibook] == null) {
+            this.#setState({ obdata: [], obListLoaded: true, err_msg: "" })
+            return
+        }
         let url2 = "sob.php" + (this.props.isgb ? "?gb=1" : "?gb=0")
         url2 += "&book=all"
         url2 += "&engs=" + fhl.g_book_all[this.props.ibook][0]
@@ -912,6 +918,10 @@ export class FhlInfoOb {
     }
 
     #query_sob_from_ajax_book_chap_sec(book1, chap1, sec1) {
+        if (fhl.g_book_all[book1] == null) { // 非新舊約，沒有對應資料
+            this.#setState({ sobdata: [], err_msg: "", sobLoading: false })
+            return
+        }
         let url = "sob.php" + (this.props.isgb ? "?gb=1" : "?gb=0")
         const idxbook = this.state.idxbook
         const engs = fhl.g_book_all[book1][0]
@@ -939,6 +949,10 @@ export class FhlInfoOb {
     }
 
     #query_sob_from_ajax_idxbook(idxbook1) {
+        if (fhl.g_book_all[this.props.ibook] == null) { // 非新舊約，沒有對應資料
+            this.#setState({ sobdata: [], err_msg: "", sobLoading: false })
+            return
+        }
         let url = "sob.php" + (this.props.isgb ? "?gb=1" : "?gb=0")
         const engs = fhl.g_book_all[this.props.ibook][0]
         const chap = this.props.ichap

@@ -1,3 +1,4 @@
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { splitReference } from './splitReference.es2023.js'
 import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
@@ -83,6 +84,9 @@ function ensureLeafletAsync() {
     })
     return leafletLoading
 }
+
+/** 只有新舊約 66 卷有資料的右側分頁 (典藏是整本書的書庫，與目前讀的書無關，不在其中) */
+const TABS_CANON_ONLY = new Set(['fhlInfoParsing', 'fhlSnRank', 'fhlInfoComment', 'fhlInfoPreach', 'fhlInfoTsk', 'fhlInfoAudio', 'fhlInfoMap', 'fhlSnBranch', 'fhlAi'])
 
 export class FhlInfoContent {
     static #s = null
@@ -261,6 +265,13 @@ export class FhlInfoContent {
         var that = this;
         if (fhlmap_titleId_prev === "fhlInfoMap" && ps.titleId !== "fhlInfoMap")
             fhlmap_dispose() // 地圖留下的 leaflet 事件會讓其它分頁無法捲動
+
+        // 使徒教父等非新舊約的書：這些分頁的資料 (原文、註釋、串珠、地圖、有聲、講道…) 都只有新舊約 66 卷 (docs/z261019a)
+        if (!BookRegistry.isCanon(ps.bookIndex) && TABS_CANON_ONLY.has(ps.titleId)) {
+            $(dom).empty().append($('<div class="info-nodata"></div>').text(`這個分頁沒有「${BookRegistry.nameFull(ps.bookIndex, ps.gb == 1)}」的資料`))
+            fhlmap_titleId_prev = ps.titleId
+            return
+        }
         switch (ps.titleId) {
             case "fhlInfoParsing":
                 parsing_render_async()

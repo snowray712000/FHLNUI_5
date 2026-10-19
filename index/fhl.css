@@ -574,7 +574,7 @@ body {
     position: absolute;
     top: 0px;
     transform: translate(-50%, 0%);
-    width: 1000px;
+    width: 1160px; /* 首尾 80 + 6 欄 128 + 使徒教父欄 190 = 1118，再加 ul 預設的左 padding 32，放不下最後一欄會折行 */
 	height: 0px;
     background: transparent;/*#404040;*/
     padding: 0px;
@@ -632,6 +632,13 @@ body {
 }
 .testaments ul ul {
     padding: 0px 0px 0px 8px;
+}
+/* 使徒教父欄：書名很長 (伊格那丟致以弗所人書)，比其他欄寬 */
+.testaments>ul>li.af-col {
+    width: 190px;
+}
+#bookSelectName li.af-col li {
+    width: 172px;
 }
 #bookSelectName li li {
     display: block;
@@ -2627,6 +2634,15 @@ body.lec-col-resizing, body.lec-col-resizing * {
 }
 .isBold {
     font-weight: bold;
+}
+.isItalic {
+    font-style: italic;
+}
+/* 右側分頁：這本書沒有這類資料 (使徒教父) */
+.info-nodata {
+    padding: 2em 1em;
+    text-align: center;
+    color: var(--fg-muted);
 }
 .isName {
     text-decoration: underline;     

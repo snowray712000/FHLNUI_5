@@ -6,8 +6,12 @@ import { cvtAddrsToRef } from './cvtAddrsToRef.es2023.js'
 import { Hash_Changed } from './Hash_Changed.js'
 import { ViewHistory } from './ViewHistory.es2023.js'
 import { ViewHistoryData } from './ViewHistoryData_es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
 
 export async function hash_change_on_initial() {
+    // - 使徒教父的書卷表：選書選單、歷史記錄、hash 都要用，不管網址是什麼都先載入 (失敗只是少了使徒教父)
+    try { await BookRegistry.loadAfAsync() } catch (e) { console.warn('使徒教父書卷表載入失敗', e) }
+
     // - 有 `#/bible/` 開頭才處理
     if (!location.hash.startsWith('#/bible/')) {
         return
@@ -33,6 +37,17 @@ export async function hash_change_on_initial() {
 
     // - 彼前1:21 會變成 %E5%BD%BC%E5%89%8D1:21
     hash2 = decode_hash(hash2) // "/bible/彼前1:21" 會變成 "/bible/%E5%BD%BC%E5%89%8D1:21"
+
+    // - 使徒教父 (遺訓1:2)：不在 splitReference 的書名表裡
+    const regAddr = BookRegistry.parseRef(hash2)
+    if (regAddr != null) {
+        const addr_correct = makesure_correct_address([regAddr.book, regAddr.chap, regAddr.sec])
+        const ps = TPPageState.s
+        ps.bookIndex = addr_correct[0]
+        ps.chap = addr_correct[1]
+        ps.sec = addr_correct[2]
+        return
+    }
 
     // hash2 = '1Pe1:2;2Pe2:1-3;啟2:1'
     // - 解析 hash (型成 addr array (後面再判斷是同書卷、同一章嗎？還是交互參照，多卷或多章))
@@ -94,12 +109,14 @@ function makesure_correct_address(addr) {
     // - 若章 > 最大章，設為最大章，若 < 1，設為 1
     // - 若節 > 最大節，設為最大節，若 < 1，設為 1
 
-    const book = Math.min(Math.max(1, addr[0]), 66)
+    // - 使徒教父 (201–217) 已註冊就照它；其餘 (含不存在的書) 夾在 1–66
+    const book = BookRegistry.has(addr[0]) ? addr[0] : Math.min(Math.max(1, addr[0]), 66)
 
-    const chapMax = BibleConstantHelper.getCountChapOfBook(book)
+    const chapMax = BookRegistry.countChap(book)
     const chap = Math.min(Math.max(1, addr[1]), chapMax)
 
-    const verseMax = BibleConstantHelper.getCountVerseOfChap(book, chap)
+    // 節數 0 = 該章只有一個沒編號的段落 (使徒教父 210:14)，夾完就是 0
+    const verseMax = BookRegistry.countVerse(book, chap)
     const verse = Math.min(Math.max(1, addr[2]), verseMax)
 
     return [book, chap, verse]

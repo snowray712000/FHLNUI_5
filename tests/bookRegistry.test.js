@@ -152,6 +152,31 @@ describe('同類別內的上一卷 / 下一卷', () => {
     })
 })
 
+describe('上一章 / 下一章', () => {
+    it('章中間', () => {
+        expect(BookRegistry.nextChap(212, 3)).toEqual([212, 4])
+        expect(BookRegistry.prevChap(212, 3)).toEqual([212, 2])
+        expect(BookRegistry.nextChap(19, 150)).toEqual([20, 1])
+    })
+    it('跨書：af 內銜接，頭尾回 null', () => {
+        expect(BookRegistry.nextChap(201, 65)).toEqual([202, 1])
+        expect(BookRegistry.prevChap(202, 1)).toEqual([201, 65])
+        expect(BookRegistry.prevChap(201, 1)).toBeNull()
+        expect(BookRegistry.nextChap(217, 5)).toBeNull()
+    })
+    it('canon 與以前的行為一樣：創 1 沒有上一章、啟 22 沒有下一章，太 1 上一章是瑪 4', () => {
+        expect(BookRegistry.prevChap(1, 1)).toBeNull()
+        expect(BookRegistry.nextChap(66, 22)).toBeNull()
+        expect(BookRegistry.prevChap(40, 1)).toEqual([39, 4])
+        expect(BookRegistry.nextChap(39, 4)).toEqual([40, 1])
+    })
+    it('不存在的章 / 書回 null', () => {
+        expect(BookRegistry.nextChap(212, 17)).toBeNull()
+        expect(BookRegistry.prevChap(212, 0)).toBeNull()
+        expect(BookRegistry.nextChap(999, 1)).toBeNull()
+    })
+})
+
 describe('沒註冊的書：安全的預設值，不丟錯', () => {
     it('apo (之後才有)', () => {
         expect(BookRegistry.has(101)).toBe(false)

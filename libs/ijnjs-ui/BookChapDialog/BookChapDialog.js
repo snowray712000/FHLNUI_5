@@ -145,7 +145,7 @@
             copyArgsToResult()
             addToolbarsClickEvents()
             if (args.isFullname) {
-                getToolbarsOptions().eq(4).addClass('active')
+                toolbarOpt('full').addClass('active')
             }
             clickAutolyWhenInitial()
 
@@ -174,9 +174,18 @@
                 }, 0);
             }
             function addToolbarsClickEvents() {
-                var items = getToolbarsOptions()
                 // 每次 open 都會呼叫，若有加事件，要小心不要重複加
-                $(items[0]).off('click').on('click', function () {
+                // 依 opt 屬性找按鈕，不用位置 (加了「使徒教父」之後位置會變)
+                var af = window.bookRegistry // 使徒教父 (201–217) 的書卷表 (index/BookRegistry.es2023.js)，載入失敗就沒有這一頁
+                toolbarOpt('af').toggle(!!af && af.ids('af').length > 0)
+                toolbarOpt('af').off('click').on('click', function () {
+                    // 使徒教父
+                    $(this).trigger('focus')
+                    lastClickToolbarItem = $(this)
+
+                    gBooks().gAfItems(getResult().book)
+                })
+                toolbarOpt('old').off('click').on('click', function () {
                     // 舊約
                     $(this).trigger('focus')
                     args.isHebrewOrder = false
@@ -184,14 +193,14 @@
 
                     gBooks().gOldTestmentItems(getResult().book)
                 })
-                $(items[1]).off('click').on('click', function () {
+                toolbarOpt('new').off('click').on('click', function () {
                     // 新約
                     $(this).trigger('focus')
                     lastClickToolbarItem = $(this)
 
                     gBooks().gNewTestmentItems(getResult().book)
                 })
-                $(items[3]).off('click').on('click', function () {
+                toolbarOpt('hebrew').off('click').on('click', function () {
                     // 舊約(希伯來排序)
                     $(this).trigger('focus')
                     args.isHebrewOrder = true
@@ -199,7 +208,7 @@
 
                     gBooks().gOldTestmentHebrewOrderItems(getResult().book)
                 })
-                $(items[2]).off('click').on('click', function () {
+                toolbarOpt('chap').off('click').on('click', function () {
                     // chap
                     $(this).trigger('focus')
                     lastClickToolbarItem = $(this)
@@ -207,7 +216,7 @@
                     var r1 = getResult()
                     gChapItems(r1.book, r1.chap)
                 })
-                $(items[4]).off('click').on('click', function () {
+                toolbarOpt('full').off('click').on('click', function () {
                     // full name
                     var this$ = $(this)
                     switchActiveClassAndArgs()
@@ -228,26 +237,31 @@
             // 初始 init click 會用到。(要 click chap 還是書卷)
             // 在 click book 事件也會用到。(若是選到單一書卷的，則直接關閉視窗了，不用選章了)
             function isThisBookOnlyOneChap() {
-                return dataG.BOOK_WHERE_1CHAP.includes(getResult().book)
+                var book = getResult().book
+                if (isAfBook(book)) { return window.bookRegistry.countChap(book) == 1 }
+                return dataG.BOOK_WHERE_1CHAP.includes(book)
             }
 
             function clickAutolyWhenInitial() {
                 if (isThisBookOnlyOneChap()) {
                     getControlViaArgs().trigger('click')
                 } else {
-                    getToolbarsOptions().eq(2).trigger('click')
+                    toolbarOpt('chap').trigger('click')
                 }
                 return
 
                 function getControlViaArgs() {
                     var book = args.book
+                    if (isAfBook(book)) {
+                        return toolbarOpt('af')
+                    }
                     if (book > 39) {
-                        return getToolbarsOptions().eq(1)
+                        return toolbarOpt('new')
                     }
                     if (args.isHebrewOrder) {
-                        return getToolbarsOptions().eq(3)
+                        return toolbarOpt('hebrew')
                     }
-                    return getToolbarsOptions().eq(0)
+                    return toolbarOpt('old')
                 }
             }
             function copyArgsToResult() {
@@ -281,7 +295,7 @@
 
             function gChapItems(book, act) {
                 contents$.empty()
-                var cnt = dataG.getCountChapOfBook(book)
+                var cnt = isAfBook(book) ? window.bookRegistry.countChap(book) : dataG.getCountChapOfBook(book)
                 for (var i = 0; i < cnt; ++i) {
                     var r1 = $('<button type="button" class="btn btn-outline-dark"></button>')
                     var bk = i + 1
@@ -310,6 +324,7 @@
                     gNewTestmentItems,
                     gOldTestmentItems,
                     gOldTestmentHebrewOrderItems,
+                    gAfItems,
                 }
                 /**
                  * @returns {string[]}
@@ -327,7 +342,7 @@
                         updateResultChap(1)
                         triggerClose()
                     } else {
-                        getToolbarsOptions().eq(2).trigger('click')
+                        toolbarOpt('chap').trigger('click')
                     }
                 }
                 function gCore(text, val, actVal) {
@@ -365,6 +380,15 @@
                         r1.appendTo(contents$)
                     }
                 }
+                /** 使徒教父：書名由 BookRegistry 來 (id 不連續，不能用 items[bk - 1]) */
+                function gAfItems(act) {
+                    contents$.empty()
+                    var reg = window.bookRegistry
+                    reg.ids('af').forEach(function (bk) {
+                        var na = args.isFullname ? reg.nameFull(bk, args.isGb) : reg.nameShort(bk, args.isGb)
+                        gCore(na, bk, act).appendTo(contents$)
+                    })
+                }
                 function gNewTestmentItems(act) {
                     contents$.empty()
                     var items = getBookNames()
@@ -378,6 +402,14 @@
             }
             function getToolbarsOptions() {
                 return dialog$.find(".toolbar").children()
+            }
+            /** 依 opt 屬性取工具列按鈕：old new chap hebrew af full */
+            function toolbarOpt(opt) {
+                return getToolbarsOptions().filter('[opt="' + opt + '"]')
+            }
+            /** 使徒教父 (id 201–299)；書卷表沒載入時當不是，免得出錯 */
+            function isAfBook(book) {
+                return book >= 200 && book < 300 && !!window.bookRegistry && window.bookRegistry.has(book)
             }
         }
     }

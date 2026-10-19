@@ -390,6 +390,11 @@ function getAllDTextsFromAllChildrenNode(
             let rrr2 = getAllDTextsFromAllChildrenNode(it3.innerHTML, rrr1);
             for (const it4 of rrr2)
                 re.push(it4);
+        } else if (it3.nodeType === 1 && /^I$/.test(it3.tagName)) {
+            rrr1.isItalic = 1; // i 使徒教父 (afhuang) 的小標、比喻名稱
+            let rrr2 = getAllDTextsFromAllChildrenNode(it3.innerHTML, rrr1);
+            for (const it4 of rrr2)
+                re.push(it4);
         } else if (it3.nodeType === 1 && /^B$/.test(it3.tagName)) {
             rrr1.isBold = 1; // b
             let rrr2 = getAllDTextsFromAllChildrenNode(it3.innerHTML, rrr1);
@@ -469,6 +474,8 @@ function getAllDTextsFromAllChildrenNode(
 function parsingToDOMs(str) {
     // csb 詩篇 73 等卷首: `<h3><i>（詩篇73-89【1】` 沒有結尾 tag，DOMParser 會把後面整段都吞進 <i>，變成原始 html 顯示。補上結尾並去掉 <i>。
     str = str.replace(/<h3><i>([^<]*)(?=<br\s*\/?>|\r?\n)/g, '<h3>$1</h3>');
+    // 使徒教父 黑馬牧人書 54:1 (afhuang)：`<i>另一個比喻<i>` 結尾 tag 寫成了開頭 `<i>`，會把後面整節變成斜體。來源修好後移除 (docs/z261019a)
+    str = str.replace(/<i>([^<]*)<i>/g, '<i>$1</i>');
     let r1 = new DOMParser().parseFromString(str, 'text/html') // as Document;
     return r1.querySelector('body').childNodes;
 }

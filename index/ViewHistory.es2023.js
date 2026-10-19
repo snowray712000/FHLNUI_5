@@ -1,4 +1,5 @@
 import { BookSelect } from './BookSelect.es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { FhlInfo } from './FhlInfo.es2023.js'
 import { FhlLecture } from './FhlLecture.es2023.js'
 
@@ -38,8 +39,6 @@ export class ViewHistory {
             var ul = $vh.find('ul').first();
             ul.empty();
             
-            // book name 下面要用的
-            const booknames = BibleConstantHelper.getBookNameArrayChineseShort()
             // 釘住的排前面，所以顯示順序 ≠ datas 順序，li 帶 didx (在 datas 中的位置) 供點擊使用
             displayOrder(datas).forEach(({ item: a1, idx }) => {
                 const sec = a1.sec || 1; // 預設是 1
@@ -47,7 +46,7 @@ export class ViewHistory {
 
                 // 不再使用 chineses, 使用 book 來查詢 chineses ... 1based 所以要 -1 
                 $("<li>").attr('book', a1.book).attr('chap', a1.chap).attr('sec', sec).attr('didx', idx).toggleClass('pinned', pinned)
-                    .text(booknames[a1.book - 1] + a1.chap + ':' + sec)
+                    .text(BookRegistry.nameShort(a1.book, TPPageState.s.gb == 1) + a1.chap + ':' + sec)
                     .append($('<i>', { class: 'vh-pin', text: '📌', title: pinned ? '拔掉釘選' : '釘住這一章 (換節仍會更新，不會被擠掉、也不被清除)' }))
                     .appendTo(ul);
             })

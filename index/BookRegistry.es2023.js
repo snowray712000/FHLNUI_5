@@ -115,6 +115,26 @@ export class BookRegistry {
     }
 
     /**
+     * 上一章 [book, chap]：同一類別內，章頭接上一卷的最後一章；整類第一章回 null
+     * @param {number} id
+     * @param {number} chap
+     * @returns {[number, number]|null}
+     */
+    static prevChap(id, chap) {
+        if (!BookRegistry.hasChap(id, chap)) return null
+        if (chap > 1) return [id, chap - 1]
+        const pb = BookRegistry.prevBook(id)
+        return pb == null ? null : [pb, BookRegistry.countChap(pb)]
+    }
+    /** 下一章 [book, chap]：章尾接下一卷第 1 章；整類最後一章回 null */
+    static nextChap(id, chap) {
+        if (!BookRegistry.hasChap(id, chap)) return null
+        if (chap < BookRegistry.countChap(id)) return [id, chap + 1]
+        const nb = BookRegistry.nextBook(id)
+        return nb == null ? null : [nb, 1]
+    }
+
+    /**
      * 名稱 (中文全名 / 簡稱、繁 / 簡、英文縮寫，英文不分大小寫) → id；找不到回 -1
      * 只收註冊過的書，新舊約的特殊別名 (約壹…) 仍由 BibleConstantHelper.getBookId 處理
      * @param {string} name
@@ -153,12 +173,33 @@ export class BookRegistry {
      * P1 要在 index.js 啟動時 await 它，並把 af_books.json 加進 dist 的複製清單
      * @param {string} [url]
      */
-    static async loadAfAsync(url = './index/af_books.json') {
-        const { fetchJsonAsync } = await import('./fetchAsync.es2023.js')
-        const data = await fetchJsonAsync(url)
-        BookRegistry.registerCorpus('af', data.books)
+    static loadAfAsync(url = './index/af_books.json') {
+        afLoading ??= (async () => {
+            const { fetchJsonAsync } = await import('./fetchAsync.es2023.js')
+            const data = await fetchJsonAsync(url)
+            BookRegistry.registerCorpus('af', data.books)
+        })()
+        afLoading.catch(() => { afLoading = null }) // 失敗 (離線) 下次可以再試
+        return afLoading
+    }
+
+    /**
+     * 解析「書名 章[:節]」，只認新舊約以外已註冊的書，例如 `遺訓1:2`、`黑馬牧人書3`。
+     * 新舊約由 splitReference 處理；這裡不接受範圍、多筆、英文縮寫 (有空白或數字)
+     * @param {string} str
+     * @returns {{book:number, chap:number, sec:number}|null} 沒寫節時 sec = 1
+     */
+    static parseRef(str) {
+        const m = /^\s*([^\d\s;,/:：-]+?)\s*(\d+)(?:[:：](\d+))?\s*$/.exec(String(str))
+        if (m == null) return null
+        const book = BookRegistry.idOfName(m[1])
+        if (book < 0 || BookRegistry.isCanon(book)) return null
+        return { book, chap: +m[2], sec: m[3] != null ? +m[3] : 1 }
     }
 }
+
+/** @type {Promise<void>|null} */
+let afLoading = null
 
 // 新舊約：由 BibleConstant 的陣列填入 (陣列是 0 起算，id 是 1 起算)
 BookRegistry.registerCorpus('canon', BibleConstant.CHINESE_BOOK_NAMES.map((nameZh, i) => ({

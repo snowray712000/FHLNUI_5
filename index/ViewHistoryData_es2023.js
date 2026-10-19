@@ -1,4 +1,5 @@
 import { makeSure_ps_history_not_empty } from './addViewHistoryEvents_es2023.js';
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { testThenDoAsync } from './testThenDo.es2023.js';
 import { TPPageState } from './TPPageState.es2023.js';
 import { pushAddress, togglePin, clearKeepPinned } from './viewHistoryPins.es2023.js';
@@ -79,7 +80,7 @@ export class ViewHistoryData {
     }
     get_first_valid_address_or_Rom1(){
         for(const addr of this.datas){
-            if(addr.book >=1 && addr.book <=66 && addr.chap >=1){
+            if(BookRegistry.corpusOf(addr.book) != null && addr.chap >=1){
                 return addr;
             }
         }

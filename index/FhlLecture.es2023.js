@@ -5,6 +5,8 @@ import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtD
 import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDialogAsync.es2023.js'
 import { splitReference } from './splitReference.es2023.js'
 import { BibleConstant } from './BibleConstant.es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
+import { lectureVersions } from './lectureVersions.es2023.js'
 
 import { Sn_cnt_chap_unv_json } from "./Sn_cnt_chap_unv_json.es2023.js"
 import { Sn_cnt_book_unv_json } from "./Sn_cnt_book_unv_json.es2023.js"
@@ -313,9 +315,9 @@ async function renderLectureHtml(that) {
         $('#lecMain').css({ 'padding': '' })
 
         // 2016.01.21(四) 版權宣告 snow
-        render_copyright(ps.version)
+        render_copyright(lectureVersions(ps))
 
-        setCSS(ps.version.length, ps);
+        setCSS(lectureVersions(ps).length, ps);
         LecColWidth.s.apply(); // grid 版：各譯本欄寬 (自動 / 拖表頭自訂)，表頭跟著 (docs/z260930d P2)
         setFont();
 
@@ -375,8 +377,10 @@ async function renderLectureHtml(that) {
             console.error('bookIndex not in pageState');
         }
 
-        const isVisibleBack = ps.bookIndex == 1 && ps.chap == 1
-        const isVisibleNext = ps.bookIndex == 66 && ps.chap == 22
+        // 書卷背景 (chap 0) 時以按下去前的章為準
+        const chapNow = ps.chap == 0 ? ps.commentBackgroundChap : ps.chap
+        const isVisibleBack = BookRegistry.prevChap(ps.bookIndex, chapNow) == null // 是「隱藏」，名字相反是舊的
+        const isVisibleNext = BookRegistry.nextChap(ps.bookIndex, chapNow) == null
         const fhlLecture = $('#fhlLecture')
 
         fhlLecture.find('.chapBack').first().css('visibility', isVisibleBack ? 'hidden' : 'visible')
@@ -564,8 +568,9 @@ async function renderLectureHtml(that) {
     }
     function sortBibleVersion(r, ps) {
         var tmpArr = new Array();
-        for (var i = 0; i < ps.version.length; i++) {
-            var version = ps.version[i];
+        const versions = lectureVersions(ps)
+        for (var i = 0; i < versions.length; i++) {
+            var version = versions[i];
             for (var j = 0; j < r.length; j++) {
                 if (version == r[j].version) {
                     tmpArr.push(r[j]);
@@ -642,31 +647,16 @@ function when_click_chapback(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     assert(ps.bookIndex != null, 'bookIndex not in pageState')
-    if (ps.bookIndex == 1 && (ps.chap == 1 || ps.chap == 0)) {
+
+    // chap 0 是注釋的「書卷背景」，以按下去之前的章為準
+    const chapNow = ps.chap == 0 ? ps.commentBackgroundChap : ps.chap
+    const to = BookRegistry.prevChap(ps.bookIndex, chapNow)
+    if (to == null) {
         // 都不該生效 (應該不會被按到才對)
         return
     }
-
-    if (ps.chap == 0) {
-        // 此時，是註解，按了「書卷背景」。
-        // 若 book 又是第1章，此時按上一頁會出錯「第零章」錯誤
-        // 同樣，若在最後1章，進入書卷背景，再按下一章，也會出現錯誤
-        if (ps.commentBackgroundChap == 1) {
-            // 要上一卷書
-            ps.bookIndex--;
-            ps.chap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1];
-        } else {
-            ps.chap = ps.commentBackgroundChap - 1
-        }
-    } else {
-        if (ps.chap == 1) {
-            // 按上一章，就是切換書卷了
-            ps.bookIndex--;
-            ps.chap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1];
-        } else {
-            ps.chap--;
-        }
-    }
+    ps.bookIndex = to[0]
+    ps.chap = to[1]
     ps.sec = 1; // 每次切換章節，預設是第一節
 
     // 當使用者切換章節時，若是看過的章，則跳到「那節」，而不要「第一節」
@@ -684,30 +674,15 @@ function when_click_chapnext(e) {
     /** @type {TPPageState} */
     let ps = TPPageState.s
     assert(ps.bookIndex != null, 'bookIndex not in pageState')
-    if (ps.bookIndex == 66 && (ps.chap == 22 || ps.chap == 0)) {
+
+    const chapNow = ps.chap == 0 ? ps.commentBackgroundChap : ps.chap
+    const to = BookRegistry.nextChap(ps.bookIndex, chapNow)
+    if (to == null) {
         // 都不該生效 (應該不會被按到才對)
         return
     }
-
-    const lastChap = BibleConstant.COUNT_OF_CHAP[ps.bookIndex - 1]
-    if (ps.chap == 0) {
-        // 此時，是按了「註解」中的「書卷背景」。此時應當要用
-        if (ps.commentBackgroundChap == lastChap) {
-            // 要下一卷書
-            ps.bookIndex++;
-            ps.chap = 1;
-        } else {
-            ps.chap = ps.commentBackgroundChap + 1
-        }
-    } else {
-        if (ps.chap == lastChap) {
-            // 按下一章，就是切換書卷了
-            ps.bookIndex++;
-            ps.chap = 1;
-        } else {
-            ps.chap++;
-        }
-    }
+    ps.bookIndex = to[0]
+    ps.chap = to[1]
     ps.sec = 1; // 每次切換章節，預設是第一節
 
     // 當使用者切換章節時，若是看過的章，則跳到「那節」，而不要「第一節」

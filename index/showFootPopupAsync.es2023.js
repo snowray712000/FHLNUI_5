@@ -1,3 +1,4 @@
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { ParsingPopUp } from './ParsingPopUp.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
 import { rtAsync } from './rtAsync.js'
@@ -23,6 +24,12 @@ export async function showFootPopupAsync(e) {
     const chap = $this.attr('chap')
     const ver = $this.attr('ver')
     const $inside = $('#parsingPopUpInside')
+    // 使徒教父 (黃錫木譯本) 的註腳內容信望愛沒有提供 (rt.php 只有聖經譯本)，不送請求
+    if (!BookRegistry.isCanon(book)) {
+        $inside.text(`「${BookRegistry.nameFull(book, ps.gb == 1)}」的註腳內容信望愛沒有提供，這裡只標出註腳的位置。`)
+        $inside.css({ width: '100%', 'max-width': '323px', 'white-space': 'normal' })
+        return
+    }
     try {
         const json = await rtAsync({ book, chap, ver, id, gb: ps.gb })
         if (json.status == "success" && json.record.length > 0) {

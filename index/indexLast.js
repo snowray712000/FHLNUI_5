@@ -5,7 +5,7 @@
 /// <reference path="../libs/ijnjs/ijnjs.d.js" />
 
 // ES module（原本由 index.js 以 ijnjs 下載成文字後 eval）。由 index.js 在頁面骨架插入後呼叫。
-import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
 
 export function runIndexLast() {
   // 原本還有 doLast2~5：從 ijnjs 快取 eval 各元件，清單都已註解成空陣列（元件改成 es2023 module），已移除
@@ -24,11 +24,11 @@ function doLast1() {
       $(window).trigger('hashchange')
 
       $(document).on('chapchanged', function () {
-        const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[pageState.bookIndex - 1]
+        const bookName = BookRegistry.nameShort(pageState.bookIndex, pageState.gb == 1)
         history.pushState(null, null, `#/bible/${bookName}${pageState.chap}:${pageState.sec}`)
       });
       $(document).on('secchanged', function () {
-        const bookName = BibleConstantHelper.getBookNameArrayChineseShort()[pageState.bookIndex - 1]
+        const bookName = BookRegistry.nameShort(pageState.bookIndex, pageState.gb == 1)
         history.replaceState(null, null, `#/bible/${bookName}${pageState.chap}:${pageState.sec}`)
       });
       $(document).trigger('secchanged')

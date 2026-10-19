@@ -3,7 +3,7 @@ import { BookSelectPopUp } from "./BookSelectPopUp.es2023.js";
 import { FhlLecture } from "./FhlLecture.es2023.js";
 import { FhlInfo } from "./FhlInfo.es2023.js";
 import { BookSelect } from "./BookSelect.es2023.js";
-import { BibleConstant } from "./BibleConstant.es2023.js";
+import { BookRegistry } from "./BookRegistry.es2023.js";
 import { triggerGoEventWhenPageStateAddressChange } from "./triggerGoEventWhenPageStateAddressChange.es2023.js";
 import { ViewHistory } from "./ViewHistory.es2023.js";
 import { change_sec_of_ps_if_address_exist_in_view_history } from "./ViewHistoryData_es2023.js";
@@ -61,8 +61,7 @@ export class BookSelectChapter {
         })
     }
     render(ps, dom, idx) {
-        const bookChapters = BibleConstant.COUNT_OF_CHAP
-        var numOfChapters = bookChapters[idx];
+        var numOfChapters = BookRegistry.countChap(idx + 1); // idx 是 0 起算，書卷 id 不一定連續 (使徒教父 201–217)
         var html = "<div><ul>";
         for (var i = 1; i <= numOfChapters; i++) {
             html += "<li>" + i + "</li>";

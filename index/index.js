@@ -79,6 +79,7 @@ import { addViewHistoryEvents } from './addViewHistoryEvents_es2023.js'
 import { SearchDialog } from './SearchDialog_es2023.js'
 import { LecCopyTable } from './LecCopyTable.es2023.js' // 經文反白後的「複製對照表」(docs/z260930d)
 import { hash_change_on_initial } from './hash_change_on_initial.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { Hash_Changed } from './Hash_Changed.js'
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式
@@ -153,6 +154,7 @@ import { Hash_Changed } from './Hash_Changed.js'
     ParagraphData.s.isReadyAndStartingIfNeed()
 
     window.fhlLecture = FhlLecture.s
+    window.bookRegistry = BookRegistry // libs/ijnjs-ui/BookChapDialog (窄螢幕的選書對話框，舊式非 module) 要查使徒教父的書卷表
     LecCopyTable.s.init()
 
     // 原本 testIsLastVersion() 以同步 ajax 取 app_versions.json，會卡住整頁

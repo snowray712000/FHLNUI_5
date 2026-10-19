@@ -1,5 +1,6 @@
 import { BibleConstant } from "./BibleConstant.es2023.js"
 import { TPPageState } from "./TPPageState.es2023.js";
+import { BookRegistry } from "./BookRegistry.es2023.js";
 
 /**
  * @typedef {import('./DText.js').DAddress} DAddress
@@ -111,6 +112,21 @@ export class BibleConstantHelper {
     }
 
     /**
+     * 某一卷書在指定寫法 (tp) 下的名稱。新舊約查陣列；使徒教父等 (id 不連續) 查 BookRegistry：
+     * 中文全名 tp → 全名，英文 tp → 英文縮寫，其餘 → 中文簡稱
+     * @param {number} book
+     * @param {'羅'|'羅馬書'|'罗'|'罗马书'|'romans'|'rom'|'ro'} tp
+     * @returns {string}
+     */
+    static getBookNameWhereTp(book, tp) {
+        if (BookRegistry.isCanon(book)) return this.getBookNameArrayWhereTp(tp)[book - 1]
+        const gb = tp === '罗' || tp === '罗马书'
+        if (tp === '羅馬書' || tp === '罗马书') return BookRegistry.nameFull(book, gb)
+        if (tp === 'romans' || tp === 'rom' || tp === 'ro') return BookRegistry.engs(book)
+        return BookRegistry.nameShort(book, gb)
+    }
+
+    /**
      * 取得中文短書卷名稱
      * @param {boolean} isGb
      * @returns {string[]}
@@ -157,22 +173,24 @@ export class BibleConstantHelper {
      * @returns {number}
      */
     static getCountVerseOfChap(book, chap) {
-        if (book < 1 || book > 66) {
-            console.error(`Invalid book number: ${book}. It should be between 1 and 66.`);
+        // 書卷 id 不一定連續 (使徒教父 201–217)，查註冊表 (BookRegistry)
+        if (!BookRegistry.has(book)) {
+            console.error(`Invalid book number: ${book}.`);
             return 0
         }
-        if (chap < 1 || chap > BibleConstant.COUNT_OF_VERSE[book - 1].length) {
-            console.error(`Invalid chapter number: ${chap}. It should be between 1 and ${BibleConstant.COUNT_OF_VERSE[book - 1].length}.`);
+        const chapMax = BookRegistry.countChap(book)
+        if (chap < 1 || chap > chapMax) {
+            console.error(`Invalid chapter number: ${chap}. It should be between 1 and ${chapMax}.`);
             return 0
         }
-        return BibleConstant.COUNT_OF_VERSE[book - 1][chap - 1];
+        return BookRegistry.countVerse(book, chap);
     }
     static getCountChapOfBook(book) {
-        if (book < 1 || book > 66) {
-            console.error(`Invalid book number: ${book}. It should be between 1 and 66.`);
+        if (!BookRegistry.has(book)) {
+            console.error(`Invalid book number: ${book}.`);
             return 0
         }
-        return BibleConstant.COUNT_OF_CHAP[book - 1];
+        return BookRegistry.countChap(book);
     }
     /**
      * @param {DAddress} address 
@@ -197,7 +215,7 @@ export class BibleConstantHelper {
                 if (isStopAtBookEnd) {
                     return null; // 已經到書卷末尾，返回 null
                 } else {
-                    book++;
+                    book = BookRegistry.nextBook(book) ?? book + 1; // 使徒教父的下一卷是 +1 不是 +100
                     chap = 1;
                 }
             }

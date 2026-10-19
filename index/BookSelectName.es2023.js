@@ -2,6 +2,7 @@ import { BookSelectChapter } from "./BookSelectChapter.es2023.js"
 import { getBookFunc } from "./getBookFunc.es2023.js"
 import { gbText } from "./gbText.es2023.js";
 import { BibleConstant } from "./BibleConstant.es2023.js";
+import { BookRegistry } from "./BookRegistry.es2023.js";
 export class BookSelectName {
     static #s = null
     /** @returns {BookSelectName} */
@@ -65,7 +66,9 @@ export class BookSelectName {
                             $('#old-testament>ul>li:lt(' + selectedColumnIndex + ')').animate({ left: '-75px' }, { queue: false, duration: 200 });
                             $('#old-testament>ul>li:eq(' + selectedColumnIndex + ')').animate({ left: '-75px' }, { queue: false, duration: 200 });
                             $('#old-testament>ul>li:gt(' + selectedColumnIndex + ')').animate({ left: '75px' }, { queue: false, duration: 200 });
-                            var idx = getBookFunc("index", that.attr('chineses'));
+                            // 使徒教父 (201–217) 的 li 帶 data-bid；新舊約用簡稱找 (0 起算的 index)
+                            const bid = Number(that.attr('data-bid'))
+                            var idx = bid > 0 ? bid - 1 : getBookFunc("index", that.attr('chineses'));
                             var isIE11 = !!navigator.userAgent.match(/Trident.*rv\:11\./);
 
                             if (/msie/.test(navigator.userAgent.toLowerCase())) //replace 2016.11, 參照: http://www.fwolf.com/blog/post/35
@@ -78,7 +81,8 @@ export class BookSelectName {
                             }
                             else {
                                 var position = that.offset();
-                                position.left = $('#old-testament').position().left + that.position().left + 128 * (selectedColumnIndex) + 40;
+                                position.left = $('#old-testament').position().left + that.position().left + 128 * (selectedColumnIndex) + 40
+                                    + (that.closest('li.af-col').length ? 62 : 0); // 使徒教父欄比其他欄寬 62px (190 - 128)，章清單才不會蓋到書名
                                 position.top = $('#old-testament').position().top + 25;
                                 bookSelectChapter.init(ps, $('#bookSelectChapter'), idx, position);
                             }
@@ -204,11 +208,22 @@ export class BookSelectName {
         //html += "</ul><span class='bookClass'>"+gbt("預言書")+"</span><ul>";
         //for (var i = 65; i < 66; i++)
         //  html += "<li><span>" + nagb[i] + "<i class='fa fa-angle-right fa-fw'></i></span></li>";
-        html += "</ul></li><li></li></ul></div>";
+        html += "</ul></li>";
+
+        // 使徒教父 (201–217)：書卷表由 BookRegistry.loadAfAsync 載入 (hash_change_on_initial)，沒載到就沒有這一欄
+        const afIds = BookRegistry.ids('af')
+        if (afIds.length) {
+            html += "<li class='af-col'><span class='bookClass'>" + gbt("使徒教父") + "</span><ul>";
+            for (const id of afIds) {
+                html += "<li data-bid='" + id + "' chineses='" + BookRegistry.nameShort(id, ps.gb == 1) + "'><span>" + BookRegistry.nameFull(id, ps.gb == 1) + "<i class='fa fa-angle-right fa-fw'></i></span></li>";
+            }
+            html += "</ul></li>";
+        }
+        html += "<li></li></ul></div>";
 
         dom.html(html);
 
-        for (var i = 0; i < nagb.length; i++) {
+        for (var i = 0; i < nagb.length; i++) { // 只有新舊約 66 卷；使徒教父的 li 上面已經帶屬性
             dom.find('li li:eq(' + i + ')').attr('chineses', BibleConstant.CHINESE_BOOK_ABBREVIATIONS[i]);
         }
         /*for(var i=0;i<bookFullName.length;i++){

@@ -1,4 +1,5 @@
 import { ViewHistory } from './ViewHistory.es2023.js';
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { DocEvent } from './DocEvent.es2023.js';
 import { FhlLecture } from './FhlLecture.es2023.js';
 import { BookSelect } from './BookSelect.es2023.js';
@@ -15,7 +16,7 @@ export function makeSure_ps_history_not_empty(){
     // 舊的預設值是 { chineses: "創", chap: 1 } 沒有 book，清單會顯示 NaN，所以用 chineses 補上 book，補不了的就丟掉
     TPPageState.s.history = TPPageState.s.history.map(a1 => {
         let book = parseInt(a1.book, 10);
-        if (!(book >= 1 && book <= 66) && a1.chineses != null) {
+        if (BookRegistry.corpusOf(book) == null && a1.chineses != null) {
             let idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS.indexOf(a1.chineses);
             if (idx == -1) idx = BibleConstant.CHINESE_BOOK_ABBREVIATIONS_GB.indexOf(a1.chineses);
             book = idx + 1;
@@ -24,7 +25,7 @@ export function makeSure_ps_history_not_empty(){
         const sec = parseInt(a1.sec, 10) || 1;
         const pin = Number(a1.pin) > 0 ? { pin: Number(a1.pin) } : {};
         return { book, chap, sec, ...pin };
-    }).filter(a1 => a1.book >= 1 && a1.book <= 66 && a1.chap >= 1);
+    }).filter(a1 => BookRegistry.corpusOf(a1.book) != null && a1.chap >= 1); // 只看編號範圍：使徒教父的書卷表此時可能還沒載入
 
     if (TPPageState.s.history.length == 0) {
         TPPageState.s.history = [{

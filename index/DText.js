@@ -78,6 +78,7 @@
  * @property {import("./DFoot.js").DFoot} [foot] rt.php?engs=Gen&chap=4&version=cnet&id=182 真的缺一參數不可,試過只有id不行  和合本 2010 版, 是只有 text ([4.1]「該隱」意思是「得」。) csb: 中文標準譯本 cnet: NET聖經中譯本
  * @property {0 | 1} [isName] 私名號。底線
  * @property {0 | 1} [isBold] 粗體。和合本2010、<b></b>
+ * @property {0 | 1} [isItalic] 斜體。使徒教父 (afhuang) 的 <i></i>
  * @property {0 | 1} [isGODSay] 紅字。耶穌說的話，會被標紅色。有些版本這麼作。
  * @property {0 | 1} [isOrigNotExist] 虛點點。和合本，原文不存在，為了句子通順加上的翻譯。
  * @property {'w' | 'u'} [wu] 新約原文 + 韋式 + 聯式 + 中，屬於韋式 w 或聯式 u (cvt_others_wu_plus.js)

@@ -6,6 +6,8 @@ import { getAjaxUrl } from "./getAjaxUrl.es2023.js";
 import { isRDLocation } from "./isRDLocation.es2023.js";
 import { TPPageState } from "./TPPageState.es2023.js";
 import { qsb } from "./api/qsb.js";
+import { BookRegistry } from "./BookRegistry.es2023.js";
+import { qafAsync } from "./qafAsync.es2023.js";
 
 // renderLectureHtml @ FhlLecture.js
 /**
@@ -17,6 +19,12 @@ export async function lecture_get_data_async() {
     const book = ps.bookIndex
     const chap = ps.chap
     const gb = ps.gb
+
+    // 使徒教父：不是譯本，只有一種文本 (qaf.php)，不管 ps.version 選了什麼
+    if (BookRegistry.corpusOf(book) === 'af') {
+        return [await qafAsync({ bid: book, chap })]
+    }
+
     const versionPromises = ps.version.map(ver => {
         if (ver == "fhlwh") {
             return get_orig_async(Bible_fhlwh_json.s, "fhlwh", "新約原文", book, chap)

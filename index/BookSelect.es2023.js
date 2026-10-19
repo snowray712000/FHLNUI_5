@@ -5,6 +5,7 @@
 /// <reference path='DPageState.d.js' />
 
 import { cssVar } from './theme/Theme.es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { getBookFunc } from './getBookFunc.es2023.js'
 import { BookSelectPopUp } from './BookSelectPopUp.es2023.js';
 import { FhlLecture } from './FhlLecture.es2023.js';
@@ -113,7 +114,7 @@ export class BookSelect {
 
         assert( ps.bookIndex != null, "ps.bookIndex should not be null" );
 
-        const bookName = BibleConstantHelper.getBookNameArrayChineseFull()[ps.bookIndex - 1] // ps.bookIndex 是從 1 開始的
+        const bookName = BookRegistry.nameFull(ps.bookIndex, ps.gb == 1) // 書卷 id 不一定連續 (使徒教父 201–217)，不能用陣列索引
 
         let html = "";
         if ( ps.bookIndex == 19 ) {
@@ -123,7 +124,7 @@ export class BookSelect {
         }
 
         // 窄的時候 (fhl.css 的 @media) 只顯示縮寫，例「創 1」
-        const bookShort = BibleConstantHelper.getBookNameArrayChineseShort()[ps.bookIndex - 1]
+        const bookShort = BookRegistry.nameShort(ps.bookIndex, ps.gb == 1)
         html = `<span class="bs-full">${html}</span><span class="bs-short">${bookShort} ${ps.chap}</span>`
         html += '&nbsp;&#9660;';
         dom.html(html);

@@ -10,6 +10,7 @@
  * @typedef {{ version: string, name: string, isRtl?: boolean }} VersionCol
  * @typedef {{ label?: string, labelAttrs?: Record<string, string>, cells: Record<string, VerseItem[]> }} VerseRow 一列 (連續的節)；cells 以譯本為 key
  */
+import { BookRegistry } from './BookRegistry.es2023.js'
 import { render_dtexts } from './render_dtexts.js'
 import { generate_verse_number_jdom } from './lecture/FhlLecture_render_mode_common_es2023.js'
 import { SnFilter } from './SnFilter.es2023.js'
@@ -46,7 +47,8 @@ export function renderVerseLec(verse, version, opt = {}) {
     const $lec = $('<span>').addClass('lec')
         .attr({ ver: version, chap: verse.chap, sec: verse.sec, book: verse.book })
 
-    if (!verse.hideVerseNumber) {
+    // 使徒教父有些章只有一個沒編號的段落 (sec=0，210:14)：不顯示「0」。新舊約維持原樣
+    if (!verse.hideVerseNumber && !(verse.sec === 0 && !BookRegistry.isCanon(verse.book))) {
         const label = verse.verseLabel ?? String(verse.sec)
         const $num = generate_verse_number_jdom(label, version)
         if (opt.numberDText) {

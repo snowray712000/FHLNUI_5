@@ -1,6 +1,7 @@
 /**
  * @typedef {import("../DText.js").DText} DText
  */
+import { BookRegistry } from '../BookRegistry.es2023.js'
 import { charHG } from "../charHG.es2023.js";
 import { TPPageState } from "../TPPageState.es2023.js"
 
@@ -192,7 +193,7 @@ async function build_view_model(rspArr, mode) {
             one_result.record.map(a1 => [a1.book, a1.chap, a1.sec, a1.bible_text])
         );
 
-        if (ps.foot_note_show_method == 2) {
+        if (ps.foot_note_show_method == 2 && BookRegistry.isCanon(ps.bookIndex)) { // 使徒教父沒有註腳內容可查
             await queryFootsAsync(dtexts_with_addrs, version);
         }
 

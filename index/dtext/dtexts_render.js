@@ -93,6 +93,7 @@ function render_regular_text(textData) {
     const classes = [];
     if (textData?.isTitle1) classes.push('isTitle1');
     if (textData?.isBold) classes.push('isBold');
+    if (textData?.isItalic) classes.push('isItalic');
     if (textData?.isName) classes.push('isName');
     if (textData?.isGODSay) classes.push('isGODSay');
     if (textData?.isOrigNotExist) classes.push('isOrigNotExist');
@@ -125,6 +126,7 @@ function has_text_style(textData) {
     return !!(
         textData?.isTitle1 ||
         textData?.isBold ||
+        textData?.isItalic ||
         textData?.isName ||
         textData?.isGODSay ||
         textData?.isOrigNotExist ||
