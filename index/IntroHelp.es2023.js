@@ -10,14 +10,19 @@ const SN_HELP_URL = 'docs/SN說明.md'
 const SEARCH_HELP_URL = 'docs/搜尋說明.md'
 const LEIT_HELP_URL = 'docs/本章特色說明.md'
 const AF_HELP_URL = 'docs/使徒教父說明.md'
+const APO_HELP_URL = 'docs/次經說明.md'
 
 /** @type {DialogHtml | null} */
 let helpDlg = null
 /** @type {Map<string, Promise<string>>} */
 const texts = new Map()
 
-/** 「?」按鈕 (放在標題旁)，事件由 bindIntroHelp 綁 @param {string} what 例 同源字 */
-export const helpButtonHtml = what => `<button type="button" class="intro-help" title="${what}是什麼？">?</button>`
+/**
+ * 「?」按鈕 (放在標題旁)，事件由 bindIntroHelp 綁
+ * @param {string} what 例 同源字
+ * @param {string} [kind] 這顆開哪一份說明 (bindIntroHelp 的 kind)；同一個容器裡有好幾種說明 (選書面板的次經、使徒教父) 時要寫，沒寫就用 bindIntroHelp 綁的那一種
+ */
+export const helpButtonHtml = (what, kind) => `<button type="button" class="intro-help"${kind ? ` data-help="${kind}"` : ''} title="${what}是什麼？">?</button>`
 
 /** 同源字標題：「同源字 ?：」 */
 export const SAME_TITLE_HTML = `<span class="item-title">同源字${helpButtonHtml('同源字')}：</span>`
@@ -25,11 +30,19 @@ export const SAME_TITLE_HTML = `<span class="item-title">同源字${helpButtonHt
 /**
  * 在 root 內按 .intro-help 開說明 (同時只開一個)
  * @param {JQuery<HTMLElement>} root
- * @param {'same'|'sn'|'search'|'leit'|'af'} [kind]
+ * @param {'same'|'sn'|'search'|'leit'|'af'|'apo'} [kind] 按鈕上有 data-help 的以按鈕為準 (一個容器裡有好幾種說明時)
  */
 export function bindIntroHelp(root, kind = 'same') {
-    const [url, title, isWide] = { sn: [SN_HELP_URL, '原文SN'], search: [SEARCH_HELP_URL, '搜尋'], leit: [LEIT_HELP_URL, '本章特色', true], af: [AF_HELP_URL, '使徒教父', true] }[kind] ?? [SAME_HELP_URL, '同源字']
-    root.off('click.introHelp').on('click.introHelp', '.intro-help', e => { e.stopPropagation(); showIntroHelpAsync(e.currentTarget, url, title, isWide) })
+    root.off('click.introHelp').on('click.introHelp', '.intro-help', e => {
+        e.stopPropagation()
+        const [url, title, isWide] = HELPS[e.currentTarget.dataset.help ?? kind] ?? HELPS.same
+        showIntroHelpAsync(e.currentTarget, url, title, isWide)
+    })
+}
+/** @type {Record<string, [string, string, boolean?]>} 種類 → [說明檔, 視窗標題, 近滿版] */
+const HELPS = {
+    same: [SAME_HELP_URL, '同源字'], sn: [SN_HELP_URL, '原文SN'], search: [SEARCH_HELP_URL, '搜尋'],
+    leit: [LEIT_HELP_URL, '本章特色', true], af: [AF_HELP_URL, '使徒教父', true], apo: [APO_HELP_URL, '次經', true],
 }
 export const bindSameHelp = dlg => bindIntroHelp(dlg, 'same')
 

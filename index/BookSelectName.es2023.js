@@ -230,12 +230,12 @@ export class BookSelectName {
             }
             return h + "</ul></li>"
         }
-        html += bookColumn('apo-col', '次經', BookRegistry.ids('apo'))
+        html += bookColumn('apo-col', '次經', BookRegistry.ids('apo'), helpButtonHtml('次經', 'apo'))
         html += bookColumn('af-col', '使徒教父', BookRegistry.ids('af'), helpButtonHtml('使徒教父'))
         html += "<li></li></ul></div>";
 
         dom.html(html);
-        bindIntroHelp(dom, 'af') // 「使徒教父」欄標題旁的 ?
+        bindIntroHelp(dom, 'af') // 「次經」「使徒教父」欄標題旁的 ? (按鈕上的 data-help 決定開哪一份)
 
         for (var i = 0; i < nagb.length; i++) { // 只有新舊約 66 卷；使徒教父的 li 上面已經帶屬性
             dom.find('li li:eq(' + i + ')').attr('chineses', BibleConstant.CHINESE_BOOK_ABBREVIATIONS[i]);

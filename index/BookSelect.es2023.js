@@ -74,7 +74,7 @@ export class BookSelect {
                     $(document).trigger('chapchanged');
                 })
                 
-                bindIntroHelp($('#book-chap-dialog'), 'af') // 「使徒教父」頁籤按鈕裡的 ?
+                bindIntroHelp($('#book-chap-dialog'), 'af') // 「次經」「使徒教父」頁籤按鈕裡的 ? (按鈕上的 data-help 決定開哪一份)
                 Ijnjs.BookChapDialog.s.show({ book: ps.bookIndex, chap: ps.chap, isGb: ps.gb == 1 })
             } else {
                 if (BookSelectPopUp.s.dom.is(":visible")) {

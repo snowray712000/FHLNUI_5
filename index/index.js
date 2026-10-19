@@ -80,6 +80,7 @@ import { SearchDialog } from './SearchDialog_es2023.js'
 import { LecCopyTable } from './LecCopyTable.es2023.js' // 經文反白後的「複製對照表」(docs/z260930d)
 import { hash_change_on_initial } from './hash_change_on_initial.js'
 import { BookRegistry } from './BookRegistry.es2023.js'
+import './BookNameStyle.es2023.js' // 次經的書名用哪一套 (載入時就套用)
 import { Hash_Changed } from './Hash_Changed.js'
 (function (root) {
     // // 相容其它 .js 還沒有重構成 import export 格式

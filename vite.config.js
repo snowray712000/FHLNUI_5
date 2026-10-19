@@ -108,6 +108,7 @@ const LEGACY_COPY = [
   'docs/同源字說明.md', // 即時 SN 視窗「同源字 ?」讀這份 (IntroHelp.es2023.js)
   'docs/SN說明.md', // 設定「原文SN ?」讀這份 (IntroHelp.es2023.js)
   'docs/搜尋說明.md', // 搜尋框旁「?」讀這份 (IntroHelp.es2023.js)
+  'docs/次經說明.md', // 讀次經時書名旁、選書面板「次經」欄旁的「?」讀這份 (IntroHelp.es2023.js)
   'docs/使徒教父說明.md', // 讀使徒教父時書名旁、選書面板「使徒教父」欄旁的「?」讀這份 (IntroHelp.es2023.js)
   'docs/本章特色說明.md', // SN 篩選「本章排行」分頁，本章特色旁的「?」讀這份 (IntroHelp.es2023.js)
   'docs/信望愛資源說明.md', // ▦ 信望愛資源面板連結旁的「?」讀這份 (Resources.es2023.js)
