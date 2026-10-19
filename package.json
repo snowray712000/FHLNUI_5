@@ -21,6 +21,7 @@
     "check:data": "node tools/check_data.mjs",
     "gen:audio": "node tools/gen_audio_bible_index.mjs",
     "gen:uiabv": "node tools/gen_uiabv.mjs",
+    "gen:af": "node tools/gen_af_books.mjs",
     "gen:theme": "node tools/gen_apple_color.mjs"
   }
 }

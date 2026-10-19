@@ -1,0 +1,26 @@
+{
+  "note": "由 tools/gen_af_books.mjs 產生 (npm run gen:af)，不要手改。verses[chap-1] = 該章最大節號，0 = 只有一個沒編號的段落 (sec=0)",
+  "generated": "2026-10-19",
+  "source": "qaf.php (黃錫木主編《使徒教父著作》, version afhuang)",
+  "corpus": "af",
+  "idRange": [201, 299],
+  "books": [
+    {"id":201,"nameZh":"革利免一書","nameZhGb":"革利免一书","abbrZh":"革一","abbrZhGb":"革一","engs":"1 Clem.","chapCount":65,"verses":[3,8,4,13,7,4,7,5,4,7,2,8,4,5,7,17,6,17,3,12,9,8,5,5,5,3,7,4,3,8,4,4,8,8,12,6,5,4,9,5,4,5,6,6,8,9,7,6,6,7,5,4,5,4,6,16,7,2,4,4,3,3,4,1,2],"sec0":[]},
+    {"id":202,"nameZh":"革利免二書","nameZhGb":"革利免二书","abbrZh":"革二","abbrZhGb":"革二","engs":"2 Clem.","chapCount":20,"verses":[8,7,5,5,7,9,6,6,11,5,7,6,4,5,5,4,7,2,4,5],"sec0":[]},
+    {"id":203,"nameZh":"伊格那丟致以弗所人書","nameZhGb":"伊格那丢致以弗所人书","abbrZh":"伊弗","abbrZhGb":"伊弗","engs":"Ign. Eph.","chapCount":21,"verses":[3,2,2,2,3,2,2,2,2,3,2,2,2,2,3,2,2,2,3,2,2],"sec0":[]},
+    {"id":204,"nameZh":"伊格那丟致馬內夏人書","nameZhGb":"伊格那丢致马内夏人书","abbrZh":"伊馬","abbrZhGb":"伊马","engs":"Ign. Mag.","chapCount":15,"verses":[2,1,2,1,2,2,2,2,2,3,1,1,2,1,1],"sec0":[]},
+    {"id":205,"nameZh":"伊格那丟致他拉勒人書","nameZhGb":"伊格那丢致他拉勒人书","abbrZh":"伊他","abbrZhGb":"伊他","engs":"Ign. Trall.","chapCount":13,"verses":[2,3,3,2,2,2,2,2,2,1,2,3,3],"sec0":[]},
+    {"id":206,"nameZh":"伊格那丟致羅馬人書","nameZhGb":"伊格那丢致罗马人书","abbrZh":"伊羅","abbrZhGb":"伊罗","engs":"Ign. Rom.","chapCount":10,"verses":[2,2,3,3,3,3,3,3,3,3],"sec0":[]},
+    {"id":207,"nameZh":"伊格那丟致非拉鐵非人書","nameZhGb":"伊格那丢致非拉铁非人书","abbrZh":"伊非","abbrZhGb":"伊非","engs":"Ign. Phld.","chapCount":11,"verses":[2,2,3,1,2,3,2,2,2,2,2],"sec0":[]},
+    {"id":208,"nameZh":"伊格那丟致士每拿人書","nameZhGb":"伊格那丢致士每拿人书","abbrZh":"伊士","abbrZhGb":"伊士","engs":"Ign. Smyrn.","chapCount":13,"verses":[2,1,3,2,3,2,2,2,2,2,3,2,2],"sec0":[]},
+    {"id":209,"nameZh":"伊格那丟致坡旅甲書","nameZhGb":"伊格那丢致坡旅甲书","abbrZh":"伊坡","abbrZhGb":"伊坡","engs":"Ign. Pol.","chapCount":8,"verses":[3,3,2,3,2,2,3,3],"sec0":[]},
+    {"id":210,"nameZh":"坡旅甲致腓立比人書","nameZhGb":"坡旅甲致腓立比人书","abbrZh":"坡腓","abbrZhGb":"坡腓","engs":"Pol. Phil.","chapCount":14,"verses":[3,3,3,3,3,3,2,2,2,3,4,3,2,0],"sec0":[14]},
+    {"id":211,"nameZh":"坡旅甲殉道記","nameZhGb":"坡旅甲殉道记","abbrZh":"坡殉","abbrZhGb":"坡殉","engs":"Mart. Pol.","chapCount":22,"verses":[2,4,2,0,2,2,3,3,3,2,2,3,3,3,2,2,3,3,2,2,0,3],"sec0":[4,21]},
+    {"id":212,"nameZh":"十二使徒遺訓","nameZhGb":"十二使徒遗训","abbrZh":"遺訓","abbrZhGb":"遗训","engs":"Did.","chapCount":16,"verses":[6,7,10,14,2,3,4,3,5,7,12,5,7,3,4,8],"sec0":[]},
+    {"id":213,"nameZh":"巴拿巴書信","nameZhGb":"巴拿巴书信","abbrZh":"巴拿巴","abbrZhGb":"巴拿巴","engs":"Barn.","chapCount":21,"verses":[8,10,6,14,14,19,11,7,9,12,11,11,7,9,9,10,2,2,12,2,9],"sec0":[]},
+    {"id":214,"nameZh":"黑馬牧人書","nameZhGb":"黑马牧人书","abbrZh":"黑馬","abbrZhGb":"黑马","engs":"Herm.","chapCount":114,"verses":[9,4,4,3,4,8,4,3,9,9,5,3,5,7,6,11,10,10,4,3,4,10,6,7,7,2,7,5,11,4,7,4,7,8,5,10,5,12,12,6,6,4,21,3,5,6,7,4,5,11,10,3,8,5,11,9,5,5,8,4,6,7,6,4,7,7,18,9,8,6,6,6,6,5,4,4,5,10,7,5,8,7,8,7,7,7,7,9,8,9,6,6,7,5,5,3,4,4,4,5,4,2,8,3,8,4,5,6,5,3,3,4,5,4],"sec0":[]},
+    {"id":215,"nameZh":"致丟格那妥書","nameZhGb":"致丢格那妥书","abbrZh":"丟格","abbrZhGb":"丢格","engs":"Diogn.","chapCount":12,"verses":[2,10,5,6,17,10,9,11,6,8,8,9],"sec0":[]},
+    {"id":216,"nameZh":"帕皮亞殘篇","nameZhGb":"帕皮亚残篇","abbrZh":"帕皮","abbrZhGb":"帕皮","engs":"Frag. Papias","chapCount":26,"verses":[1,1,17,11,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,1,2,1,1,1,1,1],"sec0":[]},
+    {"id":217,"nameZh":"衆長老的傳統","nameZhGb":"众长老的传统","abbrZh":"長老","abbrZhGb":"长老","engs":"Trad. Elders","chapCount":5,"verses":[1,1,1,1,1],"sec0":[]}
+  ]
+}
