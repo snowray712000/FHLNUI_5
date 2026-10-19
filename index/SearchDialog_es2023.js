@@ -4,10 +4,6 @@ import { Search_suggestFilter } from './Search_suggestFilter_es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
 import { BibleConstantHelper } from './BibleConstantHelper.es2023.js'
 import { gbText } from './gbText.es2023.js'
-import { triggerGoEventWhenPageStateAddressChange } from './triggerGoEventWhenPageStateAddressChange.es2023.js'
-import { BookSelect } from './BookSelect.es2023.js'
-import { FhlLecture } from './FhlLecture.es2023.js'
-import { FhlInfo } from './FhlInfo.es2023.js'
 import { queryDictionaryAndShowAtDialogAsync } from './queryDictionaryAndShowAtDialogAsync.es2023.js'
 import { SN_Act_Color } from './SN_Act_Color.es2023.js'
 import { copy_text_to_clipboard } from './copy_text_to_clipboard_es2023.js'
@@ -23,7 +19,11 @@ import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDia
 import { showFloatBar } from './RefChooseBar.es2023.js'
 import { bindIntroHelp } from './IntroHelp.es2023.js'
 import { bindScopeButton, scopeButtonHtml, currentScopeLabel } from './SearchScopeDialog.es2023.js'
-import { readScope, scopeBooks, scopeGroups } from './SearchScope.es2023.js'
+import { readScope, scopeBooks, scopeGroups, checkedWithImplicit, scopeHasOptIn } from './SearchScope.es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
+import { searchBookGroups } from './searchBookGroups.es2023.js'
+import { AF_VERSION } from './qafAsync.es2023.js'
+import { gotoAddress } from './gotoAddress.es2023.js'
 
 /**
  * @typedef {import('./SearchSession_es2023.js').SearchRow} SearchRow
@@ -76,6 +76,14 @@ export class SearchDialog {
         if (keyword.length == 0) return
         if (/^[GH]?0+$/i.test(keyword)) return // 00000 會造成卡死 2015.08.01
 
+        // 使徒教父的經文位置 (遺訓1:2)：直接跳過去，不開搜尋結果 (新舊約的經文位置照舊，列在搜尋結果裡)
+        const afAddr = BookRegistry.parseRef(keyword)
+        if (afAddr != null && BookRegistry.has(afAddr.book)) {
+            const a = BookRegistry.clampAddr(afAddr.book, afAddr.chap, afAddr.sec)
+            gotoAddress(a.book, a.chap, a.sec)
+            return
+        }
+
         const ps = TPPageState.s
         this.session?.abort()
         const session = this.session = new SearchSession({
@@ -83,7 +91,9 @@ export class SearchDialog {
             versions: ps.version,
             gb: ps.gb == 1 ? 1 : 0,
             strong: ps.strong == 1 ? 1 : 0,
-            engs: BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1],
+            // 使徒教父沒有 engs：reference 省略書卷、SN 沒寫 G/H 時要用，借新約 (希臘文) 的
+            engs: BibleConstantHelper.getBookNameArrayEnglishNormal()[ps.bookIndex - 1] ?? 'Rom',
+            ibookCur: ps.bookIndex - 1,
             scope: currentScope(ps.bookIndex - 1),
         })
         session.compare = readCompare()
@@ -125,18 +135,24 @@ export class SearchDialog {
      * @param {SearchSession} session
      */
     #suggestFilter(session) {
-        const ibook = fhl.engs_2_iBook(session.engs)
+        const ibook = session.ibookCur
         if (session.scope != null && session.scope.size == 1) return { group_name: ALL_GROUP, ibook }
-        const groups = session.scope == null ? fhl.g_book_group : scopeGroups(fhl.g_book_group, readScope(fhl.g_book_group))
+        const all = searchBookGroups()
+        const groups = session.scope == null ? fhl.g_book_group : scopeGroups(all, checkedWithImplicit(all, readScope(all), ibook))
         return Search_suggestFilter(session.cntOfBook, groups, ibook, SearchDialog.MIN_COUNT_TO_NARROW)
     }
 
     /** 搜尋範圍設定改了 (⚙)：不重新搜尋，只重新篩選目前這次搜尋的結果 */
-    applyScopeChange() {
+    async applyScopeChange() {
         const session = this.session
         if (session == null || session.kind == 'reference' || this.#dlgHtml?.dlg == null) return
-        const ibook = fhl.engs_2_iBook(session.engs)
-        session.setScope(currentScope(ibook))
+        session.setScope(currentScope(session.ibookCur))
+        // 這時才勾到使徒教父：還沒搜尋過，現在才搜 (只有這一個額外的請求)
+        if (session.wantsAf) {
+            this.#setStatus(gbText('搜尋使徒教父…'))
+            await session.ensureAfAsync()
+            if (session !== this.session) return
+        }
         this.filter = this.#suggestFilter(session)
         this.#renderGroups()
         this.#renderScopeNote()
@@ -149,7 +165,7 @@ export class SearchDialog {
         const n = session?.kind == 'reference' ? 0 : session?.outOfScope ?? 0
         const note$ = this.#dlg.find('.sd-scope-note').empty()
         if (session == null || session.kind == 'reference' || session.scope == null) return // 整本聖經 (或這次已全部顯示) 不必列
-        $('<span class="sd-scope-label">').text(`${gbText('範圍')}：${currentScopeLabel(fhl.engs_2_iBook(session.engs))}`).appendTo(note$)
+        $('<span class="sd-scope-label">').text(`${gbText('範圍')}：${currentScopeLabel(session.ibookCur)}`).appendTo(note$)
         if (n == 0) return
         $('<button type="button" class="sd-scope-more">').text(`${gbText('範圍外還有')} ${n} ${gbText('節')}，${gbText('全部顯示')}`)
             .attr('title', gbText('這次搜尋改成整本聖經 (設定不變)；範圍用旁邊的 ⚙ 設定'))
@@ -249,8 +265,7 @@ export class SearchDialog {
         }).on('click', '.sd-copy', function () {
             const p = $(this).closest('.paragraph')
             const lec = p.find('.lec')
-            const names = BibleConstantHelper.getBookNameArrayChineseShort()
-            const addr = `${names[lec.attr('book') - 1]} ${lec.attr('chap')}:${lec.attr('sec')}`
+            const addr = `${bookName(lec.attr('book') - 1)} ${lec.attr('chap')}:${lec.attr('sec')}`
             const text = p.find('.verseContent').get().map(e => e.innerText.trim()).join(' ') // innerText：隱藏的 SN 不算
             copy_text_to_clipboard(async () => `${addr} ${text}`)
         }).on('click', '.ft', e => {
@@ -298,18 +313,18 @@ export class SearchDialog {
         const fold$ = this.#dlg.find('.sd-fold').prop('hidden', true)
         if (session.kind == 'reference' || session.verses.length == 0) return
         const folded = this.#dlg.find('.search-dlg').addBack('.search-dlg').first().hasClass('sd-folded')
-        const names0 = BibleConstantHelper.getBookNameArrayChineseShort()
-        const cur = this.filter.ibook != null ? names0[this.filter.ibook] : gbText(session.scope != null && this.filter.group_name == ALL_GROUP ? '範圍內全部' : this.filter.group_name)
+        const cur = this.filter.ibook != null ? bookName(this.filter.ibook) : gbText(session.scope != null && this.filter.group_name == ALL_GROUP ? '範圍內全部' : this.filter.group_name)
         fold$.prop('hidden', false).text(`${gbText('篩選')} ${folded ? '▸' : '▾'}` + (folded ? `：${cur}` : ''))
 
         const cnt = books => books.reduce((sum, b) => sum + (session.cntOfBook[b] ?? 0), 0)
         // 搜尋範圍有限定時，只列範圍內的分類 (全部那顆改叫「範圍內全部」)；範圍只有目前這卷，分類沒有意義，一顆都不列
         const scoped = session.scope != null
-        const inScope = scoped ? scopeGroups(fhl.g_book_group, readScope(fhl.g_book_group)) : null
+        const groups = searchBookGroups()
+        const inScope = scoped ? scopeGroups(groups, checkedWithImplicit(groups, readScope(groups), session.ibookCur)) : null
         const onlyCur = scoped && session.scope.size == 1
-        for (const [group_name, books] of Object.entries(fhl.g_book_group)) {
+        for (const [group_name, books] of Object.entries(groups)) {
             if (onlyCur || (scoped && group_name != ALL_GROUP && !(group_name in inScope))) continue
-            const n = cnt(books)
+            const n = group_name == ALL_GROUP ? session.verses.length : cnt(books) // 全部：含使徒教父 (不在整卷聖經的書卷裡)
             if (n == 0) continue
             $('<button type="button" class="sd-chip sd-group">')
                 .attr('group_name', group_name)
@@ -319,9 +334,8 @@ export class SearchDialog {
                 .appendTo(groups$)
         }
 
-        const names = BibleConstantHelper.getBookNameArrayChineseShort()
         const ibookCur = TPPageState.s.bookIndex - 1
-        for (const ibook of fhl.g_book_group[this.filter.group_name] ?? []) {
+        for (const ibook of groups[this.filter.group_name] ?? []) {
             const n = session.cntOfBook[ibook] ?? 0
             if (n == 0) continue
             $('<button type="button" class="sd-chip sd-book">')
@@ -329,7 +343,7 @@ export class SearchDialog {
                 .attr('title', ibook == ibookCur ? gbText('目前閱讀的書卷') : null)
                 .toggleClass('selected', ibook == this.filter.ibook)
                 .toggleClass('sd-cur', ibook == ibookCur)
-                .append($('<span>').text(names[ibook]), $('<small>').text(n))
+                .append($('<span>').text(bookName(ibook)), $('<small>').text(n))
                 .appendTo(books$)
         }
     }
@@ -338,13 +352,13 @@ export class SearchDialog {
     async #applyFilterAsync() {
         const session = this.session
         if (session.kind != 'reference') {
-            const books = this.filter.ibook != null ? [this.filter.ibook] : fhl.g_book_group[this.filter.group_name]
+            // 全部 (null) 不另列書卷：使徒教父不在整卷聖經的書卷裡，列了會被篩掉
+            const books = this.filter.ibook != null ? [this.filter.ibook] : this.filter.group_name == ALL_GROUP ? null : searchBookGroups()[this.filter.group_name]
             session.setFilter(books)
         }
 
-        const failed = session.failedVersions.map(a1 => abvphp.get_cname_from_book(a1.ver, session.gb == 1) || a1.ver)
-        const names = BibleConstantHelper.getBookNameArrayChineseShort()
-        const tooMany = session.tooManyBooks.map(engs => names[fhl.engs_2_iBook(engs)] ?? engs)
+        const failed = session.failedVersions.map(a1 => versionName(a1.ver, session.gb == 1))
+        const tooMany = session.tooManyBooks.map(engs => bookName(fhl.engs_2_iBook(engs)) || engs)
         const hint = (failed.length ? `（${failed.join('、')} ${gbText('無法搜尋')}）` : '')
             + (tooMany.length ? `（${tooMany.join('、')} ${gbText('原文結果太多，未列入')}）` : '')
         if (session.total == 0) {
@@ -397,7 +411,8 @@ export class SearchDialog {
         this.#loadingToken = null
         if (rows == null) return
 
-        const keys = session.kind == 'sn' ? { sns: session.sns } : { words: session.kind == 'keyword' ? session.keyword : '' }
+        // 使徒教父是繁體，簡體關鍵字也要標示轉成繁體後的詞
+        const keys = session.kind == 'sn' ? { sns: session.sns } : { words: session.kind == 'keyword' ? `${session.keyword} ${session.afKeyword}` : '' }
         const $grid = renderVerseGrid({ ...gridOpt(session), rows: verseRows })
         $grid.find('.sn').addClass('seSN sebutton') // 搜尋結果的 SN 樣式 (灰、小)、點了開字典
         markSearchKeys($grid, keys)
@@ -425,23 +440,24 @@ export class SearchDialog {
 
     /** 主畫面跳到該節，dialog 保留 */
     #goto(ibook, chap, sec) {
-        const ps = TPPageState.s
-        ps.bookIndex = ibook + 1
-        ps.chap = chap
-        ps.sec = sec
-
-        triggerGoEventWhenPageStateAddressChange(ps)
-        BookSelect.s.render()
-        FhlLecture.s.render()
-        FhlLecture.s.selectLecture(ps.bookIndex, ps.chap, ps.sec)
-        FhlInfo.s.render(ps)
-        $(document).trigger('chapchanged') // 更新網址 hash (pushState)，可按上一頁回來
+        gotoAddress(ibook + 1, chap, sec)
     }
 }
 
 /** 搜尋範圍設定 (⚙)：要搜尋的書卷，null 是整本聖經 @param {number} ibookCur 目前閱讀的書卷 0based */
 function currentScope(ibookCur) {
-    return scopeBooks(fhl.g_book_group, readScope(fhl.g_book_group), ibookCur)
+    const groups = searchBookGroups()
+    return scopeBooks(groups, readScope(groups), ibookCur)
+}
+
+/** 書卷簡稱 (0 起算的 ibook)，含使徒教父；簡繁依目前設定 */
+function bookName(ibook) {
+    return BookRegistry.nameShort(ibook + 1, TPPageState.s.gb == 1)
+}
+
+/** 譯本名稱：使徒教父不在 uiabv.php，自己給 */
+function versionName(ver, isGb) {
+    return ver == AF_VERSION ? '使徒教父' : abvphp.get_cname_from_book(ver, isGb) || ver
 }
 
 const ALL_GROUP = '整卷聖經' // fhl.g_book_group 的第一個，全部
@@ -477,10 +493,19 @@ function gridOpt(session) {
     // 整次搜尋都沒找到的譯本不列欄 (例 中文關鍵字時的 KJV)；經文查詢 (reference) 沒有 verses，全列
     // 譯本對照：列出所有譯本 (無法搜尋的譯本也可能取得到經文)
     const found = session.kind == 'reference' ? null : new Set(session.verses.flatMap(v => v.vers))
-    const vers = session.compare && session.kind != 'reference' ? session.compareVersions
+    let vers = session.compare && session.kind != 'reference' ? session.compareVersions
         : (session.kind == 'sn' ? ['unv'] : session.versions).filter(v => !failed.has(v) && (found == null || found.has(v)))
+    // 使徒教父不是使用者選的譯本：目前篩選的節裡有它才多一欄 (只有它自己的節有字，其它節留空)；
+    // 目前篩選的節全是使徒教父時，新舊約譯本整欄都是空的，不列
+    if (session.kind != 'reference') {
+        const isAf = v => v.vers.length == 1 && v.vers[0] == AF_VERSION
+        const hasAf = session.filtered.some(isAf)
+        if (hasAf && session.filtered.every(isAf)) vers = []
+        if (hasAf && !vers.includes(AF_VERSION)) vers.push(AF_VERSION)
+        else if (!hasAf) vers = vers.filter(v => v != AF_VERSION)
+    }
     return {
-        versions: vers.map(ver => ({ version: ver, name: abvphp.get_cname_from_book(ver, session.gb == 1) || ver, isRtl: ver == 'bhs' })),
+        versions: vers.map(ver => ({ version: ver, name: versionName(ver, session.gb == 1), isRtl: ver == 'bhs' })),
         layout: ps.show_mode == 2 || ps.show_mode == 4 ? 'interleaved' : 'side',
         isLabel: true,
         labelWidth: 'var(--vg-label-w, 6.5em)', // 出處欄寬：表頭可拖 (LABEL_W_KEY)，各批 grid 共用才對齊
@@ -496,7 +521,6 @@ function gridOpt(session) {
  * @returns {Promise<import('./VerseGrid.es2023.js').VerseRow[]>}
  */
 async function toVerseRowsAsync(rows) {
-    const names = BibleConstantHelper.getBookNameArrayChineseShort()
     /** @type {Map<string, [number, number, number, string][]>} */
     const recordsOfVer = new Map()
     for (const row of rows) {
@@ -510,7 +534,7 @@ async function toVerseRowsAsync(rows) {
     const isFootLoad = TPPageState.s.foot_note_show_method == 2
     await Promise.all([...recordsOfVer].map(async ([ver, records]) => {
         const dtexts_with_addr = cvt_others(ver, records)
-        if (isFootLoad) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
+        if (isFootLoad && ver != AF_VERSION) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
         for (const [book, chap, sec, dtexts] of dtexts_with_addr) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
     }))
 
@@ -530,9 +554,11 @@ async function toVerseRowsAsync(rows) {
             for (let sec = row.sec + 1; isMergedWithPrev(dtextsAt(t.ver, book, row.chap, sec)); sec++) verseLabel = extendVerseLabel(verseLabel, sec)
             cells[t.ver] = [{ book, chap: row.chap, sec: row.sec, dtexts, verseLabel }]
         }
+        // 使徒教父的導論 (chap 0)：標「導論」，前往 / 上下文到第 1 章 (沒有第 0 章可看)
+        const isIntro = row.chap == 0 && !BookRegistry.isCanon(book)
         return {
-            label: `${names[row.ibook]} ${row.chap}:${row.sec}`,
-            labelAttrs: { 'data-goto': JSON.stringify([book, row.chap, row.sec]), title: gbText('看上下文，或經文區跳到這裡') },
+            label: isIntro ? `${bookName(row.ibook)} ${gbText('導論')}` : `${bookName(row.ibook)} ${row.chap}:${row.sec}`,
+            labelAttrs: { 'data-goto': JSON.stringify(isIntro ? [book, 1, 1] : [book, row.chap, row.sec]), title: gbText('看上下文，或經文區跳到這裡') },
             cells,
         }
     })

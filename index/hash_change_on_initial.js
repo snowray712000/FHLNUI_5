@@ -109,17 +109,9 @@ function makesure_correct_address(addr) {
     // - 若章 > 最大章，設為最大章，若 < 1，設為 1
     // - 若節 > 最大節，設為最大節，若 < 1，設為 1
 
-    // - 使徒教父 (201–217) 已註冊就照它；其餘 (含不存在的書) 夾在 1–66
-    const book = BookRegistry.has(addr[0]) ? addr[0] : Math.min(Math.max(1, addr[0]), 66)
-
-    const chapMax = BookRegistry.countChap(book)
-    const chap = Math.min(Math.max(1, addr[1]), chapMax)
-
-    // 節數 0 = 該章只有一個沒編號的段落 (使徒教父 210:14)，夾完就是 0
-    const verseMax = BookRegistry.countVerse(book, chap)
-    const verse = Math.min(Math.max(1, addr[2]), verseMax)
-
-    return [book, chap, verse]
+    // - 使徒教父 (201–217) 已註冊就照它；其餘 (含不存在的書) 夾在 1–66。節數 0 = 該章只有沒編號的段落
+    const a = BookRegistry.clampAddr(addr[0], addr[1], addr[2])
+    return [a.book, a.chap, a.sec]
 }
 function cvt_to_addrs_str_from_addrs(addrs) {
     // console.warn("cvt_to_addrs_str_from_addrs");

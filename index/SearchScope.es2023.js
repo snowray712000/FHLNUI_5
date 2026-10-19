@@ -4,7 +4,11 @@
  * 勾了大的分類 (例 新約)，包在裡面的小分類 (保羅書信、福音書、路加著作…) 視同勾選，不管它自己有沒有勾。
  * 「包在裡面」不是寫死的，是比對書卷：A 的書卷包含 B 的所有書卷，A 就包含 B (路加著作 ⊂ 福音書 ⊂ 新約)。
  *
- * 分類來自 `fhl.g_book_group` (key 是繁體分類名，value 是 0based ibook[])，其中「整卷聖經」不列出 (全勾就是整卷聖經)。
+ * 分類來自 `fhl.g_book_group` (key 是繁體分類名，value 是 0based ibook[])，其中「整卷聖經」不列出 (全勾就是整卷聖經)，
+ * 再加上 searchBookGroups() 補的「使徒教父」。
+ *
+ * 「選擇加入」的分類 (OPT_IN，目前只有使徒教父)：不算在整卷聖經內、預設不勾，勾了才搜尋；
+ * 但目前讀的書就在裡面時 (例如正在讀遺訓)，自動含整個分類。
  *
  * @typedef {Object.<string, number[]>} BookGroup
  * @typedef {{name: string, books: number[], depth: number}} ScopeNode 依樹狀排好 (大分類在前，小分類縮排)
@@ -12,6 +16,8 @@
 
 const ALL = '整卷聖經'
 const KEY = 'fhlSearchScope'
+/** 選擇加入的分類：預設不勾、不算在整卷聖經內 (z261019a) */
+export const OPT_IN = ['使徒教父']
 
 /**
  * 可勾選的分類，排成樹狀 (深度優先)：舊約 → 摩西五經…；新約 → 福音書 → 路加著作；保羅書信…
@@ -61,26 +67,48 @@ export function effectiveChecked(bookGroup, checked) {
 }
 
 /**
+ * 自己勾的，加上「目前讀的書就在裡面的選擇加入分類」(例如正在讀遺訓時的使徒教父)
+ * @param {BookGroup} bookGroup
+ * @param {Iterable<string>} checked
+ * @param {number} ibookCur 目前閱讀的書卷 0based
+ * @returns {string[]}
+ */
+export function checkedWithImplicit(bookGroup, checked, ibookCur) {
+    const implicit = OPT_IN.filter(name => bookGroup[name]?.includes(ibookCur))
+    return [...new Set([...checked, ...implicit])]
+}
+
+/**
  * 要搜尋的書卷
  * @param {BookGroup} bookGroup
  * @param {Iterable<string>} checked
  * @param {number} ibookCur 目前閱讀的書卷，0based，一定包含
- * @returns {Set<number> | null} null 表示整本聖經 (不必篩)
+ * @returns {Set<number> | null} null 表示整本聖經 (新舊約 66 卷全部，沒有選擇加入的分類；不必篩)
  */
 export function scopeBooks(bookGroup, checked, ibookCur) {
     const books = new Set([ibookCur])
-    for (const name of effectiveChecked(bookGroup, checked).keys()) bookGroup[name].forEach(b => books.add(b))
-    return books.size >= (bookGroup[ALL]?.length ?? 66) ? null : books
+    for (const name of effectiveChecked(bookGroup, checkedWithImplicit(bookGroup, checked, ibookCur)).keys()) bookGroup[name].forEach(b => books.add(b))
+    const optInBooks = new Set(OPT_IN.flatMap(name => bookGroup[name] ?? []))
+    if ([...books].some(b => optInBooks.has(b))) return books // 含選擇加入的分類，不再是「整本聖經」
+    const all = bookGroup[ALL]
+    return (all ? all.every(b => books.has(b)) : books.size >= 66) ? null : books
 }
 
-/** 沒存過時：全勾 (與有這個設定之前一樣，整本聖經) @param {BookGroup} bookGroup @returns {string[]} 自己勾的分類名 */
+/** 這個範圍要不要搜尋「選擇加入」的分類 (有任何一卷在裡面)。null (整本聖經) 沒有 @param {Set<number> | null} scope @param {BookGroup} bookGroup */
+export function scopeHasOptIn(scope, bookGroup) {
+    if (scope == null) return false
+    const optInBooks = new Set(OPT_IN.flatMap(name => bookGroup[name] ?? []))
+    return [...scope].some(b => optInBooks.has(b))
+}
+
+/** 沒存過時：除了選擇加入的分類，全勾 (與有這個設定之前一樣，整本聖經) @param {BookGroup} bookGroup @returns {string[]} 自己勾的分類名 */
 export function readScope(bookGroup) {
     const all = scopeTree(bookGroup).map(n => n.name)
     try {
         const v = JSON.parse(localStorage.getItem(KEY))
         if (Array.isArray(v)) return v.filter(name => all.includes(name))
     } catch { /* 無痕等 */ }
-    return all
+    return all.filter(name => !OPT_IN.includes(name))
 }
 
 /** @param {string[]} checked */
@@ -98,7 +126,7 @@ export function writeScope(checked) {
  */
 export function scopeLabel(bookGroup, checked, ibookCur, curName, tr = s => s) {
     if (scopeBooks(bookGroup, checked, ibookCur) == null) return tr(ALL)
-    const eff = effectiveChecked(bookGroup, checked)
+    const eff = effectiveChecked(bookGroup, checkedWithImplicit(bookGroup, checked, ibookCur))
     const tops = [...eff].filter(([, by]) => by == null).map(([name]) => tr(name))
     const covered = [...eff.keys()].some(name => bookGroup[name].includes(ibookCur)) // 目前這卷已在勾的分類裡，不必再列
     return [...(covered ? [] : [curName]), ...tops].join('＋')

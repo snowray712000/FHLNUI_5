@@ -135,6 +135,19 @@ export class BookRegistry {
     }
 
     /**
+     * 把使用者輸入的位置夾到有效範圍：書已註冊就用它，否則夾在新舊約 1–66；章夾在 1–章數；節夾在 1–節數
+     * (該章只有沒編號的段落時，節是 0)
+     * @param {number} book @param {number} chap @param {number} sec
+     * @returns {{book: number, chap: number, sec: number}}
+     */
+    static clampAddr(book, chap, sec) {
+        const b = BookRegistry.has(book) ? book : Math.min(Math.max(1, book), 66)
+        const c = Math.min(Math.max(1, chap), BookRegistry.countChap(b))
+        const s = Math.min(Math.max(1, sec), BookRegistry.countVerse(b, c))
+        return { book: b, chap: c, sec: s }
+    }
+
+    /**
      * 名稱 (中文全名 / 簡稱、繁 / 簡、英文縮寫，英文不分大小寫) → id；找不到回 -1
      * 只收註冊過的書，新舊約的特殊別名 (約壹…) 仍由 BibleConstantHelper.getBookId 處理
      * @param {string} name

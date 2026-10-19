@@ -22,6 +22,7 @@
     "gen:audio": "node tools/gen_audio_bible_index.mjs",
     "gen:uiabv": "node tools/gen_uiabv.mjs",
     "gen:af": "node tools/gen_af_books.mjs",
+    "gen:s2t": "node tools/gen_s2t.mjs",
     "gen:theme": "node tools/gen_apple_color.mjs"
   }
 }

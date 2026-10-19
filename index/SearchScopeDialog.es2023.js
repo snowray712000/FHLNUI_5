@@ -1,7 +1,9 @@
 import { DialogHtml } from './DialogHtml.es2023.js'
 import { gbText } from './gbText.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
-import { scopeTree, effectiveChecked, readScope, writeScope, scopeLabel } from './SearchScope.es2023.js'
+import { scopeTree, effectiveChecked, readScope, writeScope, scopeLabel, checkedWithImplicit, OPT_IN } from './SearchScope.es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
+import { searchBookGroups } from './searchBookGroups.es2023.js'
 
 /** 搜尋框旁「⚙」的按鈕 (放在 ? 旁邊) */
 export const scopeButtonHtml = () => `<button type="button" class="search-scope-btn" title="${gbText('搜尋範圍')}"><i class="fa fa-cog"></i></button>`
@@ -14,7 +16,8 @@ let scopeDlg = null
  * @param {number} [ibook] 目前閱讀的書卷 0based，省略時用目前頁面的
  */
 export function currentScopeLabel(ibook = TPPageState.s.bookIndex - 1) {
-    return scopeLabel(fhl.g_book_group, readScope(fhl.g_book_group), ibook, gbText(fhl.g_book_all[ibook]?.[2] ?? ''), gbText)
+    const groups = searchBookGroups()
+    return scopeLabel(groups, readScope(groups), ibook, BookRegistry.nameFull(ibook + 1, TPPageState.s.gb == 1), gbText)
 }
 
 /**
@@ -39,18 +42,21 @@ function showScopeDialog(btn, onChange) {
         getTitle: () => gbText('搜尋範圍'),
         registerEventWhenShowed: dlg => {
             const root = dlg.find('.scope-dlg')
-            const tree = scopeTree(fhl.g_book_group)
-            let checked = readScope(fhl.g_book_group)
-            const curName = () => {
-                const names = BibleNames()
-                return gbText(names[TPPageState.s.bookIndex - 1] ?? '')
-            }
+            const groups = searchBookGroups()
+            const tree = scopeTree(groups)
+            let checked = readScope(groups)
+            const curName = () => BookRegistry.nameFull(TPPageState.s.bookIndex, TPPageState.s.gb == 1)
+            const optIn = tree.filter(n => OPT_IN.includes(n.name)).map(n => n.name)
 
             const render = () => {
-                const eff = effectiveChecked(fhl.g_book_group, checked)
+                const ibookCur = TPPageState.s.bookIndex - 1
+                // 讀使徒教父時自動含整個使徒教父 (不必勾)
+                const implicit = checkedWithImplicit(groups, [], ibookCur)
+                const eff = effectiveChecked(groups, [...checked, ...implicit])
                 const allOn = tree.every(n => checked.includes(n.name))
                 root.empty().append(
                     $('<div class="scope-note">').text(gbText('只搜尋目前閱讀的書卷；勾選的分類也一起搜尋。')),
+                    optIn.length ? $('<div class="scope-note">').text(`${optIn.map(gbText).join('、')} ${gbText('預設不搜尋，勾選才搜尋；讀它裡面的書時自動含。')}`) : null,
                     $('<label class="scope-row scope-cur">').append(
                         $('<input type="checkbox" checked disabled>'),
                         $('<span>').text(`${gbText('目前閱讀的書卷')}：${curName()}`)),
@@ -58,13 +64,15 @@ function showScopeDialog(btn, onChange) {
                     ...tree.map(n => {
                         const by = eff.get(n.name)
                         const on = eff.has(n.name)
+                        const auto = implicit.includes(n.name) && !checked.includes(n.name) // 因為正在讀它裡面的書而含
+                        const note = by ? `${gbText('含於')} ${gbText(by)}` : auto ? gbText('讀它的書時自動含') : null
                         return $('<label class="scope-row">').css('padding-left', `${n.depth * 1.4}em`)
-                            .attr('title', by ? `${gbText('含於')} ${gbText(by)}` : null)
-                            .toggleClass('scope-implied', by != null)
+                            .attr('title', note)
+                            .toggleClass('scope-implied', by != null || auto)
                             .append(
-                                $('<input type="checkbox">').attr('data-name', n.name).prop('checked', on).prop('disabled', by != null),
+                                $('<input type="checkbox">').attr('data-name', n.name).prop('checked', on).prop('disabled', by != null || auto),
                                 $('<span>').text(gbText(n.name)),
-                                by ? $('<small>').text(`${gbText('含於')} ${gbText(by)}`) : null)
+                                note ? $('<small>').text(note) : null)
                     }))
             }
             const save = () => { writeScope(checked); onChange(); render() }
@@ -83,7 +91,4 @@ function showScopeDialog(btn, onChange) {
     })
 }
 
-/** 書卷中文全名 (0based)，gb 轉換由呼叫端 */
-function BibleNames() {
-    return fhl.g_book_all.map(a1 => a1[2])
-}
+

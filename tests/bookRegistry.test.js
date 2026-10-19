@@ -177,6 +177,20 @@ describe('上一章 / 下一章', () => {
     })
 })
 
+describe('clampAddr (hash、搜尋框跳轉共用)', () => {
+    it('夾在有效範圍', () => {
+        expect(BookRegistry.clampAddr(212, 99, 99)).toEqual({ book: 212, chap: 16, sec: 8 })
+        expect(BookRegistry.clampAddr(212, 0, 0)).toEqual({ book: 212, chap: 1, sec: 1 })
+        expect(BookRegistry.clampAddr(45, 1, 1)).toEqual({ book: 45, chap: 1, sec: 1 })
+        expect(BookRegistry.clampAddr(19, 119, 999)).toEqual({ book: 19, chap: 119, sec: 176 })
+    })
+    it('沒註冊的書夾在 1–66；只有沒編號段落的章節是 0', () => {
+        expect(BookRegistry.clampAddr(999, 1, 1).book).toBe(66)
+        expect(BookRegistry.clampAddr(0, 1, 1).book).toBe(1)
+        expect(BookRegistry.clampAddr(210, 14, 5)).toEqual({ book: 210, chap: 14, sec: 0 })
+    })
+})
+
 describe('沒註冊的書：安全的預設值，不丟錯', () => {
     it('apo (之後才有)', () => {
         expect(BookRegistry.has(101)).toBe(false)

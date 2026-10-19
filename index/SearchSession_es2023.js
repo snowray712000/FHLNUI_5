@@ -1,6 +1,10 @@
 import { searchKeywordAsync, searchSnAsync, queryQsbAsync, addrsToQstr, isGreekKeyword } from './SearchApi_es2023.js'
 import { isHebrewKeyword } from './hebCode.es2023.js'
 import { parseSnQuery, combineSnResults, termsOf, positiveTermsOf, assertSnQuery } from './snQuery.es2023.js'
+import { searchAfAsync } from './searchAf.es2023.js'
+import { AF_VERSION } from './qafAsync.es2023.js'
+import { scopeHasOptIn } from './SearchScope.es2023.js'
+import { searchBookGroups } from './searchBookGroups.es2023.js'
 
 /**
  * ### 一次搜尋的資料與狀態 (不碰 DOM)
@@ -11,7 +15,8 @@ import { parseSnQuery, combineSnResults, termsOf, positiveTermsOf, assertSnQuery
  * @typedef {import('./SearchApi_es2023.js').SearchAddr} SearchAddr
  * @typedef {import('./SearchApi_es2023.js').SearchText} SearchText
  *
- * @typedef {SearchAddr & {vers: string[]}} SearchVerse 一節，vers 是在此節找到關鍵字的譯本
+ * @typedef {SearchAddr & {vers: string[], afText?: string, isIntro?: boolean}} SearchVerse 一節，vers 是在此節找到關鍵字的譯本；
+ *   使徒教父 (ibook 200–216，vers 只有 afhuang) 的經文隨搜尋回來，在 afText (導論 isIntro 是片段)，不再取
  * @typedef {SearchAddr & {texts: SearchText[]}} SearchRow 顯示用，一節，各譯本經文
  *
  * @typedef {'keyword'|'sn'|'reference'} SearchKind
@@ -28,6 +33,8 @@ export class SearchSession {
     /** @type {0|1} */ gb
     /** @type {0|1} 經文是否帶 SN */ strong
     /** @type {string} 目前閱讀的書卷，reference 省略書卷時用 */ engs
+    /** @type {number} 目前閱讀的書卷 0based (使徒教父沒有 engs 可用，所以另存) */ ibookCur
+    /** @type {string} 實際送去搜尋使徒教父的關鍵字 (簡體會轉成繁體)，標示關鍵字用；沒搜尋是 '' */ afKeyword = ''
     /** @type {string} sn 搜尋時，純數字 (上色用)；多項時是第一項 */ sn = null
     /** @type {string[]} sn 搜尋的所有 SN，純數字 (上色用) */ sns = []
     /** @type {string[]} 使用者目前選的譯本 (原文關鍵字時 versions 會被換掉，譯本對照仍用這個) */ userVersions
@@ -40,14 +47,17 @@ export class SearchSession {
     /** @type {{ver: string, reason: string}[]} 無法搜尋的譯本 */ failedVersions = []
     /** @type {string[]} 新約原文搜尋結果太多、沒有列入的書卷 (engs) */ tooManyBooks = []
     /** @type {SearchRow[]} reference 搜尋直接取得經文 */ #rowsOfReference = []
+    /** @type {{ver: string, addrs: SearchAddr[]}[]} 新舊約各譯本的搜尋結果 (不含使徒教父)；範圍改了要重新合併 */ #perVer = []
+    /** @type {import('./searchAf.es2023.js').AfHit[] | null} 使徒教父的命中；null 是還沒搜尋 */ #afHits = null
 
+    /** @type {SearchVerse[]} 計算範圍外之前的節 (沒有範圍時不含使徒教父) */ #pool = []
     /** @type {SearchVerse[]} 目前範圍內的節 */ filtered = []
     /** 目前範圍已經取過經文的節數 */ cursor = 0
     #filterSeq = 0
     #abort = new AbortController()
 
     /**
-     * @param {{keyword: string, versions: string[], gb: 0|1, strong: 0|1, engs: string, scope?: Set<number> | null}} arg
+     * @param {{keyword: string, versions: string[], gb: 0|1, strong: 0|1, engs: string, ibookCur?: number, scope?: Set<number> | null}} arg
      */
     constructor(arg) {
         this.keyword = arg.keyword.trim()
@@ -56,6 +66,7 @@ export class SearchSession {
         this.gb = arg.gb
         this.strong = arg.strong
         this.engs = arg.engs
+        this.ibookCur = arg.ibookCur ?? fhl.engs_2_iBook(arg.engs)
         this.scope = arg.scope ?? null
         this.kind = SearchSession.determineKind(this.keyword)
         // 希臘文：查新約原文 (fhlwh) 與七十士譯本 (lxx)，不論目前選的譯本
@@ -119,14 +130,40 @@ export class SearchSession {
             this.failedVersions = perVer.failed
             this.tooManyBooks = perVer.tooManyBooks
         }
-        this.#mergeVerses(perVer)
+        this.#perVer = perVer
+        await this.ensureAfAsync()
+        this.#mergeVerses()
     }
 
-    /** @param {{ver: string, addrs: SearchAddr[]}[]} perVer */
-    #mergeVerses(perVer) {
+    /** 使徒教父 (seaf.php)：只有一般關鍵字 (不是 SN、經文位置、希臘文、希伯來文)，而且範圍有勾使徒教父時才搜尋 */
+    get wantsAf() {
+        return this.kind == 'keyword' && !isGreekKeyword(this.keyword) && !isHebrewKeyword(this.keyword)
+            && scopeHasOptIn(this.scope, searchBookGroups())
+    }
+
+    /**
+     * 範圍有使徒教父、而還沒搜尋時才搜尋 (範圍改了才勾到使徒教父時也呼叫)；失敗只記在 failedVersions，不影響新舊約的結果。
+     * 呼叫後要 setScope / 重新篩選
+     */
+    async ensureAfAsync() {
+        if (this.#afHits != null || !this.wantsAf) return
+        try {
+            const r = await searchAfAsync(this.keyword, this.#abort.signal)
+            this.#afHits = r.hits
+            this.afKeyword = r.keyword
+        } catch (e) {
+            if (this.isAborted) return
+            this.#afHits = []
+            this.failedVersions = [...this.failedVersions, { ver: AF_VERSION, reason: e?.message ?? String(e) }]
+        }
+        this.#mergeVerses()
+    }
+
+    /** 新舊約各譯本 (#perVer) 加使徒教父 (#afHits) 合併成 allVerses */
+    #mergeVerses() {
         /** @type {Map<string, SearchVerse>} */
         const map = new Map()
-        for (const { ver, addrs } of perVer) {
+        for (const { ver, addrs } of this.#perVer) {
             for (const a1 of addrs) {
                 if (a1.ibook < 0) continue
                 const key = `${a1.ibook}:${a1.chap}:${a1.sec}`
@@ -138,13 +175,19 @@ export class SearchSession {
                 if (!v.vers.includes(ver)) v.vers.push(ver)
             }
         }
+        for (const h of this.#afHits ?? []) {
+            map.set(`${h.ibook}:${h.chap}:${h.sec}`, { ibook: h.ibook, chap: h.chap, sec: h.sec, vers: [AF_VERSION], afText: h.text, isIntro: h.isIntro })
+        }
         this.allVerses = [...map.values()].sort(compareAddr)
         this.#applyScope()
     }
 
     /** 依 scope 篩出 verses，重算每卷節數 */
     #applyScope() {
-        this.verses = this.scope == null ? this.allVerses : this.allVerses.filter(v => this.scope.has(v.ibook))
+        // 使徒教父是選擇加入：範圍裡沒有它時 (含 null 整本聖經)，先前搜到的使徒教父也不列、不算範圍外
+        const afIn = scopeHasOptIn(this.scope, searchBookGroups())
+        this.#pool = afIn ? this.allVerses : this.allVerses.filter(v => !isAfVerse(v))
+        this.verses = this.scope == null ? this.#pool : this.#pool.filter(v => this.scope.has(v.ibook))
         this.cntOfBook = {}
         for (const v of this.verses) {
             this.cntOfBook[v.ibook] = (this.cntOfBook[v.ibook] ?? 0) + 1
@@ -158,7 +201,7 @@ export class SearchSession {
     }
 
     /** 範圍外的節數 */
-    get outOfScope() { return this.allVerses.length - this.verses.length }
+    get outOfScope() { return this.#pool.length - this.verses.length }
 
     async #runReferenceAsync(signal) {
         const qstr = this.keyword.replace(/^#/, '').replace(/\|$/, '').trim()
@@ -207,10 +250,13 @@ export class SearchSession {
         const batch = this.filtered.slice(this.cursor, this.cursor + SearchSession.BATCH)
         this.cursor += batch.length
 
-        // qsb 一次只能一個譯本；每個譯本只取「在這個譯本找到」的節 (譯本對照時全取；只是對照的譯本失敗不影響整批)
+        // 使徒教父的經文隨搜尋回來，不用取；其餘 qsb 一次只能一個譯本，每個譯本只取「在這個譯本找到」的節
+        // (譯本對照時全取；只是對照的譯本失敗不影響整批)
+        const isAf = isAfVerse
+        const qsbBatch = batch.filter(v => !isAf(v))
         const searched = new Set(this.#searchedVersions)
-        const textsPerVer = await Promise.all(this.#versionsOfBatch(batch).map(ver => {
-            const addrs = this.compare ? batch : batch.filter(v => v.vers.includes(ver))
+        const textsPerVer = await Promise.all((qsbBatch.length ? this.#versionsOfBatch(qsbBatch) : []).map(ver => {
+            const addrs = this.compare ? qsbBatch : qsbBatch.filter(v => v.vers.includes(ver))
             const p = queryQsbAsync(addrsToQstr(addrs, this.gb), { version: ver, engs: this.engs, strong: this.strong, gb: this.gb }, signal)
             return searched.has(ver) ? p : p.catch(e => { if (!signal.aborted) console.warn(ver, e); return [] })
         }))
@@ -222,7 +268,9 @@ export class SearchSession {
 
         return batch.map(v => ({
             ibook: v.ibook, chap: v.chap, sec: v.sec,
-            texts: (this.compare ? this.compareVersions : v.vers).map(ver => map.get(`${ver}|${v.ibook}:${v.chap}:${v.sec}`)).filter(t => t != null),
+            texts: isAf(v)
+                ? [{ ibook: v.ibook, chap: v.chap, sec: v.sec, ver: AF_VERSION, bible_text: v.afText ?? '' }]
+                : (this.compare ? this.compareVersions : v.vers).map(ver => map.get(`${ver}|${v.ibook}:${v.chap}:${v.sec}`)).filter(t => t != null),
         }))
     }
 
@@ -238,6 +286,9 @@ export class SearchSession {
         return this.#searchedVersions.filter(ver => set.has(ver))
     }
 }
+
+/** 使徒教父的節 (經文隨搜尋回來，不用 qsb 取) @param {SearchVerse} v */
+function isAfVerse(v) { return v.vers.length == 1 && v.vers[0] == AF_VERSION }
 
 /** @param {SearchAddr} a @param {SearchAddr} b */
 function compareAddr(a, b) {
