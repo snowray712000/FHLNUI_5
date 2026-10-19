@@ -18,6 +18,7 @@ export const QSUB_URL = 'https://bible.fhl.net/api/qsub.php'
 /** 預設文本 */
 export const APO_VERSION = 'c1933'
 export const APO_VERSION_NAME = '1933年聖公會出版'
+export const APO_VERSION_NAME_GB = '1933年圣公会出版'
 /** 次經的文本代碼 (chdc 的 HTML 解析之後才做，P3) */
 export const APO_VERSIONS = /** @type {const} */ (['c1933', 'chdc'])
 

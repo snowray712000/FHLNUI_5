@@ -5,10 +5,10 @@
  * 「包在裡面」不是寫死的，是比對書卷：A 的書卷包含 B 的所有書卷，A 就包含 B (路加著作 ⊂ 福音書 ⊂ 新約)。
  *
  * 分類來自 `fhl.g_book_group` (key 是繁體分類名，value 是 0based ibook[])，其中「整卷聖經」不列出 (全勾就是整卷聖經)，
- * 再加上 searchBookGroups() 補的「使徒教父」。
+ * 再加上 searchBookGroups() 補的「次經」「使徒教父」。
  *
- * 「選擇加入」的分類 (OPT_IN，目前只有使徒教父)：不算在整卷聖經內、預設不勾，勾了才搜尋；
- * 但目前讀的書就在裡面時 (例如正在讀遺訓)，自動含整個分類。
+ * 「選擇加入」的分類 (OPT_IN，次經、使徒教父)：不算在整卷聖經內、預設不勾，勾了才搜尋；
+ * 但目前讀的書就在裡面時 (例如正在讀遺訓、多比傳)，自動含整個分類。
  *
  * @typedef {Object.<string, number[]>} BookGroup
  * @typedef {{name: string, books: number[], depth: number}} ScopeNode 依樹狀排好 (大分類在前，小分類縮排)
@@ -16,8 +16,8 @@
 
 const ALL = '整卷聖經'
 const KEY = 'fhlSearchScope'
-/** 選擇加入的分類：預設不勾、不算在整卷聖經內 (z261019a) */
-export const OPT_IN = ['使徒教父']
+/** 選擇加入的分類：預設不勾、不算在整卷聖經內 (z261019a、z261019b) */
+export const OPT_IN = ['次經', '使徒教父']
 
 /**
  * 可勾選的分類，排成樹狀 (深度優先)：舊約 → 摩西五經…；新約 → 福音書 → 路加著作；保羅書信…
@@ -99,6 +99,11 @@ export function scopeHasOptIn(scope, bookGroup) {
     if (scope == null) return false
     const optInBooks = new Set(OPT_IN.flatMap(name => bookGroup[name] ?? []))
     return [...scope].some(b => optInBooks.has(b))
+}
+
+/** 這個範圍有沒有搜尋某個「選擇加入」分類 (有任何一卷在裡面)。null (整本聖經) 沒有 @param {Set<number> | null} scope @param {BookGroup} bookGroup @param {string} name 分類名 */
+export function scopeHasGroup(scope, bookGroup, name) {
+    return scope != null && (bookGroup[name] ?? []).some(b => scope.has(b))
 }
 
 /** 沒存過時：除了選擇加入的分類，全勾 (與有這個設定之前一樣，整本聖經) @param {BookGroup} bookGroup @returns {string[]} 自己勾的分類名 */

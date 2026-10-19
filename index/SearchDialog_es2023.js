@@ -19,10 +19,10 @@ import { queryReferenceAndShowAtDialogAsync } from './queryReferenceAndShowAtDia
 import { showFloatBar } from './RefChooseBar.es2023.js'
 import { bindIntroHelp } from './IntroHelp.es2023.js'
 import { bindScopeButton, scopeButtonHtml, currentScopeLabel } from './SearchScopeDialog.es2023.js'
-import { readScope, scopeBooks, scopeGroups, checkedWithImplicit, scopeHasOptIn } from './SearchScope.es2023.js'
+import { readScope, scopeBooks, scopeGroups, checkedWithImplicit } from './SearchScope.es2023.js'
 import { BookRegistry } from './BookRegistry.es2023.js'
 import { searchBookGroups } from './searchBookGroups.es2023.js'
-import { AF_VERSION } from './qafAsync.es2023.js'
+import { corpusOfVersion, isExternalVerse, SEARCH_CORPORA } from './searchCorpora.es2023.js'
 import { gotoAddress } from './gotoAddress.es2023.js'
 
 /**
@@ -147,10 +147,11 @@ export class SearchDialog {
         const session = this.session
         if (session == null || session.kind == 'reference' || this.#dlgHtml?.dlg == null) return
         session.setScope(currentScope(session.ibookCur))
-        // 這時才勾到使徒教父：還沒搜尋過，現在才搜 (只有這一個額外的請求)
-        if (session.wantsAf) {
-            this.#setStatus(gbText('搜尋使徒教父…'))
-            await session.ensureAfAsync()
+        // 這時才勾到使徒教父 / 次經：還沒搜尋過，現在才搜 (每一類一個額外的請求)
+        const wanted = session.wantedCorpora
+        if (wanted.length) {
+            this.#setStatus(`${gbText('搜尋')}${wanted.map(c => gbText(c.group)).join('、')}…`)
+            await session.ensureExternalAsync()
             if (session !== this.session) return
         }
         this.filter = this.#suggestFilter(session)
@@ -411,8 +412,8 @@ export class SearchDialog {
         this.#loadingToken = null
         if (rows == null) return
 
-        // 使徒教父是繁體，簡體關鍵字也要標示轉成繁體後的詞
-        const keys = session.kind == 'sn' ? { sns: session.sns } : { words: session.kind == 'keyword' ? `${session.keyword} ${session.afKeyword}` : '' }
+        // 使徒教父是繁體、次經搜尋用繁體 (另有異體字寫法)：簡體關鍵字也要標示轉成繁體後的詞
+        const keys = session.kind == 'sn' ? { sns: session.sns } : { words: session.kind == 'keyword' ? `${session.keyword} ${session.extKeyword}` : '' }
         const $grid = renderVerseGrid({ ...gridOpt(session), rows: verseRows })
         $grid.find('.sn').addClass('seSN sebutton') // 搜尋結果的 SN 樣式 (灰、小)、點了開字典
         markSearchKeys($grid, keys)
@@ -450,14 +451,14 @@ function currentScope(ibookCur) {
     return scopeBooks(groups, readScope(groups), ibookCur)
 }
 
-/** 書卷簡稱 (0 起算的 ibook)，含使徒教父；簡繁依目前設定 */
+/** 書卷簡稱 (0 起算的 ibook)，含次經、使徒教父；簡繁依目前設定 */
 function bookName(ibook) {
     return BookRegistry.nameShort(ibook + 1, TPPageState.s.gb == 1)
 }
 
-/** 譯本名稱：使徒教父不在 uiabv.php，自己給 */
+/** 譯本名稱：使徒教父、次經的文本不在 uiabv.php，自己給 */
 function versionName(ver, isGb) {
-    return ver == AF_VERSION ? '使徒教父' : abvphp.get_cname_from_book(ver, isGb) || ver
+    return corpusOfVersion(ver)?.name(isGb) ?? (abvphp.get_cname_from_book(ver, isGb) || ver)
 }
 
 const ALL_GROUP = '整卷聖經' // fhl.g_book_group 的第一個，全部
@@ -495,14 +496,13 @@ function gridOpt(session) {
     const found = session.kind == 'reference' ? null : new Set(session.verses.flatMap(v => v.vers))
     let vers = session.compare && session.kind != 'reference' ? session.compareVersions
         : (session.kind == 'sn' ? ['unv'] : session.versions).filter(v => !failed.has(v) && (found == null || found.has(v)))
-    // 使徒教父不是使用者選的譯本：目前篩選的節裡有它才多一欄 (只有它自己的節有字，其它節留空)；
-    // 目前篩選的節全是使徒教父時，新舊約譯本整欄都是空的，不列
+    // 使徒教父、次經不是使用者選的譯本：目前篩選的節裡有它才多一欄 (只有它自己的節有字，其它節留空)；
+    // 目前篩選的節全是它們 (使徒教父、次經) 時，新舊約譯本整欄都是空的，不列
     if (session.kind != 'reference') {
-        const isAf = v => v.vers.length == 1 && v.vers[0] == AF_VERSION
-        const hasAf = session.filtered.some(isAf)
-        if (hasAf && session.filtered.every(isAf)) vers = []
-        if (hasAf && !vers.includes(AF_VERSION)) vers.push(AF_VERSION)
-        else if (!hasAf) vers = vers.filter(v => v != AF_VERSION)
+        const extVers = new Set(session.filtered.filter(isExternalVerse).map(v => v.vers[0]))
+        if (extVers.size && session.filtered.every(isExternalVerse)) vers = []
+        vers = vers.filter(v => corpusOfVersion(v) == null)
+        for (const c of SEARCH_CORPORA) if (extVers.has(c.version)) vers.push(c.version)
     }
     return {
         versions: vers.map(ver => ({ version: ver, name: versionName(ver, session.gb == 1), isRtl: ver == 'bhs' })),
@@ -534,8 +534,8 @@ async function toVerseRowsAsync(rows) {
     const isFootLoad = TPPageState.s.foot_note_show_method == 2
     await Promise.all([...recordsOfVer].map(async ([ver, records]) => {
         const dtexts_with_addr = cvt_others(ver, records)
-        // 使徒教父的注腳沒有整章查詢 (AF/rt.php 一則一次請求)，搜尋結果一次太多，所以維持【n】，點了才查 (showFootPopupAsync)
-        if (isFootLoad && ver != AF_VERSION) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
+        // 使徒教父的注腳沒有整章查詢 (AF/rt.php 一則一次請求)，搜尋結果一次太多，所以維持【n】，點了才查 (showFootPopupAsync)；次經沒有注腳
+        if (isFootLoad && corpusOfVersion(ver) == null) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
         for (const [book, chap, sec, dtexts] of dtexts_with_addr) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
     }))
 
