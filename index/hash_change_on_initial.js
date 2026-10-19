@@ -9,8 +9,11 @@ import { ViewHistoryData } from './ViewHistoryData_es2023.js'
 import { BookRegistry } from './BookRegistry.es2023.js'
 
 export async function hash_change_on_initial() {
-    // - 使徒教父的書卷表：選書選單、歷史記錄、hash 都要用，不管網址是什麼都先載入 (失敗只是少了使徒教父)
-    try { await BookRegistry.loadAfAsync() } catch (e) { console.warn('使徒教父書卷表載入失敗', e) }
+    // - 使徒教父、次經的書卷表：選書選單、歷史記錄、hash 都要用，不管網址是什麼都先載入 (失敗只是少了那一類)
+    await Promise.all([
+        BookRegistry.loadAfAsync().catch(e => console.warn('使徒教父書卷表載入失敗', e)),
+        BookRegistry.loadApoAsync().catch(e => console.warn('次經書卷表載入失敗', e)),
+    ])
 
     // - 有 `#/bible/` 開頭才處理
     if (!location.hash.startsWith('#/bible/')) {

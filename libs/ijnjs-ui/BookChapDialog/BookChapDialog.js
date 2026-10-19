@@ -141,6 +141,8 @@
              * @type {JQuery<HTMLElement>?}
              */
             var lastClickToolbarItem
+            /** 工具列上新舊約之外的書卷類別 (opt 屬性)，順序同按鈕。要放在最前面，下面的函式一進來就會用 */
+            var EXTRA_CORPORA = ['apo', 'af']
 
             copyArgsToResult()
             addToolbarsClickEvents()
@@ -176,16 +178,17 @@
             function addToolbarsClickEvents() {
                 // 每次 open 都會呼叫，若有加事件，要小心不要重複加
                 // 依 opt 屬性找按鈕，不用位置 (加了「使徒教父」之後位置會變)
-                var af = window.bookRegistry // 使徒教父 (201–217) 的書卷表 (index/BookRegistry.es2023.js)，載入失敗就沒有這一頁
-                toolbarOpt('af').toggle(!!af && af.ids('af').length > 0)
-                toolbarOpt('af').off('click').on('click', function (e) {
-                    // 按鈕裡的 ? (說明 docs/使徒教父說明.md，點擊由 BookSelect.es2023.js 綁 bindIntroHelp)：只開說明，不切到使徒教父這一頁
-                    if ($(e.target).closest('.intro-help').length) return
-                    // 使徒教父
-                    $(this).trigger('focus')
-                    lastClickToolbarItem = $(this)
+                var reg = window.bookRegistry // 次經 (101–115)、使徒教父 (201–217) 的書卷表 (index/BookRegistry.es2023.js)，載入失敗就沒有那一頁
+                EXTRA_CORPORA.forEach(function (corpus) {
+                    toolbarOpt(corpus).toggle(!!reg && reg.ids(corpus).length > 0)
+                    toolbarOpt(corpus).off('click').on('click', function (e) {
+                        // 按鈕裡的 ? (使徒教父說明 docs/使徒教父說明.md，點擊由 BookSelect.es2023.js 綁 bindIntroHelp)：只開說明，不切到這一頁
+                        if ($(e.target).closest('.intro-help').length) return
+                        $(this).trigger('focus')
+                        lastClickToolbarItem = $(this)
 
-                    gBooks().gAfItems(getResult().book)
+                        gBooks().gExtraItems(corpus, getResult().book)
+                    })
                 })
                 toolbarOpt('old').off('click').on('click', function () {
                     // 舊約
@@ -240,7 +243,7 @@
             // 在 click book 事件也會用到。(若是選到單一書卷的，則直接關閉視窗了，不用選章了)
             function isThisBookOnlyOneChap() {
                 var book = getResult().book
-                if (isAfBook(book)) { return window.bookRegistry.countChap(book) == 1 }
+                if (isExtraBook(book)) { return window.bookRegistry.countChap(book) == 1 }
                 return dataG.BOOK_WHERE_1CHAP.includes(book)
             }
 
@@ -254,8 +257,8 @@
 
                 function getControlViaArgs() {
                     var book = args.book
-                    if (isAfBook(book)) {
-                        return toolbarOpt('af')
+                    if (isExtraBook(book)) {
+                        return toolbarOpt(window.bookRegistry.corpusOf(book))
                     }
                     if (book > 39) {
                         return toolbarOpt('new')
@@ -297,7 +300,7 @@
 
             function gChapItems(book, act) {
                 contents$.empty()
-                var cnt = isAfBook(book) ? window.bookRegistry.countChap(book) : dataG.getCountChapOfBook(book)
+                var cnt = isExtraBook(book) ? window.bookRegistry.countChap(book) : dataG.getCountChapOfBook(book)
                 for (var i = 0; i < cnt; ++i) {
                     var r1 = $('<button type="button" class="btn btn-outline-dark"></button>')
                     var bk = i + 1
@@ -326,7 +329,7 @@
                     gNewTestmentItems,
                     gOldTestmentItems,
                     gOldTestmentHebrewOrderItems,
-                    gAfItems,
+                    gExtraItems,
                 }
                 /**
                  * @returns {string[]}
@@ -382,11 +385,11 @@
                         r1.appendTo(contents$)
                     }
                 }
-                /** 使徒教父：書名由 BookRegistry 來 (id 不連續，不能用 items[bk - 1]) */
-                function gAfItems(act) {
+                /** 次經、使徒教父：書名由 BookRegistry 來 (id 不連續，不能用 items[bk - 1]) */
+                function gExtraItems(corpus, act) {
                     contents$.empty()
                     var reg = window.bookRegistry
-                    reg.ids('af').forEach(function (bk) {
+                    reg.ids(corpus).forEach(function (bk) {
                         var na = args.isFullname ? reg.nameFull(bk, args.isGb) : reg.nameShort(bk, args.isGb)
                         gCore(na, bk, act).appendTo(contents$)
                     })
@@ -409,9 +412,9 @@
             function toolbarOpt(opt) {
                 return getToolbarsOptions().filter('[opt="' + opt + '"]')
             }
-            /** 使徒教父 (id 201–299)；書卷表沒載入時當不是，免得出錯 */
-            function isAfBook(book) {
-                return book >= 200 && book < 300 && !!window.bookRegistry && window.bookRegistry.has(book)
+            /** 次經、使徒教父 (id 101–299)；書卷表沒載入時當不是，免得出錯 */
+            function isExtraBook(book) {
+                return book >= 100 && book < 300 && !!window.bookRegistry && window.bookRegistry.has(book)
             }
         }
     }

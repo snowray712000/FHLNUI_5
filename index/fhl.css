@@ -574,7 +574,7 @@ body {
     position: absolute;
     top: 0px;
     transform: translate(-50%, 0%);
-    width: 1160px; /* 首尾 80 + 6 欄 128 + 使徒教父欄 190 = 1118，再加 ul 預設的左 padding 32，放不下最後一欄會折行 */
+    width: 1320px; /* 首尾 80 + 6 欄 128 + 次經欄 150 + 使徒教父欄 190 = 1268，再加 ul 預設的左 padding 32，放不下最後一欄會折行；BookSelect 的視窗寬度門檻 1360 要跟著 */
 	height: 0px;
     background: transparent;/*#404040;*/
     padding: 0px;
@@ -632,6 +632,13 @@ body {
 }
 .testaments ul ul {
     padding: 0px 0px 0px 8px;
+}
+/* 次經欄：書名最長 7 字 (以斯拉續編上卷) */
+.testaments>ul>li.apo-col {
+    width: 150px;
+}
+#bookSelectName li.apo-col li {
+    width: 132px;
 }
 /* 使徒教父欄：書名很長 (伊格那丟致以弗所人書)，比其他欄寬 */
 .testaments>ul>li.af-col {

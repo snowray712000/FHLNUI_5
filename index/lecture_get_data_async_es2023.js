@@ -8,6 +8,7 @@ import { TPPageState } from "./TPPageState.es2023.js";
 import { qsb } from "./api/qsb.js";
 import { BookRegistry } from "./BookRegistry.es2023.js";
 import { qafAsync } from "./qafAsync.es2023.js";
+import { qsubAsync } from "./qsubAsync.es2023.js";
 
 // renderLectureHtml @ FhlLecture.js
 /**
@@ -23,6 +24,10 @@ export async function lecture_get_data_async() {
     // 使徒教父：不是譯本，只有一種文本 (qaf.php)，不管 ps.version 選了什麼
     if (BookRegistry.corpusOf(book) === 'af') {
         return [await qafAsync({ bid: book, chap })]
+    }
+    // 次經 (qsub.php)：P1 先只有預設文本 c1933，不管 ps.version 選了什麼 (兩個文本並排是之後，docs/z261019b P3)。簡繁由上游 gb=1 處理
+    if (BookRegistry.corpusOf(book) === 'apo') {
+        return [await qsubAsync({ bid: book, chap, gb })]
     }
 
     const versionPromises = ps.version.map(ver => {

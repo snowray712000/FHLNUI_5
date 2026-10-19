@@ -4,6 +4,16 @@ import { gbText } from "./gbText.es2023.js";
 import { BibleConstant } from "./BibleConstant.es2023.js";
 import { BookRegistry } from "./BookRegistry.es2023.js";
 import { helpButtonHtml, bindIntroHelp } from "./IntroHelp.es2023.js";
+
+/** 次經欄 (150px)、使徒教父欄 (190px) 比一般欄 (128px) 寬多少；點書名後的章清單要多挪這些，才不會蓋到書名 */
+const APO_COL_EXTRA = 22, AF_COL_EXTRA = 62
+/** 這個書名 li 所在的欄之前 (含自己) 的特寬欄累計多出的寬度 @param {JQuery} $book */
+function extraColumnShift($book) {
+    const hasApo = $book.closest('.testaments').find('li.apo-col').length > 0
+    if ($book.closest('li.apo-col').length) return APO_COL_EXTRA
+    if ($book.closest('li.af-col').length) return AF_COL_EXTRA + (hasApo ? APO_COL_EXTRA : 0)
+    return 0
+}
 export class BookSelectName {
     static #s = null
     /** @returns {BookSelectName} */
@@ -83,7 +93,7 @@ export class BookSelectName {
                             else {
                                 var position = that.offset();
                                 position.left = $('#old-testament').position().left + that.position().left + 128 * (selectedColumnIndex) + 40
-                                    + (that.closest('li.af-col').length ? 62 : 0); // 使徒教父欄比其他欄寬 62px (190 - 128)，章清單才不會蓋到書名
+                                    + extraColumnShift(that); // 次經欄、使徒教父欄比其他欄寬，章清單才不會蓋到書名
                                 position.top = $('#old-testament').position().top + 25;
                                 bookSelectChapter.init(ps, $('#bookSelectChapter'), idx, position);
                             }
@@ -211,15 +221,17 @@ export class BookSelectName {
         //  html += "<li><span>" + nagb[i] + "<i class='fa fa-angle-right fa-fw'></i></span></li>";
         html += "</ul></li>";
 
-        // 使徒教父 (201–217)：書卷表由 BookRegistry.loadAfAsync 載入 (hash_change_on_initial)，沒載到就沒有這一欄
-        const afIds = BookRegistry.ids('af')
-        if (afIds.length) {
-            html += "<li class='af-col'><span class='bookClass'>" + gbt("使徒教父") + helpButtonHtml('使徒教父') + "</span><ul>";
-            for (const id of afIds) {
-                html += "<li data-bid='" + id + "' chineses='" + BookRegistry.nameShort(id, ps.gb == 1) + "'><span>" + BookRegistry.nameFull(id, ps.gb == 1) + "<i class='fa fa-angle-right fa-fw'></i></span></li>";
+        // 次經 (101–115)、使徒教父 (201–217)：書卷表由 BookRegistry.loadApoAsync / loadAfAsync 載入 (hash_change_on_initial)，沒載到就沒有那一欄
+        const bookColumn = (cls, title, ids, helpHtml = '') => {
+            if (!ids.length) return ''
+            let h = "<li class='extra-col " + cls + "'><span class='bookClass'>" + gbt(title) + helpHtml + "</span><ul>";
+            for (const id of ids) {
+                h += "<li data-bid='" + id + "' chineses='" + BookRegistry.nameShort(id, ps.gb == 1) + "'><span>" + BookRegistry.nameFull(id, ps.gb == 1) + "<i class='fa fa-angle-right fa-fw'></i></span></li>";
             }
-            html += "</ul></li>";
+            return h + "</ul></li>"
         }
+        html += bookColumn('apo-col', '次經', BookRegistry.ids('apo'))
+        html += bookColumn('af-col', '使徒教父', BookRegistry.ids('af'), helpButtonHtml('使徒教父'))
         html += "<li></li></ul></div>";
 
         dom.html(html);

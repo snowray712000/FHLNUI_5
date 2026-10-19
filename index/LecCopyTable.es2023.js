@@ -29,6 +29,8 @@
  *
  * 並排是 CSS Grid (.lec-grid / .verse-grid > .vercol display: contents)，DOM 仍一欄一欄 (欄優先)
  */
+import { AF_VERSION, AF_VERSION_NAME } from './qafAsync.es2023.js'
+import { APO_VERSION, APO_VERSION_NAME } from './qsubAsync.es2023.js'
 import { el } from './auDom.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
 import { cvtAddrsToRef } from './cvtAddrsToRef.es2023.js'
@@ -1212,8 +1214,10 @@ function toClipboardData({ scope, versions, columns, labels, range, hit, isOneCe
 const cellRuns = (c, runsOf) => c ? ('label' in c ? [{ t: String(c.label ?? '') }] : runsOf(c)) : []
 
 const isGbNow = () => TPPageState.s.gb == 1
+/** 不在 uiabv.php 的文本 (使徒教父、次經) 的名稱，免得複製出來是 afhuang、c1933 */
+const CORPUS_VER_NAMES = { [AF_VERSION]: AF_VERSION_NAME, [APO_VERSION]: APO_VERSION_NAME }
 /** @param {string} v 譯本代碼 */
-const verName = v => window.abvphp?.get_cname_from_book?.(v, isGbNow()) || v
+const verName = v => window.abvphp?.get_cname_from_book?.(v, isGbNow()) || CORPUS_VER_NAMES[v] || v
 
 /**
  * 並排的表頭與格：每欄把 rowspan 攤回每一列 (cell 或 null = 被上面佔用)；有標籤欄時第一欄是經文位置
