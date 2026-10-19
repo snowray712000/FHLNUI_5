@@ -6,6 +6,11 @@ import crypto from 'node:crypto'
 // dev：取代 Live Server。大部分檔案仍是傳統全域 script 或以 $.ajax 在執行時載入，因此不讓 Vite 預掃描依賴。
 // build：只打包 index/index.js 的 ES module 樹與 index.html 的 <link> CSS；
 //        其餘執行時才載入的檔案（傳統 script、ijnjs、.gz、圖片…）由 copyLegacyFiles 原樣複製到 dist/。
+// 使徒教父注腳在舊站 /AF/rt.php，沒有 CORS 標頭 (正式站同源沒問題)；開發時由這裡轉過去。見 index/afFootAsync.es2023.js
+const AF_PROXY = {
+  '/AF/rt.php': { target: 'https://bible.fhl.net', changeOrigin: true },
+}
+
 export default defineConfig({
   root: '.',
   base: './', // 同一份 dist 可放在 /NUI/、/~sean/bible/ 等任何路徑下
@@ -14,7 +19,10 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     open: false,
+    proxy: AF_PROXY,
   },
+  // npm run preview 也要 (使徒教父注腳，見下)
+  preview: { proxy: AF_PROXY },
   optimizeDeps: {
     entries: ['index.html'], // 不去爬 tests/*.html、static/ 下的舊檔
     noDiscovery: true,

@@ -2,6 +2,7 @@ import { BookRegistry } from './BookRegistry.es2023.js'
 import { ParsingPopUp } from './ParsingPopUp.es2023.js'
 import { TPPageState } from './TPPageState.es2023.js'
 import { rtAsync } from './rtAsync.js'
+import { afFootAsync } from './afFootAsync.es2023.js'
 
 /**
  * 點注腳 .ft (設定「點擊顯示」時)：在它下方的小框顯示注腳內容。經文區、搜尋結果、交互參照共用
@@ -24,10 +25,15 @@ export async function showFootPopupAsync(e) {
     const chap = $this.attr('chap')
     const ver = $this.attr('ver')
     const $inside = $('#parsingPopUpInside')
-    // 使徒教父 (黃錫木譯本) 的註腳內容信望愛沒有提供 (rt.php 只有聖經譯本)，不送請求
+    // 使徒教父 (黃錫木譯本) 的注腳在舊站 AF/rt.php，不是 rt-nui.php
     if (!BookRegistry.isCanon(book)) {
-        $inside.text(`「${BookRegistry.nameFull(book, ps.gb == 1)}」的註腳內容信望愛沒有提供，這裡只標出註腳的位置。`)
         $inside.css({ width: '100%', 'max-width': '323px', 'white-space': 'normal' })
+        try {
+            const text = await afFootAsync({ book, id })
+            $inside.text(text ?? `查不到注腳：${BookRegistry.nameFull(book, ps.gb == 1)} 注腳 ${id}`)
+        } catch (error) {
+            $inside.text(`錯誤:取得注腳時發生 (${BookRegistry.nameFull(book, ps.gb == 1)} 注腳 ${id}) ${error?.message ?? ''}`)
+        }
         return
     }
     try {

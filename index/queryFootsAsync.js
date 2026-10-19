@@ -2,17 +2,33 @@ import { rtAsync } from '../index/rtAsync.js';
 import { TPPageState } from './TPPageState.es2023.js';
 import { splitStringByRegex } from '../index/splitStringByRegex.es2023.js';
 import { BibleConstantHelper } from './../index/BibleConstantHelper.es2023.js'
+import { BookRegistry } from './BookRegistry.es2023.js'
+import { afFootAsync } from './afFootAsync.es2023.js'
 const MAX_PARALLEL = 4
 const MAX_TRY = 3
 
 /** @param {DFoot} foot @returns {Promise<string | null>} 查不到或失敗為 null */
 async function fetchFootTextAsync(foot) {
+    if (!BookRegistry.isCanon(foot.book)) return fetchAfFootTextAsync(foot)
     for (let i = 0; i < MAX_TRY; i++) {
         try {
             const re = await rtAsync({ book: foot.book, chap: foot.chap, id: foot.id, ver: foot.version })
             return re?.record?.[0]?.text ?? null // success 但 record_count 0：查不到，不必重試
         } catch (e) {
             if (i == MAX_TRY - 1) console.warn('注腳載入失敗', foot.version, foot.book, foot.chap, foot.id, e)
+            else await new Promise(r => setTimeout(r, 300 * (i + 1)))
+        }
+    }
+    return null
+}
+
+/** 使徒教父 (AF/rt.php)：沒有整章查詢，逐則查；失敗重試，仍失敗回 null (留【n】) @param {DFoot} foot */
+async function fetchAfFootTextAsync(foot) {
+    for (let i = 0; i < MAX_TRY; i++) {
+        try {
+            return await afFootAsync({ book: foot.book, id: foot.id })
+        } catch (e) {
+            if (i == MAX_TRY - 1) console.warn('使徒教父注腳載入失敗', foot.book, foot.id, e)
             else await new Promise(r => setTimeout(r, 300 * (i + 1)))
         }
     }
@@ -33,7 +49,7 @@ let bulkUnsupported = false
  * @returns {Promise<Map<number, string> | null>} null = 後端不支援 / 失敗，呼叫端退回逐 id 查詢
  */
 async function loadBulkAsync(foot) {
-    if (bulkUnsupported) return null
+    if (bulkUnsupported || !BookRegistry.isCanon(foot.book)) return null // 使徒教父沒有整章查詢
     const gb = TPPageState.s.gb == 1 ? 1 : 0
     const bookKey = `${foot.version}|${foot.book}|${gb}`
     const chapKey = `${bookKey}|${foot.chap}`

@@ -534,6 +534,7 @@ async function toVerseRowsAsync(rows) {
     const isFootLoad = TPPageState.s.foot_note_show_method == 2
     await Promise.all([...recordsOfVer].map(async ([ver, records]) => {
         const dtexts_with_addr = cvt_others(ver, records)
+        // 使徒教父的注腳沒有整章查詢 (AF/rt.php 一則一次請求)，搜尋結果一次太多，所以維持【n】，點了才查 (showFootPopupAsync)
         if (isFootLoad && ver != AF_VERSION) await queryFootsAsync(dtexts_with_addr, ver).catch(e => console.warn('注腳載入失敗', ver, e)) // 失敗仍顯示經文 (注腳維持【n】)
         for (const [book, chap, sec, dtexts] of dtexts_with_addr) dtextsOf.set(`${ver}|${book}.${chap}.${sec}`, dtexts)
     }))
